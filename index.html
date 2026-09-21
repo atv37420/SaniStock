@@ -725,8 +725,14 @@ function stockStatusClass(status){return status==='Rupture'?'status-rupture':sta
 function chargerStock(){
  const list=$('stockList');
  list.innerHTML='<div class="stockEmpty">Chargement du stock...</div>';
- if(!(window.google&&google.script&&google.script.run)){list.innerHTML='<div class="stockEmpty">Le stock se charge dans la version Google Apps Script.</div>';return}
- google.script.run.withSuccessHandler(function(rows){stockData=rows||[];populateStockProducts();renderStock()}).withFailureHandler(function(err){list.innerHTML='<div class="stockEmpty">Erreur : '+escapeHtml(err&&err.message?err.message:err)+'</div>'}).getStockData();
+
+ callApi('getStockData', [], function(rows){
+   stockData=Array.isArray(rows)?rows:[];
+   populateStockProducts();
+   renderStock();
+ }, function(err){
+   list.innerHTML='<div class="stockEmpty">Erreur : '+escapeHtml(err&&err.message?err.message:err)+'</div>';
+ });
 }
 function stockOptions(selected){
  return '<option value="">Sélectionner un produit</option>'+stockData.map(r=>'<option value="'+escapeHtml(r.produit)+'" '+(r.produit===selected?'selected':'')+'>'+escapeHtml(r.produit)+'</option>').join('');
