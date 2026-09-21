@@ -9,7 +9,7 @@
 <link rel="shortcut icon" type="image/png" href="https://raw.githubusercontent.com/atv37420/SaniStock/main/0.png">
 <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/atv37420/SaniStock/main/0.png">
 <link rel="apple-touch-icon" sizes="180x180" href="https://raw.githubusercontent.com/atv37420/SaniStock/main/0.png">
-<meta name="mobile-web-app-capable" content="yes">\n<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="SaniStock">
 <meta name="theme-color" content="#0757a0">
@@ -605,7 +605,7 @@ const SANISTOCK_API_URL = 'https://script.google.com/macros/s/AKfycbyM6jIC9l-gDN
   let seq = 0;
 
   function callApi(action, args, ok, fail){
-    const cb = 'sanistockCb_' + (++seq);
+    const cb = 'sanistockCb' + Date.now() + (++seq);
     let data = null;
 
     if(action === 'verifierCodeEntreeStock') data = {code: args[0]};
@@ -641,7 +641,8 @@ const SANISTOCK_API_URL = 'https://script.google.com/macros/s/AKfycbyM6jIC9l-gDN
     let url = SANISTOCK_API_URL
       + '?api=1'
       + '&action=' + encodeURIComponent(action)
-      + '&callback=' + encodeURIComponent(cb);
+      + '&callback=' + encodeURIComponent(cb)
+      + '&_=' + Date.now();
 
     if(data !== null && data !== undefined){
       url += '&data=' + encodeURIComponent(JSON.stringify(data));
@@ -724,16 +725,8 @@ function stockStatusClass(status){return status==='Rupture'?'status-rupture':sta
 function chargerStock(){
  const list=$('stockList');
  list.innerHTML='<div class="stockEmpty">Chargement du stock...</div>';
- google.script.run
-   .withSuccessHandler(function(rows){
-     stockData=rows||[];
-     populateStockProducts();
-     renderStock();
-   })
-   .withFailureHandler(function(err){
-     list.innerHTML='<div class="stockEmpty">Erreur : '+escapeHtml(err&&err.message?err.message:err)+'</div>';
-   })
-   .getStockData();
+ if(!(window.google&&google.script&&google.script.run)){list.innerHTML='<div class="stockEmpty">Le stock se charge dans la version Google Apps Script.</div>';return}
+ google.script.run.withSuccessHandler(function(rows){stockData=rows||[];populateStockProducts();renderStock()}).withFailureHandler(function(err){list.innerHTML='<div class="stockEmpty">Erreur : '+escapeHtml(err&&err.message?err.message:err)+'</div>'}).getStockData();
 }
 function stockOptions(selected){
  return '<option value="">Sélectionner un produit</option>'+stockData.map(r=>'<option value="'+escapeHtml(r.produit)+'" '+(r.produit===selected?'selected':'')+'>'+escapeHtml(r.produit)+'</option>').join('');
