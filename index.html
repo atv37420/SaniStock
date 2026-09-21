@@ -1,132 +1,185 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>SaniStock</title>
-<!-- Icône SaniStock pour téléphone -->
-<link rel="icon" type="image/png" href="https://raw.githubusercontent.com/atv37420/SaniStock/main/0.png">
-<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/atv37420/SaniStock/main/0.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#0757a0">
+/* === SANISTOCK GITHUB -> APPS SCRIPT API === */
 
-<style>
-*{box-sizing:border-box}
-html,body{margin:0;padding:0;width:100%;height:100%;background:#000;font-family:Arial,sans-serif}
-#app{width:100%;min-height:100vh;background:#000}
-.screen{display:none;width:100%;min-height:100vh}
-.screen.active{display:block}
+const SANISTOCK_API_URL =
+'https://script.google.com/macros/s/AKfycbyM6jIC9l-gDNH9q_Ubg5JSJj10gQ90ydz4N6XA0XusKVIYaA3trenNgYniboRUtp4GkQ/exec';
 
-/* PAGE D'ACCUEIL PLEIN ÉCRAN */
-.home{position:relative;width:100vh;height:100vh;height:100dvh;overflow:hidden;background:#000}
-.home img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;object-position:center center}
+(function(){
 
-/* Zones cliquables invisibles sur l'image d'accueil */
-.clickZone{position:absolute;left:20%;width:60%;border:0;background:transparent;padding:0;cursor:pointer;z-index:10;touch-action:manipulation}
-.stockZone{top:34.0%;height:8.5%}
-.disZone{top:44.0%;height:8.5%}
+  let seq = 0;
 
-/* PAGES SECONDAIRES */
-.page{padding:20px;background:#edf5fa;min-height:100vh}
-.stockPage{position:relative;padding:18px;color:#173f68;background:#dceaf4;min-height:100vh}
-.back{border:0;border-radius:12px;padding:11px 15px;background:#0758a5;color:#fff;font-weight:900;cursor:pointer;margin-bottom:15px}
-.stockPage h1, .page h1{text-align:center;color:#073f91;margin-top:15px}
-.card{background:#fff;border-radius:20px;padding:20px;color:#486783;box-shadow:0 8px 25px rgba(0,45,90,.12);margin-top:20px}
+  function callApi(action, args, ok, fail){
 
-/* TABLEAU DU STOCK */
-table{width:100%;border-collapse:collapse;margin-top:10px;text-align:left;font-size:14px}
-th,td{padding:10px;border-bottom:1px solid #ddd}
-th{background:#0758a5;color:white}
-</style>
-</head>
-<body>
-<div id="app">
-  <!-- PAGE D'ACCUEIL -->
-  <div class="screen active home" id="homeScreen">
-    <img src="https://raw.githubusercontent.com/atv37420/SaniStock/main/1.png" alt="SaniStock Accueil">
-    <button class="clickZone stockZone" onclick="allerPageStock()"></button>
-    <button class="clickZone disZone" onclick="allerPageDisinfection()"></button>
-  </div>
+    const cb = 'sanistockCb' + Date.now() + (++seq);
 
-  <!-- ÉCRAN STOCK -->
-  <div class="screen stockPage" id="stockScreen">
-    <button class="back" onclick="retourAccueil()">← Retour</button>
-    <h1>Gestion du Stock</h1>
-    <div class="card">
-      <div id="zone-affichage-stock">
-        <p style="text-align:center;">Chargement du stock...</p>
-      </div>
-    </div>
-  </div>
+    let data = null;
 
-  <!-- ÉCRAN DÉSINFECTION -->
-  <div class="screen page" id="disScreen">
-    <button class="back" onclick="retourAccueil()">← Retour</button>
-    <h1>Désinfection</h1>
-    <div class="card" style="text-align:center;">
-      <p>Module de désinfection prêt.</p>
-    </div>
-  </div>
-</div>
-
-<script>
-  const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbxz5dZkT7FyFx8ohxWmg2Pt23Yqx0LQDMqqJg8LM8bkfN3ulkb37VqUO8m8WvjyuGBqrg/exec";
-
-  function allerPageStock() {
-    document.getElementById('homeScreen').classList.remove('active');
-    document.getElementById('stockScreen').classList.add('active');
-    chargerStock();
-  }
-
-  function allerPageDisinfection() {
-    document.getElementById('homeScreen').classList.remove('active');
-    document.getElementById('disScreen').classList.add('active');
-  }
-
-  function retourAccueil() {
-    document.getElementById('stockScreen').classList.remove('active');
-    document.getElementById('disScreen').classList.remove('active');
-    document.getElementById('homeScreen').classList.add('active');
-  }
-
-  function chargerStock() {
-    const conteneur = document.getElementById("zone-affichage-stock");
-    conteneur.innerHTML = "<p style='text-align:center; color:#0758a5;'>Connexion au Google Sheet en cours...</p>";
-
-    const nomFonctionGlobal = "cb_" + Math.random().toString(36).substring(2, 9);
-    
-    window[nomFonctionGlobal] = function(reponse) {
-      delete window[nomFonctionGlobal];
-      const scriptElement = document.getElementById(nomFonctionGlobal);
-      if (scriptElement) scriptElement.remove();
-      
-      if (reponse && reponse.success && Array.isArray(reponse.data)) {
-        let html = "<table>";
-        html += "<tr><th>Produit</th><th style='text-align:center;'>Actuel</th><th style='text-align:center;'>Statut</th></tr>";
-        
-        reponse.data.forEach(item => {
-          let couleurStatut = item.statut === 'OK' ? 'green' : 'red';
-          html += `<tr>
-            <td>${item.produit || ''}</td>
-            <td style='text-align:center; font-weight:bold;'>${item.actuel || 0}</td>
-            <td style='text-align:center; color:${couleurStatut}; font-weight:bold;'>${item.statut || ''}</td>
-          </tr>`;
-        });
-        html += "</table>";
-        conteneur.innerHTML = html;
-      } else {
-        conteneur.innerHTML = "<p style='color:red; text-align:center;'>Erreur : Les données reçues sont invalides.</p>";
-      }
-    };
+    if(action === 'verifierCodeEntreeStock'){
+      data = {code: args[0]};
+    }
+    else if(action === 'getHistoriqueDesinfections'){
+      data = {limit: args[0]};
+    }
+    else if(args && args.length){
+      data = args[0];
+    }
 
     const script = document.createElement('script');
-    script.id = nomFonctionGlobal;
-    script.src = `${URL_APPS_SCRIPT}?api=1&action=getStockData&callback=${nomFonctionGlobal}`;
-    script.onerror = function() {
-      conteneur.innerHTML = "<p style='color:red; text-align:center;'>Erreur de connexion au serveur.</p>";
+    script.async = true;
+
+    let fini = false;
+
+    const timer = setTimeout(function(){
+
+      terminer();
+
+      if(fail){
+        fail(new Error('Délai de connexion Apps Script dépassé'));
+      }
+
+    },30000);
+
+
+    function terminer(){
+
+      if(fini) return;
+
+      fini = true;
+
+      clearTimeout(timer);
+
+      try{
+        delete window[cb];
+      }
+      catch(e){
+        window[cb] = undefined;
+      }
+
+      if(script.parentNode){
+        script.parentNode.removeChild(script);
+      }
+
+    }
+
+
+    window[cb] = function(res){
+
+      terminer();
+
+      if(res && res.success){
+
+        if(ok){
+          ok(res.data);
+        }
+
+      }
+      else{
+
+        if(fail){
+
+          fail(
+            new Error(
+              res && res.error
+              ? res.error
+              : 'Erreur SaniStock'
+            )
+          );
+
+        }
+
+      }
+
     };
-    document.body.appendChild(script);
+
+
+    let url =
+      SANISTOCK_API_URL
+      + '?api=1'
+      + '&action=' + encodeURIComponent(action)
+      + '&callback=' + encodeURIComponent(cb)
+      + '&_=' + Date.now();
+
+
+    if(data !== null && data !== undefined){
+
+      url +=
+        '&data='
+        + encodeURIComponent(JSON.stringify(data));
+
+    }
+
+
+    script.onerror = function(){
+
+      terminer();
+
+      if(fail){
+        fail(new Error('Connexion Apps Script impossible'));
+      }
+
+    };
+
+
+    script.src = url;
+
+    document.head.appendChild(script);
+
   }
-</script>
-</body>
-</html>
+
+
+
+  function runner(ok, fail){
+
+    return new Proxy({},{
+
+      get:function(_,prop){
+
+        if(prop === 'withSuccessHandler'){
+
+          return function(fn){
+
+            return runner(fn,fail);
+
+          };
+
+        }
+
+
+        if(prop === 'withFailureHandler'){
+
+          return function(fn){
+
+            return runner(ok,fn);
+
+          };
+
+        }
+
+
+        return function(){
+
+          callApi(
+            String(prop),
+            Array.from(arguments),
+            ok,
+            fail
+          );
+
+        };
+
+      }
+
+    });
+
+  }
+
+
+  window.google = window.google || {};
+
+  window.google.script = window.google.script || {};
+
+  window.google.script.run = runner(null,null);
+
+
+})();
+
+/* === FIN LIAISON API === */
