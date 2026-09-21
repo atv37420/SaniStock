@@ -18,36 +18,36 @@
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;width:100%;height:100%;min-height:100%;overflow-x:hidden;background:#000;font-family:Arial,sans-serif}
-body{display:block}
-#app{width:100%;max-width:none;min-height:100vh;background:#000}
+#app{width:100%;min-height:100vh;background:#000}
 .screen{display:none;width:100%;min-height:100vh}
 .screen.active{display:block}
 
-/* PAGE D'ACCUEIL PLEIN ÉCRAN — SANS BORDURE BLANCHE */
+/* PAGE D'ACCUEIL PLEIN ÉCRAN */
 .home{position:relative;width:100%;height:100vh;height:100dvh;overflow:hidden;background:#000}
 .home img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;object-position:center center}
 
-/* Les boutons visibles sont ceux de l'image. Ces zones sont totalement invisibles. */
+/* Zones cliquables invisibles sur l'image d'accueil */
 .clickZone{position:absolute;left:20%;width:60%;border:0;background:transparent;padding:0;cursor:pointer;z-index:10;touch-action:manipulation}
-/* Zones séparées pour éviter que Désinfection déclenche Stock */
 .stockZone{top:34.0%;height:8.5%}
 .disZone{top:44.0%;height:8.5%}
-.page{padding:20px;background:#edf5fa}
-.back{border:0;border-radius:12px;padding:11px 15px;background:#0758a5;color:#fff;font-weight:900;cursor:pointer}
-.page h1{text-align:center;color:#073f91;margin-top:45px}
-.card{background:#fff;border-radius:20px;padding:28px;text-align:center;color:#486783;box-shadow:0 8px 25px rgba(0,45,90,.12)}
 
-
-/* PAGE STOCK */
-.stockPage{position:relative;padding:18px;color:#173f68;background:#dceaf4;overflow:hidden}
-.stockPage::before{content:"";position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(230,242,250,.40),rgba(247,251,253,.52)),url("data:image/jpeg;base64,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");background-size:cover;z-index:-1}
+/* PAGES SECONDAIRES */
+.page{padding:20px;background:#edf5fa;min-height:100vh}
+.stockPage{position:relative;padding:18px;color:#173f68;background:#dceaf4;min-height:100vh}
+.back{border:0;border-radius:12px;padding:11px 15px;background:#0758a5;color:#fff;font-weight:900;cursor:pointer;margin-bottom:15px}
+.stockPage h1, .page h1{text-align:center;color:#073f91;margin-top:15px}
+.card{background:#fff;border-radius:20px;padding:20px;text-align:center;color:#486783;box-shadow:0 8px 25px rgba(0,45,90,.12);margin-top:20px}
 </style>
 </head>
 <body>
 <div id="app">
-  <!-- VOTRE PAGE D'ACCUEIL ORIGINALE AVEC LE LOGO -->
+  <!-- PAGE D'ACCUEIL -->
   <div class="screen active home" id="homeScreen">
-    <img src="https://raw.githubusercontent.com/atv37420/SaniStock/main/1.png" alt="SaniStock Accueil">
+    <img src="https://raw.githubusercontent.com/atv37420/SaniStock/main/1.png" alt="SaniStock Accueil" onerror="this.style.display='none'; document.getElementById('fallback-msg').style.display='block';">
+    <div id="fallback-msg" style="display:none; color:white; padding:50px; text-align:center;">
+      <h2>Erreur d'affichage de l'image</h2>
+      <p>Vérifiez que le lien de l'image 1.png sur GitHub est correct.</p>
+    </div>
     <button class="clickZone stockZone" onclick="allerPageStock()"></button>
     <button class="clickZone disZone" onclick="allerPageDisinfection()"></button>
   </div>
@@ -74,10 +74,8 @@ body{display:block}
 </div>
 
 <script>
-  // Votre URL Apps Script officielle
   const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbxz5dZkT7FyFx8ohxWmg2Pt23Yqx0LQDMqqJg8LM8bkfN3ulkb37VqUO8m8WvjyuGBqrg/exec";
 
-  // Fonctions de navigation d'origine
   function allerPageStock() {
     document.getElementById('homeScreen').classList.remove('active');
     document.getElementById('stockScreen').classList.add('active');
@@ -95,7 +93,6 @@ body{display:block}
     document.getElementById('homeScreen').classList.add('active');
   }
 
-  // Chargement propre du stock via l'API Google Apps Script
   function chargerStock() {
     const conteneur = document.getElementById("zone-affichage-stock");
     conteneur.innerHTML = "<p>Connexion en cours avec le Google Sheet...</p>";
