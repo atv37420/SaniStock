@@ -9,7 +9,7 @@
 <link rel="shortcut icon" type="image/png" href="https://raw.githubusercontent.com/atv37420/SaniStock/main/0.png">
 <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/atv37420/SaniStock/main/0.png">
 <link rel="apple-touch-icon" sizes="180x180" href="https://raw.githubusercontent.com/atv37420/SaniStock/main/0.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">\n<meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="SaniStock">
 <meta name="theme-color" content="#0757a0">
@@ -605,7 +605,7 @@ const SANISTOCK_API_URL = 'https://script.google.com/macros/s/AKfycbyM6jIC9l-gDN
   let seq = 0;
 
   function callApi(action, args, ok, fail){
-    const cb = 'sanistockCb' + Date.now() + (++seq);
+    const cb = 'sanistockCb_' + (++seq);
     let data = null;
 
     if(action === 'verifierCodeEntreeStock') data = {code: args[0]};
@@ -641,8 +641,7 @@ const SANISTOCK_API_URL = 'https://script.google.com/macros/s/AKfycbyM6jIC9l-gDN
     let url = SANISTOCK_API_URL
       + '?api=1'
       + '&action=' + encodeURIComponent(action)
-      + '&callback=' + encodeURIComponent(cb)
-      + '&_=' + Date.now();
+      + '&callback=' + encodeURIComponent(cb);
 
     if(data !== null && data !== undefined){
       url += '&data=' + encodeURIComponent(JSON.stringify(data));
