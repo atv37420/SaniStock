@@ -3,99 +3,33 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>SaniStock</title>
-<!-- Icône SaniStock pour téléphone -->
-<link rel="icon" type="image/png" href="https://raw.githubusercontent.com/atv37420/SaniStock/main/0.png">
-<link rel="shortcut icon" type="image/png" href="https://raw.githubusercontent.com/atv37420/SaniStock/main/0.png">
-<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/atv37420/SaniStock/main/0.png">
-<link rel="apple-touch-icon" sizes="180x180" href="https://raw.githubusercontent.com/atv37420/SaniStock/main/0.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="SaniStock">
-<meta name="theme-color" content="#0757a0">
-
+<title>SaniStock - Test</title>
 <style>
-*{box-sizing:border-box}
-html,body{margin:0;padding:0;width:100%;height:100%;min-height:100%;overflow-x:hidden;background:#000;font-family:Arial,sans-serif}
-#app{width:100%;min-height:100vh;background:#000}
-.screen{display:none;width:100%;min-height:100vh}
-.screen.active{display:block}
-
-/* PAGE D'ACCUEIL PLEIN ÉCRAN */
-.home{position:relative;width:100%;height:100vh;height:100dvh;overflow:hidden;background:#000}
-.home img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;object-position:center center}
-
-/* Zones cliquables invisibles sur l'image d'accueil */
-.clickZone{position:absolute;left:20%;width:60%;border:0;background:transparent;padding:0;cursor:pointer;z-index:10;touch-action:manipulation}
-.stockZone{top:34.0%;height:8.5%}
-.disZone{top:44.0%;height:8.5%}
-
-/* PAGES SECONDAIRES */
-.page{padding:20px;background:#edf5fa;min-height:100vh}
-.stockPage{position:relative;padding:18px;color:#173f68;background:#dceaf4;min-height:100vh}
-.back{border:0;border-radius:12px;padding:11px 15px;background:#0758a5;color:#fff;font-weight:900;cursor:pointer;margin-bottom:15px}
-.stockPage h1, .page h1{text-align:center;color:#073f91;margin-top:15px}
-.card{background:#fff;border-radius:20px;padding:20px;text-align:center;color:#486783;box-shadow:0 8px 25px rgba(0,45,90,.12);margin-top:20px}
+  body { font-family: Arial, sans-serif; background: #0758a5; color: white; text-align: center; padding: 40px; margin: 0; }
+  .card { background: white; color: #333; padding: 20px; border-radius: 15px; margin-top: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+  button { background: #073f91; color: white; border: none; padding: 15px 25px; font-size: 16px; border-radius: 10px; cursor: pointer; margin-top: 15px; font-weight: bold; }
+  button:active { background: #052a63; }
 </style>
 </head>
 <body>
-<div id="app">
-  <!-- PAGE D'ACCUEIL -->
-  <div class="screen active home" id="homeScreen">
-    <img src="https://raw.githubusercontent.com/atv37420/SaniStock/main/1.png" alt="SaniStock Accueil" onerror="this.style.display='none'; document.getElementById('fallback-msg').style.display='block';">
-    <div id="fallback-msg" style="display:none; color:white; padding:50px; text-align:center;">
-      <h2>Erreur d'affichage de l'image</h2>
-      <p>Vérifiez que le lien de l'image 1.png sur GitHub est correct.</p>
-    </div>
-    <button class="clickZone stockZone" onclick="allerPageStock()"></button>
-    <button class="clickZone disZone" onclick="allerPageDisinfection()"></button>
-  </div>
 
-  <!-- ÉCRAN STOCK -->
-  <div class="screen stockPage" id="stockScreen">
-    <button class="back" onclick="retourAccueil()">← Retour</button>
-    <h1>Gestion du Stock</h1>
-    <div class="card">
-      <div id="zone-affichage-stock">
-        <p>Connexion en cours avec le Google Sheet...</p>
-      </div>
-    </div>
-  </div>
+  <h1>SaniStock</h1>
+  <p>Mode de diagnostic : Si vous voyez cet écran, le code fonctionne !</p>
 
-  <!-- ÉCRAN DÉSINFECTION -->
-  <div class="screen page" id="disScreen">
-    <button class="back" onclick="retourAccueil()">← Retour</button>
-    <h1>Désinfection</h1>
-    <div class="card">
-      <p>Module de désinfection prêt.</p>
+  <div class="card">
+    <h2>Test de connexion Google Sheet</h2>
+    <button onclick="chargerStock()">Charger le Stock</button>
+    <div id="zone-affichage-stock" style="margin-top: 20px; text-align: left;">
+      <p style="color: #666; text-align: center;">Cliquez sur le bouton ci-dessus pour tester.</p>
     </div>
   </div>
-</div>
 
 <script>
   const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbxz5dZkT7FyFx8ohxWmg2Pt23Yqx0LQDMqqJg8LM8bkfN3ulkb37VqUO8m8WvjyuGBqrg/exec";
 
-  function allerPageStock() {
-    document.getElementById('homeScreen').classList.remove('active');
-    document.getElementById('stockScreen').classList.add('active');
-    chargerStock();
-  }
-
-  function allerPageDisinfection() {
-    document.getElementById('homeScreen').classList.remove('active');
-    document.getElementById('disScreen').classList.add('active');
-  }
-
-  function retourAccueil() {
-    document.getElementById('stockScreen').classList.remove('active');
-    document.getElementById('disScreen').classList.remove('active');
-    document.getElementById('homeScreen').classList.add('active');
-  }
-
   function chargerStock() {
     const conteneur = document.getElementById("zone-affichage-stock");
-    conteneur.innerHTML = "<p>Connexion en cours avec le Google Sheet...</p>";
+    conteneur.innerHTML = "<p style='color: #0758a5; text-align:center;'>Connexion en cours avec le Google Sheet...</p>";
 
     const nomFonctionGlobal = "cb_" + Math.random().toString(36).substring(2, 9);
     
@@ -105,7 +39,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;min-height:100%;overflow-x:h
       if (scriptElement) scriptElement.remove();
       
       if (reponse && reponse.success && Array.isArray(reponse.data)) {
-        let html = "<table style='width:100%; border-collapse:collapse; text-align:left; font-size:14px;'>";
+        let html = "<table style='width:100%; border-collapse:collapse; font-size:14px;'>";
         html += "<tr style='background:#0758a5; color:#fff;'><th style='padding:8px;'>Produit</th><th style='padding:8px; text-align:center;'>Actuel</th><th style='padding:8px; text-align:center;'>Statut</th></tr>";
         
         reponse.data.forEach(item => {
@@ -119,7 +53,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;min-height:100%;overflow-x:h
         html += "</table>";
         conteneur.innerHTML = html;
       } else {
-        conteneur.innerHTML = "<p style='color:red;'>Erreur lors du chargement des données du stock.</p>";
+        conteneur.innerHTML = "<p style='color:red; text-align:center;'>Erreur : Les données reçues sont invalides.</p>";
       }
     };
 
@@ -127,10 +61,11 @@ html,body{margin:0;padding:0;width:100%;height:100%;min-height:100%;overflow-x:h
     script.id = nomFonctionGlobal;
     script.src = `${URL_APPS_SCRIPT}?api=1&action=getStockData&callback=${nomFonctionGlobal}`;
     script.onerror = function() {
-      conteneur.innerHTML = "<p style='color:red;'>Erreur de connexion au serveur Google Sheets.</p>";
+      conteneur.innerHTML = "<p style='color:red; text-align:center;'>Erreur de connexion au serveur Google Sheets (Vérifiez le déploiement Apps Script).</p>";
     };
     document.body.appendChild(script);
   }
 </script>
+
 </body>
 </html>
