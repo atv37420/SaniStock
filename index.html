@@ -29,7 +29,6 @@ body{display:block}
 
 /* Les boutons visibles sont ceux de l'image. Ces zones sont totalement invisibles. */
 .clickZone{position:absolute;left:20%;width:60%;border:0;background:transparent;padding:0;cursor:pointer;z-index:10;touch-action:manipulation}
-/* Zones séparées pour éviter que Désinfection déclenche Stock */
 .stockZone{top:34.0%;height:8.5%}
 .disZone{top:44.0%;height:8.5%}
 .page{padding:20px;background:#edf5fa}
@@ -39,19 +38,15 @@ body{display:block}
 
 /* PAGE STOCK */
 .stockPage{position:relative;padding:18px;color:#173f68;background:#dceaf4;overflow:hidden}
-.stockPage::before{content:"";position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(230,242,250,.40),rgba(247,251,253,.52)),url("data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBAUEBAYFBQUGBgYHCQ4JCQgICRINDQoOFRIWFhUSFBQXGiEcFxgfGRQUHScdHyIjJSUlFhwpLCgkKyEkJST/2wBDAQYGBgkICREJCREkGBQYJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCT/wAARCAXcA4QDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD34io36VYK1BIOK6UQypP3rLuzwa0rg8Gsi8fANawM5Mxb9utczqL9a39Qk61zGoyda7aSOebOf1F+tc1fN1rd1GTrXOXr9a9CmjkmzJujyazpDzV25bk1QkPNdkUc7GZqWM81BmpIzVtCTNS1bkVtWL8iuft3wRWvZy4xWE0axZ1unS9K6jTZulcTYT4xzXS6fcdOa4KsTpgzudPm6c10djN0ritOuenNdJY3PTmvPqROmLOstZeBWjE+RXP2lx05rWgmyOtckkbJmhu4qGU8UgkyKZI3FQkUzPuzwa53UO9dBdng1z+oHrXRTMZnK6p3rktT711uqd65LU+9enROSocrqHesC671v6h3rAu+9enTOKZlzVWerM3Wqz11ROdkdFFFWQFFFFUAUGikNIBRSiminCkykWIqvW3aqMdXrbtWUzWJs2XUV0ennpXOWfaugsD0rgrM7aSOosGxit+0fgVzVi+MVuW0vAryK7PWw8Dbjk4pksvFVVn461HLPx1rxqzPosJTIruXrWFfSdav3c/XmsS8mzmvMqM+nwlMzLx85rHuDkmtC6kzmsyZsk1ySPfoqyKz9aaBTm5pAKIo1qSsh6CplqJRUgr0KEDw8ZVJAaQtTS2KjZ69vDwPksbUJQ9SxvzVLzKekvNetTifNV56mzbPyK2rJ+lc3bS8itqyl6VpKJxNnVWL9K37N+lcvYS9K6Cyk6Vy1EaRZvwNwKtqeKz7d+BVxG4rkkjZD2PFVZasMeKrS1BRSmqjNV6aqMxpoCnJ1NVnqxLVZzTEMakFBNJmgEOozTc0ZpDHE0hNNJpC1AwJphNBamFqAAmmk0hamFqBjiaaTTS1NLUgFJppNIWphagBxNNJppamlqAFJppNNLU0tQA4mmE0hamFqAFJpjGkZqYzUADGo2ahmqNmoAGao2NDNUbNQA1zUDmnu1QO1AiOQ1Xc1LI1V3NAhjU2gmgUwHLU6VCtTpQSWIxVmMVWjqzHTAsJVmMVXjFWYxQBPGKsxioIxVqMUATIKnQVFGKnQUAOA4op4FFID3BlqtLxVyQYqnOcZrJFszrpsA1iX0nWtW8fANYF/LgGuimjKTMXUZetcvqMvWtvUZuvNctqM3XmvQpROWbMbUJck1z15Jya1b+XrWFdScmvQpxOWbKFw3NUpDzVidqqOea6oowbEzT0aos05TVWJuXYXxWlazYIrHjfFXIJcGs5RNIs6azuMY5roLC76c1xtrcYxzWzZ3WMc1yVIG8JHe6fedOa6SwvOnNefWN505ro7C96c1w1KZ0wkd/ZXfTmtm2uc45rirG9zjmt60u845rhnA6IyOmjnyOtOeTIrLhucjrVjzsjrXPY0uNumyDWBqB61sHSmzTzWpHZtF53k25Vv91T/AHb4pB1oQy299X/9k="}
-
-/* PAGE STOCK */
-.stockPage{position:relative;padding:18px;color:#173f68;background:#dceaf4;overflow:hidden}
 </style>
 </head>
 <body>
 <div id="app">
-  <!-- VOTRE APPLICATION EXISTANTE -->
   <div style="color:white; padding:20px; text-align:center;">
     <h1>SaniStock</h1>
-    <p>Connexion en cours avec le Google Sheet...</p>
-    <div id="zone-affichage-stock" style="margin-top:20px; text-align:left;"></div>
+    <div id="zone-affichage-stock" style="margin-top:20px; text-align:left;">
+      <p>Connexion en cours avec le Google Sheet...</p>
+    </div>
   </div>
 </div>
 
@@ -60,33 +55,41 @@ body{display:block}
   const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbxz5dZkT7FyFx8ohxWmg2Pt23Yqx0LQDMqqJg8LM8bkfN3ulkb37VqUO8m8WvjyuGBqrg/exec";
 
   function chargerDonneesSaniStock() {
-    fetch(URL_APPS_SCRIPT)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error("Erreur de connexion avec le Google Sheet");
-        }
-        return response.json();
-      })
-      .then(data => {
-        console.log("Données du Sheet récupérées avec succès :", data);
-        
-        // Affichage simple des données du stock dans la page
-        const conteneur = document.getElementById("zone-affichage-stock");
-        if (conteneur && Array.isArray(data)) {
-          let html = "<h3 style='color:#fff;'>Mon Stock Google Sheets :</h3><ul style='color:#fff;'>";
-          data.forEach(ligne => {
-            html += `<li>${ligne.join(" | ")}</li>`;
+    // Utilisation d'un appel via une balise script pour contourner les restrictions CORS des navigateurs
+    const scriptTag = document.createElement('script');
+    
+    // Fonction globale de rappel (callback) pour réceptionner les données du Sheet
+    window.traiterDonneesSheet = function(data) {
+      console.log("Données reçues du Google Sheet :", data);
+      const conteneur = document.getElementById("zone-affichage-stock");
+      
+      if (conteneur && Array.isArray(data)) {
+        let html = "<h3 style='color:#fff;'>Mon Stock Google Sheets :</h3><table border='1' style='width:100%; color:#fff; border-collapse:collapse; background:#111;'>";
+        data.forEach((ligne, index) => {
+          html += "<tr>";
+          ligne.forEach(cellule => {
+            let tag = index === 0 ? "th" : "td";
+            html += `<${tag} style='padding:8px; border:1px solid #444;'>${cellule || ''}</${tag}>`;
           });
-          html += "</ul>";
-          conteneur.innerHTML = html;
-        }
-      })
-      .catch(error => {
-        console.error("Impossible de charger les données :", error);
-      });
+          html += "</tr>";
+        });
+        html += "</table>";
+        conteneur.innerHTML = html;
+      } else {
+        conteneur.innerHTML = "<p style='color:red;'>Erreur de format des données reçues.</p>";
+      }
+    };
+
+    // On passe le nom de la fonction de rappel à l'URL Apps Script
+    scriptTag.src = URL_APPS_SCRIPT + "?callback=traiterDonneesSheet";
+    scriptTag.onerror = function() {
+      document.getElementById("zone-affichage-stock").innerHTML = "<p style='color:red;'>Erreur : Impossible de joindre le script Apps Script.</p>";
+    };
+    
+    document.body.appendChild(scriptTag);
   }
 
-  // Lancer le chargement dès que la page s'ouvre
+  // Lancer le chargement au démarrage
   window.addEventListener("DOMContentLoaded", () => {
     chargerDonneesSaniStock();
   });
