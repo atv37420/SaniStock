@@ -603,33 +603,71 @@ function showPage(id){
 const SANISTOCK_API_URL = 'https://script.google.com/macros/s/AKfycbyM6jIC9l-gDNH9q_Ubg5JSJj10gQ90ydz4N6XA0XusKVIYaA3trenNgYniboRUtp4GkQ/exec';
 (function(){
   let seq = 0;
+
   function callApi(action, args, ok, fail){
-    const cb = '__sanistock_cb_' + Date.now() + '_' + (++seq);
+    const cb = 'sanistockCb' + Date.now() + (++seq);
     let data = null;
+
     if(action === 'verifierCodeEntreeStock') data = {code: args[0]};
     else if(action === 'getHistoriqueDesinfections') data = {limit: args[0]};
-    else if(args.length) data = args[0];
+    else if(args && args.length) data = args[0];
+
     const script = document.createElement('script');
-    const timer = setTimeout(function(){ cleanup(); if(fail) fail(new Error('Délai de connexion dépassé')); }, 20000);
-    function cleanup(){ clearTimeout(timer); try{ delete window[cb]; }catch(e){ window[cb]=undefined; } script.remove(); }
+    script.async = true;
+    script.referrerPolicy = 'no-referrer';
+
+    let fini = false;
+    const timer = setTimeout(function(){
+      terminer();
+      if(fail) fail(new Error('Délai de connexion Apps Script dépassé'));
+    }, 30000);
+
+    function terminer(){
+      if(fini) return;
+      fini = true;
+      clearTimeout(timer);
+      try { delete window[cb]; } catch(e) { window[cb] = undefined; }
+      if(script.parentNode) script.parentNode.removeChild(script);
+    }
+
     window[cb] = function(res){
-      cleanup();
-      if(res && res.success){ if(ok) ok(res.data); }
-      else if(fail) fail(new Error(res && res.error ? res.error : 'Erreur SaniStock'));
+      terminer();
+      if(res && res.success){
+        if(ok) ok(res.data);
+      } else {
+        if(fail) fail(new Error(res && res.error ? res.error : 'Erreur SaniStock'));
+      }
     };
-    const q = new URLSearchParams({api:'1', action:action, callback:cb});
-    if(data !== null && data !== undefined) q.set('data', JSON.stringify(data));
-    script.src = SANISTOCK_API_URL + '?' + q.toString();
-    script.onerror = function(){ cleanup(); if(fail) fail(new Error('Connexion Apps Script impossible')); };
+
+    let url = SANISTOCK_API_URL
+      + '?api=1'
+      + '&action=' + encodeURIComponent(action)
+      + '&callback=' + encodeURIComponent(cb)
+      + '&_=' + Date.now();
+
+    if(data !== null && data !== undefined){
+      url += '&data=' + encodeURIComponent(JSON.stringify(data));
+    }
+
+    script.onerror = function(){
+      terminer();
+      if(fail) fail(new Error('Connexion Apps Script impossible'));
+    };
+
+    script.src = url;
     document.head.appendChild(script);
   }
+
   function runner(ok, fail){
-    return new Proxy({}, {get:function(_, prop){
-      if(prop === 'withSuccessHandler') return function(fn){ return runner(fn, fail); };
-      if(prop === 'withFailureHandler') return function(fn){ return runner(ok, fn); };
-      return function(){ callApi(String(prop), Array.from(arguments), ok, fail); };
-    }});
+    return new Proxy({}, {
+      get: function(_, prop){
+        if(prop === 'withSuccessHandler') return function(fn){ return runner(fn, fail); };
+        if(prop === 'withFailureHandler') return function(fn){ return runner(ok, fn); };
+        return function(){ callApi(String(prop), Array.from(arguments), ok, fail); };
+      }
+    });
   }
+
   window.google = window.google || {};
   window.google.script = window.google.script || {};
   window.google.script.run = runner(null, null);
