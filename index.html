@@ -57,12 +57,12 @@ body{display:block}
     <h1>Gestion du Stock</h1>
     <div class="card">
       <div id="zone-affichage-stock">
-        <p>Chargement du stock depuis Google Sheets...</p>
+        <p>Connexion en cours avec le Google Sheet...</p>
       </div>
     </div>
   </div>
 
-  <!-- ÉCRAN DÉSINFECTION (Si vous l'avez) -->
+  <!-- ÉCRAN DÉSINFECTION -->
   <div class="screen page" id="disScreen">
     <button class="back" onclick="retourAccueil()">← Retour</button>
     <h1>Désinfection</h1>
@@ -76,7 +76,7 @@ body{display:block}
   // Votre URL Apps Script officielle
   const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbxz5dZkT7FyFx8ohxWmg2Pt23Yqx0LQDMqqJg8LM8bkfN3ulkb37VqUO8m8WvjyuGBqrg/exec";
 
-  // Fonctions de navigation d'origine
+  // Fonctions de navigation
   function allerPageStock() {
     document.getElementById('homeScreen').classList.remove('active');
     document.getElementById('stockScreen').classList.add('active');
@@ -94,16 +94,17 @@ body{display:block}
     document.getElementById('homeScreen').classList.add('active');
   }
 
-  // Fonction de récupération sécurisée du Stock via l'API Google Apps Script
+  // Chargement propre du stock via l'API Google Apps Script
   function chargerStock() {
+    const conteneur = document.getElementById("zone-affichage-stock");
+    conteneur.innerHTML = "<p>Connexion en cours avec le Google Sheet...</p>";
+
     const nomFonctionGlobal = "cb_" + Math.random().toString(36).substring(2, 9);
     
     window[nomFonctionGlobal] = function(reponse) {
       delete window[nomFonctionGlobal];
       const scriptElement = document.getElementById(nomFonctionGlobal);
       if (scriptElement) scriptElement.remove();
-      
-      const conteneur = document.getElementById("zone-affichage-stock");
       
       if (reponse && reponse.success && Array.isArray(reponse.data)) {
         let html = "<table style='width:100%; border-collapse:collapse; text-align:left; font-size:14px;'>";
@@ -127,6 +128,9 @@ body{display:block}
     const script = document.createElement('script');
     script.id = nomFonctionGlobal;
     script.src = `${URL_APPS_SCRIPT}?api=1&action=getStockData&callback=${nomFonctionGlobal}`;
+    script.onerror = function() {
+      conteneur.innerHTML = "<p style='color:red;'>Erreur de connexion au serveur Google Sheets.</p>";
+    };
     document.body.appendChild(script);
   }
 </script>
