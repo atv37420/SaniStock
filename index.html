@@ -206,10 +206,6 @@
   float:right;width:36px;height:36px;border:0;border-radius:11px;
   background:#e5edf4;color:#173f68;font-size:22px;cursor:pointer
 }
-.memoOfficialSearch{
-  display:block;width:100%;margin-top:12px;border:0;border-radius:13px;padding:11px;
-  background:#edf5fa;color:#0758a5;font-weight:900;font-size:11px;cursor:pointer
-}
 @media(max-width:420px){
   #saniConnection{
     right:7px;
@@ -809,26 +805,23 @@ body{display:block}
 </main>
 <script>
 
-// ===== MÉMO MÉDICAMENTS — BASE BDPM EN LIGNE =====
-// Les données sont interrogées à la demande depuis une API qui reprend les données BDPM.
-// Cela évite d'embarquer une liste figée et permet de rechercher les médicaments/génériques
-// ajoutés ou modifiés depuis la dernière version de l'application.
+// ===== MÉMO MÉDICAMENTS — CATALOGUE BDPM + INDICATION DIRECTE =====
+// Recherche des spécialités depuis des miroirs de la BDPM avec CORS.
+// La fiche n'affiche que : nom, substance active, forme et « À quoi ça sert ».
 const MEDICAMENTS_APIS = [
-  'https://medicaments-api.giygas.dev/v1',
-  'https://bdpmgf.vedielaute.fr/api/medicaments'
+  'https://bdpmgf.vedielaute.fr/api/medicaments',
+  'https://medicaments-api.giygas.dev/v1'
 ];
-const BDPM_SEARCH_URL = 'https://base-donnees-publique.medicaments.gouv.fr/?txtCaracteres=';
-const JUSTELERCP_BASE = 'https://justelesrcp.olicorne.org';
-const ALLORIGINS_RAW = 'https://api.allorigins.win/raw?url=';
 const MEDICAMENTS_TIMEOUT_MS = 9000;
-let memoMedicamentsCategory = 'Tous';
-let memoSearchTimer = null;
-let memoRequestId = 0;
-let memoMedicamentsData = [];
-window._memoVisibleList = [];
-window._memoCurrentDrug = null;
+const RCP_TIMEOUT_MS = 12000;
+let memoMedicamentsCategory='Tous';
+let memoSearchTimer=null;
+let memoRequestId=0;
+let memoMedicamentsData=[];
+window._memoVisibleList=[];
+window._memoCurrentDrug=null;
 
-const memoCategories = ['Tous', 'Génériques'];
+const memoCategories=['Tous','Génériques'];
 
 function normaliserMemoMed(s){
   return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
@@ -836,343 +829,248 @@ function normaliserMemoMed(s){
 function escapeMemoHtml(s){
   return String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 }
-function memoValue(o, keys){
-  for(const k of keys){ if(o && o[k]!==undefined && o[k]!==null && String(o[k]).trim()!=='') return o[k]; }
+function memoValue(o,keys){
+  for(const k of keys){
+    if(o && o[k]!==undefined && o[k]!==null && String(o[k]).trim()!=='') return o[k];
+  }
   return '';
 }
 function memoArray(v){
-  if(Array.isArray(v)) return v;
-  if(v && typeof v==='object') return Object.values(v);
-  return v ? [v] : [];
+  if(Array.isArray(v))return v;
+  if(v&&typeof v==='object')return Object.values(v);
+  return v?[v]:[];
 }
 function memoSubstances(m){
-  const a=memoArray(m && (m.substances || m.composition || m.compositions));
+  const a=memoArray(m&&(m.substances||m.composition||m.compositions));
   return a.map(x=>{
-    if(typeof x==='string') return x;
-    return memoValue(x,['denomination','denominations','name','nom','substance','libelle']);
+    if(typeof x==='string')return x;
+    return memoValue(x,['denomination','denominations','name','nom','substance','libelle','denominationSubstance']);
   }).filter(Boolean).join(', ');
 }
 function memoGenerics(m){
-  const a=memoArray(m && (m.generiques || m.genericGroups || m.groupesGeneriques || m.groups));
-  return a.map(x=>{
-    if(typeof x==='string') return x;
-    return memoValue(x,['libelle','label','name','nom','denomination','id']);
-  }).filter(Boolean);
+  const a=memoArray(m&&(m.generiques||m.genericGroups||m.groupesGeneriques||m.groups||m.groupe_generique));
+  const vals=a.map(x=>typeof x==='string'?x:memoValue(x,['libelle','label','name','nom','denomination','id'])).filter(Boolean);
+  return vals;
+}
+function memoIsGeneric(m){
+  return Boolean(m && (
+    m.generic===true || m.isGeneric===true || m.estGenerique===true ||
+    m.membre_groupe_generique===true || m.membre_groupe_generique==='true' ||
+    m.type_generique==='1' || m.type_generique===1 || memoGenerics(m).length
+  ));
 }
 function memoIndication(m){
   return memoValue(m,['indications','indication','aQuoiCaSert','usage','description','classePharmacotherapeutique']);
 }
 function memoToDrug(raw){
-  const m=raw && (raw.medicament || raw.data || raw);
-  const cis=String(memoValue(m,['cis','CIS','codeCIS','code_cis']));
-  const name=String(memoValue(m,['denomination','name','nom','libelle']));
-  const form=String(memoValue(m,['forme','formePharmaceutique','pharmaceuticalForm']));
-  const routes=String(memoValue(m,['voiesAdministration','voies','routes','administration']));
-  const status=String(memoValue(m,['etatCommercialisation','etat_com','commercialisation','statutCommercialisation']));
-  const amm=String(memoValue(m,['statutAMM','statusAMM','statutAmm','statutAutorisation']));
-  const holder=String(memoValue(m,['titulaire','holder','laboratoire']));
+  const root=raw&&(raw.medicament||raw.data||raw.result||raw);
+  const m=root&&root.data&&root.data.denomination?root.data:root;
+  const cis=String(memoValue(m,['cis','CIS','codeCIS','code_cis','code_cis_specialite']));
+  const name=String(memoValue(m,['denomination','name','nom','libelle','denomination_specialite']));
+  const form=String(memoValue(m,['forme','formePharmaceutique','pharmaceuticalForm','forme_pharmaceutique']));
   const genericGroups=memoGenerics(m);
-  const generic=Boolean(m.generic || m.isGeneric || m.estGenerique || genericGroups.length);
-  return {raw:m,cis,name,form,routes,status,amm,holder,substances:memoSubstances(m),generic,genericGroups,indication:memoIndication(m)};
+  const generic=memoIsGeneric(m);
+  return {
+    raw:m,cis,name,form,
+    substances:memoSubstances(m),
+    generic,genericGroups,
+    indication:memoIndication(m)
+  };
 }
 function memoExtractList(json){
-  const arr=json && (json.medicaments || json.results || json.data || json.items || json);
+  const arr=json&&(json.results||json.data||json.medicaments||json.items||json);
   return memoArray(arr).map(memoToDrug).filter(x=>x.name);
 }
 
 function renderMemoCategories(){
-  const box=document.getElementById('memoMedicamentsCategories'); if(!box)return;
+  const box=document.getElementById('memoMedicamentsCategories');if(!box)return;
   box.innerHTML=memoCategories.map(c=>
     '<button type="button" class="memoCat '+(c===memoMedicamentsCategory?'active':'')+'" onclick="choisirMemoCategorie('+JSON.stringify(c)+')">'+
     (c==='Tous'?'📋 Tous':'🧬 Génériques')+'</button>'
   ).join('');
 }
-function choisirMemoCategorie(c){ memoMedicamentsCategory=c; renderMemoCategories(); renderMemoMedicaments(); }
-
-function afficherMemoEtat(message, type){
+function choisirMemoCategorie(c){memoMedicamentsCategory=c;renderMemoCategories();renderMemoMedicaments();}
+function afficherMemoEtat(message){
   const count=document.getElementById('memoMedicamentsCount');
-  if(count){ count.textContent=message; count.dataset.type=type||''; }
+  if(count)count.textContent=message;
 }
-
 async function fetchMemoJson(url){
   const controller=new AbortController();
   const timer=setTimeout(()=>controller.abort(),MEDICAMENTS_TIMEOUT_MS);
   try{
     const res=await fetch(url,{headers:{Accept:'application/json'},cache:'no-store',signal:controller.signal});
-    if(!res.ok) throw new Error('HTTP '+res.status);
+    if(!res.ok)throw new Error('HTTP '+res.status);
     return await res.json();
-  }finally{ clearTimeout(timer); }
-}
-
-function memoExtractFallbackList(json){
-  if(!json) return [];
-  if(Array.isArray(json)) return json.map(memoToDrug).filter(x=>x.name);
-  if(Array.isArray(json.data)) return json.data.map(memoToDrug).filter(x=>x.name);
-  if(Array.isArray(json.medicaments)) return json.medicaments.map(memoToDrug).filter(x=>x.name);
-  if(json.results && Array.isArray(json.results)) return json.results.map(memoToDrug).filter(x=>x.name);
-  return memoExtractList(json);
+  }finally{clearTimeout(timer);}
 }
 
 async function rechercherMemoMedicaments(){
   const input=document.getElementById('memoMedicamentsSearch');
   const q=(input?.value||'').trim();
   const request=++memoRequestId;
+  const results=document.getElementById('memoMedicamentsResults');
   if(!q){
-    memoMedicamentsData=[]; window._memoVisibleList=[];
+    memoMedicamentsData=[];window._memoVisibleList=[];
     afficherMemoEtat('Tape le nom du médicament ou de la substance active.');
-    document.getElementById('memoMedicamentsResults').innerHTML='<div class="memoMedicamentsEmpty"><div class="memoMedicamentsIcon">💊</div><strong>Recherche de médicament</strong><span>Nom commercial, générique ou substance active.</span></div>';
+    results.innerHTML='<div class="memoMedicamentsEmpty"><div class="memoMedicamentsIcon">💊</div><strong>Recherche de médicament</strong><span>Nom commercial, générique ou substance active.</span></div>';
     return;
   }
-  const results=document.getElementById('memoMedicamentsResults');
-  if(results) results.innerHTML='<div class="memoMedicamentsEmpty"><div class="memoMedicamentsIcon">⏳</div><strong>Recherche en cours…</strong><span>Recherche dans la base médicaments.</span></div>';
-  afficherMemoEtat('Recherche dans la base BDPM…');
+  results.innerHTML='<div class="memoMedicamentsEmpty"><div class="memoMedicamentsIcon">⏳</div><strong>Recherche en cours…</strong><span>Recherche dans la base des médicaments.</span></div>';
+  afficherMemoEtat('Recherche…');
 
-  let lastError=null;
   for(const api of MEDICAMENTS_APIS){
     try{
       let json;
-      if(api.includes('vedielaute.fr')){
+      if(api.includes('bdpmgf.vedielaute.fr')){
         json=await fetchMemoJson(api+'/search?q='+encodeURIComponent(q)+'&limit=100');
       }else{
         json=await fetchMemoJson(api+'/medicaments?search='+encodeURIComponent(q)+'&pageSize=100');
       }
       if(request!==memoRequestId)return;
-      let list=memoExtractFallbackList(json);
-      if(memoMedicamentsCategory==='Génériques') list=list.filter(x=>x.generic);
+      let list=memoExtractList(json);
+      if(memoMedicamentsCategory==='Génériques')list=list.filter(x=>x.generic);
       list.sort((a,b)=>a.name.localeCompare(b.name,'fr'));
-      memoMedicamentsData=list; window._memoVisibleList=list;
-      try{ localStorage.setItem('saniMemoLastSearch',JSON.stringify({q:q,list:list.slice(0,100),savedAt:Date.now()})); }catch(e){}
+      memoMedicamentsData=list;window._memoVisibleList=list;
+      try{localStorage.setItem('saniMemoLastSearch',JSON.stringify({q,list:list.slice(0,100),savedAt:Date.now()}));}catch(e){}
       afficherMemoEtat(list.length+' résultat(s)');
       renderMemoResults();
       return;
-    }catch(err){ lastError=err; }
+    }catch(e){}
   }
 
-  // Dernier recours : réutiliser le dernier résultat enregistré pour éviter une page vide
-  // lors d'une coupure momentanée du réseau.
   try{
     const cached=JSON.parse(localStorage.getItem('saniMemoLastSearch')||'null');
-    if(cached && normaliserMemoMed(cached.q).includes(normaliserMemoMed(q)) && Array.isArray(cached.list)){
-      memoMedicamentsData=cached.list; window._memoVisibleList=cached.list;
+    if(cached&&Array.isArray(cached.list)&&normaliserMemoMed(cached.q).includes(normaliserMemoMed(q))){
+      memoMedicamentsData=cached.list;window._memoVisibleList=cached.list;
       afficherMemoEtat(cached.list.length+' résultat(s) — dernière recherche enregistrée');
-      renderMemoResults();
-      return;
+      renderMemoResults();return;
     }
   }catch(e){}
 
-  if(request!==memoRequestId)return;
-  afficherMemoEtat('Base temporairement indisponible');
-  if(results) results.innerHTML='<div class="memoMedicamentsEmpty"><div class="memoMedicamentsIcon">⚠️</div><strong>Base médicaments temporairement indisponible</strong><span>La connexion aux données BDPM ne répond pas. Vérifie internet puis réessaie.</span><button type="button" class="memoOfficialSearch" onclick="ouvrirRechercheBDPM()">🔎 Ouvrir BDPM</button></div>';
+  afficherMemoEtat('Recherche indisponible');
+  results.innerHTML='<div class="memoMedicamentsEmpty"><div class="memoMedicamentsIcon">⚠️</div><strong>Recherche momentanément indisponible</strong><span>Réessaie dans quelques secondes.</span></div>';
 }
-
-function renderMemoMedicaments(){
-  clearTimeout(memoSearchTimer);
-  memoSearchTimer=setTimeout(rechercherMemoMedicaments,220);
-}
+function renderMemoMedicaments(){clearTimeout(memoSearchTimer);memoSearchTimer=setTimeout(rechercherMemoMedicaments,180);}
 function renderMemoResults(){
-  const results=document.getElementById('memoMedicamentsResults');
-  if(!results)return;
+  const results=document.getElementById('memoMedicamentsResults');if(!results)return;
   const list=window._memoVisibleList||[];
-  if(!list.length){
-    results.innerHTML='<div class="memoMedicamentsEmpty"><div class="memoMedicamentsIcon">🔎</div><strong>Aucun résultat</strong><span>Essaie le nom commercial ou la substance active.</span></div>';
-    return;
-  }
+  if(!list.length){results.innerHTML='<div class="memoMedicamentsEmpty"><div class="memoMedicamentsIcon">🔎</div><strong>Aucun résultat</strong><span>Essaie le nom commercial ou la substance active.</span></div>';return;}
   results.innerHTML=list.map((m,i)=>{
-    const sub=m.substances ? '<div class="memoMedFunction">🧬 '+escapeMemoHtml(m.substances)+'</div>' : '';
-    const gen=m.generic ? '<span class="memoGenericBadge">Générique</span>' : '';
+    const sub=m.substances?'<div class="memoMedFunction">🧬 '+escapeMemoHtml(m.substances)+'</div>':'';
+    const gen=m.generic?'<span class="memoGenericBadge">Générique</span>':'';
     return '<button type="button" class="memoMedCard" onclick="ouvrirDetailMedicament('+i+')">'+
       '<div class="memoMedName">'+escapeMemoHtml(m.name)+' '+gen+'</div>'+sub+
-      '<div class="memoMedCategory">'+escapeMemoHtml(m.form||m.routes||'Voir la fiche')+'</div></button>';
+      '<div class="memoMedCategory">'+escapeMemoHtml(m.form||'')+'</div></button>';
   }).join('');
 }
-
 function ouvrirMemoMedicaments(){
-  const o=document.getElementById('memoMedicamentsOverlay'); if(!o)return;
-  o.classList.add('open'); o.setAttribute('aria-hidden','false');
-  memoMedicamentsCategory='Tous'; renderMemoCategories();
+  const o=document.getElementById('memoMedicamentsOverlay');if(!o)return;
+  o.classList.add('open');o.setAttribute('aria-hidden','false');
+  memoMedicamentsCategory='Tous';renderMemoCategories();
   const s=document.getElementById('memoMedicamentsSearch');
   if(s){s.value='';setTimeout(()=>s.focus(),50);}
   document.getElementById('memoMedicamentsResults').innerHTML='<div class="memoMedicamentsEmpty"><div class="memoMedicamentsIcon">💊</div><strong>Recherche de médicament</strong><span>Nom commercial, générique ou substance active.</span></div>';
-  afficherMemoEtat('Base médicaments en ligne');
+  afficherMemoEtat('Base médicaments disponible');
 }
 function fermerMemoMedicaments(){
-  const o=document.getElementById('memoMedicamentsOverlay'); if(!o)return;
-  o.classList.remove('open'); o.setAttribute('aria-hidden','true'); fermerDetailMedicament();
+  const o=document.getElementById('memoMedicamentsOverlay');if(!o)return;
+  o.classList.remove('open');o.setAttribute('aria-hidden','true');fermerDetailMedicament();
 }
 
-async function fetchRcpHtmlViaProxy(url){
-  const proxy=ALLORIGINS_RAW+encodeURIComponent(url);
-  const res=await fetch(proxy,{cache:'no-store'});
-  if(!res.ok) throw new Error('RCP HTTP '+res.status);
-  return await res.text();
+function slugMemoRcp(name){
+  return normaliserMemoMed(name).replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,80);
 }
-
-function extraireIndicationDepuisRcpHtml(html){
-  if(!html) return '';
-  const doc=new DOMParser().parseFromString(html,'text/html');
-  const body=(doc.body?.innerText||html.replace(/<[^>]*>/g,' ')).replace(/\u00a0/g,' ');
-  const h='4.1. Indications thérapeutiques';
-  const hNorm=normaliserMemoMed(h);
-  const textNorm=normaliserMemoMed(body);
-  let from=textNorm.lastIndexOf(hNorm);
-  if(from<0){
-    // Variante tolérante si le site/source change la ponctuation ou les espaces.
-    const m=textNorm.match(/4\s*\.\s*1\s*\.\s*indications thérapeutiques/i);
-    from=m?m.index:-1;
-    if(from<0)return '';
-    from=m.index+m[0].length;
-  }else{
-    from+=hNorm.length;
-  }
-  const next=textNorm.indexOf('4.2. posologie',from);
-  if(next<0)return '';
-  // On extrait sur le texte original avec une recherche insensible aux variations d'espaces.
-  const bodyOriginal=body;
-  const headingRegex=/4\s*\.\s*1\s*\.\s*Indications\s+th[ée]rapeutiques/i;
-  const headingMatches=[...bodyOriginal.matchAll(headingRegex)];
-  let hPos=headingMatches.length?headingMatches[headingMatches.length-1].index:from;
-  if(typeof hPos!=='number')hPos=from;
-  const tail=bodyOriginal.slice(hPos).replace(/^4\s*\.\s*1\s*\.\s*Indications\s+th[ée]rapeutiques\s*/i,'');
-  const stop=tail.search(/4\s*\.\s*2\s*\.\s*Posologie/i);
-  let section=stop>=0?tail.slice(0,stop):tail;
-  section=section.replace(/\r/g,'').replace(/[ \t]+\n/g,'\n').replace(/\n{3,}/g,'\n\n').trim();
-  // Retire les éléments de navigation accidentellement capturés.
-  section=section.replace(/^Redirection.*$/gim,'').trim();
-  return section;
+function decodeHtmlMemo(s){
+  const ta=document.createElement('textarea');ta.innerHTML=s;return ta.value;
 }
-
-function slugifierJustelesRcp(name,cis){
-  let slug=normaliserMemoMed(name)
-    .replace(/&/g,' et ')
-    .replace(/[^a-z0-9]+/g,'-')
-    .replace(/^-+|-+$/g,'');
-  // justelesRCP préfixe le slug par le CIS et limite la partie lisible.
-  slug=slug.slice(0,80);
-  return String(cis||'')+'-'+slug;
+function nettoyerRcpMemo(raw){
+  let t=String(raw||'').replace(/\r/g,'');
+  t=t.replace(/<[^>]+>/g,' ');
+  t=decodeHtmlMemo(t);
+  t=t.replace(/\s+/g,' ').trim();
+  return t;
 }
-
-async function recupererIndicationRcp(base){
-  // On mémorise localement pour que la deuxième consultation soit instantanée.
+async function fetchMemoText(url){
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),RCP_TIMEOUT_MS);
   try{
-    const cacheKey='saniMemoIndication:'+String(base.cis||'');
-    const cached=localStorage.getItem(cacheKey);
-    if(cached){
-      const obj=JSON.parse(cached);
-      if(obj && obj.text) return obj.text;
-    }
-  }catch(e){}
-
-  const urls=[];
-  if(base.cis){
-    urls.push(JUSTELERCP_BASE+'/rcp/'+slugifierJustelesRcp(base.name,base.cis));
+    const res=await fetch(url,{headers:{Accept:'text/plain,text/markdown,text/html'},cache:'no-store',signal:controller.signal});
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    return await res.text();
+  }finally{clearTimeout(timer);}
+}
+function extraireIndicationMemo(raw){
+  let t=String(raw||'').replace(/\r/g,'');
+  // Conversion souple : on garde le texte entre 4.1 et 4.2.
+  t=t.replace(/<script[\s\S]*?<\/script>/gi,' ').replace(/<style[\s\S]*?<\/style>/gi,' ');
+  t=nettoyerRcpMemo(t);
+  const match=t.match(/4\.1\.?\s*Indications thérapeutiques\s*([\s\S]*?)\s*4\.2\.?\s*Posologie et mode d'administration/i);
+  if(match&&match[1]){
+    const v=match[1].replace(/^[:\-–—\s]+/,'').trim();
+    if(v.length>15)return v.slice(0,3500);
   }
-  // Le site public accepte aussi une recherche par nom/substance ; utile si le slug a changé.
-  if(base.name){
-    urls.push(JUSTELERCP_BASE+'/?q='+encodeURIComponent(base.name));
+  // Variante lorsque le convertisseur met un séparateur différent.
+  const alt=t.match(/Indications thérapeutiques\s*([\s\S]*?)\s*(?:Posologie et mode d'administration|Contre-indications)/i);
+  if(alt&&alt[1]){
+    const v=alt[1].replace(/^[:\-–—\s]+/,'').trim();
+    if(v.length>15)return v.slice(0,3500);
   }
-
-  let lastError=null;
-  for(const url of urls){
+  return '';
+}
+async function recupererIndicationMemo(base){
+  const cis=String(base?.cis||'').trim();
+  if(!/^\d+$/.test(cis))return '';
+  // 1) Source RCP pratique : justelesRCP, basée sur BDPM/EMA.
+  const rcpUrl='https://justelesrcp.olicorne.org/rcp/'+cis+'-'+slugMemoRcp(base.name);
+  const candidates=[
+    'https://r.jina.ai/'+rcpUrl,
+    'https://r.jina.ai/http://justelesrcp.olicorne.org/rcp/'+cis+'-'+slugMemoRcp(base.name),
+    // 2) Secours : RCP mobile officiel BDPM.
+    'https://r.jina.ai/https://m.base-donnees-publique.medicaments.gouv.fr/rcp-'+cis+'-1',
+    'https://r.jina.ai/http://m.base-donnees-publique.medicaments.gouv.fr/rcp-'+cis+'-1'
+  ];
+  for(const url of candidates){
     try{
-      const html=await fetchRcpHtmlViaProxy(url);
-      if(url.includes('/rcp/')){
-        const indication=extraireIndicationDepuisRcpHtml(html);
-        if(indication){
-          try{localStorage.setItem('saniMemoIndication:'+String(base.cis||''),JSON.stringify({text:indication,savedAt:Date.now()}));}catch(e){}
-          return indication;
-        }
-      }else{
-        const doc=new DOMParser().parseFromString(html,'text/html');
-        const links=[...doc.querySelectorAll('a[href*="/rcp/"]')];
-        const match=links.find(a=>String(a.getAttribute('href')||'').includes('/rcp/'+String(base.cis)+'-')) || links[0];
-        if(match){
-          const href=match.getAttribute('href');
-          const target=href.startsWith('http')?href:JUSTELERCP_BASE+href;
-          const rcpHtml=await fetchRcpHtmlViaProxy(target);
-          const indication=extraireIndicationDepuisRcpHtml(rcpHtml);
-          if(indication){
-            try{localStorage.setItem('saniMemoIndication:'+String(base.cis||''),JSON.stringify({text:indication,savedAt:Date.now()}));}catch(e){}
-            return indication;
-          }
-        }
-      }
-    }catch(e){ lastError=e; }
+      const raw=await fetchMemoText(url);
+      const indication=extraireIndicationMemo(raw);
+      if(indication)return indication;
+    }catch(e){}
   }
-  throw lastError||new Error('Indication indisponible');
+  return '';
 }
 
 async function ouvrirDetailMedicament(i){
-  const base=(window._memoVisibleList||[])[i]; if(!base)return;
+  const base=(window._memoVisibleList||[])[i];if(!base)return;
   window._memoCurrentDrug=base;
   document.getElementById('memoMedDetailTitle').textContent='💊 '+base.name;
-  document.getElementById('memoMedDetailText').textContent='Recherche de l’indication…';
-  const d=document.getElementById('memoMedDetail'); d.classList.add('open'); d.setAttribute('aria-hidden','false');
-
-  const lines=[];
-  if(base.substances) lines.push('🧬 Substance active : '+base.substances);
-  if(base.form) lines.push('💊 Forme : '+base.form);
+  document.getElementById('memoMedDetailText').textContent='💡 Recherche de l’utilité du médicament…';
+  const d=document.getElementById('memoMedDetail');d.classList.add('open');d.setAttribute('aria-hidden','false');
 
   try{
-    // Première source : certaines APIs renvoient déjà l'indication.
-    let full=null;
-    for(const api of MEDICAMENTS_APIS){
-      try{
-        const url=api.includes('vedielaute.fr')
-          ? api+'/specialites/'+encodeURIComponent(base.cis)
-          : api+'/medicaments/'+encodeURIComponent(base.cis);
-        full=memoToDrug(await fetchMemoJson(url));
-        if(full && full.name) break;
-      }catch(e){}
-    }
-    const indicationApi=full?.indication||base.indication||'';
-    if(indicationApi){
-      lines.push('💡 À quoi ça sert : '+indicationApi);
-    }else{
-      const indication=await recupererIndicationRcp(base);
-      if(indication) lines.push('💡 À quoi ça sert : '+indication);
-    }
+    let indication=memoIndication(base.raw)||base.indication||'';
+    if(!indication)indication=await recupererIndicationMemo(base);
+    const lines=[];
+    if(base.substances)lines.push('🧬 Substance active : '+base.substances);
+    if(base.form)lines.push('💊 Forme : '+base.form);
+    lines.push('💡 À quoi ça sert : '+(indication||'Information thérapeutique indisponible pour cette référence.'));
     document.getElementById('memoMedDetailText').textContent=lines.join('\n\n');
   }catch(e){
-    lines.push('💡 À quoi ça sert : indication thérapeutique non disponible pour le moment.');
-    document.getElementById('memoMedDetailText').textContent=lines.join('\n\n');
+    document.getElementById('memoMedDetailText').textContent=
+      (base.substances?'🧬 Substance active : '+base.substances+'\n\n':'')+
+      (base.form?'💊 Forme : '+base.form+'\n\n':'')+
+      '💡 À quoi ça sert : information thérapeutique indisponible pour cette référence.';
   }
 }
 function fermerDetailMedicament(){
-  const d=document.getElementById('memoMedDetail'); if(!d)return;
-  d.classList.remove('open'); d.setAttribute('aria-hidden','true');
+  const d=document.getElementById('memoMedDetail');if(!d)return;
+  d.classList.remove('open');d.setAttribute('aria-hidden','true');
 }
-function ouvrirRechercheBDPM(){
-  const d=window._memoCurrentDrug||{};
-  const nom=d.name||document.getElementById('memoMedicamentsSearch')?.value||'';
-  window.open(BDPM_SEARCH_URL+encodeURIComponent(nom),'_blank','noopener');
-}
-function ouvrirRechercheBDPMAvecTerme(terme){
-  const q=String(terme||'').trim();
-  if(!q)return;
-  window.open(BDPM_SEARCH_URL+encodeURIComponent(q),'_blank','noopener');
-}
-
-// Appui sur Entrée : ouvrir directement les résultats officiels BDPM.
-document.addEventListener('keydown',function(e){
-  const input=document.getElementById('memoMedicamentsSearch');
-  if(input && document.activeElement===input && e.key==='Enter'){
-    const q=input.value.trim();
-    if(q) ouvrirRechercheBDPMAvecTerme(q);
-  }
-});
-
 document.addEventListener('click',function(e){
-  const o=document.getElementById('memoMedicamentsOverlay');
-  if(o && e.target===o) fermerMemoMedicaments();
-  const d=document.getElementById('memoMedDetail');
-  if(d && e.target===d) fermerDetailMedicament();
+  const o=document.getElementById('memoMedicamentsOverlay');if(o&&e.target===o)fermerMemoMedicaments();
+  const d=document.getElementById('memoMedDetail');if(d&&e.target===d)fermerDetailMedicament();
 });
-
 document.addEventListener('keydown',function(e){
-  if(e.key==='Escape'){
-    fermerDetailMedicament();
-    fermerMemoMedicaments();
-  }
+  if(e.key==='Escape'){fermerDetailMedicament();fermerMemoMedicaments();}
 });
 </script>
 <script>
