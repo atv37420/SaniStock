@@ -444,6 +444,14 @@ body{display:block}
 #settingsList{display:grid;gap:8px}.employeeCard{background:#fff;border-radius:14px;padding:12px;box-shadow:0 3px 12px rgba(0,45,90,.08)}.employeeTop{display:flex;justify-content:space-between;gap:8px;align-items:center}.employeeName{font-weight:800}.employeeMeta{font-size:11px;margin-top:3px;color:#60778c}.employeeBtns{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}.employeeBtns button{border:0;border-radius:9px;padding:7px 9px;font-size:11px;font-weight:800;cursor:pointer}.btnCode{background:#e0eef9;color:#0758a5}.btnStatus{background:#fff0cc;color:#7a5700}.btnDelete{background:#ffe0e3;color:#a01f2c}.settingsMsg{min-height:18px;font-size:12px;font-weight:700;margin:8px 0}.badgeActive{color:#15803d}.badgeInactive{color:#b42318}
 </style>
 
+
+<style>
+/* ===== MASQUAGE CODE ADMIN ===== */
+#saniPinInput{
+  -webkit-text-security:disc !important;
+}
+</style>
+
 </head>
 <body>
 
@@ -476,71 +484,7 @@ body{display:block}
   </div>
 </div>
 
-<script>
-(function(){
-  const PIN_ADMIN = '37420';
-  let passageAutorise = false;
 
-  const overlay = document.getElementById('saniPinOverlay');
-  const input = document.getElementById('saniPinInput');
-  const erreur = document.getElementById('saniPinError');
-  const btnOk = document.getElementById('saniPinOk');
-  const btnCancel = document.getElementById('saniPinCancel');
-
-  function ouvrirPin(){
-    input.value='';
-    erreur.textContent='';
-    overlay.classList.add('open');
-    overlay.setAttribute('aria-hidden','false');
-    setTimeout(()=>input.focus(),50);
-  }
-
-  function fermerPin(){
-    overlay.classList.remove('open');
-    overlay.setAttribute('aria-hidden','true');
-    input.value='';
-    erreur.textContent='';
-  }
-
-  // Protection prioritaire de la pastille.
-  document.addEventListener('click', function(e){
-    const pastille = e.target.closest('#saniConnection');
-    if(!pastille) return;
-
-    if(passageAutorise){
-      passageAutorise=false;
-      return; // laisse fonctionner le clic normal UNE seule fois
-    }
-
-    e.preventDefault();
-    e.stopPropagation();
-    e.stopImmediatePropagation();
-    ouvrirPin();
-  }, true);
-
-  function validerPin(){
-    if(input.value === PIN_ADMIN){
-      fermerPin();
-      passageAutorise=true;
-      const pastille=document.getElementById('saniConnection');
-      if(pastille) pastille.click();
-    }else{
-      erreur.textContent='Code incorrect';
-      input.value='';
-      input.focus();
-    }
-  }
-
-  input.addEventListener('input', function(){
-    this.value=this.value.replace(/\D/g,'').slice(0,5);
-    erreur.textContent='';
-  });
-  input.addEventListener('keydown', e=>{ if(e.key==='Enter') validerPin(); });
-  btnOk.addEventListener('click', validerPin);
-  btnCancel.addEventListener('click', fermerPin);
-  overlay.addEventListener('click', e=>{ if(e.target===overlay) fermerPin(); });
-})();
-</script>
 
 
 </div>
@@ -1115,15 +1059,46 @@ let codeAdminSession='';
 function gsDisponible(){return !!(window.google&&google.script&&google.script.run)}
 function ouvrirParametres(){
   if(!gsDisponible()){alert('Connexion SaniStock indisponible.');return}
-  const code=prompt('🔐 Code administrateur SaniStock :');
-  if(code===null)return;
-  google.script.run.withSuccessHandler(function(ok){
-    if(!ok){alert('Code administrateur incorrect.');return}
-    codeAdminSession=String(code);
-    document.getElementById('settingsOverlay').classList.add('open');
-    document.getElementById('settingsOverlay').setAttribute('aria-hidden','false');
-    chargerGestionSalaries();
-  }).withFailureHandler(function(e){alert('Erreur : '+(e&&e.message?e.message:e))}).verifierCodeAdmin(code);
+  const overlay=document.getElementById('saniPinOverlay');
+  const input=document.getElementById('saniPinInput');
+  const erreur=document.getElementById('saniPinError');
+  const btnOk=document.getElementById('saniPinOk');
+  const btnCancel=document.getElementById('saniPinCancel');
+
+  input.value='';
+  erreur.textContent='';
+  overlay.classList.add('open');
+  overlay.setAttribute('aria-hidden','false');
+  setTimeout(function(){input.focus()},50);
+
+  function fermer(){
+    overlay.classList.remove('open');
+    overlay.setAttribute('aria-hidden','true');
+    input.value='';
+    erreur.textContent='';
+    btnOk.onclick=null;
+    btnCancel.onclick=null;
+    input.onkeydown=null;
+  }
+
+  function valider(){
+    const code=(input.value||'').replace(/\D/g,'').slice(0,5);
+    if(code.length!==5){erreur.textContent='Le code doit contenir 5 chiffres.';return}
+    google.script.run.withSuccessHandler(function(ok){
+      if(!ok){erreur.textContent='Code administrateur incorrect.';input.value='';input.focus();return}
+      codeAdminSession=String(code);
+      fermer();
+      document.getElementById('settingsOverlay').classList.add('open');
+      document.getElementById('settingsOverlay').setAttribute('aria-hidden','false');
+      chargerGestionSalaries();
+    }).withFailureHandler(function(e){
+      erreur.textContent='Erreur de vérification';
+    }).verifierCodeAdmin(code);
+  }
+
+  btnOk.onclick=valider;
+  btnCancel.onclick=fermer;
+  input.onkeydown=function(e){if(e.key==='Enter')valider()};
 }
 function fermerParametres(){const o=document.getElementById('settingsOverlay');o.classList.remove('open');o.setAttribute('aria-hidden','true')}
 function messageParametres(t,ok=true){const m=document.getElementById('settingsMsg');m.style.color=ok?'#15803d':'#b42318';m.textContent=t||''}
@@ -1161,79 +1136,9 @@ function changerCodeAdminUI(){
   if(nouveau!==confirmation){messageParametres('❌ Les deux codes ne correspondent pas.',false);return}
   google.script.run.withSuccessHandler(function(){codeAdminSession=String(nouveau);messageParametres('✅ Code administrateur modifié. Vous pourrez transmettre ce code au prochain responsable.')}).withFailureHandler(function(e){messageParametres('❌ '+(e&&e.message?e.message:e),false)}).changerCodeAdmin({ancienCode:codeAdminSession,nouveauCode:String(nouveau)});
 }
-
+document.getElementById('settingsBtn').addEventListener('click',ouvrirParametres);
 document.getElementById('settingsOverlay').addEventListener('click',function(e){if(e.target===this)fermerParametres()});
 </script>
-
-
-/* ===== ACCÈS PARAMÈTRES MASQUÉ ===== */
-(function(){
-  const settingsBtn=document.getElementById('settingsBtn');
-  const overlay=document.getElementById('saniPinOverlay');
-  const input=document.getElementById('saniPinInput');
-  const erreur=document.getElementById('saniPinError');
-  const btnOk=document.getElementById('saniPinOk');
-  const btnCancel=document.getElementById('saniPinCancel');
-
-  if(input){
-    input.type='password';
-    input.setAttribute('autocomplete','new-password');
-    input.style.webkitTextSecurity='disc';
-  }
-
-  function fermerCodeAdmin(){
-    overlay.classList.remove('open');
-    overlay.setAttribute('aria-hidden','true');
-    input.value='';
-    erreur.textContent='';
-  }
-
-  function ouvrirCodeAdmin(e){
-    if(e){e.preventDefault();e.stopImmediatePropagation();}
-    if(!gsDisponible()){alert('Connexion SaniStock indisponible.');return false;}
-    input.value='';
-    erreur.textContent='';
-    overlay.classList.add('open');
-    overlay.setAttribute('aria-hidden','false');
-    setTimeout(function(){input.focus()},50);
-    return false;
-  }
-
-  function validerCodeAdmin(){
-    const code=String(input.value||'').replace(/\D/g,'').slice(0,5);
-    if(code.length!==5){
-      erreur.textContent='Entrez votre code à 5 chiffres.';
-      return;
-    }
-    google.script.run
-      .withSuccessHandler(function(ok){
-        if(!ok){
-          erreur.textContent='Code administrateur incorrect.';
-          input.value='';
-          input.focus();
-          return;
-        }
-        codeAdminSession=code;
-        fermerCodeAdmin();
-        document.getElementById('settingsOverlay').classList.add('open');
-        document.getElementById('settingsOverlay').setAttribute('aria-hidden','false');
-        chargerGestionSalaries();
-      })
-      .withFailureHandler(function(){
-        erreur.textContent='Erreur de connexion.';
-      })
-      .verifierCodeAdmin(code);
-  }
-
-  if(settingsBtn){
-    const clone=settingsBtn.cloneNode(true);
-    settingsBtn.parentNode.replaceChild(clone,settingsBtn);
-    clone.addEventListener('click',ouvrirCodeAdmin,true);
-  }
-  btnOk.onclick=validerCodeAdmin;
-  btnCancel.onclick=fermerCodeAdmin;
-  input.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();validerCodeAdmin();}};
-})();
 
 </body>
 </html>
