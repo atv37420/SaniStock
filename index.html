@@ -814,8 +814,12 @@ body{display:block}
 // Les données sont interrogées à la demande depuis une API qui reprend les données BDPM.
 // Cela évite d'embarquer une liste figée et permet de rechercher les médicaments/génériques
 // ajoutés ou modifiés depuis la dernière version de l'application.
-const MEDICAMENTS_API = 'https://medicaments-api.giygas.dev/v1';
+const MEDICAMENTS_APIS = [
+  'https://medicaments-api.giygas.dev/v1',
+  'https://bdpmgf.vedielaute.fr/api/medicaments'
+];
 const BDPM_SEARCH_URL = 'https://base-donnees-publique.medicaments.gouv.fr/?txtCaracteres=';
+const MEDICAMENTS_TIMEOUT_MS = 9000;
 let memoMedicamentsCategory = 'Tous';
 let memoSearchTimer = null;
 let memoRequestId = 0;
@@ -889,6 +893,25 @@ function afficherMemoEtat(message, type){
   if(count){ count.textContent=message; count.dataset.type=type||''; }
 }
 
+async function fetchMemoJson(url){
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),MEDICAMENTS_TIMEOUT_MS);
+  try{
+    const res=await fetch(url,{headers:{Accept:'application/json'},cache:'no-store',signal:controller.signal});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    return await res.json();
+  }finally{ clearTimeout(timer); }
+}
+
+function memoExtractFallbackList(json){
+  if(!json) return [];
+  if(Array.isArray(json)) return json.map(memoToDrug).filter(x=>x.name);
+  if(Array.isArray(json.data)) return json.data.map(memoToDrug).filter(x=>x.name);
+  if(Array.isArray(json.medicaments)) return json.medicaments.map(memoToDrug).filter(x=>x.name);
+  if(json.results && Array.isArray(json.results)) return json.results.map(memoToDrug).filter(x=>x.name);
+  return memoExtractList(json);
+}
+
 async function rechercherMemoMedicaments(){
   const input=document.getElementById('memoMedicamentsSearch');
   const q=(input?.value||'').trim();
@@ -901,26 +924,44 @@ async function rechercherMemoMedicaments(){
   }
   const results=document.getElementById('memoMedicamentsResults');
   if(results) results.innerHTML='<div class="memoMedicamentsEmpty"><div class="memoMedicamentsIcon">⏳</div><strong>Recherche en cours…</strong><span>Recherche dans la base médicaments.</span></div>';
-  afficherMemoEtat('Recherche…');
-  try{
-    const url=MEDICAMENTS_API+'/medicaments?search='+encodeURIComponent(q)+'&pageSize=100';
-    const res=await fetch(url,{headers:{Accept:'application/json'},cache:'no-store'});
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    const json=await res.json();
-    if(request!==memoRequestId)return;
-    let list=memoExtractList(json);
-    if(memoMedicamentsCategory==='Génériques') list=list.filter(x=>x.generic);
-    list.sort((a,b)=>a.name.localeCompare(b.name,'fr'));
-    memoMedicamentsData=list; window._memoVisibleList=list;
-    afficherMemoEtat(list.length+' résultat(s)');
-    renderMemoResults();
-  }catch(err){
-    if(request!==memoRequestId)return;
-    // L'API externe peut être bloquée par GitHub Pages (CORS/réseau).
-    // On garde une recherche fiable via la BDPM officielle.
-    afficherMemoEtat('Recherche BDPM disponible');
-    if(results) results.innerHTML='<div class="memoMedicamentsEmpty"><div class="memoMedicamentsIcon">🔎</div><strong>Recherche SaniStock momentanément indisponible</strong><span>La base officielle BDPM reste accessible. Recherche « '+escapeMemoHtml(q)+' » directement dans la BDPM.</span><button type="button" class="memoOfficialSearch" onclick="ouvrirRechercheBDPMAvecTerme('+JSON.stringify('PLACEHOLDER')+')">🔎 Rechercher dans la BDPM officielle</button></div>'.replace('PLACEHOLDER',q.replace(/\/g,'\').replace(/'/g,"\'"));
+  afficherMemoEtat('Recherche dans la base BDPM…');
+
+  let lastError=null;
+  for(const api of MEDICAMENTS_APIS){
+    try{
+      let json;
+      if(api.includes('vedielaute.fr')){
+        json=await fetchMemoJson(api+'/search?q='+encodeURIComponent(q)+'&limit=100');
+      }else{
+        json=await fetchMemoJson(api+'/medicaments?search='+encodeURIComponent(q)+'&pageSize=100');
+      }
+      if(request!==memoRequestId)return;
+      let list=memoExtractFallbackList(json);
+      if(memoMedicamentsCategory==='Génériques') list=list.filter(x=>x.generic);
+      list.sort((a,b)=>a.name.localeCompare(b.name,'fr'));
+      memoMedicamentsData=list; window._memoVisibleList=list;
+      try{ localStorage.setItem('saniMemoLastSearch',JSON.stringify({q:q,list:list.slice(0,100),savedAt:Date.now()})); }catch(e){}
+      afficherMemoEtat(list.length+' résultat(s)');
+      renderMemoResults();
+      return;
+    }catch(err){ lastError=err; }
   }
+
+  // Dernier recours : réutiliser le dernier résultat enregistré pour éviter une page vide
+  // lors d'une coupure momentanée du réseau.
+  try{
+    const cached=JSON.parse(localStorage.getItem('saniMemoLastSearch')||'null');
+    if(cached && normaliserMemoMed(cached.q).includes(normaliserMemoMed(q)) && Array.isArray(cached.list)){
+      memoMedicamentsData=cached.list; window._memoVisibleList=cached.list;
+      afficherMemoEtat(cached.list.length+' résultat(s) — dernière recherche enregistrée');
+      renderMemoResults();
+      return;
+    }
+  }catch(e){}
+
+  if(request!==memoRequestId)return;
+  afficherMemoEtat('Base temporairement indisponible');
+  if(results) results.innerHTML='<div class="memoMedicamentsEmpty"><div class="memoMedicamentsIcon">⚠️</div><strong>Base médicaments temporairement indisponible</strong><span>La connexion aux données BDPM ne répond pas. Vérifie internet puis réessaie.</span><button type="button" class="memoOfficialSearch" onclick="ouvrirRechercheBDPM()">🔎 Ouvrir BDPM</button></div>';
 }
 
 function renderMemoMedicaments(){
@@ -965,9 +1006,17 @@ async function ouvrirDetailMedicament(i){
   document.getElementById('memoMedDetailText').textContent='Chargement des informations officielles…';
   const d=document.getElementById('memoMedDetail'); d.classList.add('open'); d.setAttribute('aria-hidden','false');
   try{
-    const res=await fetch(MEDICAMENTS_API+'/medicaments/'+encodeURIComponent(base.cis),{headers:{Accept:'application/json'},cache:'no-store'});
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    const full=memoToDrug(await res.json());
+    let full=null;
+    for(const api of MEDICAMENTS_APIS){
+      try{
+        const url=api.includes('vedielaute.fr')
+          ? api+'/specialites/'+encodeURIComponent(base.cis)
+          : api+'/medicaments/'+encodeURIComponent(base.cis);
+        full=memoToDrug(await fetchMemoJson(url));
+        if(full && full.name) break;
+      }catch(e){}
+    }
+    if(!full || !full.name) throw new Error('Détail indisponible');
     window._memoCurrentDrug=full;
     const lines=[];
     if(full.substances) lines.push('🧬 Substance active : '+full.substances);
