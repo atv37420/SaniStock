@@ -916,8 +916,10 @@ async function rechercherMemoMedicaments(){
     renderMemoResults();
   }catch(err){
     if(request!==memoRequestId)return;
-    afficherMemoEtat('Recherche indisponible');
-    if(results) results.innerHTML='<div class="memoMedicamentsEmpty"><div class="memoMedicamentsIcon">⚠️</div><strong>Base en ligne indisponible</strong><span>Tu peux ouvrir la recherche officielle BDPM.</span><button type="button" class="memoOfficialSearch" onclick="ouvrirRechercheBDPM()">🔎 Recherche officielle BDPM</button></div>';
+    // L'API externe peut être bloquée par GitHub Pages (CORS/réseau).
+    // On garde une recherche fiable via la BDPM officielle.
+    afficherMemoEtat('Recherche BDPM disponible');
+    if(results) results.innerHTML='<div class="memoMedicamentsEmpty"><div class="memoMedicamentsIcon">🔎</div><strong>Recherche SaniStock momentanément indisponible</strong><span>La base officielle BDPM reste accessible. Recherche « '+escapeMemoHtml(q)+' » directement dans la BDPM.</span><button type="button" class="memoOfficialSearch" onclick="ouvrirRechercheBDPMAvecTerme('+JSON.stringify('PLACEHOLDER')+')">🔎 Rechercher dans la BDPM officielle</button></div>'.replace('PLACEHOLDER',q.replace(/\/g,'\').replace(/'/g,"\'"));
   }
 }
 
@@ -992,6 +994,20 @@ function ouvrirRechercheBDPM(){
   const nom=d.name||document.getElementById('memoMedicamentsSearch')?.value||'';
   window.open(BDPM_SEARCH_URL+encodeURIComponent(nom),'_blank','noopener');
 }
+function ouvrirRechercheBDPMAvecTerme(terme){
+  const q=String(terme||'').trim();
+  if(!q)return;
+  window.open(BDPM_SEARCH_URL+encodeURIComponent(q),'_blank','noopener');
+}
+
+// Appui sur Entrée : ouvrir directement les résultats officiels BDPM.
+document.addEventListener('keydown',function(e){
+  const input=document.getElementById('memoMedicamentsSearch');
+  if(input && document.activeElement===input && e.key==='Enter'){
+    const q=input.value.trim();
+    if(q) ouvrirRechercheBDPMAvecTerme(q);
+  }
+});
 
 document.addEventListener('click',function(e){
   const o=document.getElementById('memoMedicamentsOverlay');
