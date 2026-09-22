@@ -31,7 +31,13 @@
         if(prop in obj) return obj[prop];
         return function(){
           const args = Array.from(arguments);
-          const data = args.length <= 1 ? (args[0] ?? null) : args;
+          let data = args.length <= 1 ? (args[0] ?? null) : args;
+          // Les fonctions de vérification reçoivent un code simple depuis l'interface.
+          // L'API Apps Script attend un objet {code: "..."}.
+          if ((prop === 'verifierCodeAdmin' || prop === 'verifierCodeSalarie' || prop === 'verifierCodeEntreeStock')
+              && (typeof data === 'string' || typeof data === 'number')) {
+            data = { code: String(data) };
+          }
           const cb = '__sanistock_cb_' + Date.now() + '_' + (++n);
           const script = document.createElement('script');
           let done = false;
