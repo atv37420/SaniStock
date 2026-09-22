@@ -224,6 +224,8 @@
   #saniConnection .saniConnTitle{font-size:8px}
   #saniConnection .saniConnSub{font-size:6.5px}
 }
+
+.memoMedicamentsCount{margin-top:10px;font-size:11px;color:#557089;font-weight:800}.memoMedicamentsResults{margin-top:10px;display:flex;flex-direction:column;gap:8px}.memoMedCard{border:1px solid #d7e3ec;background:#fff;border-radius:16px;padding:12px;text-align:left;color:#173f68;cursor:pointer}.memoMedCard:active{transform:scale(.99)}.memoMedName{font-weight:900;font-size:14px;color:#073f91}.memoMedFunction{margin-top:5px;font-size:12px;color:#486783}.memoMedCategory{margin-top:5px;font-size:10px;color:#6a8399}.memoMedDetail{display:none;position:fixed;inset:0;z-index:30100;background:rgba(3,18,38,.78);padding:16px;align-items:center;justify-content:center}.memoMedDetail.open{display:flex}.memoMedDetailBox{width:min(430px,100%);max-height:84vh;overflow:auto;background:#fff;border-radius:22px;padding:18px;box-shadow:0 22px 70px rgba(0,0,0,.4);color:#173f68}.memoMedDetailBox h3{margin:0 42px 14px 0;color:#073f91;font-size:20px}.memoMedDetailBox p{margin:0;white-space:pre-line;line-height:1.5;font-size:13px;color:#486783}.memoMedDetailClose{float:right;width:36px;height:36px;border:0;border-radius:11px;background:#e5edf4;color:#173f68;font-size:22px;cursor:pointer}
 </style>
 <style>
 *{box-sizing:border-box}
@@ -707,7 +709,7 @@ body{display:block}
           onclick="ouvrirParametres()" aria-label="Paramètres"></button>
 </section>
 
-<!-- Mémo médicaments : interface prête, base de contenu à intégrer ensuite -->
+<!-- Mémo médicaments : recherche intégrée -->
 <div id="memoMedicamentsOverlay" class="memoMedicamentsOverlay" aria-hidden="true">
   <div class="memoMedicamentsPanel">
     <div class="memoMedicamentsHead">
@@ -717,13 +719,26 @@ body{display:block}
       </div>
       <button type="button" class="memoMedicamentsClose" onclick="fermerMemoMedicaments()">×</button>
     </div>
+
     <input id="memoMedicamentsSearch" type="search"
-           placeholder="🔎 Rechercher un médicament..." autocomplete="off">
-    <div class="memoMedicamentsEmpty">
-      <div class="memoMedicamentsIcon">💊</div>
-      <strong>Mémo médicaments</strong>
-      <span>La base de référence sera intégrée dans cet espace.</span>
+           placeholder="🔎 Rechercher un médicament ou une substance..." autocomplete="off">
+
+    <div id="memoMedicamentsCount" class="memoMedicamentsCount"></div>
+    <div id="memoMedicamentsResults" class="memoMedicamentsResults">
+      <div class="memoMedicamentsEmpty">
+        <div class="memoMedicamentsIcon">💊</div>
+        <strong>Recherche de médicament</strong>
+        <span>Nom commercial, générique ou substance active.</span>
+      </div>
     </div>
+  </div>
+</div>
+
+<div id="memoMedDetail" class="memoMedDetail" aria-hidden="true">
+  <div class="memoMedDetailBox">
+    <button class="memoMedDetailClose" onclick="fermerDetailMedicament()">×</button>
+    <h3 id="memoMedDetailTitle"></h3>
+    <p id="memoMedDetailText"></p>
   </div>
 </div>
 
@@ -805,24 +820,133 @@ body{display:block}
 </section>
 </main>
 <script>
+/* ===== MÉMO MÉDICAMENTS — RECHERCHE INTÉGRÉE ===== */
+const MEDICAMENTS_API = 'https://medicaments-api.giygas.dev/v1';
+const BDPM_EXTRAIT = 'https://base-donnees-publique.medicaments.gouv.fr/medicament/';
+const JINA_READER = 'https://r.jina.ai/http://r.jina.ai/http://';
+let memoSearchTimer = null;
+let memoRequestId = 0;
+window._memoVisibleList = [];
+window._memoCurrentDrug = null;
+
+function normaliserMemo(s){return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();}
+function escMemo(s){return String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
+function memoArr(v){
+  if(Array.isArray(v)) return v;
+  if(v&&typeof v==='object') return Object.values(v);
+  return v?[v]:[];
+}
+function memoFirst(o,keys){for(const k of keys){if(o&&o[k]!==undefined&&o[k]!==null&&String(o[k]).trim()!=='')return o[k];}return '';}
+function memoSubstances(m){
+  const a=memoArr(m?.composition||m?.compositions||m?.substances);
+  return a.map(x=>typeof x==='string'?x:memoFirst(x,['denomination','denominations','name','nom','substance','libelle'])).filter(Boolean).join(', ');
+}
+function memoToDrug(raw){
+  const m=raw?.medicament||raw?.data||raw||{};
+  return {
+    raw:m,
+    cis:String(memoFirst(m,['cis','CIS','codeCIS','code_cis'])),
+    name:String(memoFirst(m,['elementPharmaceutique','denomination','name','nom','libelle'])),
+    form:String(memoFirst(m,['formePharmaceutique','forme','pharmaceuticalForm'])),
+    substances:memoSubstances(m),
+    generic:Boolean(m.generic||m.isGeneric||m.estGenerique||String(m.typeGenerique||'').length),
+    indication:String(memoFirst(m,['indications','indication','aQuoiCaSert','usage','description']))
+  };
+}
+function memoExtract(json){
+  let a=json?.medicaments||json?.results||json?.data||json?.items||json;
+  if(a&&Array.isArray(a.data)) a=a.data;
+  return memoArr(a).map(memoToDrug).filter(x=>x.name);
+}
+function afficherMemoEtat(t){const e=document.getElementById('memoMedicamentsCount');if(e)e.textContent=t;}
+
+async function rechercherMemoMedicaments(){
+  const input=document.getElementById('memoMedicamentsSearch');
+  const q=(input?.value||'').trim();
+  const rid=++memoRequestId;
+  const box=document.getElementById('memoMedicamentsResults');
+  if(!q){window._memoVisibleList=[];afficherMemoEtat('');if(box)box.innerHTML='<div class="memoMedicamentsEmpty"><div class="memoMedicamentsIcon">💊</div><strong>Recherche de médicament</strong><span>Nom commercial, générique ou substance active.</span></div>';return;}
+  if(box)box.innerHTML='<div class="memoMedicamentsEmpty"><div class="memoMedicamentsIcon">⏳</div><strong>Recherche en cours…</strong><span>Recherche dans la base médicaments.</span></div>';
+  afficherMemoEtat('Recherche…');
+  try{
+    const res=await fetch(MEDICAMENTS_API+'/medicaments?search='+encodeURIComponent(q)+'&pageSize=100',{headers:{Accept:'application/json'},cache:'no-store'});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const json=await res.json();
+    if(rid!==memoRequestId)return;
+    const list=memoExtract(json).sort((a,b)=>a.name.localeCompare(b.name,'fr'));
+    window._memoVisibleList=list;
+    afficherMemoEtat(list.length+' résultat(s)');
+    renderMemoResults();
+  }catch(err){
+    if(rid!==memoRequestId)return;
+    window._memoVisibleList=[];
+    afficherMemoEtat('');
+    if(box)box.innerHTML='<div class="memoMedicamentsEmpty"><div class="memoMedicamentsIcon">⚠️</div><strong>Base médicaments indisponible</strong><span>Réessaie dans quelques secondes.</span></div>';
+  }
+}
+function renderMemoResults(){
+  const box=document.getElementById('memoMedicamentsResults');
+  const list=window._memoVisibleList||[];
+  if(!box)return;
+  if(!list.length){box.innerHTML='<div class="memoMedicamentsEmpty"><div class="memoMedicamentsIcon">🔎</div><strong>Aucun résultat</strong><span>Essaie le nom du médicament ou de la substance active.</span></div>';return;}
+  box.innerHTML=list.map((m,i)=>'<button type="button" class="memoMedCard" onclick="ouvrirDetailMedicament('+i+')"><div class="memoMedName">'+escMemo(m.name)+'</div>'+(m.substances?'<div class="memoMedFunction">🧬 '+escMemo(m.substances)+'</div>':'')+'<div class="memoMedCategory">'+escMemo(m.form||'Médicament')+'</div></button>').join('');
+}
+function renderMemoMedicaments(){clearTimeout(memoSearchTimer);memoSearchTimer=setTimeout(rechercherMemoMedicaments,180);}
 function ouvrirMemoMedicaments(){
-  const o=document.getElementById('memoMedicamentsOverlay');
-  if(!o)return;
-  o.classList.add('open');
-  o.setAttribute('aria-hidden','false');
-  const s=document.getElementById('memoMedicamentsSearch');
-  if(s){s.value='';setTimeout(function(){s.focus()},50);}
+  const o=document.getElementById('memoMedicamentsOverlay');if(!o)return;
+  o.classList.add('open');o.setAttribute('aria-hidden','false');
+  const s=document.getElementById('memoMedicamentsSearch');if(s){s.value='';setTimeout(()=>s.focus(),40);}
+  document.getElementById('memoMedicamentsResults').innerHTML='<div class="memoMedicamentsEmpty"><div class="memoMedicamentsIcon">💊</div><strong>Recherche de médicament</strong><span>Nom commercial, générique ou substance active.</span></div>';afficherMemoEtat('');
 }
-function fermerMemoMedicaments(){
-  const o=document.getElementById('memoMedicamentsOverlay');
-  if(!o)return;
-  o.classList.remove('open');
-  o.setAttribute('aria-hidden','true');
+function fermerMemoMedicaments(){const o=document.getElementById('memoMedicamentsOverlay');if(o){o.classList.remove('open');o.setAttribute('aria-hidden','true');}fermerDetailMedicament();}
+
+function extraireIndicationTexte(txt){
+  const clean=String(txt||'').replace(/\r/g,'');
+  const marker=/4\.1\.?\s+Indications thérapeutiques/i;
+  const m=clean.match(marker); if(!m)return '';
+  let part=clean.slice(m.index+m[0].length);
+  part=part.split(/\n\s*4\.2\.?\s+/i)[0];
+  part=part.split(/\n\s*5\.?\s+PROPRI|\n\s*5\.?\s+PROPRIÉTÉS/i)[0];
+  part=part.replace(/\n{3,}/g,'\n\n').trim();
+  // enlever les titres très administratifs au début
+  part=part.replace(/^[:\-–\s]+/,'').trim();
+  return part.length>2400?part.slice(0,2400)+'…':part;
 }
-document.addEventListener('click',function(e){
-  const o=document.getElementById('memoMedicamentsOverlay');
-  if(o && e.target===o) fermerMemoMedicaments();
-});
+async function recupererIndicationDepuisBDPM(cis){
+  if(!cis)return '';
+  const cacheKey='saniMemoIndication_'+cis;
+  try{const c=localStorage.getItem(cacheKey);if(c)return c;}catch(e){}
+  const target='https://base-donnees-publique.medicaments.gouv.fr/medicament/'+encodeURIComponent(cis)+'/extrait';
+  try{
+    // Jina Reader sert de relais pour lire le texte public de la fiche BDPM dans l'application.
+    const url='https://r.jina.ai/'+target;
+    const res=await fetch(url,{headers:{Accept:'text/plain'},cache:'no-store'});
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const txt=await res.text();
+    const indication=extraireIndicationTexte(txt);
+    if(indication){try{localStorage.setItem(cacheKey,indication);}catch(e){}return indication;}
+  }catch(e){}
+  return '';
+}
+
+async function ouvrirDetailMedicament(i){
+  const m=(window._memoVisibleList||[])[i];if(!m)return;
+  window._memoCurrentDrug=m;
+  const d=document.getElementById('memoMedDetail');if(!d)return;
+  document.getElementById('memoMedDetailTitle').textContent='💊 '+m.name;
+  document.getElementById('memoMedDetailText').textContent=(m.substances?'🧬 Substance active : '+m.substances+'\n\n':'')+(m.form?'💊 Forme : '+m.form+'\n\n':'')+'💡 À quoi ça sert :\nRecherche de l’indication officielle…';
+  d.classList.add('open');d.setAttribute('aria-hidden','false');
+  let indication=m.indication||'';
+  if(!indication) indication=await recupererIndicationDepuisBDPM(m.cis);
+  if(m!==window._memoCurrentDrug)return;
+  const text=(m.substances?'🧬 Substance active : '+m.substances+'\n\n':'')+(m.form?'💊 Forme : '+m.form+'\n\n':'')+'💡 À quoi ça sert :\n'+(indication||'Indication officielle temporairement indisponible.');
+  document.getElementById('memoMedDetailText').textContent=text;
+}
+function fermerDetailMedicament(){const d=document.getElementById('memoMedDetail');if(d){d.classList.remove('open');d.setAttribute('aria-hidden','true');}}
+
+document.addEventListener('input',function(e){if(e.target&&e.target.id==='memoMedicamentsSearch')renderMemoMedicaments();});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){fermerDetailMedicament();fermerMemoMedicaments();}});
+document.addEventListener('click',function(e){const o=document.getElementById('memoMedicamentsOverlay');if(o&&e.target===o)fermerMemoMedicaments();const d=document.getElementById('memoMedDetail');if(d&&e.target===d)fermerDetailMedicament();});
 </script>
 <script>
 function showPage(id){
