@@ -1220,7 +1220,29 @@ function changerCodeAdminUI(){
       nameSel.innerHTML='<option value="">Sélectionner votre nom</option>'+noms.map(function(n){return '<option value="'+escapeHtml(n)+'">'+escapeHtml(n)+'</option>'}).join('');
       const savedName=localStorage.getItem(KEY_NAME)||'';
       const savedCode=localStorage.getItem(KEY_CODE)||'';
-      if(savedName&&savedCode&&noms.includes(savedName)){nameSel.value=savedName;verify(savedName,savedCode,false)}
+      if(savedName&&savedCode&&noms.includes(savedName)){
+        /* Connexion automatique : aucun code redemandé après la première connexion. */
+        nameSel.value=savedName;
+        unlock(savedName);
+
+        /* Petit message immédiat à l'ouverture. */
+        const bonjour=document.createElement('div');
+        bonjour.textContent='Bonjour '+savedName+' 👋';
+        bonjour.style.cssText='position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:25000;background:rgba(255,255,255,.96);color:#073f91;padding:10px 16px;border-radius:999px;font-weight:900;box-shadow:0 5px 18px rgba(0,0,0,.18);white-space:nowrap';
+        document.body.appendChild(bonjour);
+        setTimeout(function(){bonjour.remove()},2200);
+
+        /* Vérification discrète en arrière-plan : si le salarié a été désactivé,
+           sa connexion mémorisée est supprimée et l'accès est redemandé. */
+        google.script.run.withSuccessHandler(function(ok){
+          if(!ok){
+            localStorage.removeItem(KEY_NAME); localStorage.removeItem(KEY_CODE);
+            location.reload();
+          }
+        }).withFailureHandler(function(){
+          /* En cas de réseau lent/hors ligne, on ne bloque pas l'ouverture immédiate. */
+        }).verifierCodeSalarie({salarie:savedName,code:String(savedCode)});
+      }
     }).withFailureHandler(function(){
       nameSel.innerHTML='<option value="">Connexion impossible</option>';
       showError('Impossible de charger les salariés.');
