@@ -14,6 +14,61 @@
 <meta name="apple-mobile-web-app-title" content="SaniStock">
 <meta name="theme-color" content="#0757a0">
 
+
+<script>
+/* ===== PONT GITHUB -> GOOGLE APPS SCRIPT ===== */
+(function(){
+  const API_URL = 'https://script.google.com/macros/s/AKfycbxz5dZkT7FyFx8ohxWmg2Pt23Yqx0LQDMqqJg8LM8bkfN3ulkb37VqUO8m8WvjyuGBqrg/exec';
+  let n = 0;
+
+  function createRunner(success, failure){
+    const target = {
+      withSuccessHandler(fn){ return createRunner(fn, failure); },
+      withFailureHandler(fn){ return createRunner(success, fn); }
+    };
+    return new Proxy(target, {
+      get(obj, prop){
+        if(prop in obj) return obj[prop];
+        return function(){
+          const args = Array.from(arguments);
+          const data = args.length <= 1 ? (args[0] ?? null) : args;
+          const cb = '__sanistock_cb_' + Date.now() + '_' + (++n);
+          const script = document.createElement('script');
+          let done = false;
+          const cleanup = () => {
+            if(done) return; done = true;
+            try{ delete window[cb]; }catch(e){ window[cb]=undefined; }
+            if(script.parentNode) script.parentNode.removeChild(script);
+          };
+          window[cb] = function(res){
+            cleanup();
+            if(res && res.success){ if(typeof success==='function') success(res.data); }
+            else { if(typeof failure==='function') failure({message:(res&&res.error)||'Erreur SaniStock'}); }
+          };
+          script.onerror = function(){
+            cleanup();
+            if(typeof failure==='function') failure({message:'Connexion à Google Apps Script impossible'});
+          };
+          const q = new URLSearchParams({api:'1', action:String(prop), callback:cb, data:JSON.stringify(data)});
+          script.src = API_URL + '?' + q.toString();
+          document.head.appendChild(script);
+          setTimeout(function(){
+            if(!done){ cleanup(); if(typeof failure==='function') failure({message:'Délai de connexion dépassé'}); }
+          }, 15000);
+        };
+      }
+    });
+  }
+
+  window.google = window.google || {};
+  window.google.script = window.google.script || {};
+  Object.defineProperty(window.google.script, 'run', {
+    configurable:true,
+    get:function(){ return createRunner(null,null); }
+  });
+})();
+</script>
+
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;width:100%;height:100%;min-height:100%;overflow-x:hidden;background:#000;font-family:Arial,sans-serif}
