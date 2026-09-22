@@ -452,8 +452,38 @@ body{display:block}
 }
 </style>
 
+
+<style>
+/* ===== CONNEXION SALARIÉ PERSISTANTE ===== */
+#employeeLoginOverlay{display:flex;position:fixed;inset:0;z-index:30000;background:linear-gradient(180deg,#0757a0 0%,#032f61 100%);padding:22px;align-items:center;justify-content:center;color:#173f68}
+#employeeLoginOverlay.hidden{display:none}
+.employeeLoginCard{width:min(100%,390px);background:#fff;border-radius:24px;padding:24px 20px;box-shadow:0 20px 60px rgba(0,0,0,.35);text-align:center}
+.employeeLoginLogo{font-size:42px;margin-bottom:6px}.employeeLoginCard h2{margin:4px 0;color:#073f91}.employeeLoginCard p{margin:6px 0 18px;color:#60778c;font-size:13px}
+.employeeLoginCard select,.employeeLoginCard input{width:100%;border:2px solid #d7e4ee;border-radius:13px;padding:13px 12px;margin:6px 0;font-size:16px;background:#fff;color:#173f68;outline:none}
+.employeeLoginCard select:focus,.employeeLoginCard input:focus{border-color:#0757a0}
+#employeeLoginCode{-webkit-text-security:disc}
+#employeeLoginBtn{width:100%;border:0;border-radius:13px;padding:13px;margin-top:10px;background:#0757a0;color:#fff;font-weight:900;font-size:16px;cursor:pointer}
+#employeeLoginBtn:disabled{opacity:.55;cursor:default}
+#employeeLoginError{min-height:20px;margin-top:9px;color:#c62828;font-size:12px;font-weight:800}
+.employeeLoginRemember{font-size:11px;color:#7890a4;margin-top:10px}
+</style>
+
 </head>
 <body>
+
+
+<div id="employeeLoginOverlay" aria-live="polite">
+  <div class="employeeLoginCard">
+    <div class="employeeLoginLogo">🔐</div>
+    <h2>Connexion SaniStock</h2>
+    <p>Identifiez-vous une seule fois sur ce téléphone.</p>
+    <select id="employeeLoginName"><option value="">Chargement des salariés…</option></select>
+    <input id="employeeLoginCode" type="password" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="Votre code personnel">
+    <button id="employeeLoginBtn" type="button">Se connecter</button>
+    <div id="employeeLoginError"></div>
+    <div class="employeeLoginRemember">Votre téléphone vous reconnaîtra automatiquement aux prochaines ouvertures.</div>
+  </div>
+</div>
 
 <button id="settingsBtn" type="button" aria-label="Paramètres SaniStock" title="Paramètres">⚙️</button>
 <div id="settingsOverlay" aria-hidden="true">
@@ -649,7 +679,14 @@ function chargerSalaries(){
         noms.map(function(nom){
           return '<option value="'+escapeHtml(nom)+'">'+escapeHtml(nom)+'</option>';
         }).join('');
-      if(noms.includes(valeurActuelle)) select.value=valeurActuelle;
+      const salarieConnecte=localStorage.getItem('sanistock_employee_name')||'';
+      if(salarieConnecte && noms.includes(salarieConnecte)){
+        select.value=salarieConnecte;
+        /* Le salarié connecté est imposé automatiquement dans Stock et Désinfection. */
+        select.disabled=true;
+      }else if(noms.includes(valeurActuelle)){
+        select.value=valeurActuelle;
+      }
     });
   })
   .withFailureHandler(function(err){
@@ -1136,6 +1173,68 @@ function changerCodeAdminUI(){
   if(nouveau!==confirmation){messageParametres('❌ Les deux codes ne correspondent pas.',false);return}
   google.script.run.withSuccessHandler(function(){codeAdminSession=String(nouveau);messageParametres('✅ Code administrateur modifié. Vous pourrez transmettre ce code au prochain responsable.')}).withFailureHandler(function(e){messageParametres('❌ '+(e&&e.message?e.message:e),false)}).changerCodeAdmin({ancienCode:codeAdminSession,nouveauCode:String(nouveau)});
 }
+
+
+/* ===== CONNEXION SALARIÉ : CODE SAISI UNE SEULE FOIS ===== */
+(function(){
+  const KEY_NAME='sanistock_employee_name';
+  const KEY_CODE='sanistock_employee_code';
+  const overlay=document.getElementById('employeeLoginOverlay');
+  const nameSel=document.getElementById('employeeLoginName');
+  const codeInput=document.getElementById('employeeLoginCode');
+  const btn=document.getElementById('employeeLoginBtn');
+  const err=document.getElementById('employeeLoginError');
+
+  function showError(t){err.textContent=t||''}
+  function unlock(name){
+    overlay.classList.add('hidden');
+    const s1=document.getElementById('stockEmployee');
+    const s2=document.getElementById('employee');
+    function appliquerSalarieConnecte(){
+      if(s1){s1.value=name;s1.disabled=true;}
+      if(s2){s2.value=name;s2.disabled=true;}
+    }
+    appliquerSalarieConnecte();
+    setTimeout(appliquerSalarieConnecte,500);
+    setTimeout(appliquerSalarieConnecte,1500);
+  }
+  function verify(name,code,remember){
+    if(!name||!code){showError('Sélectionnez votre nom et entrez votre code.');return}
+    btn.disabled=true; btn.textContent='Vérification…'; showError('');
+    google.script.run.withSuccessHandler(function(ok){
+      btn.disabled=false; btn.textContent='Se connecter';
+      if(!ok){
+        localStorage.removeItem(KEY_NAME); localStorage.removeItem(KEY_CODE);
+        showError('Nom ou code incorrect, ou accès désactivé.'); codeInput.value=''; codeInput.focus(); return;
+      }
+      if(remember){localStorage.setItem(KEY_NAME,name);localStorage.setItem(KEY_CODE,code)}
+      unlock(name);
+    }).withFailureHandler(function(){
+      btn.disabled=false; btn.textContent='Se connecter';
+      showError('Connexion SaniStock impossible. Vérifiez Internet.');
+    }).verifierCodeSalarie({salarie:name,code:String(code)});
+  }
+  function loadNames(){
+    google.script.run.withSuccessHandler(function(noms){
+      noms=Array.isArray(noms)?noms:[];
+      nameSel.innerHTML='<option value="">Sélectionner votre nom</option>'+noms.map(function(n){return '<option value="'+escapeHtml(n)+'">'+escapeHtml(n)+'</option>'}).join('');
+      const savedName=localStorage.getItem(KEY_NAME)||'';
+      const savedCode=localStorage.getItem(KEY_CODE)||'';
+      if(savedName&&savedCode&&noms.includes(savedName)){nameSel.value=savedName;verify(savedName,savedCode,false)}
+    }).withFailureHandler(function(){
+      nameSel.innerHTML='<option value="">Connexion impossible</option>';
+      showError('Impossible de charger les salariés.');
+    }).getSalaries();
+  }
+  btn.addEventListener('click',function(){verify(nameSel.value,(codeInput.value||'').trim(),true)});
+  codeInput.addEventListener('keydown',function(e){if(e.key==='Enter')btn.click()});
+  window.deconnecterSaniStock=function(){
+    localStorage.removeItem(KEY_NAME); localStorage.removeItem(KEY_CODE);
+    location.reload();
+  };
+  setTimeout(loadNames,250);
+})();
+
 document.getElementById('settingsBtn').addEventListener('click',ouvrirParametres);
 document.getElementById('settingsOverlay').addEventListener('click',function(e){if(e.target===this)fermerParametres()});
 </script>
