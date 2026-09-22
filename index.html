@@ -452,6 +452,36 @@ body{display:block}
 }
 </style>
 
+
+<style>
+/* ===== CONNEXION SALARIÉ MÉMORISÉE ===== */
+#employeeLoginOverlay{
+  display:none;position:fixed;inset:0;z-index:1000001;
+  align-items:center;justify-content:center;padding:20px;
+  background:rgba(0,18,42,.78);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)
+}
+#employeeLoginOverlay.open{display:flex!important}
+#employeeLoginBox{
+  width:min(330px,calc(100vw - 36px));background:#fff;color:#173f68;
+  border-radius:20px;padding:22px 18px 18px;text-align:center;
+  box-shadow:0 18px 55px rgba(0,0,0,.35)
+}
+#employeeLoginBox .loginLock{font-size:32px}
+#employeeLoginBox h3{margin:7px 0 5px;font-size:19px}
+#employeeLoginBox p{margin:0 0 14px;font-size:12px;color:#6c7d8c;line-height:1.4}
+#employeeLoginName,#employeeLoginCode{
+  width:100%;padding:12px;margin:6px 0;border:1px solid #cbd6df;border-radius:11px;
+  font-size:16px;background:#fff;color:#173f68;outline:none
+}
+#employeeLoginCode{text-align:center;font-size:21px;letter-spacing:7px;-webkit-text-security:disc}
+#employeeLoginError{min-height:20px;padding-top:6px;color:#d72638;font-size:12px;font-weight:700}
+#employeeLoginBtn{
+  width:100%;border:0;border-radius:11px;padding:12px;margin-top:7px;
+  background:#0757a0;color:#fff;font-weight:800;font-size:15px;cursor:pointer
+}
+#employeeLoginBtn:disabled{opacity:.6}
+</style>
+
 </head>
 <body>
 
@@ -1138,6 +1168,132 @@ function changerCodeAdminUI(){
 }
 document.getElementById('settingsBtn').addEventListener('click',ouvrirParametres);
 document.getElementById('settingsOverlay').addEventListener('click',function(e){if(e.target===this)fermerParametres()});
+</script>
+
+
+<!-- ===== PREMIÈRE CONNEXION SALARIÉ ===== -->
+<div id="employeeLoginOverlay" aria-hidden="true">
+  <div id="employeeLoginBox" role="dialog" aria-modal="true" aria-labelledby="employeeLoginTitle">
+    <div class="loginLock">🔐</div>
+    <h3 id="employeeLoginTitle">Connexion SaniStock</h3>
+    <p>Première connexion : choisissez votre nom et entrez votre code personnel.<br>Ce téléphone vous reconnaîtra ensuite automatiquement.</p>
+    <select id="employeeLoginName">
+      <option value="">Sélectionner votre nom</option>
+    </select>
+    <input id="employeeLoginCode" type="password" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="Code personnel">
+    <div id="employeeLoginError"></div>
+    <button type="button" id="employeeLoginBtn">SE CONNECTER</button>
+  </div>
+</div>
+
+<script>
+/* ===== SESSION SALARIÉ MÉMORISÉE SUR CE TÉLÉPHONE ===== */
+(function(){
+  const KEY='sanistock_salarie_connecte_v1';
+  let salarieConnecte='';
+
+  function appliquerSalarie(nom){
+    salarieConnecte=String(nom||'').trim();
+    ['stockEmployee','employee'].forEach(function(id){
+      const s=document.getElementById(id);
+      if(!s) return;
+      if(salarieConnecte){
+        if(!Array.from(s.options).some(function(o){return o.value===salarieConnecte})){
+          const o=document.createElement('option');o.value=salarieConnecte;o.textContent=salarieConnecte;s.appendChild(o);
+        }
+        s.value=salarieConnecte;
+        s.disabled=true;
+      }
+    });
+  }
+
+  function ouvrirConnexion(noms){
+    const overlay=document.getElementById('employeeLoginOverlay');
+    const select=document.getElementById('employeeLoginName');
+    const code=document.getElementById('employeeLoginCode');
+    const err=document.getElementById('employeeLoginError');
+    select.innerHTML='<option value="">Sélectionner votre nom</option>'+
+      (noms||[]).map(function(n){return '<option value="'+escapeHtml(n)+'">'+escapeHtml(n)+'</option>'}).join('');
+    code.value='';err.textContent='';
+    overlay.classList.add('open');overlay.setAttribute('aria-hidden','false');
+  }
+
+  function fermerConnexion(){
+    const overlay=document.getElementById('employeeLoginOverlay');
+    overlay.classList.remove('open');overlay.setAttribute('aria-hidden','true');
+  }
+
+  function verifierConnexion(){
+    const nom=document.getElementById('employeeLoginName').value;
+    const code=document.getElementById('employeeLoginCode').value.replace(/\D/g,'').slice(0,6);
+    const err=document.getElementById('employeeLoginError');
+    const btn=document.getElementById('employeeLoginBtn');
+    if(!nom){err.textContent='Sélectionnez votre nom.';return}
+    if(code.length<4){err.textContent='Entrez votre code personnel.';return}
+    btn.disabled=true;btn.textContent='Vérification...';
+    google.script.run
+      .withSuccessHandler(function(ok){
+        btn.disabled=false;btn.textContent='SE CONNECTER';
+        if(!ok){err.textContent='Nom ou code incorrect.';document.getElementById('employeeLoginCode').value='';return}
+        try{localStorage.setItem(KEY,nom)}catch(e){}
+        appliquerSalarie(nom);
+        fermerConnexion();
+      })
+      .withFailureHandler(function(){
+        btn.disabled=false;btn.textContent='SE CONNECTER';
+        err.textContent='Connexion impossible. Réessayez.';
+      })
+      .verifierCodeSalarie({salarie:nom,code:code});
+  }
+
+  function initialiserConnexion(){
+    if(!(window.google&&google.script&&google.script.run)) return;
+    google.script.run
+      .withSuccessHandler(function(noms){
+        noms=Array.isArray(noms)?noms:[];
+        let memorise='';
+        try{memorise=localStorage.getItem(KEY)||''}catch(e){}
+        /* Si le salarié existe toujours dans la liste active, le téléphone le reconnaît. */
+        if(memorise && noms.includes(memorise)){
+          appliquerSalarie(memorise);
+          return;
+        }
+        try{localStorage.removeItem(KEY)}catch(e){}
+        ouvrirConnexion(noms);
+      })
+      .withFailureHandler(function(){
+        /* En cas de panne réseau, on ne détruit pas une session déjà mémorisée. */
+        let memorise='';
+        try{memorise=localStorage.getItem(KEY)||''}catch(e){}
+        if(memorise) appliquerSalarie(memorise);
+        else ouvrirConnexion([]);
+      })
+      .getSalaries();
+  }
+
+  document.getElementById('employeeLoginBtn').addEventListener('click',verifierConnexion);
+  document.getElementById('employeeLoginCode').addEventListener('input',function(){
+    this.value=this.value.replace(/\D/g,'').slice(0,6);
+  });
+  document.getElementById('employeeLoginCode').addEventListener('keydown',function(e){
+    if(e.key==='Enter') verifierConnexion();
+  });
+
+  /* Réapplique le salarié après le chargement dynamique des listes. */
+  const ancienChargerSalaries=window.chargerSalaries;
+  if(typeof ancienChargerSalaries==='function'){
+    window.chargerSalaries=function(){
+      ancienChargerSalaries();
+      setTimeout(function(){if(salarieConnecte)appliquerSalarie(salarieConnecte)},800);
+    };
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',function(){setTimeout(initialiserConnexion,250)});
+  }else{
+    setTimeout(initialiserConnexion,250);
+  }
+})();
 </script>
 
 </body>
