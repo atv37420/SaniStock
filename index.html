@@ -1020,13 +1020,10 @@ async function ouvrirDetailMedicament(i){
     window._memoCurrentDrug=full;
     const lines=[];
     if(full.substances) lines.push('🧬 Substance active : '+full.substances);
-    if(full.form) lines.push('📋 Forme : '+full.form);
-    if(full.routes) lines.push('💉 Voie : '+full.routes);
-    if(full.generic) lines.push('🔄 Générique : oui');
-    if(full.status) lines.push('🏷️ Commercialisation : '+full.status);
-    if(full.amm) lines.push('📄 AMM : '+full.amm);
-    if(full.indication) lines.push('ℹ️ Information : '+full.indication);
-    document.getElementById('memoMedDetailText').textContent=lines.join('\n\n')||'Voir la fiche officielle BDPM pour les informations détaillées.';
+    if(full.form) lines.push('💊 Forme : '+full.form);
+    if(full.indication) lines.push('💡 À quoi ça sert : '+full.indication);
+    else lines.push('💡 À quoi ça sert : voir la fiche officielle BDPM pour l’indication thérapeutique.');
+    document.getElementById('memoMedDetailText').textContent=lines.join('\n\n');
   }catch(e){
     document.getElementById('memoMedDetailText').textContent=
       (base.substances?'🧬 Substance active : '+base.substances+'\n\n':'')+
