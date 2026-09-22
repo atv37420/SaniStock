@@ -818,6 +818,8 @@ const MEDICAMENTS_APIS = [
   'https://bdpmgf.vedielaute.fr/api/medicaments'
 ];
 const BDPM_SEARCH_URL = 'https://base-donnees-publique.medicaments.gouv.fr/?txtCaracteres=';
+const JUSTELERCP_BASE = 'https://justelesrcp.olicorne.org';
+const ALLORIGINS_RAW = 'https://api.allorigins.win/raw?url=';
 const MEDICAMENTS_TIMEOUT_MS = 9000;
 let memoMedicamentsCategory = 'Tous';
 let memoSearchTimer = null;
@@ -998,49 +1000,120 @@ function fermerMemoMedicaments(){
   o.classList.remove('open'); o.setAttribute('aria-hidden','true'); fermerDetailMedicament();
 }
 
-async function recupererIndicationBDPM(cis){
-  const id=String(cis||'').trim();
-  if(!/^\d+$/.test(id)) return '';
+async function fetchRcpHtmlViaProxy(url){
+  const proxy=ALLORIGINS_RAW+encodeURIComponent(url);
+  const res=await fetch(proxy,{cache:'no-store'});
+  if(!res.ok) throw new Error('RCP HTTP '+res.status);
+  return await res.text();
+}
 
-  // La BDPM affiche l'indication sur la fiche de la spécialité.
-  // On passe par un relais texte CORS pour permettre à GitHub Pages
-  // de récupérer le contenu sans faire refaire une recherche à l'utilisateur.
-  const target='https://base-donnees-publique.medicaments.gouv.fr/medicament/'+encodeURIComponent(id)+'/extrait';
-  const relays=[
-    'https://r.jina.ai/'+target,
-    'https://r.jina.ai/http://base-donnees-publique.medicaments.gouv.fr/medicament/'+encodeURIComponent(id)+'/extrait'
-  ];
-
-  for(const url of relays){
-    try{
-      const controller=new AbortController();
-      const timer=setTimeout(()=>controller.abort(),10000);
-      const res=await fetch(url,{headers:{Accept:'text/plain, text/markdown, text/html'},cache:'no-store',signal:controller.signal});
-      clearTimeout(timer);
-      if(!res.ok) continue;
-      const raw=await res.text();
-      const txt=raw.replace(/\r/g,'').replace(/[ \t]+/g,' ').replace(/\n{3,}/g,'\n\n');
-
-      // Extrait uniquement le bloc « Indications thérapeutiques » et non les
-      // rubriques administratives ou la posologie.
-      const m=txt.match(/Indications thérapeutiques\s*[:]?\s*([\s\S]*?)(?=\n\s*(?:Posologie|Contre-indications|Mises en garde|Effets indésirables|Interactions médicamenteuses|Grossesse et allaitement|Propriétés pharmacodynamiques)\b)/i);
-      if(m && m[1]){
-        const value=m[1].replace(/\[[^\]]*\]/g,'').replace(/\n+/g,' ').replace(/\s{2,}/g,' ').trim();
-        if(value.length>20) return value.slice(0,1800);
-      }
-    }catch(e){}
+function extraireIndicationDepuisRcpHtml(html){
+  if(!html) return '';
+  const doc=new DOMParser().parseFromString(html,'text/html');
+  const body=(doc.body?.innerText||html.replace(/<[^>]*>/g,' ')).replace(/\u00a0/g,' ');
+  const h='4.1. Indications thérapeutiques';
+  const hNorm=normaliserMemoMed(h);
+  const textNorm=normaliserMemoMed(body);
+  let from=textNorm.lastIndexOf(hNorm);
+  if(from<0){
+    // Variante tolérante si le site/source change la ponctuation ou les espaces.
+    const m=textNorm.match(/4\s*\.\s*1\s*\.\s*indications thérapeutiques/i);
+    from=m?m.index:-1;
+    if(from<0)return '';
+    from=m.index+m[0].length;
+  }else{
+    from+=hNorm.length;
   }
-  return '';
+  const next=textNorm.indexOf('4.2. posologie',from);
+  if(next<0)return '';
+  // On extrait sur le texte original avec une recherche insensible aux variations d'espaces.
+  const bodyOriginal=body;
+  const headingRegex=/4\s*\.\s*1\s*\.\s*Indications\s+th[ée]rapeutiques/i;
+  const headingMatches=[...bodyOriginal.matchAll(headingRegex)];
+  let hPos=headingMatches.length?headingMatches[headingMatches.length-1].index:from;
+  if(typeof hPos!=='number')hPos=from;
+  const tail=bodyOriginal.slice(hPos).replace(/^4\s*\.\s*1\s*\.\s*Indications\s+th[ée]rapeutiques\s*/i,'');
+  const stop=tail.search(/4\s*\.\s*2\s*\.\s*Posologie/i);
+  let section=stop>=0?tail.slice(0,stop):tail;
+  section=section.replace(/\r/g,'').replace(/[ \t]+\n/g,'\n').replace(/\n{3,}/g,'\n\n').trim();
+  // Retire les éléments de navigation accidentellement capturés.
+  section=section.replace(/^Redirection.*$/gim,'').trim();
+  return section;
+}
+
+function slugifierJustelesRcp(name,cis){
+  let slug=normaliserMemoMed(name)
+    .replace(/&/g,' et ')
+    .replace(/[^a-z0-9]+/g,'-')
+    .replace(/^-+|-+$/g,'');
+  // justelesRCP préfixe le slug par le CIS et limite la partie lisible.
+  slug=slug.slice(0,80);
+  return String(cis||'')+'-'+slug;
+}
+
+async function recupererIndicationRcp(base){
+  // On mémorise localement pour que la deuxième consultation soit instantanée.
+  try{
+    const cacheKey='saniMemoIndication:'+String(base.cis||'');
+    const cached=localStorage.getItem(cacheKey);
+    if(cached){
+      const obj=JSON.parse(cached);
+      if(obj && obj.text) return obj.text;
+    }
+  }catch(e){}
+
+  const urls=[];
+  if(base.cis){
+    urls.push(JUSTELERCP_BASE+'/rcp/'+slugifierJustelesRcp(base.name,base.cis));
+  }
+  // Le site public accepte aussi une recherche par nom/substance ; utile si le slug a changé.
+  if(base.name){
+    urls.push(JUSTELERCP_BASE+'/?q='+encodeURIComponent(base.name));
+  }
+
+  let lastError=null;
+  for(const url of urls){
+    try{
+      const html=await fetchRcpHtmlViaProxy(url);
+      if(url.includes('/rcp/')){
+        const indication=extraireIndicationDepuisRcpHtml(html);
+        if(indication){
+          try{localStorage.setItem('saniMemoIndication:'+String(base.cis||''),JSON.stringify({text:indication,savedAt:Date.now()}));}catch(e){}
+          return indication;
+        }
+      }else{
+        const doc=new DOMParser().parseFromString(html,'text/html');
+        const links=[...doc.querySelectorAll('a[href*="/rcp/"]')];
+        const match=links.find(a=>String(a.getAttribute('href')||'').includes('/rcp/'+String(base.cis)+'-')) || links[0];
+        if(match){
+          const href=match.getAttribute('href');
+          const target=href.startsWith('http')?href:JUSTELERCP_BASE+href;
+          const rcpHtml=await fetchRcpHtmlViaProxy(target);
+          const indication=extraireIndicationDepuisRcpHtml(rcpHtml);
+          if(indication){
+            try{localStorage.setItem('saniMemoIndication:'+String(base.cis||''),JSON.stringify({text:indication,savedAt:Date.now()}));}catch(e){}
+            return indication;
+          }
+        }
+      }
+    }catch(e){ lastError=e; }
+  }
+  throw lastError||new Error('Indication indisponible');
 }
 
 async function ouvrirDetailMedicament(i){
   const base=(window._memoVisibleList||[])[i]; if(!base)return;
   window._memoCurrentDrug=base;
   document.getElementById('memoMedDetailTitle').textContent='💊 '+base.name;
-  document.getElementById('memoMedDetailText').textContent='💡 Recherche de l’utilité du médicament…';
+  document.getElementById('memoMedDetailText').textContent='Recherche de l’indication…';
   const d=document.getElementById('memoMedDetail'); d.classList.add('open'); d.setAttribute('aria-hidden','false');
 
+  const lines=[];
+  if(base.substances) lines.push('🧬 Substance active : '+base.substances);
+  if(base.form) lines.push('💊 Forme : '+base.form);
+
   try{
+    // Première source : certaines APIs renvoient déjà l'indication.
     let full=null;
     for(const api of MEDICAMENTS_APIS){
       try{
@@ -1051,28 +1124,19 @@ async function ouvrirDetailMedicament(i){
         if(full && full.name) break;
       }catch(e){}
     }
-    full=full && full.name ? full : base;
-    window._memoCurrentDrug=full;
-
-    let indication=full.indication||'';
-    if(!indication && full.cis) indication=await recupererIndicationBDPM(full.cis);
-    if(!indication && base.cis) indication=await recupererIndicationBDPM(base.cis);
-
-    const lines=[];
-    if(full.substances) lines.push('🧬 Substance active : '+full.substances);
-    if(full.form) lines.push('💊 Forme : '+full.form);
-    lines.push('💡 À quoi ça sert : '+(indication||'Information thérapeutique momentanément indisponible.'));
+    const indicationApi=full?.indication||base.indication||'';
+    if(indicationApi){
+      lines.push('💡 À quoi ça sert : '+indicationApi);
+    }else{
+      const indication=await recupererIndicationRcp(base);
+      if(indication) lines.push('💡 À quoi ça sert : '+indication);
+    }
     document.getElementById('memoMedDetailText').textContent=lines.join('\n\n');
   }catch(e){
-    let indication='';
-    try{ indication=await recupererIndicationBDPM(base.cis); }catch(_e){}
-    document.getElementById('memoMedDetailText').textContent=
-      (base.substances?'🧬 Substance active : '+base.substances+'\n\n':'')+
-      (base.form?'💊 Forme : '+base.form+'\n\n':'')+
-      '💡 À quoi ça sert : '+(indication||'Information thérapeutique momentanément indisponible.');
+    lines.push('💡 À quoi ça sert : indication thérapeutique non disponible pour le moment.');
+    document.getElementById('memoMedDetailText').textContent=lines.join('\n\n');
   }
 }
-
 function fermerDetailMedicament(){
   const d=document.getElementById('memoMedDetail'); if(!d)return;
   d.classList.remove('open'); d.setAttribute('aria-hidden','true');
@@ -1082,8 +1146,20 @@ function ouvrirRechercheBDPM(){
   const nom=d.name||document.getElementById('memoMedicamentsSearch')?.value||'';
   window.open(BDPM_SEARCH_URL+encodeURIComponent(nom),'_blank','noopener');
 }
-function ouvrirRechercheBDPMAvecTerme(terme){ return false; }
+function ouvrirRechercheBDPMAvecTerme(terme){
+  const q=String(terme||'').trim();
+  if(!q)return;
+  window.open(BDPM_SEARCH_URL+encodeURIComponent(q),'_blank','noopener');
+}
 
+// Appui sur Entrée : ouvrir directement les résultats officiels BDPM.
+document.addEventListener('keydown',function(e){
+  const input=document.getElementById('memoMedicamentsSearch');
+  if(input && document.activeElement===input && e.key==='Enter'){
+    const q=input.value.trim();
+    if(q) ouvrirRechercheBDPMAvecTerme(q);
+  }
+});
 
 document.addEventListener('click',function(e){
   const o=document.getElementById('memoMedicamentsOverlay');
