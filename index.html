@@ -810,113 +810,117 @@ body{display:block}
 </main>
 <script>
 
-const memoMedicamentsData = [{"name":"Paracétamol","function":"Antidouleur / fièvre","detail":"Douleur et fièvre.","category":"Antidouleur"},{"name":"Ibuprofène","function":"Antidouleur / anti-inflammatoire","detail":"Douleur, fièvre et inflammation.","category":"Antidouleur"},{"name":"Aspirine","function":"Antidouleur / anti-inflammatoire","detail":"Douleur et fièvre ; certaines présentations ont d'autres usages.","category":"Antidouleur"},{"name":"Néfopam","function":"Antidouleur","detail":"Traitement de la douleur.","category":"Antidouleur"},{"name":"Tramadol","function":"Antidouleur","detail":"Douleurs modérées à sévères.","category":"Antidouleur"},{"name":"Morphine","function":"Antidouleur","detail":"Traitement des douleurs sévères.","category":"Antidouleur"},{"name":"Codéine","function":"Antidouleur","detail":"Traitement de certaines douleurs nécessitant un antalgique opioïde.","category":"Antidouleur"},{"name":"Kétoprofène","function":"Antidouleur / anti-inflammatoire","detail":"Douleur et inflammation dans certaines indications.","category":"Antidouleur"},{"name":"Diclofénac","function":"Antidouleur / anti-inflammatoire","detail":"Douleur et inflammation dans certaines indications.","category":"Antidouleur"},{"name":"Naproxène","function":"Antidouleur / anti-inflammatoire","detail":"Douleur et inflammation dans certaines indications.","category":"Antidouleur"},{"name":"Kardegic","function":"Antiagrégant / cardiovasculaire","detail":"Prévention de la formation de caillots dans certaines situations cardiovasculaires.","category":"Cardiovasculaire"},{"name":"Clopidogrel","function":"Antiagrégant","detail":"Prévention des événements thrombotiques dans certaines situations cardiovasculaires.","category":"Cardiovasculaire"},{"name":"Ticagrelor","function":"Antiagrégant","detail":"Prévention des événements thrombotiques dans certaines situations cardiovasculaires.","category":"Cardiovasculaire"},{"name":"Apixaban","function":"Anticoagulant","detail":"Prévention et traitement de certains événements thrombotiques.","category":"Anticoagulants"},{"name":"Rivaroxaban","function":"Anticoagulant","detail":"Prévention et traitement de certains événements thrombotiques.","category":"Anticoagulants"},{"name":"Dabigatran","function":"Anticoagulant","detail":"Prévention et traitement de certains événements thrombotiques.","category":"Anticoagulants"},{"name":"Warfarine","function":"Anticoagulant","detail":"Prévention et traitement de certains événements thrombotiques.","category":"Anticoagulants"},{"name":"Héparine","function":"Anticoagulant","detail":"Prévention et traitement de certaines thromboses.","category":"Anticoagulants"},{"name":"Enoxaparine","function":"Anticoagulant","detail":"Prévention et traitement de certaines thromboses.","category":"Anticoagulants"},{"name":"Ramipril","function":"Cardiovasculaire","detail":"Traitement de l'hypertension et de certaines maladies cardiovasculaires.","category":"Cardiovasculaire"},{"name":"Périndopril","function":"Cardiovasculaire","detail":"Traitement de l'hypertension et de certaines maladies cardiovasculaires.","category":"Cardiovasculaire"},{"name":"Bisoprolol","function":"Cardiovasculaire","detail":"Traitement de l'hypertension et de certaines maladies cardiaques.","category":"Cardiovasculaire"},{"name":"Métoprolol","function":"Cardiovasculaire","detail":"Traitement de certaines maladies cardiovasculaires et troubles du rythme.","category":"Cardiovasculaire"},{"name":"Amlodipine","function":"Cardiovasculaire","detail":"Traitement de l'hypertension et de l'angor.","category":"Cardiovasculaire"},{"name":"Furosémide","function":"Diurétique","detail":"Diurétique utilisé notamment dans certaines situations de surcharge hydrique.","category":"Diurétiques"},{"name":"Spironolactone","function":"Diurétique","detail":"Diurétique utilisé dans certaines maladies cardiovasculaires et situations de surcharge hydrique.","category":"Diurétiques"},{"name":"Diltiazem","function":"Cardiovasculaire","detail":"Traitement de certaines maladies cardiovasculaires et troubles du rythme.","category":"Cardiovasculaire"},{"name":"Amiodarone","function":"Cardiovasculaire","detail":"Traitement de certains troubles du rythme cardiaque.","category":"Cardiovasculaire"},{"name":"Atorvastatine","function":"Cholestérol","detail":"Réduction du cholestérol et prévention cardiovasculaire.","category":"Cholestérol"},{"name":"Rosuvastatine","function":"Cholestérol","detail":"Réduction du cholestérol et prévention cardiovasculaire.","category":"Cholestérol"},{"name":"Simvastatine","function":"Cholestérol","detail":"Réduction du cholestérol et prévention cardiovasculaire.","category":"Cholestérol"},{"name":"Salbutamol","function":"Respiratoire","detail":"Soulagement du bronchospasme dans certaines maladies respiratoires.","category":"Respiratoire"},{"name":"Ipratropium","function":"Respiratoire","detail":"Bronchodilatateur utilisé notamment dans certaines maladies respiratoires.","category":"Respiratoire"},{"name":"Terbutaline","function":"Respiratoire","detail":"Bronchodilatateur utilisé dans certaines maladies respiratoires.","category":"Respiratoire"},{"name":"Budesonide","function":"Respiratoire","detail":"Corticostéroïde inhalé utilisé dans certaines maladies respiratoires.","category":"Respiratoire"},{"name":"Beclometasone","function":"Respiratoire","detail":"Corticostéroïde inhalé utilisé dans certaines maladies respiratoires.","category":"Respiratoire"},{"name":"Fluticasone","function":"Respiratoire","detail":"Corticostéroïde utilisé dans certaines maladies respiratoires.","category":"Respiratoire"},{"name":"Montelukast","function":"Respiratoire","detail":"Traitement de fond de certaines maladies respiratoires, notamment l'asthme.","category":"Respiratoire"},{"name":"Cétirizine","function":"Allergie","detail":"Soulagement de symptômes allergiques.","category":"Allergie"},{"name":"Loratadine","function":"Allergie","detail":"Soulagement de symptômes allergiques.","category":"Allergie"},{"name":"Desloratadine","function":"Allergie","detail":"Soulagement de symptômes allergiques.","category":"Allergie"},{"name":"Hydroxyzine","function":"Allergie / anxiété","detail":"Utilisée notamment dans certaines manifestations allergiques et situations d'anxiété.","category":"Allergie"},{"name":"Oméprazole","function":"Digestif","detail":"Réduction de l'acidité gastrique.","category":"Digestif"},{"name":"Esoméprazole","function":"Digestif","detail":"Réduction de l'acidité gastrique.","category":"Digestif"},{"name":"Pantoprazole","function":"Digestif","detail":"Réduction de l'acidité gastrique.","category":"Digestif"},{"name":"Gaviscon","function":"Digestif","detail":"Soulagement symptomatique des brûlures d'estomac et remontées acides.","category":"Digestif"},{"name":"Macrogol","function":"Constipation","detail":"Traitement symptomatique de la constipation.","category":"Digestif"},{"name":"Lactulose","function":"Constipation","detail":"Traitement de la constipation.","category":"Digestif"},{"name":"Métoclopramide","function":"Nausées / vomissements","detail":"Traitement symptomatique de certaines nausées et vomissements.","category":"Nausées"},{"name":"Ondansétron","function":"Nausées / vomissements","detail":"Prévention et traitement de certaines nausées et vomissements.","category":"Nausées"},{"name":"Domperidone","function":"Nausées / vomissements","detail":"Traitement symptomatique de certaines nausées et vomissements.","category":"Nausées"},{"name":"Amoxicilline","function":"Antibiotique","detail":"Traitement de certaines infections bactériennes.","category":"Antibiotiques"},{"name":"Amoxicilline + acide clavulanique","function":"Antibiotique","detail":"Traitement de certaines infections bactériennes.","category":"Antibiotiques"},{"name":"Azithromycine","function":"Antibiotique","detail":"Traitement de certaines infections bactériennes.","category":"Antibiotiques"},{"name":"Clarithromycine","function":"Antibiotique","detail":"Traitement de certaines infections bactériennes.","category":"Antibiotiques"},{"name":"Ceftriaxone","function":"Antibiotique","detail":"Traitement de certaines infections bactériennes.","category":"Antibiotiques"},{"name":"Cefotaxime","function":"Antibiotique","detail":"Traitement de certaines infections bactériennes.","category":"Antibiotiques"},{"name":"Ciprofloxacine","function":"Antibiotique","detail":"Traitement de certaines infections bactériennes.","category":"Antibiotiques"},{"name":"Metronidazole","function":"Anti-infectieux","detail":"Traitement de certaines infections bactériennes ou parasitaires.","category":"Antibiotiques"},{"name":"Doxycycline","function":"Antibiotique","detail":"Traitement de certaines infections bactériennes.","category":"Antibiotiques"},{"name":"Fosfomycine","function":"Antibiotique","detail":"Traitement de certaines infections bactériennes, notamment urinaires selon la présentation.","category":"Antibiotiques"},{"name":"Metformine","function":"Diabète","detail":"Traitement du diabète de type 2.","category":"Diabète"},{"name":"Gliclazide","function":"Diabète","detail":"Traitement du diabète de type 2.","category":"Diabète"},{"name":"Insuline","function":"Diabète","detail":"Traitement du diabète nécessitant une insulinothérapie.","category":"Diabète"},{"name":"Glucose","function":"Urgence / hypoglycémie","detail":"Correction d'une hypoglycémie selon la situation clinique et la présentation.","category":"Urgences"},{"name":"Glucagon","function":"Urgence / hypoglycémie","detail":"Traitement de certaines hypoglycémies sévères.","category":"Urgences"},{"name":"Adrénaline","function":"Urgences","detail":"Traitement d'urgence notamment de l'anaphylaxie et de certaines situations de réanimation.","category":"Urgences"},{"name":"Noradrénaline","function":"Urgences","detail":"Vasopresseur utilisé dans certaines situations de choc et d'hypotension sévère.","category":"Urgences"},{"name":"Naloxone","function":"Urgences","detail":"Antagoniste des opioïdes, notamment en cas de dépression respiratoire liée aux opioïdes.","category":"Urgences"},{"name":"Flumazénil","function":"Urgences","detail":"Antagoniste des benzodiazépines dans certaines situations d'intoxication.","category":"Urgences"},{"name":"Diazépam","function":"Neurologique","detail":"Utilisé notamment dans certaines crises convulsives et situations anxieuses.","category":"Neurologique"},{"name":"Midazolam","function":"Neurologique / sédation","detail":"Utilisé notamment pour la sédation et dans certaines crises convulsives.","category":"Neurologique"},{"name":"Clonazépam","function":"Neurologique","detail":"Traitement de certaines crises épileptiques et situations neurologiques.","category":"Neurologique"},{"name":"Lévétiracétam","function":"Neurologique","detail":"Traitement de certaines formes d'épilepsie.","category":"Neurologique"},{"name":"Valproate","function":"Neurologique","detail":"Traitement de certaines formes d'épilepsie et troubles neurologiques.","category":"Neurologique"},{"name":"Gabapentine","function":"Neurologique","detail":"Traitement de certaines douleurs neuropathiques et de l'épilepsie.","category":"Neurologique"},{"name":"Pregabaline","function":"Neurologique","detail":"Traitement de certaines douleurs neuropathiques et de l'épilepsie.","category":"Neurologique"},{"name":"Lévothyroxine","function":"Endocrinologie","detail":"Traitement substitutif de l'hypothyroïdie.","category":"Endocrinologie"},{"name":"Prednisone","function":"Corticoïde","detail":"Corticothérapie utilisée dans de nombreuses maladies inflammatoires ou immunitaires.","category":"Corticoïdes"},{"name":"Prednisolone","function":"Corticoïde","detail":"Corticothérapie utilisée dans certaines maladies inflammatoires ou allergiques.","category":"Corticoïdes"},{"name":"Dexaméthasone","function":"Corticoïde","detail":"Corticothérapie utilisée dans certaines situations inflammatoires ou allergiques.","category":"Corticoïdes"},{"name":"Hydrocortisone","function":"Corticoïde","detail":"Corticothérapie et traitement substitutif dans certaines situations.","category":"Corticoïdes"},{"name":"Sertraline","function":"Psychiatrie","detail":"Traitement de certains troubles dépressifs et anxieux.","category":"Psychiatrie"},{"name":"Escitalopram","function":"Psychiatrie","detail":"Traitement de certains troubles dépressifs et anxieux.","category":"Psychiatrie"},{"name":"Fluoxetine","function":"Psychiatrie","detail":"Traitement de certains troubles dépressifs et apparentés.","category":"Psychiatrie"},{"name":"Paroxetine","function":"Psychiatrie","detail":"Traitement de certains troubles dépressifs et anxieux.","category":"Psychiatrie"},{"name":"Lorazépam","function":"Anxiété / sédation","detail":"Utilisé notamment dans certaines situations d'anxiété et de sédation.","category":"Psychiatrie"},{"name":"Atarax","function":"Allergie / anxiété","detail":"Utilisé notamment dans certaines manifestations allergiques et situations d'anxiété.","category":"Allergie"},{"name":"Spasfon","function":"Digestif","detail":"Soulagement symptomatique de certaines douleurs liées aux spasmes.","category":"Digestif"},{"name":"Diosmectite","function":"Digestif","detail":"Traitement symptomatique de certaines diarrhées.","category":"Digestif"},{"name":"Lopéramide","function":"Digestif","detail":"Traitement symptomatique de courte durée de certaines diarrhées.","category":"Digestif"},{"name":"Bisacodyl","function":"Constipation","detail":"Traitement de la constipation occasionnelle.","category":"Digestif"},{"name":"Aciclovir","function":"Antiviral","detail":"Traitement de certaines infections dues à l'herpès.","category":"Anti-infectieux"},{"name":"Valaciclovir","function":"Antiviral","detail":"Traitement de certaines infections dues à l'herpès.","category":"Anti-infectieux"},{"name":"Fluconazole","function":"Antifongique","detail":"Traitement de certaines infections fongiques.","category":"Anti-infectieux"},{"name":"Miconazole","function":"Antifongique","detail":"Traitement local de certaines infections fongiques.","category":"Anti-infectieux"},{"name":"Perméthrine","function":"Antiparasitaire","detail":"Traitement de certaines infestations parasitaires, notamment la gale ou les poux selon la présentation.","category":"Anti-infectieux"},{"name":"Tamsulosine","function":"Urologie","detail":"Traitement symptomatique de certains troubles urinaires liés à l'hypertrophie bénigne de la prostate.","category":"Urologie"},{"name":"Finastéride","function":"Urologie","detail":"Traitement de certains troubles liés à l'hypertrophie bénigne de la prostate.","category":"Urologie"},{"name":"Sildénafil","function":"Urologie","detail":"Traitement de la dysfonction érectile dans certaines situations.","category":"Urologie"},{"name":"Folic acid","function":"Vitamines","detail":"Prévention ou traitement de certaines carences en folates.","category":"Vitamines"},{"name":"Vitamine D","function":"Vitamines","detail":"Prévention ou traitement d'une carence en vitamine D.","category":"Vitamines"},{"name":"Fer","function":"Vitamines / carence","detail":"Prévention ou traitement de certaines carences en fer.","category":"Vitamines"},{"name":"Potassium","function":"Électrolytes","detail":"Correction ou prévention de certaines hypokaliémies.","category":"Électrolytes"},{"name":"Chlorure de sodium","function":"Électrolytes","detail":"Apport de sodium et de chlorure dans certaines situations médicales.","category":"Électrolytes"},{"name":"Collyre antiseptique","function":"Ophtalmologie","detail":"Traitement local de certaines affections oculaires selon la présentation.","category":"Ophtalmologie"},{"name":"Larmes artificielles","function":"Ophtalmologie","detail":"Soulagement symptomatique de la sécheresse oculaire.","category":"Ophtalmologie"},{"name":"Xylométazoline","function":"ORL","detail":"Décongestion nasale dans certaines indications et pour une durée limitée.","category":"ORL"},{"name":"Acide tranexamique","function":"Hémostase","detail":"Utilisé pour réduire certains saignements selon l'indication.","category":"Hémostase"}];
-let memoMedicamentsCategory = "Tous";
+const MEMO_BDPM_API='https://medicaments-api.giygas.dev/v1/medicaments';
+let memoMedicamentsCategory='Tous';
+let memoMedicamentsRequest=0;
+let memoMedicamentsVisible=[];
 
-const memoCategories = ["Tous", ...Array.from(new Set(memoMedicamentsData.map(m => m.category)))];
-
-function normaliserMemoMed(s){
-  return String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+function normaliserMemoMed(s){return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();}
+function memoEsc(v){return escapeHtml(v==null?'':v);}
+function memoCommercialisation(m){return m.etatComercialisation||m.etatCommercialisation||'';}
+function memoFunction(m){
+  const c=(m.composition||[]).map(x=>x.denomination||x.substance||x.nom||'').filter(Boolean);
+  return c.length ? c.join(', ') : (m.formePharmaceutique||'Spécialité médicamenteuse');
 }
+function memoCondition(m){
+  const c=(m.conditions||[]).map(x=>x.condition||x.libelle||x).filter(Boolean);
+  return c.length ? c.join(', ') : 'Voir la fiche officielle';
+}
+function memoOfficialUrl(m){return 'https://base-donnees-publique.medicaments.gouv.fr/medicament/'+encodeURIComponent(m.cis||'')+'/extrait';}
 
 function ouvrirMemoMedicaments(){
-  const o=document.getElementById('memoMedicamentsOverlay');
-  if(!o)return;
-  o.classList.add('open');
-  o.setAttribute('aria-hidden','false');
-  renderMemoCategories();
-  renderMemoMedicaments();
+  const o=document.getElementById('memoMedicamentsOverlay'); if(!o)return;
+  o.classList.add('open'); o.setAttribute('aria-hidden','false');
   const s=document.getElementById('memoMedicamentsSearch');
-  if(s){s.value='';setTimeout(function(){s.focus()},50);}
-}
-
-function fermerMemoMedicaments(){
-  const o=document.getElementById('memoMedicamentsOverlay');
-  if(!o)return;
-  o.classList.remove('open');
-  o.setAttribute('aria-hidden','true');
-  fermerDetailMedicament();
-}
-
-function renderMemoCategories(){
-  const box=document.getElementById('memoMedicamentsCategories');
-  if(!box)return;
-  box.innerHTML=memoCategories.map(c =>
-    '<button type="button" class="memoCat '+(c===memoMedicamentsCategory?'active':'')+'" onclick="choisirMemoCategorie('+JSON.stringify(c)+')">'+
-    (c==='Tous'?'📋 Tous':c)+'</button>'
-  ).join('');
-}
-
-function choisirMemoCategorie(c){
-  memoMedicamentsCategory=c;
+  if(s){s.value='';setTimeout(()=>s.focus(),50)}
   renderMemoCategories();
-  renderMemoMedicaments();
+  chargerMemoMedicaments('');
 }
-
-function renderMemoMedicaments(){
-  const input=document.getElementById('memoMedicamentsSearch');
+function fermerMemoMedicaments(){
+  const o=document.getElementById('memoMedicamentsOverlay'); if(!o)return;
+  o.classList.remove('open');o.setAttribute('aria-hidden','true');fermerDetailMedicament();
+}
+function renderMemoCategories(){
+  const box=document.getElementById('memoMedicamentsCategories'); if(!box)return;
+  box.innerHTML='<button type="button" class="memoCat active">💊 Tous les médicaments</button>';
+}
+async function chargerMemoMedicaments(q){
   const results=document.getElementById('memoMedicamentsResults');
   const count=document.getElementById('memoMedicamentsCount');
   if(!results)return;
-  const q=normaliserMemoMed(input ? input.value : '');
-  let list=memoMedicamentsData.filter(m =>
-    (memoMedicamentsCategory==='Tous'||m.category===memoMedicamentsCategory) &&
-    (!q || normaliserMemoMed(m.name).includes(q) || normaliserMemoMed(m.category).includes(q) || normaliserMemoMed(m.function).includes(q))
-  );
-  list.sort((a,b)=>a.name.localeCompare(b.name,'fr'));
-  if(count) count.textContent=list.length+' médicament(s) affiché(s)';
-  if(!list.length){
-    results.innerHTML='<div class="memoMedicamentsEmpty"><div class="memoMedicamentsIcon">🔎</div><strong>Aucun résultat</strong><span>Essaie avec une autre partie du nom.</span></div>';
-    return;
+  const req=++memoMedicamentsRequest;
+  results.innerHTML='<div class="memoMedicamentsEmpty"><div class="memoMedicamentsIcon">⏳</div><strong>Recherche dans la base officielle…</strong><span>Chargement des médicaments BDPM.</span></div>';
+  try{
+    const url=q ? MEMO_BDPM_API+'?search='+encodeURIComponent(q) : MEMO_BDPM_API+'?page=1&pageSize=50';
+    const r=await fetch(url,{headers:{'Accept':'application/json'},cache:'no-store'});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const data=await r.json();
+    if(req!==memoMedicamentsRequest)return;
+    let list=Array.isArray(data)?data:(Array.isArray(data.data)?data.data:[]);
+    memoMedicamentsVisible=list;
+    if(count) count.textContent=(data.totalItems||list.length)+' médicament(s) disponibles dans la base';
+    if(!list.length){results.innerHTML='<div class="memoMedicamentsEmpty"><div class="memoMedicamentsIcon">🔎</div><strong>Aucun résultat</strong><span>Essaie avec une autre partie du nom.</span></div>';return;}
+    results.innerHTML=list.map((m,i)=>{
+      const nom=m.elementPharmaceutique||m.name||'Médicament';
+      const comp=memoFunction(m);
+      const statut=memoCommercialisation(m);
+      return '<button type="button" class="memoMedCard" onclick="ouvrirDetailMedicament('+i+')">'+
+        '<div class="memoMedName">'+memoEsc(nom)+'</div>'+
+        '<div class="memoMedFunction">🧪 '+memoEsc(comp)+'</div>'+ 
+        '<div class="memoMedCategory">'+memoEsc(statut||'Base BDPM')+'</div>'+ 
+      '</button>';
+    }).join('');
+  }catch(e){
+    results.innerHTML='<div class="memoMedicamentsEmpty"><div class="memoMedicamentsIcon">⚠️</div><strong>Base indisponible</strong><span>Vérifie ta connexion Internet puis réessaie.</span></div>';
+    if(count)count.textContent='';
   }
-  results.innerHTML=list.map((m,i)=>
-    '<button type="button" class="memoMedCard" onclick="ouvrirDetailMedicament('+i+')">'+
-      '<div class="memoMedName">'+escapeHtml(m.name)+'</div>'+
-      '<div class="memoMedFunction">→ '+escapeHtml(m.function)+'</div>'+
-      '<div class="memoMedCategory">'+escapeHtml(m.category)+'</div>'+
-    '</button>'
-  ).join('');
-  // Les cartes sont reconstruites après chaque recherche : on mémorise la liste visible.
-  window._memoVisibleList=list;
 }
-
+function renderMemoMedicaments(){
+  const s=document.getElementById('memoMedicamentsSearch');
+  chargerMemoMedicaments((s?s.value:'').trim());
+}
+function choisirMemoCategorie(){renderMemoCategories();renderMemoMedicaments();}
 function ouvrirDetailMedicament(i){
-  const m=(window._memoVisibleList||[])[i];
-  if(!m)return;
-  document.getElementById('memoMedDetailTitle').textContent='💊 '+m.name;
-  document.getElementById('memoMedDetailText').textContent=m.detail;
-  const d=document.getElementById('memoMedDetail');
-  d.classList.add('open');
-  d.setAttribute('aria-hidden','false');
-  window._memoCurrentName=m.name;
+  const m=memoMedicamentsVisible[i];if(!m)return;
+  const nom=m.elementPharmaceutique||m.name||'Médicament';
+  document.getElementById('memoMedDetailTitle').textContent='💊 '+nom;
+  const comp=memoFunction(m);
+  const voie=Array.isArray(m.voiesAdministration)?m.voiesAdministration.join(', '):(m.voiesAdministration||'Non renseignée');
+  const forme=m.formePharmaceutique||'Non renseignée';
+  const statut=memoCommercialisation(m)||'Non renseigné';
+  const amm=m.statusAutorisation||'Non renseigné';
+  const cond=memoCondition(m);
+  document.getElementById('memoMedDetailText').innerHTML=
+    '<b>Substance(s) :</b> '+memoEsc(comp)+'<br><br>'+
+    '<b>Forme :</b> '+memoEsc(forme)+'<br>'+ 
+    '<b>Voie(s) :</b> '+memoEsc(voie)+'<br>'+ 
+    '<b>Commercialisation :</b> '+memoEsc(statut)+'<br>'+ 
+    '<b>AMM :</b> '+memoEsc(amm)+'<br>'+ 
+    '<b>Prescription :</b> '+memoEsc(cond);
+  const btn=document.querySelector('.memoOfficialSearch');
+  if(btn){btn.textContent='📄 Ouvrir la fiche officielle BDPM';btn.onclick=function(){window.open(memoOfficialUrl(m),'_blank','noopener')};}
+  const d=document.getElementById('memoMedDetail');d.classList.add('open');d.setAttribute('aria-hidden','false');
 }
-
-function fermerDetailMedicament(){
-  const d=document.getElementById('memoMedDetail');
-  if(!d)return;
-  d.classList.remove('open');
-  d.setAttribute('aria-hidden','true');
-}
-
+function fermerDetailMedicament(){const d=document.getElementById('memoMedDetail');if(d){d.classList.remove('open');d.setAttribute('aria-hidden','true');}}
 function ouvrirRechercheBDPM(){
-  const nom=window._memoCurrentName||'';
-  const url='https://base-donnees-publique.medicaments.gouv.fr/?txtCaracteres='+encodeURIComponent(nom);
-  window.open(url,'_blank','noopener');
+  const s=document.getElementById('memoMedicamentsSearch');
+  const nom=(s?s.value:'').trim();
+  window.open('https://base-donnees-publique.medicaments.gouv.fr/?txtCaracteres='+encodeURIComponent(nom),'_blank','noopener');
 }
+
+document.addEventListener('input',function(e){
+  if(e.target&&e.target.id==='memoMedicamentsSearch'){
+    clearTimeout(window.__memoSearchTimer);
+    window.__memoSearchTimer=setTimeout(()=>chargerMemoMedicaments(e.target.value.trim()),280);
+  }
+});
 
 document.addEventListener('click',function(e){
-  const o=document.getElementById('memoMedicamentsOverlay');
-  if(o && e.target===o) fermerMemoMedicaments();
-  const d=document.getElementById('memoMedDetail');
-  if(d && e.target===d) fermerDetailMedicament();
+  const o=document.getElementById('memoMedicamentsOverlay');if(o&&e.target===o)fermerMemoMedicaments();
+  const d=document.getElementById('memoMedDetail');if(d&&e.target===d)fermerDetailMedicament();
 });
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){fermerDetailMedicament();fermerMemoMedicaments();}});
 
-document.addEventListener('keydown',function(e){
-  if(e.key==='Escape'){
-    fermerDetailMedicament();
-    fermerMemoMedicaments();
-  }
-});
 </script>
 <script>
 function showPage(id){
@@ -1554,8 +1558,8 @@ document.getElementById('settingsOverlay').addEventListener('click',function(e){
 
 
 <!-- Source de référence : Base de Données Publique des Médicaments (BDPM).
-     La base intégrée ci-dessus est une sélection de départ. La recherche officielle
-     permet de vérifier les informations à jour. -->
+     Le Mémo Médicaments interroge la base BDPM via une API dédiée. Les données sont issues de la BDPM et
+     doivent être vérifiées sur la fiche officielle pour toute utilisation professionnelle. -->
 
 </body>
 </html>
