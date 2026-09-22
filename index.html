@@ -727,7 +727,6 @@ body{display:block}
     <button class="memoMedDetailClose" onclick="fermerDetailMedicament()">×</button>
     <h3 id="memoMedDetailTitle"></h3>
     <p id="memoMedDetailText"></p>
-    <button class="memoOfficialSearch" onclick="ouvrirRechercheBDPM()">🔎 Ouvrir la recherche officielle BDPM</button>
   </div>
 </div>
 
@@ -999,12 +998,48 @@ function fermerMemoMedicaments(){
   o.classList.remove('open'); o.setAttribute('aria-hidden','true'); fermerDetailMedicament();
 }
 
+async function recupererIndicationBDPM(cis){
+  const id=String(cis||'').trim();
+  if(!/^\d+$/.test(id)) return '';
+
+  // La BDPM affiche l'indication sur la fiche de la spécialité.
+  // On passe par un relais texte CORS pour permettre à GitHub Pages
+  // de récupérer le contenu sans faire refaire une recherche à l'utilisateur.
+  const target='https://base-donnees-publique.medicaments.gouv.fr/medicament/'+encodeURIComponent(id)+'/extrait';
+  const relays=[
+    'https://r.jina.ai/'+target,
+    'https://r.jina.ai/http://base-donnees-publique.medicaments.gouv.fr/medicament/'+encodeURIComponent(id)+'/extrait'
+  ];
+
+  for(const url of relays){
+    try{
+      const controller=new AbortController();
+      const timer=setTimeout(()=>controller.abort(),10000);
+      const res=await fetch(url,{headers:{Accept:'text/plain, text/markdown, text/html'},cache:'no-store',signal:controller.signal});
+      clearTimeout(timer);
+      if(!res.ok) continue;
+      const raw=await res.text();
+      const txt=raw.replace(/\r/g,'').replace(/[ \t]+/g,' ').replace(/\n{3,}/g,'\n\n');
+
+      // Extrait uniquement le bloc « Indications thérapeutiques » et non les
+      // rubriques administratives ou la posologie.
+      const m=txt.match(/Indications thérapeutiques\s*[:]?\s*([\s\S]*?)(?=\n\s*(?:Posologie|Contre-indications|Mises en garde|Effets indésirables|Interactions médicamenteuses|Grossesse et allaitement|Propriétés pharmacodynamiques)\b)/i);
+      if(m && m[1]){
+        const value=m[1].replace(/\[[^\]]*\]/g,'').replace(/\n+/g,' ').replace(/\s{2,}/g,' ').trim();
+        if(value.length>20) return value.slice(0,1800);
+      }
+    }catch(e){}
+  }
+  return '';
+}
+
 async function ouvrirDetailMedicament(i){
   const base=(window._memoVisibleList||[])[i]; if(!base)return;
   window._memoCurrentDrug=base;
   document.getElementById('memoMedDetailTitle').textContent='💊 '+base.name;
-  document.getElementById('memoMedDetailText').textContent='Chargement des informations officielles…';
+  document.getElementById('memoMedDetailText').textContent='💡 Recherche de l’utilité du médicament…';
   const d=document.getElementById('memoMedDetail'); d.classList.add('open'); d.setAttribute('aria-hidden','false');
+
   try{
     let full=null;
     for(const api of MEDICAMENTS_APIS){
@@ -1016,21 +1051,28 @@ async function ouvrirDetailMedicament(i){
         if(full && full.name) break;
       }catch(e){}
     }
-    if(!full || !full.name) throw new Error('Détail indisponible');
+    full=full && full.name ? full : base;
     window._memoCurrentDrug=full;
+
+    let indication=full.indication||'';
+    if(!indication && full.cis) indication=await recupererIndicationBDPM(full.cis);
+    if(!indication && base.cis) indication=await recupererIndicationBDPM(base.cis);
+
     const lines=[];
     if(full.substances) lines.push('🧬 Substance active : '+full.substances);
     if(full.form) lines.push('💊 Forme : '+full.form);
-    if(full.indication) lines.push('💡 À quoi ça sert : '+full.indication);
-    else lines.push('💡 À quoi ça sert : voir la fiche officielle BDPM pour l’indication thérapeutique.');
+    lines.push('💡 À quoi ça sert : '+(indication||'Information thérapeutique momentanément indisponible.'));
     document.getElementById('memoMedDetailText').textContent=lines.join('\n\n');
   }catch(e){
+    let indication='';
+    try{ indication=await recupererIndicationBDPM(base.cis); }catch(_e){}
     document.getElementById('memoMedDetailText').textContent=
       (base.substances?'🧬 Substance active : '+base.substances+'\n\n':'')+
       (base.form?'💊 Forme : '+base.form+'\n\n':'')+
-      (base.indication?'💡 À quoi ça sert : '+base.indication:'💡 À quoi ça sert : information indisponible temporairement.');
+      '💡 À quoi ça sert : '+(indication||'Information thérapeutique momentanément indisponible.');
   }
 }
+
 function fermerDetailMedicament(){
   const d=document.getElementById('memoMedDetail'); if(!d)return;
   d.classList.remove('open'); d.setAttribute('aria-hidden','true');
@@ -1040,20 +1082,8 @@ function ouvrirRechercheBDPM(){
   const nom=d.name||document.getElementById('memoMedicamentsSearch')?.value||'';
   window.open(BDPM_SEARCH_URL+encodeURIComponent(nom),'_blank','noopener');
 }
-function ouvrirRechercheBDPMAvecTerme(terme){
-  const q=String(terme||'').trim();
-  if(!q)return;
-  window.open(BDPM_SEARCH_URL+encodeURIComponent(q),'_blank','noopener');
-}
+function ouvrirRechercheBDPMAvecTerme(terme){ return false; }
 
-// Appui sur Entrée : ouvrir directement les résultats officiels BDPM.
-document.addEventListener('keydown',function(e){
-  const input=document.getElementById('memoMedicamentsSearch');
-  if(input && document.activeElement===input && e.key==='Enter'){
-    const q=input.value.trim();
-    if(q) ouvrirRechercheBDPMAvecTerme(q);
-  }
-});
 
 document.addEventListener('click',function(e){
   const o=document.getElementById('memoMedicamentsOverlay');
