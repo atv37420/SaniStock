@@ -1027,8 +1027,8 @@ async function ouvrirDetailMedicament(i){
   }catch(e){
     document.getElementById('memoMedDetailText').textContent=
       (base.substances?'🧬 Substance active : '+base.substances+'\n\n':'')+
-      (base.form?'📋 Forme : '+base.form+'\n\n':'')+
-      'Les informations détaillées sont disponibles sur la fiche officielle BDPM.';
+      (base.form?'💊 Forme : '+base.form+'\n\n':'')+
+      (base.indication?'💡 À quoi ça sert : '+base.indication:'💡 À quoi ça sert : information indisponible temporairement.');
   }
 }
 function fermerDetailMedicament(){
