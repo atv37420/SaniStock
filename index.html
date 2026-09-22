@@ -805,22 +805,23 @@ body{display:block}
 </main>
 <script>
 
-// ===== MÉMO MÉDICAMENTS — CATALOGUE BDPM + INDICATION DIRECTE =====
-// Recherche des spécialités depuis des miroirs de la BDPM avec CORS.
-// La fiche n'affiche que : nom, substance active, forme et « À quoi ça sert ».
-const MEDICAMENTS_APIS = [
-  'https://bdpmgf.vedielaute.fr/api/medicaments',
-  'https://medicaments-api.giygas.dev/v1'
+// ===== MÉMO MÉDICAMENTS — RECHERCHE DIRECTE + INDICATION DANS SANISTOCK =====
+// Catalogue : API publique basée sur les données BDPM.
+// Indications : lecture de la rubrique 4.1 du RCP public, récupérée automatiquement
+// et affichée dans SaniStock. Aucun renvoi obligatoire vers un autre site.
+const MEDICAMENTS_API_BASE = 'https://medicaments-api.giygas.dev/v1';
+const RCP_SITE_BASE = 'https://justelesrcp.olicorne.org/rcp/';
+const RCP_PROXY_BASES = [
+  'https://api.allorigins.win/raw?url=',
+  'https://cors.isomorphic-git.org/'
 ];
-const MEDICAMENTS_TIMEOUT_MS = 9000;
-const RCP_TIMEOUT_MS = 12000;
+const MEMO_FETCH_TIMEOUT = 12000;
 let memoMedicamentsCategory='Tous';
 let memoSearchTimer=null;
 let memoRequestId=0;
 let memoMedicamentsData=[];
 window._memoVisibleList=[];
 window._memoCurrentDrug=null;
-
 const memoCategories=['Tous','Génériques'];
 
 function normaliserMemoMed(s){
@@ -829,79 +830,135 @@ function normaliserMemoMed(s){
 function escapeMemoHtml(s){
   return String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 }
-function memoValue(o,keys){
+function memoValue(o, keys){
   for(const k of keys){
     if(o && o[k]!==undefined && o[k]!==null && String(o[k]).trim()!=='') return o[k];
   }
   return '';
 }
 function memoArray(v){
-  if(Array.isArray(v))return v;
-  if(v&&typeof v==='object')return Object.values(v);
-  return v?[v]:[];
+  if(Array.isArray(v)) return v;
+  if(v && typeof v==='object') return Object.values(v);
+  return v ? [v] : [];
 }
 function memoSubstances(m){
-  const a=memoArray(m&&(m.substances||m.composition||m.compositions));
+  const a=memoArray(m && (m.composition || m.compositions || m.substances));
   return a.map(x=>{
-    if(typeof x==='string')return x;
-    return memoValue(x,['denomination','denominations','name','nom','substance','libelle','denominationSubstance']);
+    if(typeof x==='string') return x;
+    return memoValue(x,['denomination','denominations','name','nom','substance','libelle','libelleSubstance']);
   }).filter(Boolean).join(', ');
 }
-function memoGenerics(m){
-  const a=memoArray(m&&(m.generiques||m.genericGroups||m.groupesGeneriques||m.groups||m.groupe_generique));
-  const vals=a.map(x=>typeof x==='string'?x:memoValue(x,['libelle','label','name','nom','denomination','id'])).filter(Boolean);
-  return vals;
-}
-function memoIsGeneric(m){
-  return Boolean(m && (
-    m.generic===true || m.isGeneric===true || m.estGenerique===true ||
-    m.membre_groupe_generique===true || m.membre_groupe_generique==='true' ||
-    m.type_generique==='1' || m.type_generique===1 || memoGenerics(m).length
-  ));
-}
-function memoIndication(m){
-  return memoValue(m,['indications','indication','aQuoiCaSert','usage','description','classePharmacotherapeutique']);
+function memoGeneriques(m){
+  const a=memoArray(m && (m.generiques || m.genericGroups || m.groupesGeneriques || m.groups));
+  return a.map(x=>typeof x==='string'?x:memoValue(x,['libelle','label','name','nom','denomination','id'])).filter(Boolean);
 }
 function memoToDrug(raw){
-  const root=raw&&(raw.medicament||raw.data||raw.result||raw);
-  const m=root&&root.data&&root.data.denomination?root.data:root;
-  const cis=String(memoValue(m,['cis','CIS','codeCIS','code_cis','code_cis_specialite']));
-  const name=String(memoValue(m,['denomination','name','nom','libelle','denomination_specialite']));
-  const form=String(memoValue(m,['forme','formePharmaceutique','pharmaceuticalForm','forme_pharmaceutique']));
-  const genericGroups=memoGenerics(m);
-  const generic=memoIsGeneric(m);
+  const m=raw && (raw.medicament || raw.data || raw);
+  const cis=String(memoValue(m,['cis','CIS','codeCIS','code_cis']));
+  const name=String(memoValue(m,['elementPharmaceutique','denomination','name','nom','libelle']));
+  const form=String(memoValue(m,['formePharmaceutique','forme','formePharmaceutique']));
+  const groups=memoGeneriques(m);
+  const generic=Boolean(m.generic || m.isGeneric || m.estGenerique || groups.length);
   return {
     raw:m,cis,name,form,
+    routes:String(memoValue(m,['voiesAdministration','voies','routes','administration'])),
     substances:memoSubstances(m),
-    generic,genericGroups,
-    indication:memoIndication(m)
+    generic,genericGroups:groups
   };
 }
-function memoExtractList(json){
-  const arr=json&&(json.results||json.data||json.medicaments||json.items||json);
+function memoExtractMedicaments(json){
+  const arr=Array.isArray(json)?json:(json && (json.data||json.medicaments||json.results||json.items||[]));
   return memoArray(arr).map(memoToDrug).filter(x=>x.name);
 }
 
-function renderMemoCategories(){
-  const box=document.getElementById('memoMedicamentsCategories');if(!box)return;
-  box.innerHTML=memoCategories.map(c=>
-    '<button type="button" class="memoCat '+(c===memoMedicamentsCategory?'active':'')+'" onclick="choisirMemoCategorie('+JSON.stringify(c)+')">'+
-    (c==='Tous'?'📋 Tous':'🧬 Génériques')+'</button>'
-  ).join('');
-}
-function choisirMemoCategorie(c){memoMedicamentsCategory=c;renderMemoCategories();renderMemoMedicaments();}
-function afficherMemoEtat(message){
+function afficherMemoEtat(message,type){
   const count=document.getElementById('memoMedicamentsCount');
-  if(count)count.textContent=message;
+  if(count){count.textContent=message;count.dataset.type=type||'';}
 }
-async function fetchMemoJson(url){
+
+async function memoFetchJson(url){
   const controller=new AbortController();
-  const timer=setTimeout(()=>controller.abort(),MEDICAMENTS_TIMEOUT_MS);
+  const timer=setTimeout(()=>controller.abort(),MEMO_FETCH_TIMEOUT);
   try{
     const res=await fetch(url,{headers:{Accept:'application/json'},cache:'no-store',signal:controller.signal});
-    if(!res.ok)throw new Error('HTTP '+res.status);
+    if(!res.ok) throw new Error('HTTP '+res.status);
     return await res.json();
   }finally{clearTimeout(timer);}
+}
+
+function slugifierMemo(s){
+  return String(s||'')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/œ/g,'oe').replace(/æ/g,'ae')
+    .toLowerCase()
+    .replace(/['’]/g,'-')
+    .replace(/[^a-z0-9]+/g,'-')
+    .replace(/^-+|-+$/g,'')
+    .slice(0,110);
+}
+
+function nettoyerTexteRcp(s){
+  return String(s||'')
+    .replace(/\u00a0/g,' ')
+    .replace(/[ \t]+\n/g,'\n')
+    .replace(/\n[ \t]+/g,'\n')
+    .replace(/[ \t]{2,}/g,' ')
+    .replace(/\n{3,}/g,'\n\n')
+    .trim();
+}
+
+function extraireIndicationRcp(html){
+  const doc=new DOMParser().parseFromString(html,'text/html');
+  const root=doc.querySelector('#textDocument') || doc.querySelector('main') || doc.body;
+  if(!root) return '';
+  const text=nettoyerTexteRcp(root.innerText || root.textContent || '');
+  const norm=text.replace(/\r/g,'');
+  // Rubrique 4.1 -> avant 4.2 / 4.3.
+  const m=norm.match(/(?:^|\n)4\.1\.?\s*Indications thérapeutiques\s*([\s\S]*?)(?:\n4\.2\.?\s*Posologie|\n4\.2\s|\n4\.3\.?\s*Contre-indications|\n4\.3\s|$)/i);
+  if(!m) return '';
+  let value=nettoyerTexteRcp(m[1]);
+  value=value.replace(/^[•·\-\s]+/gm,'• ');
+  // On retire les lignes de titres de section purement techniques quand elles sont répétitives.
+  value=value.replace(/\n{3,}/g,'\n\n').trim();
+  return value;
+}
+
+async function memoFetchTextWithProxy(targetUrl){
+  let lastError=null;
+  for(const proxy of RCP_PROXY_BASES){
+    try{
+      const url=proxy.endsWith('=') ? proxy+encodeURIComponent(targetUrl) : proxy+targetUrl;
+      const controller=new AbortController();
+      const timer=setTimeout(()=>controller.abort(),MEMO_FETCH_TIMEOUT);
+      try{
+        const res=await fetch(url,{cache:'no-store',signal:controller.signal});
+        if(!res.ok) throw new Error('HTTP '+res.status);
+        const txt=await res.text();
+        if(txt && txt.length>500) return txt;
+      }finally{clearTimeout(timer);}
+    }catch(e){lastError=e;}
+  }
+  throw lastError || new Error('RCP indisponible');
+}
+
+async function trouverIndicationDansRcp(drug){
+  const bases=[];
+  const n1=slugifierMemo(drug.name);
+  if(drug.cis && n1) bases.push(RCP_SITE_BASE+encodeURIComponent(drug.cis+'-'+n1));
+  if(drug.cis){
+    const nomSansDosage=drug.name.replace(/\s+/g,' ').trim();
+    const n2=slugifierMemo(nomSansDosage);
+    const alt=RCP_SITE_BASE+encodeURIComponent(drug.cis+'-'+n2);
+    if(!bases.includes(alt)) bases.push(alt);
+  }
+  for(const url of bases){
+    try{
+      const html=await memoFetchTextWithProxy(url);
+      const indication=extraireIndicationRcp(html);
+      if(indication) return indication;
+    }catch(e){}
+  }
+  return '';
 }
 
 async function rechercherMemoMedicaments(){
@@ -912,49 +969,62 @@ async function rechercherMemoMedicaments(){
   if(!q){
     memoMedicamentsData=[];window._memoVisibleList=[];
     afficherMemoEtat('Tape le nom du médicament ou de la substance active.');
-    results.innerHTML='<div class="memoMedicamentsEmpty"><div class="memoMedicamentsIcon">💊</div><strong>Recherche de médicament</strong><span>Nom commercial, générique ou substance active.</span></div>';
+    if(results)results.innerHTML='<div class="memoMedicamentsEmpty"><div class="memoMedicamentsIcon">💊</div><strong>Recherche de médicament</strong><span>Nom commercial ou générique.</span></div>';
     return;
   }
-  results.innerHTML='<div class="memoMedicamentsEmpty"><div class="memoMedicamentsIcon">⏳</div><strong>Recherche en cours…</strong><span>Recherche dans la base des médicaments.</span></div>';
+  if(results)results.innerHTML='<div class="memoMedicamentsEmpty"><div class="memoMedicamentsIcon">⏳</div><strong>Recherche…</strong><span>Je cherche dans la base des médicaments.</span></div>';
   afficherMemoEtat('Recherche…');
-
-  for(const api of MEDICAMENTS_APIS){
-    try{
-      let json;
-      if(api.includes('bdpmgf.vedielaute.fr')){
-        json=await fetchMemoJson(api+'/search?q='+encodeURIComponent(q)+'&limit=100');
-      }else{
-        json=await fetchMemoJson(api+'/medicaments?search='+encodeURIComponent(q)+'&pageSize=100');
-      }
-      if(request!==memoRequestId)return;
-      let list=memoExtractList(json);
-      if(memoMedicamentsCategory==='Génériques')list=list.filter(x=>x.generic);
-      list.sort((a,b)=>a.name.localeCompare(b.name,'fr'));
-      memoMedicamentsData=list;window._memoVisibleList=list;
-      try{localStorage.setItem('saniMemoLastSearch',JSON.stringify({q,list:list.slice(0,100),savedAt:Date.now()}));}catch(e){}
-      afficherMemoEtat(list.length+' résultat(s)');
-      renderMemoResults();
-      return;
-    }catch(e){}
-  }
-
   try{
-    const cached=JSON.parse(localStorage.getItem('saniMemoLastSearch')||'null');
-    if(cached&&Array.isArray(cached.list)&&normaliserMemoMed(cached.q).includes(normaliserMemoMed(q))){
-      memoMedicamentsData=cached.list;window._memoVisibleList=cached.list;
-      afficherMemoEtat(cached.list.length+' résultat(s) — dernière recherche enregistrée');
-      renderMemoResults();return;
+    // Médicaments + groupes génériques : les deux réponses sont fusionnées.
+    const [medJson,genJson]=await Promise.all([
+      memoFetchJson(MEDICAMENTS_API_BASE+'/medicaments?search='+encodeURIComponent(normaliserMemoMed(q))+'&pageSize=250'),
+      memoFetchJson(MEDICAMENTS_API_BASE+'/generiques?libelle='+encodeURIComponent(q))
+    ]);
+    if(request!==memoRequestId)return;
+    const medList=memoExtractMedicaments(medJson);
+    const genericList=[];
+    for(const group of memoArray(genJson)){
+      const members=memoArray(group && (group.medicaments||group.data||group.items));
+      for(const m of members){
+        const d=memoToDrug(m);
+        if(d.name){d.generic=true;genericList.push(d);}
+      }
     }
-  }catch(e){}
-
-  afficherMemoEtat('Recherche indisponible');
-  results.innerHTML='<div class="memoMedicamentsEmpty"><div class="memoMedicamentsIcon">⚠️</div><strong>Recherche momentanément indisponible</strong><span>Réessaie dans quelques secondes.</span></div>';
+    const map=new Map();
+    for(const d of [...medList,...genericList]){
+      const key=d.cis+'|'+d.name;
+      if(!map.has(key))map.set(key,d);
+    }
+    let list=[...map.values()];
+    if(memoMedicamentsCategory==='Génériques')list=list.filter(x=>x.generic);
+    list.sort((a,b)=>a.name.localeCompare(b.name,'fr'));
+    memoMedicamentsData=list.slice(0,250);
+    window._memoVisibleList=memoMedicamentsData;
+    afficherMemoEtat(memoMedicamentsData.length+' médicament(s) trouvé(s)');
+    renderMemoResults();
+  }catch(e){
+    if(request!==memoRequestId)return;
+    afficherMemoEtat('Recherche indisponible');
+    if(results)results.innerHTML='<div class="memoMedicamentsEmpty"><div class="memoMedicamentsIcon">⚠️</div><strong>Recherche momentanément indisponible</strong><span>Réessaie dans quelques secondes.</span></div>';
+  }
 }
-function renderMemoMedicaments(){clearTimeout(memoSearchTimer);memoSearchTimer=setTimeout(rechercherMemoMedicaments,180);}
+
+function renderMemoMedicaments(){
+  clearTimeout(memoSearchTimer);
+  memoSearchTimer=setTimeout(rechercherMemoMedicaments,220);
+}
+function renderMemoCategories(){
+  const box=document.getElementById('memoMedicamentsCategories');if(!box)return;
+  box.innerHTML=memoCategories.map(c=>
+    '<button type="button" class="memoCat '+(c===memoMedicamentsCategory?'active':'')+'" onclick="choisirMemoCategorie('+JSON.stringify(c)+')">'+
+    (c==='Tous'?'📋 Tous':'🧬 Génériques')+'</button>'
+  ).join('');
+}
+function choisirMemoCategorie(c){memoMedicamentsCategory=c;renderMemoCategories();renderMemoMedicaments();}
 function renderMemoResults(){
   const results=document.getElementById('memoMedicamentsResults');if(!results)return;
   const list=window._memoVisibleList||[];
-  if(!list.length){results.innerHTML='<div class="memoMedicamentsEmpty"><div class="memoMedicamentsIcon">🔎</div><strong>Aucun résultat</strong><span>Essaie le nom commercial ou la substance active.</span></div>';return;}
+  if(!list.length){results.innerHTML='<div class="memoMedicamentsEmpty"><div class="memoMedicamentsIcon">🔎</div><strong>Aucun résultat</strong><span>Essaie le nom commercial ou le générique.</span></div>';return;}
   results.innerHTML=list.map((m,i)=>{
     const sub=m.substances?'<div class="memoMedFunction">🧬 '+escapeMemoHtml(m.substances)+'</div>':'';
     const gen=m.generic?'<span class="memoGenericBadge">Générique</span>':'';
@@ -963,579 +1033,66 @@ function renderMemoResults(){
       '<div class="memoMedCategory">'+escapeMemoHtml(m.form||'')+'</div></button>';
   }).join('');
 }
+
 function ouvrirMemoMedicaments(){
   const o=document.getElementById('memoMedicamentsOverlay');if(!o)return;
   o.classList.add('open');o.setAttribute('aria-hidden','false');
   memoMedicamentsCategory='Tous';renderMemoCategories();
   const s=document.getElementById('memoMedicamentsSearch');
   if(s){s.value='';setTimeout(()=>s.focus(),50);}
-  document.getElementById('memoMedicamentsResults').innerHTML='<div class="memoMedicamentsEmpty"><div class="memoMedicamentsIcon">💊</div><strong>Recherche de médicament</strong><span>Nom commercial, générique ou substance active.</span></div>';
-  afficherMemoEtat('Base médicaments disponible');
+  const results=document.getElementById('memoMedicamentsResults');
+  if(results)results.innerHTML='<div class="memoMedicamentsEmpty"><div class="memoMedicamentsIcon">💊</div><strong>Recherche de médicament</strong><span>Tu tapes le nom et la fiche s’affiche directement dans SaniStock.</span></div>';
+  afficherMemoEtat('Base médicaments prête');
 }
 function fermerMemoMedicaments(){
   const o=document.getElementById('memoMedicamentsOverlay');if(!o)return;
   o.classList.remove('open');o.setAttribute('aria-hidden','true');fermerDetailMedicament();
 }
 
-function slugMemoRcp(name){
-  return normaliserMemoMed(name).replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,80);
-}
-function decodeHtmlMemo(s){
-  const ta=document.createElement('textarea');ta.innerHTML=s;return ta.value;
-}
-function nettoyerRcpMemo(raw){
-  let t=String(raw||'').replace(/\r/g,'');
-  t=t.replace(/<[^>]+>/g,' ');
-  t=decodeHtmlMemo(t);
-  t=t.replace(/\s+/g,' ').trim();
-  return t;
-}
-async function fetchMemoText(url){
-  const controller=new AbortController();
-  const timer=setTimeout(()=>controller.abort(),RCP_TIMEOUT_MS);
-  try{
-    const res=await fetch(url,{headers:{Accept:'text/plain,text/markdown,text/html'},cache:'no-store',signal:controller.signal});
-    if(!res.ok)throw new Error('HTTP '+res.status);
-    return await res.text();
-  }finally{clearTimeout(timer);}
-}
-function extraireIndicationMemo(raw){
-  let t=String(raw||'').replace(/\r/g,'');
-  // Conversion souple : on garde le texte entre 4.1 et 4.2.
-  t=t.replace(/<script[\s\S]*?<\/script>/gi,' ').replace(/<style[\s\S]*?<\/style>/gi,' ');
-  t=nettoyerRcpMemo(t);
-  const match=t.match(/4\.1\.?\s*Indications thérapeutiques\s*([\s\S]*?)\s*4\.2\.?\s*Posologie et mode d'administration/i);
-  if(match&&match[1]){
-    const v=match[1].replace(/^[:\-–—\s]+/,'').trim();
-    if(v.length>15)return v.slice(0,3500);
-  }
-  // Variante lorsque le convertisseur met un séparateur différent.
-  const alt=t.match(/Indications thérapeutiques\s*([\s\S]*?)\s*(?:Posologie et mode d'administration|Contre-indications)/i);
-  if(alt&&alt[1]){
-    const v=alt[1].replace(/^[:\-–—\s]+/,'').trim();
-    if(v.length>15)return v.slice(0,3500);
-  }
-  return '';
-}
-async function recupererIndicationMemo(base){
-  const cis=String(base?.cis||'').trim();
-  if(!/^\d+$/.test(cis))return '';
-  // 1) Source RCP pratique : justelesRCP, basée sur BDPM/EMA.
-  const rcpUrl='https://justelesrcp.olicorne.org/rcp/'+cis+'-'+slugMemoRcp(base.name);
-  const candidates=[
-    'https://r.jina.ai/'+rcpUrl,
-    'https://r.jina.ai/http://justelesrcp.olicorne.org/rcp/'+cis+'-'+slugMemoRcp(base.name),
-    // 2) Secours : RCP mobile officiel BDPM.
-    'https://r.jina.ai/https://m.base-donnees-publique.medicaments.gouv.fr/rcp-'+cis+'-1',
-    'https://r.jina.ai/http://m.base-donnees-publique.medicaments.gouv.fr/rcp-'+cis+'-1'
-  ];
-  for(const url of candidates){
-    try{
-      const raw=await fetchMemoText(url);
-      const indication=extraireIndicationMemo(raw);
-      if(indication)return indication;
-    }catch(e){}
-  }
-  return '';
-}
-
 async function ouvrirDetailMedicament(i){
   const base=(window._memoVisibleList||[])[i];if(!base)return;
   window._memoCurrentDrug=base;
   document.getElementById('memoMedDetailTitle').textContent='💊 '+base.name;
-  document.getElementById('memoMedDetailText').textContent='💡 Recherche de l’utilité du médicament…';
-  const d=document.getElementById('memoMedDetail');d.classList.add('open');d.setAttribute('aria-hidden','false');
-
+  const box=document.getElementById('memoMedDetailText');
+  const d=document.getElementById('memoMedDetail');
+  d.classList.add('open');d.setAttribute('aria-hidden','false');
+  box.textContent='Recherche de la substance et de l’indication…';
   try{
-    let indication=memoIndication(base.raw)||base.indication||'';
-    if(!indication)indication=await recupererIndicationMemo(base);
+    // Les informations de référence viennent de l'API BDPM.
+    let full=base;
+    try{
+      full=memoToDrug(await memoFetchJson(MEDICAMENTS_API_BASE+'/medicaments/'+encodeURIComponent(base.cis)));
+    }catch(e){}
+    let indication='';
+    try{indication=await trouverIndicationDansRcp(full);}catch(e){}
     const lines=[];
-    if(base.substances)lines.push('🧬 Substance active : '+base.substances);
-    if(base.form)lines.push('💊 Forme : '+base.form);
-    lines.push('💡 À quoi ça sert : '+(indication||'Information thérapeutique indisponible pour cette référence.'));
-    document.getElementById('memoMedDetailText').textContent=lines.join('\n\n');
+    if(full.substances)lines.push('🧬 Substance active : '+full.substances);
+    if(full.form)lines.push('💊 Forme : '+full.form);
+    if(indication)lines.push('💡 À quoi ça sert :\n'+indication);
+    else lines.push('💡 À quoi ça sert :\nInformation thérapeutique momentanément indisponible pour cette référence.');
+    box.textContent=lines.join('\n\n');
   }catch(e){
-    document.getElementById('memoMedDetailText').textContent=
+    box.textContent=
       (base.substances?'🧬 Substance active : '+base.substances+'\n\n':'')+
       (base.form?'💊 Forme : '+base.form+'\n\n':'')+
-      '💡 À quoi ça sert : information thérapeutique indisponible pour cette référence.';
+      '💡 À quoi ça sert :\nInformation thérapeutique momentanément indisponible pour cette référence.';
   }
 }
 function fermerDetailMedicament(){
   const d=document.getElementById('memoMedDetail');if(!d)return;
   d.classList.remove('open');d.setAttribute('aria-hidden','true');
 }
+
 document.addEventListener('click',function(e){
-  const o=document.getElementById('memoMedicamentsOverlay');if(o&&e.target===o)fermerMemoMedicaments();
-  const d=document.getElementById('memoMedDetail');if(d&&e.target===d)fermerDetailMedicament();
+  const o=document.getElementById('memoMedicamentsOverlay');
+  if(o&&e.target===o)fermerMemoMedicaments();
+  const d=document.getElementById('memoMedDetail');
+  if(d&&e.target===d)fermerDetailMedicament();
 });
 document.addEventListener('keydown',function(e){
   if(e.key==='Escape'){fermerDetailMedicament();fermerMemoMedicaments();}
 });
 </script>
-<script>
-function showPage(id){
- var actuelle=document.querySelector('.screen.active');
- var suivante=document.getElementById(id);
-
- if(!suivante || actuelle===suivante) return;
-
- document.querySelectorAll('.screen').forEach(function(p){
-   p.classList.remove('pageFadeIn','pageFadeOut');
- });
-
- // Affiche la nouvelle page derrière l'ancienne.
- suivante.classList.add('active','pageFadeIn');
-
- // Efface l'ancienne page en douceur.
- if(actuelle){
-   actuelle.classList.add('pageFadeOut');
- }
-
- window.scrollTo(0,0);
- if(id==='stockPage') chargerStock();
-
- setTimeout(function(){
-   if(actuelle){
-     actuelle.classList.remove('active','pageFadeOut');
-   }
- },550);
-
- setTimeout(function(){
-   suivante.classList.remove('pageFadeIn');
- },950);
-}
-
-const $=id=>document.getElementById(id);
-let stockData=[];
-let stockFilter='Tous';
-let stockMovementType='entree';
-
-/* LISTE DES SALARIÉS DEPUIS GOOGLE SHEETS */
-function chargerSalaries(){
- if(!(window.google&&google.script&&google.script.run)) return;
- google.script.run
-  .withSuccessHandler(function(noms){
-    noms=Array.isArray(noms)?noms:[];
-    ['stockEmployee','employee'].forEach(function(id){
-      const select=$(id);
-      if(!select) return;
-      const valeurActuelle=select.value;
-      select.innerHTML='<option value="">Sélectionner votre nom</option>'+
-        noms.map(function(nom){
-          return '<option value="'+escapeHtml(nom)+'">'+escapeHtml(nom)+'</option>';
-        }).join('');
-      const salarieConnecte=localStorage.getItem('sanistock_employee_name')||'';
-      if(salarieConnecte && noms.includes(salarieConnecte)){
-        select.value=salarieConnecte;
-        /* Le salarié connecté est imposé automatiquement dans Stock et Désinfection. */
-        select.disabled=true;
-      }else if(noms.includes(valeurActuelle)){
-        select.value=valeurActuelle;
-      }
-    });
-  })
-  .withFailureHandler(function(err){
-    console.error('Impossible de charger les salariés :',err);
-  })
-  .getSalaries();
-}
-
-/* LISTE DES VÉHICULES DEPUIS GOOGLE SHEETS */
-function chargerVehicules(){
- if(!(window.google&&google.script&&google.script.run)) return;
- google.script.run
-  .withSuccessHandler(function(vehicules){
-    if(!Array.isArray(vehicules)||!vehicules.length) return;
-    const select=$('vehicle');
-    if(!select) return;
-    const valeurActuelle=select.value;
-    select.innerHTML='<option value="">Sélectionner un véhicule</option>'+
-      vehicules.map(function(vehicule){
-        return '<option value="'+escapeHtml(vehicule)+'">'+escapeHtml(vehicule)+'</option>';
-      }).join('');
-    if(vehicules.includes(valeurActuelle)) select.value=valeurActuelle;
-  })
-  .withFailureHandler(function(err){
-    console.error('Impossible de charger les véhicules :',err);
-  })
-  .getVehicules();
-}
-function stockStatusClass(status){return status==='Rupture'?'status-rupture':status==='Stock min'?'status-min':'status-ok'}
-function chargerStock(){
- const list=$('stockList');
- list.innerHTML='<div class="stockEmpty">Chargement du stock...</div>';
- if(!(window.google&&google.script&&google.script.run)){list.innerHTML='<div class="stockEmpty">Le stock se charge dans la version Google Apps Script.</div>';return}
- google.script.run.withSuccessHandler(function(rows){stockData=rows||[];populateStockProducts();renderStock()}).withFailureHandler(function(err){list.innerHTML='<div class="stockEmpty">Erreur : '+escapeHtml(err&&err.message?err.message:err)+'</div>'}).getStockData();
-}
-function stockOptions(selected){
- return '<option value="">Sélectionner un produit</option>'+stockData.map(r=>'<option value="'+escapeHtml(r.produit)+'" '+(r.produit===selected?'selected':'')+'>'+escapeHtml(r.produit)+'</option>').join('');
-}
-function populateStockProducts(){
- document.querySelectorAll('.movementProduct').forEach(sel=>{const current=sel.value;sel.innerHTML=stockOptions(current)});
-}
-function addMovementRow(produit='',quantite=1){
- const box=$('movementRows');
- const row=document.createElement('div'); row.className='movementRow';
- row.innerHTML='<select class="movementProduct">'+stockOptions(produit)+'</select><input class="movementQuantity" type="number" min="1" step="1" value="'+escapeHtml(quantite)+'"><button type="button" class="removeMovement" onclick="removeMovementRow(this)" aria-label="Supprimer">✕</button>';
- box.appendChild(row); updateRemoveButtons();
-}
-function removeMovementRow(btn){btn.closest('.movementRow').remove();updateRemoveButtons()}
-function updateRemoveButtons(){const rows=document.querySelectorAll('#movementRows .movementRow');rows.forEach(r=>r.querySelector('.removeMovement').style.visibility=rows.length===1?'hidden':'visible')}
-function setStockFilter(f,btn){stockFilter=f;document.querySelectorAll('.filterBtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderStock()}
-function renderStock(){
- const q=($('stockSearch')?.value||'').trim().toLowerCase();
- const rows=stockData.filter(r=>(stockFilter==='Tous'||r.statut===stockFilter)&&(!q||String(r.produit).toLowerCase().includes(q)));
- $('stockList').innerHTML=rows.length?rows.map(r=>{const ds=String(r.statutDate||'').trim();const dl=ds.toLowerCase();const dc=dl.includes('périm')||dl.includes('perim')?'expiry-expired':(dl.includes('bient')||dl.includes('proche')||dl.includes('attention')?'expiry-soon':'expiry-ok');const di=dc==='expiry-expired'?'🔴':dc==='expiry-soon'?'🟠':'🟢';const date=String(r.datePeremption||'').trim();return '<div class="stockItem"><div class="stockTop"><div class="stockName">'+escapeHtml(r.produit)+'</div><div class="stockQty"><b>'+escapeHtml(r.actuel)+'</b></div></div><div class="stockMeta"><span>Minimum : '+escapeHtml(r.minimum)+'</span><span class="statusPill '+stockStatusClass(r.statut)+'">'+(r.statut==='OK'?'🟢 ':r.statut==='Stock min'?'🟠 ':'🔴 ')+escapeHtml(r.statut)+'</span></div><div class="expiryMeta"><span>📅 Péremption : <b>'+escapeHtml(date||'Non renseignée')+'</b></span>'+(ds?'<span class="expiryStatus '+dc+'">'+di+' '+escapeHtml(ds)+'</span>':'')+'</div></div>'}).join(''):'<div class="stockEmpty">Aucun produit trouvé.</div>';
-}
-let codeEntreeStockValide='';
-function demanderCodeEntreeStock(){
- const overlay=$('stockPinOverlay'), input=$('stockPinInput'), err=$('stockPinError');
- if(!overlay||!input) return;
- input.value=''; err.textContent='';
- overlay.classList.add('open'); overlay.setAttribute('aria-hidden','false');
- setTimeout(()=>input.focus(),50);
-}
-function fermerCodeEntreeStock(){
- const overlay=$('stockPinOverlay'), input=$('stockPinInput'), err=$('stockPinError');
- if(overlay){overlay.classList.remove('open');overlay.setAttribute('aria-hidden','true')}
- if(input) input.value=''; if(err) err.textContent='';
-}
-function validerCodeEntreeStock(){
- const input=$('stockPinInput'), err=$('stockPinError');
- const code=(input?.value||'').replace(/\D/g,'').slice(0,5);
- if(code.length!==5){err.textContent='Le code doit contenir 5 chiffres.';return}
- google.script.run
-  .withSuccessHandler(function(ok){
-    if(!ok){codeEntreeStockValide='';err.textContent='Code incorrect';input.value='';input.focus();return}
-    codeEntreeStockValide=code;
-    fermerCodeEntreeStock();
-    openStockModal('entree');
-  })
-  .withFailureHandler(function(e){err.textContent='Erreur de vérification';})
-  .verifierCodeEntreeStock(code);
-}
-
-document.addEventListener('input',function(e){if(e.target&&e.target.id==='stockPinInput')e.target.value=e.target.value.replace(/\D/g,'').slice(0,5)});
-document.addEventListener('keydown',function(e){if(e.target&&e.target.id==='stockPinInput'&&e.key==='Enter')validerCodeEntreeStock()});
-
-function openStockModal(type){
- stockMovementType=type;const entree=type==='entree';$('stockModalTitle').textContent=entree?'➕ Entrée de produits':'➖ Sortie de produits';$('stockSaveBtn').className='stockSave '+(entree?'entryBtn':'exitBtn');$('stockSaveBtn').textContent=entree?'✓ ENREGISTRER LES ENTRÉES':'✓ ENREGISTRER LES SORTIES';$('movementRows').innerHTML='';addMovementRow();$('stockModal').classList.add('show')
-}
-function closeStockModal(){$('stockModal').classList.remove('show')}
-function saveStockMovement(){
- const salarie=$('stockEmployee').value;
- const mouvements=[...document.querySelectorAll('#movementRows .movementRow')].map(r=>({produit:r.querySelector('.movementProduct').value,quantite:Number(r.querySelector('.movementQuantity').value)}));
- if(!salarie||!mouvements.length||mouvements.some(m=>!m.produit||!Number.isInteger(m.quantite)||m.quantite<=0)){alert('Sélectionnez un salarié et vérifiez chaque produit et quantité.');return}
- const noms=mouvements.map(m=>m.produit); if(new Set(noms).size!==noms.length){alert('Un même produit est présent plusieurs fois. Regroupez sa quantité sur une seule ligne.');return}
- const btn=$('stockSaveBtn'); btn.disabled=true; btn.textContent='Enregistrement...';
- const fn=stockMovementType==='entree'?'enregistrerEntreesStock':'enregistrerSortiesStock';
- const payload={mouvements:mouvements,salarie:salarie};
- if(stockMovementType==='entree') payload.codeAcces=codeEntreeStockValide;
- google.script.run.withSuccessHandler(function(res){btn.disabled=false;closeStockModal();if(stockMovementType==='sortie') showSaniAnimation('stock');if(stockMovementType==='entree') codeEntreeStockValide='';const m=$('stockMessage');m.textContent='✅ '+(res&&res.message?res.message:'Mouvements enregistrés');m.classList.add('show');setTimeout(()=>m.classList.remove('show'),3000);chargerStock()}).withFailureHandler(function(err){btn.disabled=false;btn.textContent='✓ ENREGISTRER';if(stockMovementType==='entree') codeEntreeStockValide='';alert('Erreur : '+(err&&err.message?err.message:err))})[fn](payload);
-}
-
-function detectVehicleType(nom){
- const v=String(nom||'').toUpperCase().replace(/[–—]/g,'-').trim();
- if(v.includes('AMBU')) return 'ambulance';
- if(v.includes('VSL')) return 'vsl';
- if(v.includes('TAXI')) return 'taxi';
- return 'vehicule';
-}
-function showSaniAnimation(kind,vehicleName){
- const box=$('confirmAnim'); if(!box) return;
- box.className='confirmAnim';
- let type='SANISTOCK', icon='📦', title='Enregistré !', txt='Merci !';
- if(kind==='stock'){
-   box.classList.add('stock'); type='STOCK'; icon='📦'; title='Sortie enregistrée !';
-   txt='Merci ! Grâce à toi, le stock ne perd pas le fil 😎📦';
- }else{
-   const t=detectVehicleType(vehicleName);
-   if(t==='taxi'){type='TAXI';icon='🚕';txt='Encore un taxi prêt à prendre la route ! 🚕✨'}
-   else if(t==='vsl'){type='VSL';icon='🚙';txt='VSL propre et prêt pour la prochaine mission ! 🚙✨'}
-   else if(t==='ambulance'){type='AMBULANCE';icon='🚑';txt='Ambulance propre et prête pour la prochaine mission ! 🚑✨'}
-   else{type='VÉHICULE';icon='🚗';txt='Véhicule propre et prêt pour la prochaine mission ! ✨'}
-   title='Désinfection enregistrée !';
- }
- $('confirmAnimType').textContent=type;
- $('confirmAnimVehicle').textContent=icon;
- $('confirmAnimTitle').textContent=title;
- $('confirmAnimText').textContent=txt;
- box.classList.add('show');
- clearTimeout(window.__saniAnimTimer);
- window.__saniAnimTimer=setTimeout(function(){box.classList.remove('show')},5000);
-}
-
-function escapeHtml(v){return String(v==null?'':v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
-
-function isFriday(){return new Date().getDay()===5}
-const CHECKLIST_STANDARD=[
- {id:'contacts',label:'Points de contact'},
- {id:'windows',label:'Lavage des vitrages'},
- {id:'vacuum',label:'Aspirateur'},
- {id:'fuel',label:'Plein carburant'},
- {id:'outside',label:'Lavage extérieur <em>VENDREDI</em>',outside:true}
-];
-const CHECKLIST_AMBULANCE=[
- {id:'cabine',label:'Poste de conduite'},
- {id:'windows',label:'Vitrages'},
- {id:'vacuum',label:'Aspirateur'},
- {id:'cellule',label:'Cellule sanitaire'},
- {id:'brancard',label:'Brancard'},
- {id:'materielSoins',label:'Matériel de soins'},
- {id:'serpilliereCellule',label:'Lavage extérieur'},
- {id:'fuel',label:'Plein de carburant'}
-];
-function isAmbulanceVehicle(nom){
- const v=String(nom||'').toUpperCase();
- return v.includes('AMBU')||v.includes('AMBULANCE')||v.includes('BOXER');
-}
-function currentChecklist(){
- const veh=$('vehicle')?$('vehicle').value:'';
- return isAmbulanceVehicle(veh)?CHECKLIST_AMBULANCE:CHECKLIST_STANDARD;
-}
-function adapterChecklistVehicule(){
- const wrap=$('disinfectionTasks'); if(!wrap) return;
- const list=currentChecklist();
- wrap.innerHTML=list.map(function(t,i){
-   return '<button class="task" onclick="toggleTask(\''+t.id+'\',this)"><i>'+(i+1)+'</i><b>'+t.label+'</b><span>✓ Fait</span><input id="'+t.id+'" type="checkbox"></button>';
- }).join('');
- const help=$('allBtnHelp');
- if(help) help.textContent=isAmbulanceVehicle($('vehicle').value)?'Valide automatiquement les 8 étapes Ambulance':'Valide automatiquement les étapes principales';
- updateDis();
-}
-function requiredTasks(){
- return currentChecklist().filter(t=>!t.outside||isFriday()).map(t=>$(t.id)).filter(Boolean);
-}
-function updateDis(){
- const principales=currentChecklist().filter(t=>!t.outside).map(t=>$(t.id)).filter(Boolean);
- const done=principales.filter(x=>x.checked).length;
- const p=principales.length?Math.round(done/principales.length*100):0;
- $('pct').textContent=p+'%';
- $('fill').style.width=p+'%';
- document.querySelectorAll('#disinfectionTasks .task').forEach(row=>row.classList.toggle('done',row.querySelector('input').checked));
-}
-function toggleTask(id,row){const el=$(id);if(el){el.checked=!el.checked;updateDis()}}
-function checkAll(){currentChecklist().filter(t=>!t.outside).forEach(t=>{const el=$(t.id);if(el)el.checked=true});updateDis()}
-function taskChecked(id){const el=$(id);return !!(el&&el.checked)}
-function validateForm(){
- const salarie=$('employee').value, vehicule=$('vehicle').value;
- if(!salarie||!vehicule){alert('Le salarié et le véhicule doivent être sélectionnés.');return}
- const btn=$('validateBtn');
- btn.disabled=true;
- btn.textContent='Enregistrement...';
- const data={
-   salarie:salarie,
-   vehicule:vehicule,
-   pourcentage:(function(){const a=currentChecklist().filter(t=>!t.outside);return Math.round(a.filter(t=>taskChecked(t.id)).length/a.length*100)})(),
-   typeVehicule:isAmbulanceVehicle(vehicule)?'Ambulance':detectVehicleType(vehicule),
-   posteConduite:taskChecked('cabine'),
-   pointsContact:taskChecked('contacts'),
-   vitrages:taskChecked('windows'),
-   aspirateur:taskChecked('vacuum'),
-   celluleSanitaire:taskChecked('cellule'),
-   brancard:taskChecked('brancard'),
-   materielSoins:taskChecked('materielSoins'),
-   serpilliereCellule:taskChecked('serpilliereCellule'),
-   carburant:taskChecked('fuel'),
-   lavageExterieur:taskChecked('outside'),
-   observation:''
- };
- if(!(window.google&&google.script&&google.script.run)){
-   btn.disabled=false;
-   btn.textContent='✓ VALIDER LA DÉSINFECTION';
-   alert("L'enregistrement Google Sheets fonctionne une fois l'application ouverte depuis Google Apps Script.");
-   return;
- }
- google.script.run
- .withSuccessHandler(function(){
-   showSaniAnimation('disinfection',vehicule);
-   updateDis();
-   document.querySelectorAll('#disinfectionPage select,#disinfectionPage .task,#disinfectionPage .allBtn,#disinfectionPage .validBtn').forEach(x=>x.disabled=true);
-   $('success').classList.add('show');
-   btn.textContent='✓ DÉSINFECTION VALIDÉE';
-   launchConfetti();
-   chargerHistorique();
- })
- .withFailureHandler(function(err){
-   btn.disabled=false;
-   btn.textContent='✓ VALIDER LA DÉSINFECTION';
-   alert("Erreur d'enregistrement : "+(err&&err.message?err.message:err));
- })
- .enregistrerDesinfection(data);
-}
-function toggleHistory(){
- const box=$('history');
- box.classList.toggle('show');
- if(box.classList.contains('show')) chargerHistorique();
-}
-function boolHist(r,keys,index){
- for(const k of keys){
-   if(r && typeof r==='object' && !Array.isArray(r) && Object.prototype.hasOwnProperty.call(r,k)){
-     const v=r[k];
-     if(typeof v==='boolean') return v;
-     const s=String(v).trim().toLowerCase();
-     if(['true','vrai','oui','1','x','fait','yes'].includes(s)) return true;
-     if(['false','faux','non','0','','no'].includes(s)) return false;
-   }
- }
- if(Array.isArray(r) && index!=null && index<r.length){
-   const v=r[index], s=String(v).trim().toLowerCase();
-   if(typeof v==='boolean') return v;
-   if(['true','vrai','oui','1','x','fait','yes'].includes(s)) return true;
-   if(['false','faux','non','0','','no'].includes(s)) return false;
- }
- return null;
-}
-function histLine(label,value){
- if(value===null) return '';
- return '<div class="histDetail '+(value?'ok':'no')+'">'+(value?'✅':'❌')+' '+escapeHtml(label)+'</div>';
-}
-function chargerHistorique(){
- const list=$('historyList');
- list.innerHTML='<div style="padding:10px">Chargement...</div>';
- if(!(window.google&&google.script&&google.script.run)){
-   list.innerHTML='<div style="padding:10px">Historique disponible dans la version Google Apps Script.</div>';
-   return;
- }
- google.script.run
- .withSuccessHandler(function(rows){
-   if(!rows||!rows.length){list.innerHTML='<div style="padding:10px">Aucune désinfection enregistrée.</div>';return}
-   list.innerHTML=rows.slice(0,10).map(function(r){
-     const sal=r.salarie||r.Salarie||r.salarii||r[1]||'—';
-     const veh=r.vehicule||r.Vehicule||r[2]||'—';
-     const dat=r.date||r.Date||r.dateHeure||r[0]||'';
-     const p=(r.pourcentage??r.Pourcentage??r[3]??100);
-     const amb=isAmbulanceVehicle(veh);
-     let details='';
-     if(amb){
-       details += histLine('Poste de conduite',boolHist(r,['posteConduite','PosteConduite','poste_de_conduite'],4));
-       details += histLine('Vitrages',boolHist(r,['vitrages','Vitrages'],6));
-       details += histLine('Aspirateur',boolHist(r,['aspirateur','Aspirateur'],7));
-       details += histLine('Cellule sanitaire',boolHist(r,['celluleSanitaire','CelluleSanitaire','cellule_sanitaire'],8));
-       details += histLine('Brancard',boolHist(r,['brancard','Brancard'],9));
-       details += histLine('Matériel de soins',boolHist(r,['materielSoins','MaterielSoins','materiel_soins'],10));
-       details += histLine('Lavage extérieur',boolHist(r,['serpilliereCellule','SerpilliereCellule','serpilliere_cellule'],11));
-       details += histLine('Plein de carburant',boolHist(r,['carburant','Carburant'],12));
-     }else{
-       details += histLine('Points de contact',boolHist(r,['pointsContact','PointsContact','points_contact'],4));
-       details += histLine('Lavage des vitrages',boolHist(r,['vitrages','Vitrages'],5));
-       details += histLine('Aspirateur',boolHist(r,['aspirateur','Aspirateur'],6));
-       details += histLine('Plein de carburant',boolHist(r,['carburant','Carburant'],7));
-     }
-     return '<div class="histRow"><b>'+escapeHtml(sal)+'</b><span>'+escapeHtml(veh)+'</span><small>'+escapeHtml(dat)+' · '+escapeHtml(p)+'%</small>'+(details?'<div class="histDetails">'+details+'</div>':'')+'</div>';
-   }).join('');
- })
- .withFailureHandler(function(){list.innerHTML='<div style="padding:10px">Impossible de charger l’historique.</div>'})
- .getHistoriqueDesinfections(10);
-}
-function launchConfetti(){
- const colors=['#075ba9','#d71920'];
- for(let i=0;i<34;i++){
-   const c=document.createElement('i');
-   c.className='confetti';
-   c.style.left=(Math.random()*100)+'vw';
-   c.style.background=colors[i%2];
-   c.style.animationDelay=(Math.random()*.35)+'s';
-   document.body.appendChild(c);
-   setTimeout(()=>c.remove(),2200);
- }
-}
-
-chargerSalaries();
-chargerVehicules();
-
-
-if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',adapterChecklistVehicule)}else{adapterChecklistVehicule()}
-</script>
-
-<div id="confirmAnim" class="confirmAnim" aria-live="polite">
-  <div class="confirmAnimCard">
-    <div id="confirmAnimType" class="confirmAnimType">SANISTOCK</div>
-    <div class="confirmAnimVisual">
-      <div id="confirmAnimVehicle" class="confirmAnimVehicle">📦</div>
-      <div class="confirmAnimSpray">🧴</div>
-      <div class="confirmAnimSparkles">✨</div>
-    </div>
-    <div class="confirmAnimCheck">✓</div>
-    <div id="confirmAnimTitle" class="confirmAnimTitle">Enregistré !</div>
-    <div id="confirmAnimText" class="confirmAnimText">Merci !</div>
-  </div>
-</div>
-
-
-<script>
-(function(){
-  var splash = document.getElementById("saniSplash");
-  var status = document.getElementById("saniSplashStatus");
-  if(!splash) return;
-
-  // Démarrage accéléré : on conserve le splash et son animation,
-  // mais on ne bloque plus l'accès à SaniStock pendant près de 2 secondes.
-  window.setTimeout(function(){
-    if(status) status.textContent = "Bienvenue !";
-  }, 150);
-
-  window.setTimeout(function(){
-    splash.classList.add("hide");
-  }, 350);
-
-  window.setTimeout(function(){
-    if(splash && splash.parentNode) splash.parentNode.removeChild(splash);
-  }, 750);
-})();
-</script>
-
-
-<script>
-/* ===== ÉTAT DE CONNEXION SANISTOCK ===== */
-(function(){
-  var box=document.getElementById('saniConnection');
-  var title=document.getElementById('saniConnTitle');
-  var sub=document.getElementById('saniConnSub');
-
-  function etat(type,titre,sousTitre){
-    if(!box) return;
-    box.className=type;
-    title.textContent=titre;
-    sub.textContent=sousTitre;
-  }
-
-  function verifierConnexionSaniStock(){
-    etat('loading','Connexion...','Vérification SaniStock');
-
-    if(typeof google==='undefined' || !google.script || !google.script.run){
-      etat('error','SaniStock hors ligne','Connexion indisponible');
-      return;
-    }
-
-    // Test léger : on appelle la fonction stock déjà utilisée par l'application.
-    google.script.run
-      .withSuccessHandler(function(){
-        etat('ok','SaniStock connecté','Données à jour');
-      })
-      .withFailureHandler(function(){
-        etat('error','Connexion impossible','Touchez pour réessayer');
-      })
-      .getStockData();
-  }
-
-  if(box){
-    box.addEventListener('click',verifierConnexionSaniStock);
-  }
-
-  window.addEventListener('load',function(){
-    setTimeout(verifierConnexionSaniStock,700);
-  });
-
-  window.addEventListener('online',verifierConnexionSaniStock);
-  window.addEventListener('offline',function(){
-    etat('error','SaniStock hors ligne','Pas de connexion internet');
-  });
-})();
-</script>
-
-
 <script>
 /* ===== GESTION DES PARAMÈTRES ===== */
 let codeAdminSession='';
