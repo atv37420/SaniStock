@@ -372,8 +372,34 @@ body{display:block}
 .stockPinCancel{background:#edf2f6;color:#40576b}.stockPinOk{background:#0757a0;color:#fff}
 </style>
 
+<style>
+/* ===== PARAMÈTRES SANISTOCK ===== */
+#settingsBtn{position:fixed;top:max(8px,env(safe-area-inset-top));left:8px;z-index:9997;width:34px;height:34px;border:1px solid rgba(255,255,255,.45);border-radius:12px;background:rgba(4,35,73,.82);color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(0,0,0,.18);backdrop-filter:blur(8px);cursor:pointer}
+#settingsOverlay{display:none;position:fixed;inset:0;z-index:10020;background:rgba(3,22,45,.72);padding:18px;overflow:auto}
+#settingsOverlay.open{display:block}
+.settingsPanel{max-width:520px;margin:45px auto 25px;background:#edf5fa;border-radius:22px;padding:18px;color:#173f68;box-shadow:0 18px 50px rgba(0,0,0,.35)}
+.settingsHead{display:flex;align-items:center;justify-content:space-between;gap:10px}.settingsHead h2{margin:0;color:#073f91}.settingsClose{border:0;background:#dce7ef;border-radius:10px;width:36px;height:36px;font-size:20px;cursor:pointer}
+.settingsIntro{font-size:13px;margin:8px 0 15px}.settingsActions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px}.settingsAction{border:0;border-radius:12px;padding:11px;background:#0758a5;color:#fff;font-weight:800;cursor:pointer}.settingsAction.secondary{background:#536c80}
+#settingsList{display:grid;gap:8px}.employeeCard{background:#fff;border-radius:14px;padding:12px;box-shadow:0 3px 12px rgba(0,45,90,.08)}.employeeTop{display:flex;justify-content:space-between;gap:8px;align-items:center}.employeeName{font-weight:800}.employeeMeta{font-size:11px;margin-top:3px;color:#60778c}.employeeBtns{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}.employeeBtns button{border:0;border-radius:9px;padding:7px 9px;font-size:11px;font-weight:800;cursor:pointer}.btnCode{background:#e0eef9;color:#0758a5}.btnStatus{background:#fff0cc;color:#7a5700}.btnDelete{background:#ffe0e3;color:#a01f2c}.settingsMsg{min-height:18px;font-size:12px;font-weight:700;margin:8px 0}.badgeActive{color:#15803d}.badgeInactive{color:#b42318}
+</style>
+
 </head>
 <body>
+
+<button id="settingsBtn" type="button" aria-label="Paramètres SaniStock" title="Paramètres">⚙️</button>
+<div id="settingsOverlay" aria-hidden="true">
+  <div class="settingsPanel">
+    <div class="settingsHead"><h2>⚙️ Paramètres</h2><button class="settingsClose" type="button" onclick="fermerParametres()">×</button></div>
+    <p class="settingsIntro">Gestion des salariés et des accès SaniStock.</p>
+    <div class="settingsActions">
+      <button class="settingsAction" type="button" onclick="ajouterSalarieUI()">＋ Ajouter un salarié</button>
+      <button class="settingsAction secondary" type="button" onclick="changerCodeAdminUI()">🔐 Code administrateur</button>
+    </div>
+    <div id="settingsMsg" class="settingsMsg"></div>
+    <div id="settingsList"></div>
+  </div>
+</div>
+
 
 <div id="saniPinOverlay" aria-hidden="true">
   <div id="saniPinBox" role="dialog" aria-modal="true" aria-labelledby="saniPinTitle">
@@ -598,81 +624,6 @@ function showPage(id){
    suivante.classList.remove('pageFadeIn');
  },950);
 }
-
-/* === SANISTOCK GITHUB -> APPS SCRIPT API === */
-const SANISTOCK_API_URL = 'https://script.google.com/macros/s/AKfycbxz5dZkT7FyFx8ohxWmg2Pt23Yqx0LQDMqqJg8LM8bkfN3ulkb37VqUO8m8WvjyuGBqrg/exec';
-(function(){
-  let seq = 0;
-
-  function callApi(action, args, ok, fail){
-    const cb = 'sanistockCb' + Date.now() + (++seq);
-    let data = null;
-
-    if(action === 'verifierCodeEntreeStock') data = {code: args[0]};
-    else if(action === 'getHistoriqueDesinfections') data = {limit: args[0]};
-    else if(args && args.length) data = args[0];
-
-    const script = document.createElement('script');
-    script.async = true;
-    script.referrerPolicy = 'no-referrer';
-
-    let fini = false;
-    const timer = setTimeout(function(){
-      terminer();
-      if(fail) fail(new Error('Délai de connexion Apps Script dépassé'));
-    }, 30000);
-
-    function terminer(){
-      if(fini) return;
-      fini = true;
-      clearTimeout(timer);
-      try { delete window[cb]; } catch(e) { window[cb] = undefined; }
-      if(script.parentNode) script.parentNode.removeChild(script);
-    }
-
-    window[cb] = function(res){
-      terminer();
-      if(res && res.success){
-        if(ok) ok(res.data);
-      } else {
-        if(fail) fail(new Error(res && res.error ? res.error : 'Erreur SaniStock'));
-      }
-    };
-
-    let url = SANISTOCK_API_URL
-      + '?api=1'
-      + '&action=' + encodeURIComponent(action)
-      + '&callback=' + encodeURIComponent(cb)
-      + '&_=' + Date.now();
-
-    if(data !== null && data !== undefined){
-      url += '&data=' + encodeURIComponent(JSON.stringify(data));
-    }
-
-    script.onerror = function(){
-      terminer();
-      if(fail) fail(new Error('Connexion Apps Script impossible'));
-    };
-
-    script.src = url;
-    document.head.appendChild(script);
-  }
-
-  function runner(ok, fail){
-    return new Proxy({}, {
-      get: function(_, prop){
-        if(prop === 'withSuccessHandler') return function(fn){ return runner(fn, fail); };
-        if(prop === 'withFailureHandler') return function(fn){ return runner(ok, fn); };
-        return function(){ callApi(String(prop), Array.from(arguments), ok, fail); };
-      }
-    });
-  }
-
-  window.google = window.google || {};
-  window.google.script = window.google.script || {};
-  window.google.script.run = runner(null, null);
-})();
-/* === FIN LIAISON API === */
 
 const $=id=>document.getElementById(id);
 let stockData=[];
@@ -1031,17 +982,19 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
   var status = document.getElementById("saniSplashStatus");
   if(!splash) return;
 
+  // Démarrage accéléré : on conserve le splash et son animation,
+  // mais on ne bloque plus l'accès à SaniStock pendant près de 2 secondes.
   window.setTimeout(function(){
     if(status) status.textContent = "Bienvenue !";
-  }, 1250);
+  }, 150);
 
   window.setTimeout(function(){
     splash.classList.add("hide");
-  }, 1850);
+  }, 350);
 
   window.setTimeout(function(){
     if(splash && splash.parentNode) splash.parentNode.removeChild(splash);
-  }, 2400);
+  }, 750);
 })();
 </script>
 
@@ -1094,6 +1047,62 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
 })();
 </script>
 
+
+<script>
+/* ===== GESTION DES PARAMÈTRES ===== */
+let codeAdminSession='';
+function gsDisponible(){return !!(window.google&&google.script&&google.script.run)}
+function ouvrirParametres(){
+  if(!gsDisponible()){alert('Connexion SaniStock indisponible.');return}
+  const code=prompt('🔐 Code administrateur SaniStock :');
+  if(code===null)return;
+  google.script.run.withSuccessHandler(function(ok){
+    if(!ok){alert('Code administrateur incorrect.');return}
+    codeAdminSession=String(code);
+    document.getElementById('settingsOverlay').classList.add('open');
+    document.getElementById('settingsOverlay').setAttribute('aria-hidden','false');
+    chargerGestionSalaries();
+  }).withFailureHandler(function(e){alert('Erreur : '+(e&&e.message?e.message:e))}).verifierCodeAdmin(code);
+}
+function fermerParametres(){const o=document.getElementById('settingsOverlay');o.classList.remove('open');o.setAttribute('aria-hidden','true')}
+function messageParametres(t,ok=true){const m=document.getElementById('settingsMsg');m.style.color=ok?'#15803d':'#b42318';m.textContent=t||''}
+function chargerGestionSalaries(){
+  const list=document.getElementById('settingsList');list.innerHTML='Chargement...';
+  google.script.run.withSuccessHandler(function(rows){
+    rows=Array.isArray(rows)?rows:[];
+    list.innerHTML=rows.map(function(r){
+      const actif=String(r.statut||'Actif').toLowerCase()!=='inactif';
+      return '<div class="employeeCard"><div class="employeeTop"><div><div class="employeeName">'+escapeHtml(r.salarie)+'</div><div class="employeeMeta">Code : '+(r.codeConfigure?'●●●●':'non attribué')+' · <span class="'+(actif?'badgeActive':'badgeInactive')+'">'+(actif?'Actif':'Inactif')+'</span></div></div></div><div class="employeeBtns"><button class="btnCode" onclick="modifierCodeSalarieUI('+JSON.stringify(r.salarie).replace(/"/g,'&quot;')+')">🔢 Code</button><button class="btnStatus" onclick="changerStatutSalarieUI('+JSON.stringify(r.salarie).replace(/"/g,'&quot;')+','+(actif?'false':'true')+')">'+(actif?'⛔ Désactiver':'✅ Activer')+'</button><button class="btnDelete" onclick="supprimerSalarieUI('+JSON.stringify(r.salarie).replace(/"/g,'&quot;')+')">🗑️ Supprimer</button></div></div>';
+    }).join('') || '<div class="employeeCard">Aucun salarié.</div>';
+  }).withFailureHandler(function(e){list.innerHTML='Erreur : '+escapeHtml(e&&e.message?e.message:e)}).getGestionSalaries();
+}
+function ajouterSalarieUI(){
+  const nom=prompt('Nom et prénom du nouveau salarié :'); if(nom===null||!nom.trim())return;
+  const code=prompt('Code personnel (4 à 6 chiffres). Laissez vide pour le définir plus tard :'); if(code===null)return;
+  google.script.run.withSuccessHandler(function(){messageParametres('✅ Salarié ajouté.');chargerGestionSalaries();chargerSalaries()}).withFailureHandler(function(e){messageParametres('❌ '+(e&&e.message?e.message:e),false)}).ajouterSalarie({salarie:nom.trim(),code:String(code).trim()});
+}
+function modifierCodeSalarieUI(nom){
+  const code=prompt('Nouveau code pour '+nom+' (4 à 6 chiffres).\nLaissez vide pour supprimer son code :'); if(code===null)return;
+  google.script.run.withSuccessHandler(function(){messageParametres('✅ Code mis à jour pour '+nom+'.');chargerGestionSalaries()}).withFailureHandler(function(e){messageParametres('❌ '+(e&&e.message?e.message:e),false)}).enregistrerCodeSalarie({salarie:nom,code:String(code).trim(),statut:'Actif'});
+}
+function changerStatutSalarieUI(nom,activer){
+  const statut=activer?'Actif':'Inactif';
+  if(!confirm((activer?'Réactiver ':'Désactiver ')+nom+' ?'))return;
+  google.script.run.withSuccessHandler(function(){messageParametres('✅ '+nom+' : '+statut+'.');chargerGestionSalaries();chargerSalaries()}).withFailureHandler(function(e){messageParametres('❌ '+(e&&e.message?e.message:e),false)}).enregistrerCodeSalarie({salarie:nom,statut:statut});
+}
+function supprimerSalarieUI(nom){
+  if(!confirm('Supprimer définitivement '+nom+' de la liste ?\n\nSon ancien historique restera dans les autres onglets.'))return;
+  google.script.run.withSuccessHandler(function(){messageParametres('✅ Salarié supprimé.');chargerGestionSalaries();chargerSalaries()}).withFailureHandler(function(e){messageParametres('❌ '+(e&&e.message?e.message:e),false)}).supprimerSalarie({salarie:nom});
+}
+function changerCodeAdminUI(){
+  const nouveau=prompt('Nouveau code administrateur à 5 chiffres :'); if(nouveau===null)return;
+  const confirmation=prompt('Confirmez le nouveau code administrateur :'); if(confirmation===null)return;
+  if(nouveau!==confirmation){messageParametres('❌ Les deux codes ne correspondent pas.',false);return}
+  google.script.run.withSuccessHandler(function(){codeAdminSession=String(nouveau);messageParametres('✅ Code administrateur modifié. Vous pourrez transmettre ce code au prochain responsable.')}).withFailureHandler(function(e){messageParametres('❌ '+(e&&e.message?e.message:e),false)}).changerCodeAdmin({ancienCode:codeAdminSession,nouveauCode:String(nouveau)});
+}
+document.getElementById('settingsBtn').addEventListener('click',ouvrirParametres);
+document.getElementById('settingsOverlay').addEventListener('click',function(e){if(e.target===this)fermerParametres()});
+</script>
 
 </body>
 </html>
