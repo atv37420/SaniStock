@@ -530,6 +530,18 @@ body{display:block}
   .homeNew .memoArrow{font-size:30px;}
 }
 </style>
+<style>
+.settingsTabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0 10px}
+.settingsTab{border:0;border-radius:13px;padding:11px 8px;background:#e8f0f6;color:#49657d;font-weight:900;font-size:12px;cursor:pointer}
+.settingsTab.active{background:#0758a5;color:#fff;box-shadow:0 5px 14px rgba(7,88,165,.2)}
+.settingsPane{display:none}.settingsPane.active{display:block}.settingsPane[hidden]{display:none!important}
+.settingsPaneHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:8px 0 10px}
+.settingsPaneHead strong{display:block;color:#073f91;font-size:15px}.settingsPaneHead span{display:block;color:#6b8193;font-size:10px;margin-top:3px}
+.settingsPaneHead .settingsAction{flex:0 0 auto;margin:0}
+.settingsAdminBlock{margin-top:12px;padding-top:10px;border-top:1px solid #dce6ee}
+@media(max-width:420px){.settingsPaneHead{align-items:stretch;flex-direction:column}.settingsPaneHead .settingsAction{width:100%}}
+
+</style>
 </head>
 <body>
 
@@ -550,13 +562,24 @@ body{display:block}
 <div id="settingsOverlay" aria-hidden="true">
   <div class="settingsPanel">
     <div class="settingsHead"><h2>⚙️ Paramètres</h2><button class="settingsClose" type="button" onclick="fermerParametres()">×</button></div>
-    <p class="settingsIntro">Gestion des salariés et des accès SaniStock.</p>
-    <div class="settingsActions">
-      <button class="settingsAction" type="button" onclick="ajouterSalarieUI()">＋ Ajouter un salarié</button>
-      <button class="settingsAction secondary" type="button" onclick="changerCodeAdminUI()">🔐 Code administrateur</button>
+    <p class="settingsIntro">Gérez les salariés et les véhicules de SaniStock.</p>
+    <div class="settingsTabs" role="tablist" aria-label="Gestion SaniStock">
+      <button id="settingsTabSalaries" class="settingsTab active" type="button" role="tab" aria-selected="true" onclick="ouvrirOngletParametres('salaries')">👥 Gérer les salariés</button>
+      <button id="settingsTabVehicules" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('vehicules')">🚑 Gérer les véhicules</button>
     </div>
     <div id="settingsMsg" class="settingsMsg"></div>
-    <div id="settingsList"></div>
+
+    <section id="settingsPaneSalaries" class="settingsPane active" role="tabpanel">
+      <div class="settingsPaneHead"><div><strong>👥 Salariés</strong><span>Ajouter, modifier les codes, activer ou supprimer.</span></div><button class="settingsAction" type="button" onclick="ajouterSalarieUI()">＋ Ajouter un salarié</button></div>
+      <div id="settingsList"></div>
+    </section>
+
+    <section id="settingsPaneVehicules" class="settingsPane" role="tabpanel" hidden>
+      <div class="settingsPaneHead"><div><strong>🚑 Véhicules</strong><span>Ajouter, modifier ou supprimer les véhicules.</span></div><button class="settingsAction vehicle" type="button" onclick="ajouterVehiculeUI()">＋ Ajouter un véhicule</button></div>
+      <div id="vehicleSettingsList"></div>
+    </section>
+
+    <div class="settingsAdminBlock"><button class="settingsAction secondary" type="button" onclick="changerCodeAdminUI()">🔐 Modifier le code administrateur</button></div>
   </div>
 </div>
 
@@ -1267,6 +1290,19 @@ function ouvrirParametres(){
 }
 function fermerParametres(){const o=document.getElementById('settingsOverlay');o.classList.remove('open');o.setAttribute('aria-hidden','true')}
 function messageParametres(t,ok=true){const m=document.getElementById('settingsMsg');m.style.color=ok?'#15803d':'#b42318';m.textContent=t||''}
+function ouvrirOngletParametres(onglet){
+  const salaries=onglet==='salaries';
+  const tabS=document.getElementById('settingsTabSalaries');
+  const tabV=document.getElementById('settingsTabVehicules');
+  const paneS=document.getElementById('settingsPaneSalaries');
+  const paneV=document.getElementById('settingsPaneVehicules');
+  if(tabS){tabS.classList.toggle('active',salaries);tabS.setAttribute('aria-selected',salaries?'true':'false')}
+  if(tabV){tabV.classList.toggle('active',!salaries);tabV.setAttribute('aria-selected',salaries?'false':'true')}
+  if(paneS){paneS.classList.toggle('active',salaries);paneS.hidden=!salaries}
+  if(paneV){paneV.classList.toggle('active',!salaries);paneV.hidden=salaries}
+  if(salaries) chargerGestionSalaries();
+  else chargerGestionVehicules();
+}
 function chargerGestionSalaries(){
   const list=document.getElementById('settingsList');list.innerHTML='Chargement...';
   google.script.run.withSuccessHandler(function(rows){
@@ -1277,6 +1313,33 @@ function chargerGestionSalaries(){
     }).join('') || '<div class="employeeCard">Aucun salarié.</div>';
   }).withFailureHandler(function(e){list.innerHTML='Erreur : '+escapeHtml(e&&e.message?e.message:e)}).getGestionSalaries();
 }
+function chargerGestionVehicules(){
+  const list=document.getElementById('vehicleSettingsList');
+  if(!list)return;
+  list.innerHTML='Chargement...';
+  google.script.run.withSuccessHandler(function(rows){
+    rows=Array.isArray(rows)?rows:[];
+    list.innerHTML=rows.map(function(r){
+      const nom=JSON.stringify(r.vehicule).replace(/"/g,'&quot;');
+      return '<div class="vehicleCard"><div class="vehicleName">🚑 '+escapeHtml(r.vehicule)+'</div><div class="vehicleMeta">Véhicule enregistré dans SaniStock</div><div class="vehicleBtns"><button class="btnVehicleEdit" onclick="modifierVehiculeUI('+r.ligne+','+nom+')">✏️ Modifier</button><button class="btnVehicleDelete" onclick="supprimerVehiculeUI('+r.ligne+','+nom+')">🗑️ Supprimer</button></div></div>';
+    }).join('')||'<div class="vehicleCard">Aucun véhicule enregistré.</div>';
+  }).withFailureHandler(function(e){list.innerHTML='Erreur : '+escapeHtml(e&&e.message?e.message:e)}).getGestionVehicules({codeAdmin:codeAdminSession});
+}
+function ajouterVehiculeUI(){
+  const nom=prompt('Nom ou immatriculation du nouveau véhicule :');
+  if(nom===null||!nom.trim())return;
+  google.script.run.withSuccessHandler(function(){messageParametres('✅ Véhicule ajouté.');chargerGestionVehicules();chargerVehicules()}).withFailureHandler(function(e){messageParametres('❌ '+(e&&e.message?e.message:e),false)}).ajouterVehicule({vehicule:nom.trim(),codeAdmin:codeAdminSession});
+}
+function modifierVehiculeUI(ligne,ancienNom){
+  const nouveau=prompt('Modifier le véhicule :',ancienNom);
+  if(nouveau===null||!nouveau.trim())return;
+  google.script.run.withSuccessHandler(function(){messageParametres('✅ Véhicule modifié.');chargerGestionVehicules();chargerVehicules()}).withFailureHandler(function(e){messageParametres('❌ '+(e&&e.message?e.message:e),false)}).modifierVehicule({ligne:ligne,vehicule:nouveau.trim(),codeAdmin:codeAdminSession});
+}
+function supprimerVehiculeUI(ligne,nom){
+  if(!confirm('Supprimer '+nom+' de la liste des véhicules ?\n\nSon ancien historique reste conservé.'))return;
+  google.script.run.withSuccessHandler(function(){messageParametres('✅ Véhicule supprimé.');chargerGestionVehicules();chargerVehicules()}).withFailureHandler(function(e){messageParametres('❌ '+(e&&e.message?e.message:e),false)}).supprimerVehicule({ligne:ligne,codeAdmin:codeAdminSession});
+}
+
 function ajouterSalarieUI(){
   const nom=prompt('Nom et prénom du nouveau salarié :'); if(nom===null||!nom.trim())return;
   const code=prompt('Code personnel (4 à 6 chiffres). Laissez vide pour le définir plus tard :'); if(code===null)return;
