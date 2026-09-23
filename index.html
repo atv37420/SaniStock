@@ -1332,7 +1332,7 @@ function chargerGestionVehicules(){
     rows=Array.isArray(rows)?rows:[];
     list.innerHTML=rows.map(function(r){
       const nom=JSON.stringify(r.vehicule).replace(/"/g,'&quot;');
-      return '<div class="vehicleCard"><div class="vehicleName">🚑 '+escapeHtml(r.vehicule)+'</div><div class="vehicleMeta">Véhicule enregistré dans SaniStock</div><div class="vehicleBtns"><button class="btnVehicleEdit" onclick="modifierVehiculeUI('+r.ligne+','+nom+')">✏️ Modifier</button><button class="btnVehicleDelete" onclick="supprimerVehiculeUI('+r.ligne+','+nom+')">🗑️ Supprimer</button></div></div>';
+      return '<div class="vehicleCard"><div class="vehicleName">🚑 '+escapeHtml(r.vehicule)+'</div><div class="vehicleMeta">Véhicule enregistré dans SaniStock</div><div class="employeeBtns"><button class="btnCode" onclick="modifierVehiculeUI('+r.ligne+','+nom+')">✏️ Modifier</button><button class="btnDelete" onclick="supprimerVehiculeUI('+r.ligne+','+nom+')">🗑️ Supprimer</button></div></div>';
     }).join('')||'<div class="vehicleCard">Aucun véhicule enregistré.</div>';
   }).withFailureHandler(function(e){list.innerHTML='Erreur : '+escapeHtml(e&&e.message?e.message:e)}).getGestionVehicules({codeAdmin:codeAdminSession});
 }
