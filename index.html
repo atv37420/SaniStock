@@ -475,7 +475,7 @@ body{display:block}
 <style>
 /* ===== CONNEXION SALARIÉ PERSISTANTE ===== */
 #employeeLoginOverlay{display:flex;position:fixed;inset:0;z-index:30000;background:linear-gradient(180deg,#0757a0 0%,#032f61 100%);padding:22px;align-items:center;justify-content:center;color:#173f68}
-#employeeLoginOverlay.hidden{display:none !important;pointer-events:none}
+#employeeLoginOverlay.hidden{display:none}
 .employeeLoginCard{width:min(100%,390px);background:#fff;border-radius:24px;padding:24px 20px;box-shadow:0 20px 60px rgba(0,0,0,.35);text-align:center}
 .employeeLoginLogo{font-size:42px;margin-bottom:6px}.employeeLoginCard h2{margin:4px 0;color:#073f91}.employeeLoginCard p{margin:6px 0 18px;color:#60778c;font-size:13px}
 .employeeLoginCard select,.employeeLoginCard input{width:100%;border:2px solid #d7e4ee;border-radius:13px;padding:13px 12px;margin:6px 0;font-size:16px;background:#fff;color:#173f68;outline:none}
@@ -507,8 +507,8 @@ body{display:block}
 /* ===== NOUVEL ACCUEIL SaniStock ===== */
 .homeNew{position:relative;width:100%;height:100vh;height:100dvh;min-height:100vh;min-height:100dvh;overflow:hidden;background:#0a2344;padding:0;display:block;}
 .homeNew .homeNewBg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center center;display:block;opacity:1;z-index:1;}
-.homeNew .homeClickZones{position:absolute;inset:0;z-index:100000;pointer-events:auto;}
-.homeNew .homeClickZone{position:absolute;border:0;background:transparent;padding:0;cursor:pointer;pointer-events:auto !important;touch-action:manipulation;z-index:100001;-webkit-tap-highlight-color:transparent;}
+.homeNew .homeClickZones{position:absolute;inset:0;z-index:100000;pointer-events:auto !important;touch-action:manipulation;}
+.homeNew .homeClickZone{position:absolute;border:0;background:transparent;padding:0;cursor:pointer;pointer-events:auto !important;touch-action:manipulation;-webkit-tap-highlight-color:transparent;z-index:100001;}
 .homeNew .homeClickZone:active{background:rgba(255,255,255,.08);border-radius:16px;}
 /* Positions correspondant aux 4 boutons intégrés dans l'image */
 .homeNew .homeZoneStock{left:4.8%;top:40.9%;width:22.5%;height:13.2%;}
@@ -551,7 +551,7 @@ body{display:block}
 <body>
 
 
-<div id="employeeLoginOverlay" class="hidden" aria-live="polite">
+<div id="employeeLoginOverlay" aria-live="polite">
   <div class="employeeLoginCard">
     <div class="employeeLoginLogo">🔐</div>
     <h2>Connexion SaniStock</h2>
@@ -1512,6 +1512,30 @@ document.addEventListener('DOMContentLoaded', function(){
     const z=e.target.closest('.homeClickZone');
     if(!z) return;
     e.stopPropagation();
+  },true);
+})();
+</script>
+<script>
+/* ===== CORRECTION CLICS PWA ===== */
+(function(){
+  function activerClics(){
+    document.querySelectorAll('.homeClickZones').forEach(function(z){
+      z.style.pointerEvents='auto'; z.style.zIndex='100000';
+    });
+    document.querySelectorAll('.homeClickZone').forEach(function(b){
+      b.style.pointerEvents='auto'; b.style.zIndex='100001'; b.style.touchAction='manipulation';
+    });
+  }
+  function lancer(b){
+    if(!b) return;
+    var fn=b.getAttribute('onclick');
+    if(fn){ try{ Function(fn).call(b); }catch(err){ console.error(err); } }
+  }
+  document.addEventListener('DOMContentLoaded',activerClics);
+  window.addEventListener('load',activerClics);
+  document.addEventListener('pointerup',function(e){
+    var b=e.target.closest && e.target.closest('.homeClickZone');
+    if(b){ e.preventDefault(); e.stopPropagation(); lancer(b); }
   },true);
 })();
 </script>
