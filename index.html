@@ -601,7 +601,8 @@ body{display:block}
 #settingsOverlay.open{display:block}
 .settingsPanel{max-width:520px;margin:45px auto 25px;background:#edf5fa;border-radius:22px;padding:18px;color:#173f68;box-shadow:0 18px 50px rgba(0,0,0,.35)}
 .settingsHead{display:flex;align-items:center;justify-content:space-between;gap:10px}.settingsHead h2{margin:0;color:#073f91}.settingsClose{border:0;background:#dce7ef;border-radius:10px;width:36px;height:36px;font-size:20px;cursor:pointer}
-.settingsIntro{font-size:13px;margin:8px 0 15px}.settingsActions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px}.settingsAction{border:0;border-radius:12px;padding:11px;background:#0758a5;color:#fff;font-weight:800;cursor:pointer}.settingsAction.secondary{background:#536c80}
+.settingsIntro{font-size:13px;margin:8px 0 15px}.settingsActions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px}.settingsAction{border:0;border-radius:12px;padding:11px;background:#0758a5;color:#fff;font-weight:800;cursor:pointer}.settingsAction.secondary{background:#536c80}.settingsAction.vehicle{background:#168447}
+.settingsSectionTitle{font-size:13px;font-weight:900;color:#073f91;margin:16px 0 8px;padding-bottom:6px;border-bottom:1px solid #d3e0ea}
 #settingsList{display:grid;gap:8px}.employeeCard{background:#fff;border-radius:14px;padding:12px;box-shadow:0 3px 12px rgba(0,45,90,.08)}.employeeTop{display:flex;justify-content:space-between;gap:8px;align-items:center}.employeeName{font-weight:800}.employeeMeta{font-size:11px;margin-top:3px;color:#60778c}.employeeBtns{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}.employeeBtns button{border:0;border-radius:9px;padding:7px 9px;font-size:11px;font-weight:800;cursor:pointer}.btnCode{background:#e0eef9;color:#0758a5}.btnStatus{background:#fff0cc;color:#7a5700}.btnDelete{background:#ffe0e3;color:#a01f2c}.settingsMsg{min-height:18px;font-size:12px;font-weight:700;margin:8px 0}.badgeActive{color:#15803d}.badgeInactive{color:#b42318}
 </style>
 
@@ -650,13 +651,21 @@ body{display:block}
 <div id="settingsOverlay" aria-hidden="true">
   <div class="settingsPanel">
     <div class="settingsHead"><h2>⚙️ Paramètres</h2><button class="settingsClose" type="button" onclick="fermerParametres()">×</button></div>
-    <p class="settingsIntro">Gestion des salariés et des accès SaniStock.</p>
+    <p class="settingsIntro">Gestion des salariés, des véhicules et des accès SaniStock.</p>
+
     <div class="settingsActions">
-      <button class="settingsAction" type="button" onclick="ajouterSalarieUI()">＋ Ajouter un salarié</button>
+      <button class="settingsAction" type="button" onclick="ajouterSalarieUI()">👤 Ajouter un salarié</button>
+      <button class="settingsAction vehicle" type="button" onclick="ajouterVehiculeUI()">🚑 Ajouter un véhicule</button>
       <button class="settingsAction secondary" type="button" onclick="changerCodeAdminUI()">🔐 Code administrateur</button>
     </div>
+
     <div id="settingsMsg" class="settingsMsg"></div>
+
+    <div class="settingsSectionTitle">👥 Gestion des salariés</div>
     <div id="settingsList"></div>
+
+    <div class="settingsSectionTitle">🚑 Gestion des véhicules</div>
+    <div id="vehicleSettingsList"></div>
   </div>
 </div>
 
@@ -1514,6 +1523,7 @@ function ouvrirParametres(){
       document.getElementById('settingsOverlay').classList.add('open');
       document.getElementById('settingsOverlay').setAttribute('aria-hidden','false');
       chargerGestionSalaries();
+      chargerGestionVehicules();
     }).withFailureHandler(function(e){
       erreur.textContent='Erreur de vérification';
     }).verifierCodeAdmin(code);
@@ -1553,6 +1563,68 @@ function supprimerSalarieUI(nom){
   if(!confirm('Supprimer définitivement '+nom+' de la liste ?\n\nSon ancien historique restera dans les autres onglets.'))return;
   google.script.run.withSuccessHandler(function(){messageParametres('✅ Salarié supprimé.');chargerGestionSalaries();chargerSalaries()}).withFailureHandler(function(e){messageParametres('❌ '+(e&&e.message?e.message:e),false)}).supprimerSalarie({salarie:nom});
 }
+function chargerGestionVehicules(){
+  const list=document.getElementById('vehicleSettingsList');
+  if(!list)return;
+  list.innerHTML='Chargement...';
+  google.script.run
+    .withSuccessHandler(function(rows){
+      rows=Array.isArray(rows)?rows:[];
+      list.innerHTML=rows.map(function(r){
+        const nom=JSON.stringify(r.vehicule).replace(/"/g,'&quot;');
+        return '<div class="employeeCard"><div class="employeeTop"><div><div class="employeeName">🚑 '+escapeHtml(r.vehicule)+'</div><div class="employeeMeta">Véhicule enregistré dans SaniStock</div></div></div><div class="employeeBtns"><button class="btnCode" onclick="modifierVehiculeUI('+r.ligne+','+nom+')">✏️ Modifier</button><button class="btnDelete" onclick="supprimerVehiculeUI('+r.ligne+','+nom+')">🗑️ Supprimer</button></div></div>';
+      }).join('') || '<div class="employeeCard">Aucun véhicule enregistré.</div>';
+    })
+    .withFailureHandler(function(e){
+      list.innerHTML='Erreur : '+escapeHtml(e&&e.message?e.message:e);
+    })
+    .getGestionVehicules({codeAdmin:codeAdminSession});
+}
+
+function ajouterVehiculeUI(){
+  const nom=prompt('Nom ou immatriculation du nouveau véhicule :');
+  if(nom===null||!nom.trim())return;
+  google.script.run
+    .withSuccessHandler(function(){
+      messageParametres('✅ Véhicule ajouté.');
+      chargerGestionVehicules();
+      chargerVehicules();
+    })
+    .withFailureHandler(function(e){
+      messageParametres('❌ '+(e&&e.message?e.message:e),false);
+    })
+    .ajouterVehicule({vehicule:nom.trim(),codeAdmin:codeAdminSession});
+}
+
+function modifierVehiculeUI(ligne,ancienNom){
+  const nouveau=prompt('Modifier le véhicule :',ancienNom);
+  if(nouveau===null||!nouveau.trim())return;
+  google.script.run
+    .withSuccessHandler(function(){
+      messageParametres('✅ Véhicule modifié.');
+      chargerGestionVehicules();
+      chargerVehicules();
+    })
+    .withFailureHandler(function(e){
+      messageParametres('❌ '+(e&&e.message?e.message:e),false);
+    })
+    .modifierVehicule({ligne:ligne,vehicule:nouveau.trim(),codeAdmin:codeAdminSession});
+}
+
+function supprimerVehiculeUI(ligne,nom){
+  if(!confirm('Supprimer '+nom+' de la liste des véhicules ?\n\nSon ancien historique reste conservé.'))return;
+  google.script.run
+    .withSuccessHandler(function(){
+      messageParametres('✅ Véhicule supprimé.');
+      chargerGestionVehicules();
+      chargerVehicules();
+    })
+    .withFailureHandler(function(e){
+      messageParametres('❌ '+(e&&e.message?e.message:e),false);
+    })
+    .supprimerVehicule({ligne:ligne,vehicule:nom,codeAdmin:codeAdminSession});
+}
+
 function changerCodeAdminUI(){
   const nouveau=prompt('Nouveau code administrateur à 5 chiffres :'); if(nouveau===null)return;
   const confirmation=prompt('Confirmez le nouveau code administrateur :'); if(confirmation===null)return;
