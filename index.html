@@ -439,18 +439,28 @@ body{display:block}
 #settingsBtn{display:none !important}
 #settingsOverlay{display:none;position:fixed;inset:0;z-index:10020;background:rgba(3,22,45,.72);padding:18px;overflow:auto}
 #settingsOverlay.open{display:block}
+.stockMeta,.expiryMeta{display:none !important}.stockQty{display:none !important}.stockActions{margin-top:10px}
 .settingsPanel{max-width:520px;margin:45px auto 25px;background:#edf5fa;border-radius:22px;padding:18px;color:#173f68;box-shadow:0 18px 50px rgba(0,0,0,.35)}
 .settingsHead{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .settingsHead h2{margin:0;color:#073f91}
 .settingsClose{border:0;background:#dce7ef;border-radius:10px;width:36px;height:36px;font-size:20px;cursor:pointer}
 .settingsIntro{font-size:13px;margin:8px 0 15px}
-.settingsTabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 14px}
+.settingsTabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:0 0 14px}
 .settingsTab{border:0;border-radius:12px;padding:12px 8px;background:#dce7ef;color:#173f68;font-weight:900;cursor:pointer}
 .settingsTab.active{background:#0758a5;color:#fff}
 .settingsPane[hidden]{display:none !important}
 .settingsPaneHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
 .settingsPaneHead strong{display:block;color:#073f91;font-size:16px}
 .settingsPaneHead span{display:block;font-size:11px;color:#60778c;margin-top:3px}
+.stockAlertItem{background:#fff;border-radius:14px;padding:12px;margin:8px 0;border:1px solid #dbe7ef;box-shadow:0 4px 12px rgba(18,55,82,.06)}
+.stockAlertTop{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.stockAlertName{font-weight:900;color:#173f68;font-size:14px}
+.stockAlertQty{font-weight:900;font-size:15px}
+.stockAlertMeta{display:flex;justify-content:space-between;gap:8px;margin-top:6px;font-size:11px;color:#60778c}
+.stockAlertRupture{border-left:5px solid #d72638}.stockAlertRupture .stockAlertQty{color:#d72638}
+.stockAlertMin{border-left:5px solid #e68a00}.stockAlertMin .stockAlertQty{color:#e68a00}
+.stockAlertEmpty{background:#fff;border-radius:14px;padding:16px;text-align:center;color:#15803d;font-weight:900}
+
 .settingsAction{border:0;border-radius:12px;padding:10px 11px;background:#0758a5;color:#fff;font-weight:800;cursor:pointer}
 .settingsAction.secondary{background:#536c80}
 .settingsMsg{min-height:18px;font-size:12px;font-weight:700;margin:8px 0}
@@ -526,6 +536,7 @@ body{display:block}
     <div class="settingsTabs" role="tablist" aria-label="Gestion SaniStock">
       <button id="settingsTabSalaries" class="settingsTab active" type="button" role="tab" aria-selected="true" onclick="ouvrirOngletParametres('salaries')">👥 Gérer les salariés</button>
       <button id="settingsTabVehicules" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('vehicules')">🚑 Gérer les véhicules</button>
+      <button id="settingsTabAlertes" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('alertes')">📦 Alertes stock</button>
     </div>
 
     <div id="settingsMsg" class="settingsMsg"></div>
@@ -546,7 +557,16 @@ body{display:block}
       <div id="vehicleSettingsList"></div>
     </section>
 
-    <div style="text-align:center;font-size:10px;color:#71879a;margin-top:12px">SaniStock — Version 1.0.2</div>
+    <section id="settingsPaneAlertes" class="settingsPane" role="tabpanel" hidden>
+      <div class="settingsPaneHead">
+        <div><strong>📦 Alertes stock</strong><span>Vue responsable : uniquement les produits à surveiller.</span></div>
+        <button class="settingsAction" type="button" onclick="chargerAlertesStock()">↻ Actualiser</button>
+      </div>
+      <div id="stockAlertsSummary" style="margin:8px 0 10px;font-size:12px;font-weight:800;color:#31556f"></div>
+      <div id="stockAlertsList"></div>
+    </section>
+
+    <div style="text-align:center;font-size:10px;color:#71879a;margin-top:12px">SaniStock — Version 1.0.3</div>
     <div class="settingsAdminBlock">
       <button class="settingsAction secondary" type="button" onclick="changerCodeAdminUI()">🔐 Modifier le code administrateur</button>
     </div>
@@ -610,12 +630,7 @@ body{display:block}
     <h1 class="stockTitle">📦 STOCK</h1>
     <p class="stockSub">Suivi en temps réel de la réserve</p>
     <input id="stockSearch" class="stockSearch" type="search" placeholder="🔎 Rechercher un produit..." oninput="renderStock()">
-    <div class="stockFilters">
-      <button class="filterBtn active" data-filter="Tous" onclick="setStockFilter('Tous',this)">Tous</button>
-      <button class="filterBtn" data-filter="OK" onclick="setStockFilter('OK',this)">🟢 OK</button>
-      <button class="filterBtn" data-filter="Stock min" onclick="setStockFilter('Stock min',this)">🟠 Stock min</button>
-      <button class="filterBtn" data-filter="Rupture" onclick="setStockFilter('Rupture',this)">🔴 Rupture</button>
-    </div>
+    <div class="stockFilters" style="display:none"></div>
     <div class="stockActions"><button class="stockAction entryBtn" onclick="demanderCodeEntreeStock()">＋ ENTRÉE PRODUIT</button><button class="stockAction exitBtn" onclick="openStockModal('sortie')">− SORTIE PRODUIT</button></div>
     <div id="stockMessage" class="stockMessage"></div>
     <div id="stockList" class="stockList"><div class="stockEmpty">Chargement du stock...</div></div>
@@ -793,8 +808,8 @@ function updateRemoveButtons(){const rows=document.querySelectorAll('#movementRo
 function setStockFilter(f,btn){stockFilter=f;document.querySelectorAll('.filterBtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderStock()}
 function renderStock(){
  const q=($('stockSearch')?.value||'').trim().toLowerCase();
- const rows=stockData.filter(r=>(stockFilter==='Tous'||r.statut===stockFilter)&&(!q||String(r.produit).toLowerCase().includes(q)));
- $('stockList').innerHTML=rows.length?rows.map(r=>{const ds=String(r.statutDate||'').trim();const dl=ds.toLowerCase();const dc=dl.includes('périm')||dl.includes('perim')?'expiry-expired':(dl.includes('bient')||dl.includes('proche')||dl.includes('attention')?'expiry-soon':'expiry-ok');const di=dc==='expiry-expired'?'🔴':dc==='expiry-soon'?'🟠':'🟢';const date=String(r.datePeremption||'').trim();return '<div class="stockItem"><div class="stockTop"><div class="stockName">'+escapeHtml(r.produit)+'</div><div class="stockQty"><b>'+escapeHtml(r.actuel)+'</b></div></div><div class="stockMeta"><span>Minimum : '+escapeHtml(r.minimum)+'</span><span class="statusPill '+stockStatusClass(r.statut)+'">'+(r.statut==='OK'?'🟢 ':r.statut==='Stock min'?'🟠 ':'🔴 ')+escapeHtml(r.statut)+'</span></div><div class="expiryMeta"><span>📅 Péremption : <b>'+escapeHtml(date||'Non renseignée')+'</b></span>'+(ds?'<span class="expiryStatus '+dc+'">'+di+' '+escapeHtml(ds)+'</span>':'')+'</div></div>'}).join(''):'<div class="stockEmpty">Aucun produit trouvé.</div>';
+ const rows=stockData.filter(r=>!q||String(r.produit).toLowerCase().includes(q));
+ $('stockList').innerHTML=rows.length?rows.map(r=>'<div class="stockItem"><div class="stockTop"><div class="stockName">'+escapeHtml(r.produit)+'</div></div></div>').join(''):'<div class="stockEmpty">Aucun produit trouvé.</div>';
 }
 let codeEntreeStockValide='';
 function demanderCodeEntreeStock(){
@@ -1199,18 +1214,46 @@ function fermerParametres(){
 function ouvrirOngletParametres(onglet){
   const sal=document.getElementById('settingsPaneSalaries');
   const veh=document.getElementById('settingsPaneVehicules');
+  const ale=document.getElementById('settingsPaneAlertes');
   const ts=document.getElementById('settingsTabSalaries');
   const tv=document.getElementById('settingsTabVehicules');
+  const ta=document.getElementById('settingsTabAlertes');
 
   const isSal=onglet==='salaries';
-  sal.hidden=!isSal; veh.hidden=isSal;
+  const isVeh=onglet==='vehicules';
+  const isAle=onglet==='alertes';
+  sal.hidden=!isSal;
+  veh.hidden=!isVeh;
+  ale.hidden=!isAle;
   ts.classList.toggle('active',isSal);
-  tv.classList.toggle('active',!isSal);
+  tv.classList.toggle('active',isVeh);
+  ta.classList.toggle('active',isAle);
   ts.setAttribute('aria-selected',String(isSal));
-  tv.setAttribute('aria-selected',String(!isSal));
+  tv.setAttribute('aria-selected',String(isVeh));
+  ta.setAttribute('aria-selected',String(isAle));
 
   if(isSal) chargerGestionSalaries();
-  else chargerGestionVehicules();
+  else if(isVeh) chargerGestionVehicules();
+  else if(isAle) chargerAlertesStock();
+}
+
+function chargerAlertesStock(){
+  const list=document.getElementById('stockAlertsList');
+  const summary=document.getElementById('stockAlertsSummary');
+  list.innerHTML='<div class="stockEmpty">Chargement des alertes...</div>';
+  summary.textContent='';
+  google.script.run.withSuccessHandler(function(rows){
+    rows=Array.isArray(rows)?rows:[];
+    const ruptures=rows.filter(r=>r.statut==='Rupture').length;
+    const faibles=rows.filter(r=>r.statut==='Stock min').length;
+    summary.textContent=ruptures+' rupture(s) • '+faibles+' stock(s) au minimum';
+    list.innerHTML=rows.length?rows.map(function(r){
+      const rupture=r.statut==='Rupture';
+      return '<div class="stockAlertItem '+(rupture?'stockAlertRupture':'stockAlertMin')+'"><div class="stockAlertTop"><div class="stockAlertName">'+escapeHtml(r.produit)+'</div><div class="stockAlertQty">'+escapeHtml(r.actuel)+'</div></div><div class="stockAlertMeta"><span>Minimum : '+escapeHtml(r.minimum)+'</span><span>'+ (rupture?'🔴 RUPTURE':'🟠 STOCK MIN') +'</span></div></div>';
+    }).join(''):'<div class="stockAlertEmpty">✅ Aucune rupture et aucun stock sous le minimum.</div>';
+  }).withFailureHandler(function(err){
+    list.innerHTML='<div class="stockEmpty">Erreur : '+escapeHtml(err&&err.message?err.message:err)+'</div>';
+  }).getStockAlertesAdmin({codeAdmin:codeAdminSession});
 }
 
 function messageParametres(t,ok=true){
