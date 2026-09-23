@@ -1243,7 +1243,6 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
 let codeAdminSession='';
 function gsDisponible(){return !!(window.google&&google.script&&google.script.run)}
 function ouvrirParametres(){
-  if(!gsDisponible()){alert('Connexion SaniStock indisponible.');return}
   const overlay=document.getElementById('saniPinOverlay');
   const input=document.getElementById('saniPinInput');
   const erreur=document.getElementById('saniPinError');
