@@ -469,7 +469,17 @@ body{display:block}
 .employeeLoginRemember{font-size:11px;color:#7890a4;margin-top:10px}
 </style>
 
-</head>
+<style>
+.settingsTabs{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}
+.settingsTab{padding:10px 14px;border:0;border-radius:12px;background:#d9e1e7;cursor:pointer}
+.settingsTab.active{background:#075ba9;color:white}
+.settingsPane[hidden]{display:none!important}
+.settingsPaneHead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:10px 0}
+.employeeCard,.vehicleCard{padding:12px;margin:8px 0;background:#fff;border-radius:12px;box-shadow:0 2px 8px #0001}
+.employeeCard small{display:block;margin-top:4px}
+.employeeBtns,.vehicleBtns{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.employeeBtns button,.vehicleBtns button{cursor:pointer}
+</style></head>
 <body>
 
 
@@ -1311,5 +1321,88 @@ document.getElementById('settingsBtn').addEventListener('click',ouvrirParametres
 document.getElementById('settingsOverlay').addEventListener('click',function(e){if(e.target===this)fermerParametres()});
 </script>
 
-</body>
+<script>
+
+/* ===== GESTION SALARIÉS / VÉHICULES ===== */
+let codeAdminSession = '';
+
+function ouvrirOngletParametres(onglet){
+  const s=document.getElementById('settingsPaneSalaries');
+  const v=document.getElementById('settingsPaneVehicules');
+  const ts=document.getElementById('settingsTabSalaries');
+  const tv=document.getElementById('settingsTabVehicules');
+  if(s) s.hidden=onglet!=='salaries';
+  if(v) v.hidden=onglet!=='vehicules';
+  if(ts) ts.classList.toggle('active',onglet==='salaries');
+  if(tv) tv.classList.toggle('active',onglet==='vehicules');
+  if(onglet==='salaries') chargerGestionSalaries();
+  if(onglet==='vehicules') chargerGestionVehicules();
+}
+
+function messageParametres(msg,ok=true){
+  const el=document.getElementById('settingsMsg');
+  if(el){el.textContent=msg;el.className='settingsMsg '+(ok?'ok':'error');}
+}
+
+function chargerGestionSalaries(){
+  const list=document.getElementById('settingsList');
+  if(!list)return;
+  list.innerHTML='Chargement...';
+  google.script.run.withSuccessHandler(function(rows){
+    rows=Array.isArray(rows)?rows:[];
+    list.innerHTML=rows.map(function(r){
+      const nom=JSON.stringify(r.salarie).replace(/"/g,'&quot;');
+      const actif=String(r.statut||'Actif').toLowerCase()!=='inactif';
+      return '<div class="employeeCard"><div><b>👤 '+escapeHtml(r.salarie)+'</b><small>'+ (r.codeConfigure?'🔐 Code configuré':'⚠️ Aucun code') +' · '+(actif?'🟢 Actif':'🔴 Inactif')+'</small></div><div class="employeeBtns"><button type="button" onclick="modifierCodeSalarieUI('+nom+')">✏️ Code</button><button type="button" onclick="changerStatutSalarieUI('+nom+','+(!actif)+')">'+(actif?'⛔ Désactiver':'✅ Activer')+'</button><button type="button" onclick="supprimerSalarieUI('+nom+')">🗑️ Supprimer</button></div></div>';
+    }).join('')||'<div class="employeeCard">Aucun salarié.</div>';
+  }).withFailureHandler(function(e){list.innerHTML='Erreur : '+escapeHtml(e&&e.message?e.message:e)}).getGestionSalaries();
+}
+
+function ajouterSalarieUI(){
+  const nom=prompt('Nom et prénom du nouveau salarié :');
+  if(nom===null||!nom.trim())return;
+  const code=prompt('Code personnel (4 à 6 chiffres) :');
+  if(code===null)return;
+  google.script.run.withSuccessHandler(function(){messageParametres('✅ Salarié ajouté.');chargerGestionSalaries();chargerSalaries()}).withFailureHandler(function(e){messageParametres('❌ '+(e&&e.message?e.message:e),false)}).ajouterSalarie({salarie:nom.trim(),code:code.trim()});
+}
+function modifierCodeSalarieUI(nom){
+  const code=prompt('Nouveau code pour '+nom+' (4 à 6 chiffres) :');
+  if(code===null)return;
+  google.script.run.withSuccessHandler(function(){messageParametres('✅ Code modifié.');chargerGestionSalaries()}).withFailureHandler(function(e){messageParametres('❌ '+(e&&e.message?e.message:e),false)}).enregistrerCodeSalarie({salarie:nom,code:code.trim(),statut:'Actif'});
+}
+function changerStatutSalarieUI(nom,activer){
+  if(!confirm((activer?'Activer ':'Désactiver ')+nom+' ?'))return;
+  google.script.run.withSuccessHandler(function(){messageParametres('✅ Statut modifié.');chargerGestionSalaries();chargerSalaries()}).withFailureHandler(function(e){messageParametres('❌ '+(e&&e.message?e.message:e),false)}).enregistrerCodeSalarie({salarie:nom,statut:activer?'Actif':'Inactif'});
+}
+function supprimerSalarieUI(nom){
+  if(!confirm('Supprimer '+nom+' ?'))return;
+  google.script.run.withSuccessHandler(function(){messageParametres('✅ Salarié supprimé.');chargerGestionSalaries();chargerSalaries()}).withFailureHandler(function(e){messageParametres('❌ '+(e&&e.message?e.message:e),false)}).supprimerSalarie({salarie:nom});
+}
+function chargerGestionVehicules(){
+  const list=document.getElementById('vehicleSettingsList');
+  if(!list)return;
+  list.innerHTML='Chargement...';
+  google.script.run.withSuccessHandler(function(rows){
+    rows=Array.isArray(rows)?rows:[];
+    list.innerHTML=rows.map(function(r){
+      const nom=JSON.stringify(r.vehicule).replace(/"/g,'&quot;');
+      return '<div class="vehicleCard"><b>🚑 '+escapeHtml(r.vehicule)+'</b><div class="vehicleBtns"><button type="button" onclick="modifierVehiculeUI('+r.ligne+','+nom+')">✏️ Modifier</button><button type="button" onclick="supprimerVehiculeUI('+r.ligne+','+nom+')">🗑️ Supprimer</button></div></div>';
+    }).join('')||'<div class="vehicleCard">Aucun véhicule.</div>';
+  }).withFailureHandler(function(e){list.innerHTML='Erreur : '+escapeHtml(e&&e.message?e.message:e)}).getGestionVehicules({codeAdmin:codeAdminSession});
+}
+function ajouterVehiculeUI(){
+  const nom=prompt('Nom ou immatriculation du nouveau véhicule :');
+  if(nom===null||!nom.trim())return;
+  google.script.run.withSuccessHandler(function(){messageParametres('✅ Véhicule ajouté.');chargerGestionVehicules();chargerVehicules()}).withFailureHandler(function(e){messageParametres('❌ '+(e&&e.message?e.message:e),false)}).ajouterVehicule({vehicule:nom.trim(),codeAdmin:codeAdminSession});
+}
+function modifierVehiculeUI(ligne,ancien){
+  const nom=prompt('Modifier le véhicule :',ancien);
+  if(nom===null||!nom.trim())return;
+  google.script.run.withSuccessHandler(function(){messageParametres('✅ Véhicule modifié.');chargerGestionVehicules();chargerVehicules()}).withFailureHandler(function(e){messageParametres('❌ '+(e&&e.message?e.message:e),false)}).modifierVehicule({ligne:ligne,vehicule:nom.trim(),codeAdmin:codeAdminSession});
+}
+function supprimerVehiculeUI(ligne,nom){
+  if(!confirm('Supprimer '+nom+' ?'))return;
+  google.script.run.withSuccessHandler(function(){messageParametres('✅ Véhicule supprimé.');chargerGestionVehicules();chargerVehicules()}).withFailureHandler(function(e){messageParametres('❌ '+(e&&e.message?e.message:e),false)}).supprimerVehicule({ligne:ligne,vehicule:nom,codeAdmin:codeAdminSession});
+}
+</script></body>
 </html>
