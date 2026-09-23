@@ -641,13 +641,16 @@ body{display:block}
 <div id="settingsOverlay" aria-hidden="true">
   <div class="settingsPanel">
     <div class="settingsHead"><h2>⚙️ Paramètres</h2><button class="settingsClose" type="button" onclick="fermerParametres()">×</button></div>
-    <p class="settingsIntro">Gestion des véhicules et des accès SaniStock.</p>
+    <p class="settingsIntro">Gestion des salariés, des véhicules et des accès SaniStock.</p>
     <div class="settingsActions">
+      <button class="settingsAction" type="button" onclick="ajouterSalarieUI()">＋ Ajouter un salarié</button>
       <button class="settingsAction secondary" type="button" onclick="changerCodeAdminUI()">🔐 Code administrateur</button>
       <button class="settingsAction vehicle" type="button" onclick="ajouterVehiculeUI()">🚑 Ajouter un véhicule</button>
       <button class="settingsAction vehicle" type="button" onclick="chargerGestionVehicules()">🚑 Gérer les véhicules</button>
     </div>
     <div id="settingsMsg" class="settingsMsg"></div>
+    <div class="settingsSectionTitle">👥 Gestion des salariés</div>
+    <div id="settingsList"></div>
     <div class="settingsSectionTitle">🚑 Gestion des véhicules</div>
     <div id="vehicleSettingsList"></div>
   </div>
@@ -1506,6 +1509,7 @@ function ouvrirParametres(){
       fermer();
       document.getElementById('settingsOverlay').classList.add('open');
       document.getElementById('settingsOverlay').setAttribute('aria-hidden','false');
+      chargerGestionSalaries();
       chargerGestionVehicules();
     }).withFailureHandler(function(e){
       erreur.textContent='Erreur de vérification';
