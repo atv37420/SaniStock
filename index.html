@@ -83,13 +83,13 @@ body{display:block}
 .screen{display:none;width:100%;min-height:100vh}
 .screen.active{display:block}
 /* Fenêtres des 4 fonctions de l'accueil */
-.screen.appModalOpen{display:block;position:fixed;inset:0;z-index:11000;width:100%;height:100dvh;min-height:100vh;overflow:auto;background:#edf5fa;box-shadow:0 0 0 9999px rgba(0,15,35,.48);}
+.screen.appModalOpen{display:block;pointer-events:auto !important;position:fixed;inset:0;z-index:11000;width:100%;height:100dvh;min-height:100vh;overflow:auto;background:#edf5fa;box-shadow:0 0 0 9999px rgba(0,15,35,.48);}
 .appModalOpen .appModalClose{display:flex;}
 .appModalClose{display:none;position:fixed;top:14px;right:14px;z-index:13000;width:44px;height:44px;border:0;border-radius:50%;background:rgba(255,255,255,.97);color:#174b7a;font-size:28px;font-weight:900;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(0,0,0,.28);cursor:pointer;}
 @media(max-width:700px){.appModalClose{top:10px;right:10px;width:40px;height:40px;font-size:24px;}}
 
 /* Désinfection : ouverture dans une vraie fenêtre au-dessus de l'accueil */
-.disPage.disModalOpen{display:block;position:fixed;inset:0;z-index:12000;width:100%;height:100dvh;min-height:100vh;overflow:auto;border-radius:0;box-shadow:0 0 0 9999px rgba(0,15,35,.48);}
+.disPage.disModalOpen{display:block;pointer-events:auto !important;position:fixed;inset:0;z-index:12000;width:100%;height:100dvh;min-height:100vh;overflow:auto;border-radius:0;box-shadow:0 0 0 9999px rgba(0,15,35,.48);}
 .disPage.disModalOpen .disWrap{position:relative;z-index:2;max-width:980px;margin:0 auto;min-height:100%;padding-top:18px;padding-bottom:28px;}
 .disPage.disModalOpen .disBack{position:sticky;top:12px;z-index:20;display:inline-flex;align-items:center;gap:6px;}
 .disPage.disModalOpen .disModalClose{display:flex;}
@@ -181,7 +181,6 @@ body{display:block}
 
 /* ===== ANIMATION DE DÉMARRAGE SANISTOCK ===== */
 #saniSplash{
-  pointer-events:none;
   position:fixed;
   inset:0;
   z-index:99999;
@@ -507,8 +506,8 @@ body{display:block}
 /* ===== NOUVEL ACCUEIL SaniStock ===== */
 .homeNew{position:relative;width:100%;height:100vh;height:100dvh;min-height:100vh;min-height:100dvh;overflow:hidden;background:#0a2344;padding:0;display:block;}
 .homeNew .homeNewBg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center center;display:block;opacity:1;z-index:1;}
-.homeNew .homeClickZones{position:absolute;inset:0;z-index:100000;pointer-events:auto !important;touch-action:manipulation;}
-.homeNew .homeClickZone{position:absolute;border:0;background:transparent;padding:0;cursor:pointer;pointer-events:auto !important;touch-action:manipulation;-webkit-tap-highlight-color:transparent;z-index:100001;}
+.homeNew .homeClickZones{position:absolute;inset:0;z-index:20;pointer-events:none;}
+.homeNew .homeClickZone{position:absolute;border:0;background:transparent;padding:0;cursor:pointer;pointer-events:auto;touch-action:manipulation;}
 .homeNew .homeClickZone:active{background:rgba(255,255,255,.08);border-radius:16px;}
 /* Positions correspondant aux 4 boutons intégrés dans l'image */
 .homeNew .homeZoneStock{left:4.8%;top:40.9%;width:22.5%;height:13.2%;}
@@ -546,6 +545,20 @@ body{display:block}
 #settingsOverlay{display:none;position:fixed;inset:0;z-index:12500;background:#edf5fa;padding:0;overflow:auto;width:100%;height:100dvh;min-height:100vh;}
 #settingsOverlay.open{display:block;}
 #settingsOverlay .settingsPanel{max-width:980px;min-height:100%;margin:0 auto;background:#edf5fa;border-radius:0;padding:20px 18px 32px;color:#173f68;box-shadow:none;}
+</style>
+<style>
+/* ===== FIX CLICS FENETRES / PWA ===== */
+.screen{pointer-events:none !important;}
+.screen.active{pointer-events:auto !important;}
+.screen.appModalOpen{pointer-events:auto !important;touch-action:auto !important;}
+.disPage.disModalOpen{pointer-events:auto !important;touch-action:auto !important;}
+.screen.appModalOpen *,.disPage.disModalOpen *{pointer-events:auto;}
+#settingsOverlay.open{pointer-events:auto !important;}
+#settingsOverlay.open *{pointer-events:auto;}
+#employeeLoginOverlay.hidden{pointer-events:none !important;}
+#saniSplash.hide{pointer-events:none !important;}
+/* Les fonds décoratifs ne doivent jamais capter les touches */
+.screen::before,.screen::after,.disShade,.disPage::before,.stockPage::before{pointer-events:none !important;}
 </style>
 </head>
 <body>
@@ -1515,28 +1528,24 @@ document.addEventListener('DOMContentLoaded', function(){
   },true);
 })();
 </script>
+
 <script>
-/* ===== CORRECTION CLICS PWA ===== */
 (function(){
-  function activerClics(){
-    document.querySelectorAll('.homeClickZones').forEach(function(z){
-      z.style.pointerEvents='auto'; z.style.zIndex='100000';
-    });
-    document.querySelectorAll('.homeClickZone').forEach(function(b){
-      b.style.pointerEvents='auto'; b.style.zIndex='100001'; b.style.touchAction='manipulation';
+  function activerEcran(id){
+    document.querySelectorAll('.screen').forEach(function(el){
+      var actif = el.id === id;
+      el.style.pointerEvents = actif ? 'auto' : 'none';
+      if(actif){ el.querySelectorAll('button,input,select,textarea,a,[role="button"]').forEach(function(x){x.style.pointerEvents='auto';}); }
     });
   }
-  function lancer(b){
-    if(!b) return;
-    var fn=b.getAttribute('onclick');
-    if(fn){ try{ Function(fn).call(b); }catch(err){ console.error(err); } }
-  }
-  document.addEventListener('DOMContentLoaded',activerClics);
-  window.addEventListener('load',activerClics);
-  document.addEventListener('pointerup',function(e){
-    var b=e.target.closest && e.target.closest('.homeClickZone');
-    if(b){ e.preventDefault(); e.stopPropagation(); lancer(b); }
+  document.addEventListener('click',function(e){
+    var btn=e.target.closest && e.target.closest('.homeClickZone');
+    if(btn){ e.stopPropagation(); }
   },true);
+  window.addEventListener('load',function(){
+    var home=document.getElementById('homePage');
+    if(home) home.style.pointerEvents='auto';
+  });
 })();
 </script>
 </body>
