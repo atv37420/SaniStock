@@ -646,7 +646,7 @@ body{display:block}
   </button>
 </section>
 
-<section id="stockPage" class="screen stockPage"><button class="appModalClose" type="button" onclick="fermerFenetreSaniStock('stockPage')" aria-label="Fermer">×</button>
+<section id="stockPage" class="screen stockPage">
   <div class="stockWrap">
     <button class="back" onclick="showPage('homePage')">← Retour Accueil</button>
     <h1 class="stockTitle">📦 STOCK</h1>
@@ -756,9 +756,12 @@ function fermerDesinfection(){
   const home=document.getElementById('homePage'); if(home)home.classList.add('active');
   window.scrollTo(0,0);
 }
+let saniFenetreOuvertureEnCours=false;
 function ouvrirFenetreSaniStock(id){
+  if(saniFenetreOuvertureEnCours) return;
   const page=document.getElementById(id);
   if(!page) return;
+  saniFenetreOuvertureEnCours=true;
   document.querySelectorAll('.screen').forEach(function(p){
     p.classList.remove('active','appModalOpen','disModalOpen','pageFadeIn','pageFadeOut');
   });
@@ -767,16 +770,19 @@ function ouvrirFenetreSaniStock(id){
   document.body.classList.add('appModalBody');
   window.scrollTo(0,0);
   if(id==='stockPage' && typeof chargerStock==='function') chargerStock();
+  requestAnimationFrame(function(){ saniFenetreOuvertureEnCours=false; });
 }
 function fermerFenetreSaniStock(id){
+  saniFenetreOuvertureEnCours=false;
   document.querySelectorAll('.screen').forEach(function(p){
-    p.classList.remove('active','appModalOpen','pageFadeIn','pageFadeOut');
+    p.classList.remove('active','appModalOpen','disModalOpen','pageFadeIn','pageFadeOut');
   });
-  document.body.classList.remove('appModalBody');
+  document.body.classList.remove('appModalBody','disinfectionModalBody');
   const home=document.getElementById('homePage');
   if(home) home.classList.add('active');
   window.scrollTo(0,0);
 }
+
 function ouvrirStock(){ ouvrirFenetreSaniStock('stockPage'); }
 function ouvrirMemoMedicaments(){ ouvrirFenetreSaniStock('medicationPage'); }
 
@@ -1498,6 +1504,15 @@ const SANISTOCK_PENSE_BETES_365 = ["🚨 Urgence — Vérifier la sécurité de 
 document.addEventListener('DOMContentLoaded', function(){
   document.querySelectorAll('#settingsBtn').forEach(function(el){ el.remove(); });
 });
+</script>
+<script>
+(function(){
+  document.addEventListener('click',function(e){
+    const z=e.target.closest('.homeClickZone');
+    if(!z) return;
+    e.stopPropagation();
+  },true);
+})();
 </script>
 </body>
 </html>
