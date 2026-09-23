@@ -757,48 +757,37 @@ function fermerDesinfection(){
   window.scrollTo(0,0);
 }
 function ouvrirFenetreSaniStock(id){
-  fermerToutesLesFenetres();
-  const page=document.getElementById(id); if(!page)return;
-  page.classList.add('active','appModalOpen'); document.body.classList.add('appModalBody'); window.scrollTo(0,0);
+  const page=document.getElementById(id);
+  if(!page) return;
+  document.querySelectorAll('.screen').forEach(function(p){
+    p.classList.remove('active','appModalOpen','disModalOpen','pageFadeIn','pageFadeOut');
+  });
+  document.body.classList.remove('disinfectionModalBody');
+  page.classList.add('active','appModalOpen');
+  document.body.classList.add('appModalBody');
+  window.scrollTo(0,0);
   if(id==='stockPage' && typeof chargerStock==='function') chargerStock();
 }
 function fermerFenetreSaniStock(id){
-  fermerToutesLesFenetres();
-  const home=document.getElementById('homePage'); if(home)home.classList.add('active'); window.scrollTo(0,0);
+  document.querySelectorAll('.screen').forEach(function(p){
+    p.classList.remove('active','appModalOpen','pageFadeIn','pageFadeOut');
+  });
+  document.body.classList.remove('appModalBody');
+  const home=document.getElementById('homePage');
+  if(home) home.classList.add('active');
+  window.scrollTo(0,0);
 }
-function ouvrirStock(){ouvrirFenetreSaniStock('stockPage');}
-function ouvrirMemoMedicaments(){ouvrirFenetreSaniStock('medicationPage');}
+function ouvrirStock(){ ouvrirFenetreSaniStock('stockPage'); }
+function ouvrirMemoMedicaments(){ ouvrirFenetreSaniStock('medicationPage'); }
 
+// Ancienne navigation conservée uniquement pour les anciens boutons internes.
 function showPage(id){
- var actuelle=document.querySelector('.screen.active');
- var suivante=document.getElementById(id);
-
- if(!suivante || actuelle===suivante) return;
-
- document.querySelectorAll('.screen').forEach(function(p){
-   p.classList.remove('pageFadeIn','pageFadeOut');
- });
-
- // Affiche la nouvelle page derrière l'ancienne.
- suivante.classList.add('active','pageFadeIn');
-
- // Efface l'ancienne page en douceur.
- if(actuelle){
-   actuelle.classList.add('pageFadeOut');
- }
-
- window.scrollTo(0,0);
- if(id==='stockPage') chargerStock();
-
- setTimeout(function(){
-   if(actuelle){
-     actuelle.classList.remove('active','pageFadeOut');
-   }
- },550);
-
- setTimeout(function(){
-   suivante.classList.remove('pageFadeIn');
- },950);
+  if(id==='homePage'){
+    fermerFenetreSaniStock();
+    return;
+  }
+  const page=document.getElementById(id);
+  if(page) ouvrirFenetreSaniStock(id);
 }
 
 const $=id=>document.getElementById(id);
@@ -1243,6 +1232,7 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
 let codeAdminSession='';
 function gsDisponible(){return !!(window.google&&google.script&&google.script.run)}
 function ouvrirParametres(){
+  if(!gsDisponible()){alert('Connexion SaniStock indisponible.');return}
   const overlay=document.getElementById('saniPinOverlay');
   const input=document.getElementById('saniPinInput');
   const erreur=document.getElementById('saniPinError');
