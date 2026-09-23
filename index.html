@@ -722,7 +722,7 @@ body{display:block}
 
     <input id="memoMedicamentsSearch" type="search"
            placeholder="🔎 Rechercher un médicament ou une substance..." autocomplete="off"
-           oninput="renderMemoMedicaments()">
+           oninput="renderMemoMedicaments()" onsearch="renderMemoMedicaments()">
 
     <div id="memoMedicamentsCount" class="memoMedicamentsCount"></div>
     <div id="memoMedicamentsResults" class="memoMedicamentsResults">
@@ -945,10 +945,7 @@ function renderMemoMedicaments(){clearTimeout(memoSearchTimer);memoSearchTimer=s
 function renderMemoResults(){
   const box=document.getElementById('memoMedicamentsResults'); const list=window._memoVisibleList||[]; if(!box)return;
   if(!list.length){box.innerHTML='<div class="memoMedicamentsEmpty"><div class="memoMedicamentsIcon">🔎</div><strong>Aucun résultat</strong><span>Essaie le nom commercial, le générique ou la substance active.</span></div>';return;}
-  box.innerHTML=list.slice(0,120).map((m,i)=>{
-    const action=m.action||memoActionFromText('',m.name+' '+(m.substances||''));
-    return '<button type="button" class="memoMedCard" onclick="ouvrirDetailMedicament('+i+')"><div class="memoMedName">'+escMemo(m.name)+(m.generic?' <span class="memoGenericBadge">Générique</span>':'')+'</div>'+(m.substances?'<div class="memoMedFunction">🧬 '+escMemo(m.substances)+'</div>':'')+'<div class="memoMedFunction">💡 Action : '+escMemo(action)+'</div><div class="memoMedCategory">'+escMemo(m.form||'Présentation')+'</div></button>';
-  }).join('');
+  box.innerHTML=list.slice(0,120).map((m,i)=>'<button type="button" class="memoMedCard" onclick="ouvrirDetailMedicament('+i+')"><div class="memoMedName">'+escMemo(m.name)+(m.generic?' <span class="memoGenericBadge">Générique</span>':'')+'</div>'+(m.substances?'<div class="memoMedFunction">🧬 '+escMemo(m.substances)+'</div>':'')+'<div class="memoMedCategory">'+escMemo(m.form||'Présentation')+'</div></button>').join('');
 }
 function ouvrirMemoMedicaments(){
   const o=document.getElementById('memoMedicamentsOverlay');if(!o)return;
