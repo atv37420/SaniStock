@@ -542,6 +542,11 @@ body{display:block}
 @media(max-width:420px){.settingsPaneHead{align-items:stretch;flex-direction:column}.settingsPaneHead .settingsAction{width:100%}}
 
 </style>
+<style>
+#settingsOverlay{display:none;position:fixed;inset:0;z-index:12500;background:#edf5fa;padding:0;overflow:auto;width:100%;height:100dvh;min-height:100vh;}
+#settingsOverlay.open{display:block;}
+#settingsOverlay .settingsPanel{max-width:980px;min-height:100%;margin:0 auto;background:#edf5fa;border-radius:0;padding:20px 18px 32px;color:#173f68;box-shadow:none;}
+</style>
 </head>
 <body>
 
@@ -633,8 +638,7 @@ body{display:block}
     <button type="button" class="homeClickZone homeZoneStock" onclick="ouvrirStock()" aria-label="Stock"></button>
     <button type="button" class="homeClickZone homeZoneDis" onclick="ouvrirDesinfection()" aria-label="Désinfection"></button>
     <button type="button" class="homeClickZone homeZoneMed" onclick="ouvrirMemoMedicaments()" aria-label="Mémo médicaments"></button>
-    <button id="settingsBtn" type="button" class="homeClickZone homeZoneSettings" aria-label="Paramètres SaniStock" title="Paramètres"></button>
-  </div>
+    </div>
   <button type="button" class="homeMemoPanel" onclick="showPage('homePage')" aria-label="Pense-bête du jour">
     <span class="memoBulb">💡</span>
     <span class="memoText"><strong>Pense-bête du jour</strong><small id="homeDailyMemo">Chargement du rappel du jour…</small></span>
@@ -733,41 +737,34 @@ body{display:block}
   </div>
 </section>
 <script>
+function fermerToutesLesFenetres(){
+  document.querySelectorAll('.screen').forEach(function(p){p.classList.remove('active','appModalOpen','disModalOpen');});
+  const settings=document.getElementById('settingsOverlay');
+  if(settings){settings.classList.remove('open');settings.setAttribute('aria-hidden','true');}
+  document.body.classList.remove('appModalBody','disinfectionModalBody');
+}
 function ouvrirDesinfection(){
-  const page=document.getElementById('disinfectionPage');
-  if(!page) return;
-  page.classList.add('disModalOpen');
-  page.setAttribute('aria-hidden','false');
-  document.body.classList.add('disinfectionModalBody');
-  window.scrollTo(0,0);
+  fermerToutesLesFenetres();
+  const page=document.getElementById('disinfectionPage'); if(!page)return;
+  page.classList.add('disModalOpen'); page.setAttribute('aria-hidden','false');
+  document.body.classList.add('disinfectionModalBody'); window.scrollTo(0,0);
   if(typeof chargerSalaries==='function') chargerSalaries();
   if(typeof chargerHistoriqueDesinfections==='function') chargerHistoriqueDesinfections();
 }
-
 function fermerDesinfection(){
-  const page=document.getElementById('disinfectionPage');
-  if(!page) return;
-  page.classList.remove('disModalOpen');
-  page.setAttribute('aria-hidden','true');
-  document.body.classList.remove('disinfectionModalBody');
+  fermerToutesLesFenetres();
+  const home=document.getElementById('homePage'); if(home)home.classList.add('active');
+  window.scrollTo(0,0);
 }
-
 function ouvrirFenetreSaniStock(id){
- const page=document.getElementById(id);
- if(!page) return;
- document.querySelectorAll('.screen').forEach(function(p){p.classList.remove('active','appModalOpen');});
- page.classList.add('active','appModalOpen');
- document.body.classList.add('appModalBody');
- window.scrollTo(0,0);
- if(id==='stockPage' && typeof chargerStock==='function') chargerStock();
+  fermerToutesLesFenetres();
+  const page=document.getElementById(id); if(!page)return;
+  page.classList.add('active','appModalOpen'); document.body.classList.add('appModalBody'); window.scrollTo(0,0);
+  if(id==='stockPage' && typeof chargerStock==='function') chargerStock();
 }
 function fermerFenetreSaniStock(id){
- const page=document.getElementById(id);
- if(page) page.classList.remove('active','appModalOpen');
- document.body.classList.remove('appModalBody');
- const home=document.getElementById('homePage');
- if(home) home.classList.add('active');
- window.scrollTo(0,0);
+  fermerToutesLesFenetres();
+  const home=document.getElementById('homePage'); if(home)home.classList.add('active'); window.scrollTo(0,0);
 }
 function ouvrirStock(){ouvrirFenetreSaniStock('stockPage');}
 function ouvrirMemoMedicaments(){ouvrirFenetreSaniStock('medicationPage');}
@@ -1276,9 +1273,11 @@ function ouvrirParametres(){
       if(!ok){erreur.textContent='Code administrateur incorrect.';input.value='';input.focus();return}
       codeAdminSession=String(code);
       fermer();
+      document.querySelectorAll('.screen').forEach(function(p){p.classList.remove('active','appModalOpen','disModalOpen');});
       document.getElementById('settingsOverlay').classList.add('open');
       document.getElementById('settingsOverlay').setAttribute('aria-hidden','false');
-      chargerGestionSalaries();
+      document.body.classList.add('appModalBody');
+      ouvrirOngletParametres('salaries');
     }).withFailureHandler(function(e){
       erreur.textContent='Erreur de vérification';
     }).verifierCodeAdmin(code);
@@ -1288,8 +1287,25 @@ function ouvrirParametres(){
   btnCancel.onclick=fermer;
   input.onkeydown=function(e){if(e.key==='Enter')valider()};
 }
-function fermerParametres(){const o=document.getElementById('settingsOverlay');o.classList.remove('open');o.setAttribute('aria-hidden','true')}
+function fermerParametres(){
+ const o=document.getElementById('settingsOverlay');
+ if(o){o.classList.remove('open');o.setAttribute('aria-hidden','true');}
+ document.body.classList.remove('appModalBody');
+ document.querySelectorAll('.screen').forEach(function(p){p.classList.remove('appModalOpen','disModalOpen');});
+ const home=document.getElementById('homePage'); if(home) home.classList.add('active');
+ window.scrollTo(0,0);
+}
 function messageParametres(t,ok=true){const m=document.getElementById('settingsMsg');m.style.color=ok?'#15803d':'#b42318';m.textContent=t||''}
+function chargerGestionSalaries(){
+  const list=document.getElementById('settingsList');list.innerHTML='Chargement...';
+  google.script.run.withSuccessHandler(function(rows){
+    rows=Array.isArray(rows)?rows:[];
+    list.innerHTML=rows.map(function(r){
+      const actif=String(r.statut||'Actif').toLowerCase()!=='inactif';
+      return '<div class="employeeCard"><div class="employeeTop"><div><div class="employeeName">'+escapeHtml(r.salarie)+'</div><div class="employeeMeta">Code : '+(r.codeConfigure?'●●●●':'non attribué')+' · <span class="'+(actif?'badgeActive':'badgeInactive')+'">'+(actif?'Actif':'Inactif')+'</span></div></div></div><div class="employeeBtns"><button class="btnCode" onclick="modifierCodeSalarieUI('+JSON.stringify(r.salarie).replace(/"/g,'&quot;')+')">🔢 Code</button><button class="btnStatus" onclick="changerStatutSalarieUI('+JSON.stringify(r.salarie).replace(/"/g,'&quot;')+','+(actif?'false':'true')+')">'+(actif?'⛔ Désactiver':'✅ Activer')+'</button><button class="btnDelete" onclick="supprimerSalarieUI('+JSON.stringify(r.salarie).replace(/"/g,'&quot;')+')">🗑️ Supprimer</button></div></div>';
+    }).join('') || '<div class="employeeCard">Aucun salarié.</div>';
+  }).withFailureHandler(function(e){list.innerHTML='Erreur : '+escapeHtml(e&&e.message?e.message:e)}).getGestionSalaries();
+}
 function ouvrirOngletParametres(onglet){
   const salaries=onglet==='salaries';
   const tabS=document.getElementById('settingsTabSalaries');
@@ -1339,6 +1355,7 @@ function supprimerVehiculeUI(ligne,nom){
   if(!confirm('Supprimer '+nom+' de la liste des véhicules ?\n\nSon ancien historique reste conservé.'))return;
   google.script.run.withSuccessHandler(function(){messageParametres('✅ Véhicule supprimé.');chargerGestionVehicules();chargerVehicules()}).withFailureHandler(function(e){messageParametres('❌ '+(e&&e.message?e.message:e),false)}).supprimerVehicule({ligne:ligne,codeAdmin:codeAdminSession});
 }
+
 
 function ajouterSalarieUI(){
   const nom=prompt('Nom et prénom du nouveau salarié :'); if(nom===null||!nom.trim())return;
