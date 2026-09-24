@@ -1540,7 +1540,7 @@ function chargerTableauBord(){
   google.script.run.withSuccessHandler(function(r){
     stock=Array.isArray(r)?r:[];
     done();
-  }).withFailureHandler(fail).getTableauBordAdmin({codeAdmin:codeAdminSession});
+  }).withFailureHandler(fail).getStockAlertesAdmin({codeAdmin:codeAdminSession});
 
   google.script.run.withSuccessHandler(function(r){historique=Array.isArray(r)?r:[];done();})
     .withFailureHandler(fail).getHistoriqueDesinfections(20);
@@ -1569,11 +1569,9 @@ function afficherTableauBord(stock,historique,vehicules){
   const ruptures=stock.filter(r=>String(r.statut)==='Rupture');
   const minimum=stock.filter(r=>String(r.statut)==='Stock min');
 
-  const peremptions=stock.map(function(r){
-    const jours=dashboardJoursAvant_(r.datePeremption);
-    return {r:r,jours:jours};
-  }).filter(function(x){return x.jours!==null && x.jours>=0 && x.jours<=90;})
-    .sort(function(a,b){return a.jours-b.jours;});
+  /* getStockAlertesAdmin() renvoie uniquement les produits en alerte.
+     Les données complètes de péremption ne sont pas exposées par l'API actuelle. */
+  const peremptions=[];
 
   const recentDes=historique.slice(0,6);
   const recentVeh={};
@@ -1586,7 +1584,7 @@ function afficherTableauBord(stock,historique,vehicules){
   html.push('<div class="dashboardGrid">');
   html.push(dashboardKpi_('📦',ruptures.length,'Ruptures','danger'));
   html.push(dashboardKpi_('⚠️',minimum.length,'Stock minimum','warning'));
-  html.push(dashboardKpi_('📅',peremptions.length,'Péremptions ≤ 90 j',''));
+  html.push(dashboardKpi_('📅','—','Péremptions ≤ 90 j',''));
   html.push(dashboardKpi_('🧼',historique.length,'Désinfections récentes','success'));
   html.push('</div>');
 
@@ -1602,7 +1600,7 @@ function afficherTableauBord(stock,historique,vehicules){
 
   html.push('<div class="dashboardTwoCols">');
   html.push('<div class="dashboardSection"><div class="dashboardSectionHead"><div class="dashboardSectionTitle">📅 Prochaines péremptions</div></div><div class="dashboardRows">');
-  if(!peremptions.length) html.push('<div class="dashboardEmpty">✅ Aucune péremption dans les 90 jours.</div>');
+  if(!peremptions.length) html.push('<div class="dashboardEmpty">ℹ️ Les données de péremption ne sont pas disponibles dans l’API actuelle.</div>');
   peremptions.slice(0,5).forEach(function(x){
     const urgent=x.jours<=30;
     html.push('<div class="dashboardRow '+(urgent?'danger':'warning')+'"><div class="rowMain"><div class="rowName">'+escapeHtml(x.r.produit)+'</div><div class="rowMeta">'+escapeHtml(x.r.datePeremption)+'</div></div><span class="dashboardBadge '+(urgent?'red':'orange')+'">'+x.jours+' j</span></div>');
@@ -1627,8 +1625,8 @@ function afficherTableauBord(stock,historique,vehicules){
   html.push('</div>');
 
   html.push('<div class="dashboardSection"><div class="dashboardSectionHead"><div class="dashboardSectionTitle">📊 Vue stock</div></div>');
-  const totalProduits=stock.length;
-  const ok=Math.max(0,totalProduits-stock.length);
+  const totalProduits='—';
+  const ok='—';
   html.push('<div class="dashboardRows">');
   html.push('<div class="dashboardRow"><div class="rowMain"><div class="rowName">Produits suivis</div></div><span class="dashboardBadge blue">'+totalProduits+'</span></div>');
   html.push('<div class="dashboardRow"><div class="rowMain"><div class="rowName">🟢 Produits OK</div></div><span class="dashboardBadge green">'+ok+'</span></div>');
