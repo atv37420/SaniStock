@@ -664,7 +664,7 @@ body{display:block}
       </div>
     </section>
 
-    <div style="text-align:center;font-size:10px;color:#71879a;margin-top:12px">SaniStock — Version 1.0.16</div>
+    <div style="text-align:center;font-size:10px;color:#71879a;margin-top:12px">SaniStock — Version 1.0.17</div>
     <div class="settingsAdminBlock">
       <button class="settingsAction secondary" type="button" onclick="changerCodeAdminUI()">🔐 Modifier le code administrateur</button>
       <button class="settingsAction secondary" type="button" onclick="reinitialiserAccesProprietaire()">🔒 Réinitialiser mon accès propriétaire</button>
@@ -1408,28 +1408,28 @@ function chargerGestionSalaries(){
     list.innerHTML=rows.map(function(r){
       const actif=String(r.statut||'Actif').toLowerCase()!=='inactif';
       const nom=JSON.stringify(r.salarie).replace(/"/g,'&quot;');
-      return '<div class="employeeCard"><div class="employeeTop"><div><div class="employeeName">👤 '+escapeHtml(r.salarie)+'</div><div class="employeeMeta">Code : '+(r.codeConfigure?'●●●●':'non attribué')+' · <span class="'+(actif?'badgeActive':'badgeInactive')+'">'+(actif?'Actif':'Inactif')+'</span></div></div></div><div class="employeeBtns"><button class="btnCode" onclick="modifierCodeSalarieUI('+nom+')">🔢 Code</button><button class="btnStatus" onclick="changerStatutSalarieUI('+nom+','+(!actif)+')">'+(actif?'⛔ Désactiver':'✅ Activer')+'</button><button class="btnDelete" onclick="supprimerSalarieUI('+nom+')">🗑️ Supprimer</button></div></div>';
+      const codeAffiche=r.codeConfigure?escapeHtml(String(r.code||'')):'1234';
+      const statutCode=r.premiereConnexion?'🟠 À personnaliser':'🟢 Personnel';
+      return '<div class="employeeCard"><div class="employeeTop"><div><div class="employeeName">👤 '+escapeHtml(r.salarie)+'</div><div class="employeeMeta">Code : <strong>'+codeAffiche+'</strong> · '+statutCode+' · <span class="'+(actif?'badgeActive':'badgeInactive')+'">'+(actif?'Actif':'Inactif')+'</span></div></div></div><div class="employeeBtns"><button class="btnCode" onclick="modifierCodeSalarieUI('+nom+')">🔢 Code</button><button class="btnStatus" onclick="changerStatutSalarieUI('+nom+','+(!actif)+')">'+(actif?'⛔ Désactiver':'✅ Activer')+'</button><button class="btnDelete" onclick="supprimerSalarieUI('+nom+')">🗑️ Supprimer</button></div></div>';
     }).join('')||'<div class="employeeCard">Aucun salarié.</div>';
   }).withFailureHandler(function(e){
     list.innerHTML='Erreur : '+escapeHtml(e&&e.message?e.message:e);
-  }).getGestionSalaries();
+  }).getGestionSalaries({codeAdmin:codeAdminSession});
 }
 
 function ajouterSalarieUI(){
   const nom=prompt('Nom et prénom du nouveau salarié :');
   if(nom===null||!nom.trim())return;
-  const code=prompt('Code personnel obligatoire (4 à 6 chiffres) :');
-  if(code===null)return;
   google.script.run.withSuccessHandler(function(){
-    messageParametres('✅ Salarié ajouté.');
+    messageParametres('✅ Salarié ajouté avec le code provisoire 1234. Il devra choisir son code personnel à sa première connexion.');
     chargerGestionSalaries(); chargerSalaries();
   }).withFailureHandler(function(e){
     messageParametres('❌ '+(e&&e.message?e.message:e),false);
-  }).ajouterSalarie({salarie:nom.trim(),code:String(code).trim()});
+  }).ajouterSalarie({salarie:nom.trim()});
 }
 
 function modifierCodeSalarieUI(nom){
-  const code=prompt('Nouveau code pour '+nom+' (4 à 6 chiffres).\\nLaissez vide pour supprimer son code :');
+  const code=prompt('Nouveau code pour '+nom+' (4 chiffres).\\nLaissez vide pour supprimer son code :');
   if(code===null)return;
   google.script.run.withSuccessHandler(function(){
     messageParametres('✅ Code mis à jour pour '+nom+'.'); chargerGestionSalaries();
@@ -1540,6 +1540,32 @@ function changerCodeAdminUI(){
     setTimeout(appliquerSalarieConnecte,500);
     setTimeout(appliquerSalarieConnecte,1500);
   }
+  function demanderNouveauCode(name,remember){
+    let nouveau=prompt('Première connexion de '+name+' 👋\n\nVotre code provisoire 1234 est accepté.\nChoisissez maintenant votre code personnel (4 chiffres) :');
+    if(nouveau===null)return false;
+    nouveau=String(nouveau).replace(/\D/g,'').slice(0,6);
+    if(!/^\d{4}$/.test(nouveau)||nouveau==='1234'){
+      showError('Le nouveau code doit contenir 4 chiffres et être différent de 1234.');
+      return false;
+    }
+    const confirmation=prompt('Confirmez votre nouveau code personnel :');
+    if(confirmation===null)return false;
+    if(String(confirmation).trim()!==nouveau){
+      showError('Les deux codes ne correspondent pas.');
+      return false;
+    }
+    btn.disabled=true; btn.textContent='Enregistrement…'; showError('');
+    google.script.run.withSuccessHandler(function(){
+      btn.disabled=false; btn.textContent='Se connecter';
+      if(remember){localStorage.setItem(KEY_NAME,name);localStorage.setItem(KEY_CODE,nouveau)}
+      unlock(name);
+      alert('✅ Votre code personnel est enregistré. Le code 1234 est maintenant désactivé pour votre compte.');
+    }).withFailureHandler(function(e){
+      btn.disabled=false; btn.textContent='Se connecter';
+      showError(e&&e.message?e.message:'Impossible d’enregistrer votre nouveau code.');
+    }).personnaliserCodeSalarie({salarie:name,ancienCode:'1234',nouveauCode:nouveau});
+    return true;
+  }
   function verify(name,code,remember){
     if(!name||!code){showError('Sélectionnez votre nom et entrez votre code.');return}
     btn.disabled=true; btn.textContent='Vérification…'; showError('');
@@ -1548,6 +1574,11 @@ function changerCodeAdminUI(){
       if(!result || result.valide !== true){
         localStorage.removeItem(KEY_NAME); localStorage.removeItem(KEY_CODE);
         showError('Nom ou code incorrect, ou accès désactivé.'); codeInput.value=''; codeInput.focus(); return;
+      }
+      if(result.premiereConnexion===true){
+        codeInput.value='';
+        demanderNouveauCode(name,remember);
+        return;
       }
       if(remember){localStorage.setItem(KEY_NAME,name);localStorage.setItem(KEY_CODE,code)}
       unlock(name);
@@ -1566,7 +1597,7 @@ function changerCodeAdminUI(){
         /* Connexion automatique uniquement après validation serveur du code mémorisé. */
         nameSel.value=savedName;
         google.script.run.withSuccessHandler(function(result){
-          if(!result || result.valide !== true){
+          if(!result || result.valide !== true || result.premiereConnexion===true){
             localStorage.removeItem(KEY_NAME);
             localStorage.removeItem(KEY_CODE);
             nameSel.value='';
