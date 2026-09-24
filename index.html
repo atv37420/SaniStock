@@ -1536,12 +1536,14 @@ function chargerTableauBord(){
     box.innerHTML='<div class="dashboardError">Impossible de charger le tableau de bord.<br><small>'+escapeHtml(err&&err.message?err.message:err)+'</small></div>';
   }
 
-  /* Lecture du stock via la fonction déjà disponible dans SaniStock.
-     Elle fournit aussi les dates/statuts de péremption. */
+  /* Lecture sécurisée du stock pour le tableau de bord ADMIN.
+     getStockData() masque volontairement les quantités aux employés.
+     Ici, le code administrateur permet de récupérer les vraies valeurs
+     Min / Actuel / Statut / Péremption sans les exposer aux salariés. */
   google.script.run.withSuccessHandler(function(r){
     stock=Array.isArray(r)?r:[];
     done();
-  }).withFailureHandler(fail).getStockData();
+  }).withFailureHandler(fail).getStockAlertesAdmin({codeAdmin:codeAdminSession, inclureTous:true});
 
   google.script.run.withSuccessHandler(function(r){historique=Array.isArray(r)?r:[];done();})
     .withFailureHandler(fail).getHistoriqueDesinfections(20);
