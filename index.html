@@ -1,4 +1,4 @@
-A<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -1581,8 +1581,8 @@ function afficherTableauBord(stock,historique,vehicules){
     /* Dans la feuille Stock actuelle : B = Stock actuel, C = Stock min, D = Statut stock, E = Date péremption, F = Statut date.
        getStockData() de l'ancienne version inverse encore B/C dans son objet.
        On remet donc ici les valeurs dans le bon sens pour le tableau de bord. */
-    const actuel=nombreStock_(r.minimum);
-    const minimum=nombreStock_(r.actuel);
+    const actuel=nombreStock_(r.actuel);
+    const minimum=nombreStock_(r.minimum);
     if(actuel<=0){
       x.statut='Rupture';
     }else if(actuel<=minimum){
