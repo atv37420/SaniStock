@@ -1567,8 +1567,39 @@ function dashboardJoursAvant_(value){
 }
 
 function afficherTableauBord(stock,historique,vehicules){
-  const ruptures=stock.filter(r=>String(r.statut)==='Rupture');
-  const minimum=stock.filter(r=>String(r.statut)==='Stock min');
+  /* Les alertes sont calculées à partir des quantités réelles,
+     même si la colonne Statut de Sheets est vide ou contient une variante de texte. */
+  function stockNombre_(v){
+    const n=Number(String(v==null?'':v).replace(',','.').trim());
+    return isNaN(n)?0:n;
+  }
+  function stockValeur_(r,cles){
+    for(let i=0;i<cles.length;i++){
+      const k=cles[i];
+      if(r && r[k]!==undefined && r[k]!==null && String(r[k]).trim()!=='') return r[k];
+    }
+    return '';
+  }
+  function stockStatut_(r){
+    /* On accepte les différents noms possibles renvoyés par une ancienne version
+       de l'API et on calcule toujours l'alerte avec les quantités. */
+    const actuel=stockNombre_(stockValeur_(r,['actuel','stockActuel','stock','quantite','quantité']));
+    const minimum=stockNombre_(stockValeur_(r,['minimum','stockMin','stockMinimum','min']));
+    const statut=String(stockValeur_(r,['statut','statutStock','status'])||'').trim().toLowerCase();
+    if(actuel<=0) return 'Rupture';
+    if(actuel<=minimum) return 'Stock min';
+    if(statut.indexOf('rupture')!==-1) return 'Rupture';
+    if(statut.indexOf('stock min')!==-1 || statut.indexOf('minimum')!==-1) return 'Stock min';
+    return 'OK';
+  }
+  const stockAvecStatut=stock.map(function(r){
+    const x=Object.assign({},r);
+    x.statut=stockStatut_(x);
+    return x;
+  });
+  const ruptures=stockAvecStatut.filter(r=>r.statut==='Rupture');
+  const minimum=stockAvecStatut.filter(r=>r.statut==='Stock min');
+  stock=stockAvecStatut;
 
   const peremptions=stock.map(function(r){
     const jours=dashboardJoursAvant_(r.datePeremption);
