@@ -530,6 +530,16 @@ body{display:block}
 .dashboardKpi.danger .kpiValue{color:#d72638}
 .dashboardKpi.warning .kpiValue{color:#e68a00}
 .dashboardKpi.success .kpiValue{color:#15803d}
+.dashboardKpi.clickable{cursor:pointer;transition:transform .15s ease,box-shadow .15s ease;border:2px solid transparent}
+.dashboardKpi.clickable:hover{transform:translateY(-1px);box-shadow:0 7px 18px rgba(18,55,82,.12)}
+.dashboardKpi.clickable:active{transform:scale(.98)}
+.dashboardKpi.danger.clickable{border-color:#ffd0d6}
+.dashboardKpi.warning.clickable{border-color:#ffe2ad}
+.dashboardAlertDetail{background:#fff;border-radius:15px;padding:12px;border:1px solid #dbe7ef;box-shadow:0 4px 12px rgba(18,55,82,.06);display:none}
+.dashboardAlertDetail.show{display:block}
+.dashboardAlertDetailHead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+.dashboardAlertDetailTitle{font-weight:900;color:#073f91;font-size:15px}
+.dashboardAlertClose{border:0;background:#edf4f9;color:#173f68;border-radius:9px;padding:5px 9px;font-weight:900;cursor:pointer}
 .dashboardSection{background:#fff;border-radius:15px;padding:12px;border:1px solid #dbe7ef;box-shadow:0 4px 12px rgba(18,55,82,.06)}
 .dashboardSectionHead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
 .dashboardSectionTitle{font-weight:900;color:#073f91;font-size:15px}
@@ -1664,21 +1674,26 @@ function afficherTableauBord(stock,historique,vehicules){
 
   const html=[];
   html.push('<div class="dashboardGrid">');
-  html.push(dashboardKpi_('📦',ruptures.length,'Ruptures','danger'));
-  html.push(dashboardKpi_('⚠️',minimum.length,'Stock minimum','warning'));
+  html.push(dashboardKpi_('📦',ruptures.length,'Ruptures','danger','ouvrirAlertesDashboard('rupture')'));
+  html.push(dashboardKpi_('⚠️',minimum.length,'Stock minimum','warning','ouvrirAlertesDashboard('minimum')'));
   html.push(dashboardKpi_('📅',peremptions.length,'Péremptions ≤ 90 j',''));
   html.push(dashboardKpi_('🧼',historique.length,'Désinfections récentes','success'));
   html.push('</div>');
 
-  html.push('<div class="dashboardSection"><div class="dashboardSectionHead"><div><div class="dashboardSectionTitle">📦 Alertes stock</div><div class="dashboardSectionSub">'+ruptures.length+' rupture(s) • '+minimum.length+' produit(s) au minimum</div></div></div>');
-  html.push('<div class="dashboardRows">');
-  const alertes=ruptures.concat(minimum).slice(0,20);
-  if(!alertes.length) html.push('<div class="dashboardEmpty">✅ Aucun produit à surveiller.</div>');
-  alertes.forEach(function(r){
-    const rup=String(r.statut)==='Rupture';
-    html.push('<div class="dashboardRow '+(rup?'danger':'warning')+'"><div class="rowMain"><div class="rowName">'+escapeHtml(r.produit)+'</div><div class="rowMeta">Minimum : '+escapeHtml(String(r._minimum))+'</div></div><div><div style="font-weight:900;text-align:right;color:'+(rup?'#d72638':'#e68a00')+'">'+escapeHtml(String(r._actuel))+'</div><span class="dashboardBadge '+(rup?'red':'orange')+'">'+(rup?'RUPTURE':'STOCK MIN')+'</span></div></div>');
-  });
-  html.push('</div></div>');
+  function lignesAlertesDashboard_(liste,titre,classe){
+    let out='<div id="dashboardAlertDetail" class="dashboardAlertDetail">';
+    out+='<div class="dashboardAlertDetailHead"><div><div class="dashboardAlertDetailTitle">'+titre+'</div><div class="dashboardSectionSub">'+liste.length+' produit(s)</div></div><button class="dashboardAlertClose" type="button" onclick="fermerAlertesDashboard()">✕ Fermer</button></div>';
+    out+='<div class="dashboardRows">';
+    if(!liste.length) out+='<div class="dashboardEmpty">✅ Aucune alerte dans cette catégorie.</div>';
+    liste.forEach(function(r){
+      const rup=String(r.statut)==='Rupture';
+      out+='<div class="dashboardRow '+classe+'"><div class="rowMain"><div class="rowName">'+escapeHtml(r.produit)+'</div><div class="rowMeta">Minimum : '+escapeHtml(String(r._minimum))+'</div></div><div><div style="font-weight:900;text-align:right;color:'+(rup?'#d72638':'#e68a00')+'">'+escapeHtml(String(r._actuel))+'</div><span class="dashboardBadge '+(rup?'red':'orange')+'">'+(rup?'RUPTURE':'STOCK MIN')+'</span></div></div>';
+    });
+    out+='</div></div>';
+    return out;
+  }
+  html.push(lignesAlertesDashboard_(ruptures,'🔴 Produits en rupture','danger'));
+  html.push(lignesAlertesDashboard_(minimum,'🟠 Produits au stock minimum','warning'));
 
   html.push('<div class="dashboardTwoCols">');
   html.push('<div class="dashboardSection"><div class="dashboardSectionHead"><div class="dashboardSectionTitle">📅 Prochaines péremptions</div></div><div class="dashboardRows">');
@@ -1712,8 +1727,17 @@ function afficherTableauBord(stock,historique,vehicules){
   document.getElementById('dashboardContent').innerHTML=html.join('');
 }
 
-function dashboardKpi_(icon,value,label,kind){
-  return '<div class="dashboardKpi '+(kind||'')+'"><div class="kpiIcon">'+icon+'</div><div class="kpiValue">'+value+'</div><div class="kpiLabel">'+label+'</div></div>';
+function dashboardKpi_(icon,value,label,kind,onclick){
+  return '<div class="dashboardKpi '+(kind||'')+(onclick?' clickable" role="button" tabindex="0" onclick="'+onclick+'"':'"')+'><div class="kpiIcon">'+icon+'</div><div class="kpiValue">'+value+'</div><div class="kpiLabel">'+label+(onclick?' • cliquer pour voir':'')+'</div></div>';
+}
+function ouvrirAlertesDashboard(type){
+  const details=document.querySelectorAll('#dashboardContent .dashboardAlertDetail');
+  details.forEach(function(el){el.classList.remove('show');});
+  const target=type==='rupture'?details[0]:details[1];
+  if(target){target.classList.add('show'); target.scrollIntoView({behavior:'smooth',block:'nearest'});}
+}
+function fermerAlertesDashboard(){
+  document.querySelectorAll('#dashboardContent .dashboardAlertDetail').forEach(function(el){el.classList.remove('show');});
 }
 </script>
 
