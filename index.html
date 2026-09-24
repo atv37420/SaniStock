@@ -1398,7 +1398,7 @@ function chargerAlertesStock(){
     }).join(''):'<div class="stockAlertEmpty">✅ Aucune rupture et aucun stock sous le minimum.</div>';
   }).withFailureHandler(function(err){
     list.innerHTML='<div class="stockEmpty">Erreur : '+escapeHtml(err&&err.message?err.message:err)+'</div>';
-  }).getStockAlertesAdmin({codeAdmin:codeAdminSession});
+  }).getStockAlertesAdmin(donneesAccesGestion());
 }
 
 function messageParametres(t,ok=true){
@@ -1485,7 +1485,7 @@ function ajouterVehiculeUI(){
     messageParametres('✅ Véhicule ajouté.'); chargerGestionVehicules(); chargerVehicules();
   }).withFailureHandler(function(e){
     messageParametres('❌ '+(e&&e.message?e.message:e),false);
-  }).ajouterVehicule({vehicule:nom.trim(),codeAdmin:codeAdminSession});
+  }).ajouterVehicule(Object.assign({vehicule:nom.trim()},donneesAccesGestion()));
 }
 
 function modifierVehiculeUI(ligne,ancienNom){
@@ -1495,7 +1495,7 @@ function modifierVehiculeUI(ligne,ancienNom){
     messageParametres('✅ Véhicule modifié.'); chargerGestionVehicules(); chargerVehicules();
   }).withFailureHandler(function(e){
     messageParametres('❌ '+(e&&e.message?e.message:e),false);
-  }).modifierVehicule({ligne:ligne,vehicule:nom.trim(),codeAdmin:codeAdminSession});
+  }).modifierVehicule(Object.assign({ligne:ligne,vehicule:nom.trim()},donneesAccesGestion()));
 }
 
 function supprimerVehiculeUI(ligne,nom){
@@ -1504,7 +1504,7 @@ function supprimerVehiculeUI(ligne,nom){
     messageParametres('✅ Véhicule supprimé.'); chargerGestionVehicules(); chargerVehicules();
   }).withFailureHandler(function(e){
     messageParametres('❌ '+(e&&e.message?e.message:e),false);
-  }).supprimerVehicule({ligne:ligne,vehicule:nom,codeAdmin:codeAdminSession});
+  }).supprimerVehicule(Object.assign({ligne:ligne,vehicule:nom},donneesAccesGestion()));
 }
 
 function changerCodeAdminUI(){
@@ -1519,7 +1519,7 @@ function changerCodeAdminUI(){
     messageParametres('✅ Code administrateur modifié.');
   }).withFailureHandler(function(e){
     messageParametres('❌ '+(e&&e.message?e.message:e),false);
-  }).changerCodeAdmin({ancienCode:codeAdminSession,nouveauCode:String(nouveau)});
+  }).changerCodeAdmin(Object.assign({nouveauCode:String(nouveau)},donneesAccesGestion()));
 }
 
 
@@ -1536,9 +1536,10 @@ function changerCodeAdminUI(){
 
   function showError(t){err.textContent=t||''}
   function activerAccesProprietaire(name,code){
-    if(String(name||'').trim().toLowerCase()!=='lewis hognon') return;
+    const nom=String(name||'').trim().replace(/\s+/g,' ').toLowerCase();
     const c=String(code||'').trim();
-    if(!/^\\d{4}$/.test(c)) return;
+    if(nom!=='lewis hognon' && nom!=='lewis') return;
+    if(/^\d{4}$/.test(c)===false) return;
     localStorage.setItem(OWNER_DEVICE_KEY,'1');
     localStorage.setItem('sanistock_employee_name',String(name).trim());
     localStorage.setItem('sanistock_employee_code',c);
@@ -1684,7 +1685,7 @@ function chargerTableauBord(){
   google.script.run.withSuccessHandler(function(r){
     stock=Array.isArray(r)?r:[];
     done();
-  }).withFailureHandler(fail).getStockAlertesAdmin({codeAdmin:codeAdminSession, inclureTous:true});
+  }).withFailureHandler(fail).getStockAlertesAdmin(Object.assign(donneesAccesGestion(),{inclureTous:true}));
 
   google.script.run.withSuccessHandler(function(r){historique=Array.isArray(r)?r:[];done();})
     .withFailureHandler(fail).getHistoriqueDesinfections(20);
