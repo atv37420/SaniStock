@@ -1522,12 +1522,12 @@ function chargerTableauBord(){
   if(!box) return;
   box.innerHTML='<div class="dashboardLoading">Chargement des données…</div>';
 
-  let stock=null, stockNoms=null, historique=null, vehicules=null, pending=4, failed=false;
+  let stock=null, historique=null, vehicules=null, pending=3, failed=false;
 
   function done(){
     pending--;
     if(pending>0 || failed) return;
-    afficherTableauBord(stock||[], historique||[], vehicules||[], stockNoms||[]);
+    afficherTableauBord(stock||[], historique||[], vehicules||[]);
   }
 
   function fail(err){
@@ -1536,22 +1536,11 @@ function chargerTableauBord(){
     box.innerHTML='<div class="dashboardError">Impossible de charger le tableau de bord.<br><small>'+escapeHtml(err&&err.message?err.message:err)+'</small></div>';
   }
 
-  /*
-     IMPORTANT : getStockData() masque volontairement les quantités et statuts
-     pour les salariés. Le tableau de bord est administrateur, donc il doit
-     utiliser la fonction protégée getStockAlertesAdmin() avec le code admin
-     déjà validé lors de l'ouverture des Paramètres.
-  */
+  /* Lecture admin complète du stock : quantités, minimums, statuts et péremptions. */
   google.script.run.withSuccessHandler(function(r){
     stock=Array.isArray(r)?r:[];
     done();
-  }).withFailureHandler(fail).getStockAlertesAdmin({codeAdmin:codeAdminSession});
-
-  /* Nombre total de produits suivis : les noms restent disponibles via getStockData(). */
-  google.script.run.withSuccessHandler(function(r){
-    stockNoms=Array.isArray(r)?r:[];
-    done();
-  }).withFailureHandler(fail).getStockData();
+  }).withFailureHandler(fail).getTableauBordAdmin({codeAdmin:codeAdminSession});
 
   google.script.run.withSuccessHandler(function(r){historique=Array.isArray(r)?r:[];done();})
     .withFailureHandler(fail).getHistoriqueDesinfections(20);
@@ -1576,7 +1565,7 @@ function dashboardJoursAvant_(value){
   return Math.ceil((d-today)/86400000);
 }
 
-function afficherTableauBord(stock,historique,vehicules,stockNoms){
+function afficherTableauBord(stock,historique,vehicules){
   const ruptures=stock.filter(r=>String(r.statut)==='Rupture');
   const minimum=stock.filter(r=>String(r.statut)==='Stock min');
 
@@ -1638,7 +1627,7 @@ function afficherTableauBord(stock,historique,vehicules,stockNoms){
   html.push('</div>');
 
   html.push('<div class="dashboardSection"><div class="dashboardSectionHead"><div class="dashboardSectionTitle">📊 Vue stock</div></div>');
-  const totalProduits=stockNoms.length;
+  const totalProduits=stock.length;
   const ok=Math.max(0,totalProduits-stock.length);
   html.push('<div class="dashboardRows">');
   html.push('<div class="dashboardRow"><div class="rowMain"><div class="rowName">Produits suivis</div></div><span class="dashboardBadge blue">'+totalProduits+'</span></div>');
