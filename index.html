@@ -1677,8 +1677,8 @@ function afficherTableauBord(stock,historique,vehicules){
   html.push('<div class="dashboardGrid">');
   html.push(dashboardKpi_('📦',ruptures.length,'Ruptures','danger',"ouvrirAlertesDashboard('rupture')"));
   html.push(dashboardKpi_('⚠️',minimum.length,'Stock minimum','warning',"ouvrirAlertesDashboard('minimum')"));
-  html.push(dashboardKpi_('📅',peremptions.length,'Péremptions ≤ 90 j',''));
-  html.push(dashboardKpi_('🧼',historique.length,'Désinfections récentes','success'));
+  html.push(dashboardKpi_('📅',peremptions.length,'Péremptions ≤ 90 j','warning',"ouvrirDetailsDashboard('peremption')"));
+  html.push(dashboardKpi_('🧼',historique.length,'Désinfections récentes','success',"ouvrirDetailsDashboard('desinfection')"));
   html.push('</div>');
 
   function lignesAlertesDashboard_(liste,titre,classe){
@@ -1696,21 +1696,27 @@ function afficherTableauBord(stock,historique,vehicules){
   html.push(lignesAlertesDashboard_(ruptures,'🔴 Produits en rupture','danger'));
   html.push(lignesAlertesDashboard_(minimum,'🟠 Produits au stock minimum','warning'));
 
-  html.push('<div class="dashboardTwoCols">');
-  html.push('<div class="dashboardSection"><div class="dashboardSectionHead"><div class="dashboardSectionTitle">📅 Prochaines péremptions</div></div><div class="dashboardRows">');
-  if(!peremptions.length) html.push('<div class="dashboardEmpty">✅ Aucune péremption dans les 90 jours.</div>');
-  peremptions.slice(0,5).forEach(function(x){
+  /* Détails cachés au départ : ils s'ouvrent uniquement en cliquant sur la tuile correspondante. */
+  let detailPeremption='<div id="dashboardDetailPeremption" class="dashboardAlertDetail">';
+  detailPeremption+='<div class="dashboardAlertDetailHead"><div><div class="dashboardAlertDetailTitle">📅 Prochaines péremptions</div><div class="dashboardSectionSub">'+peremptions.length+' produit(s) dans les 90 jours</div></div><button class="dashboardAlertClose" type="button" onclick="fermerDetailsDashboard()">✕ Fermer</button></div>';
+  detailPeremption+='<div class="dashboardRows">';
+  if(!peremptions.length) detailPeremption+='<div class="dashboardEmpty">✅ Aucune péremption dans les 90 jours.</div>';
+  peremptions.forEach(function(x){
     const urgent=x.jours<=30;
-    html.push('<div class="dashboardRow '+(urgent?'danger':'warning')+'"><div class="rowMain"><div class="rowName">'+escapeHtml(x.r.produit)+'</div><div class="rowMeta">'+escapeHtml(x.r.datePeremption)+'</div></div><span class="dashboardBadge '+(urgent?'red':'orange')+'">'+x.jours+' j</span></div>');
+    detailPeremption+='<div class="dashboardRow '+(urgent?'danger':'warning')+'"><div class="rowMain"><div class="rowName">'+escapeHtml(x.r.produit)+'</div><div class="rowMeta">Date de péremption : '+escapeHtml(x.r.datePeremption)+'</div></div><span class="dashboardBadge '+(urgent?'red':'orange')+'">'+x.jours+' j</span></div>';
   });
-  html.push('</div></div>');
+  detailPeremption+='</div></div>';
+  html.push(detailPeremption);
 
-  html.push('<div class="dashboardSection"><div class="dashboardSectionHead"><div class="dashboardSectionTitle">🧼 Dernières désinfections</div></div><div class="dashboardRows">');
-  if(!recentDes.length) html.push('<div class="dashboardEmpty">Aucune désinfection enregistrée.</div>');
+  let detailDesinfection='<div id="dashboardDetailDesinfection" class="dashboardAlertDetail">';
+  detailDesinfection+='<div class="dashboardAlertDetailHead"><div><div class="dashboardAlertDetailTitle">🧼 Désinfections des véhicules</div><div class="dashboardSectionSub">'+historique.length+' désinfection(s) récente(s)</div></div><button class="dashboardAlertClose" type="button" onclick="fermerDetailsDashboard()">✕ Fermer</button></div>';
+  detailDesinfection+='<div class="dashboardRows">';
+  if(!recentDes.length) detailDesinfection+='<div class="dashboardEmpty">Aucune désinfection enregistrée.</div>';
   recentDes.forEach(function(h){
-    html.push('<div class="dashboardRow"><div class="rowMain"><div class="rowName">🚑 '+escapeHtml(h.vehicule)+'</div><div class="rowMeta">'+escapeHtml(h.salarie)+' • '+escapeHtml(h.dateHeure)+'</div></div><span class="dashboardBadge green">'+escapeHtml(h.pourcentage||'100')+'%</span></div>');
+    detailDesinfection+='<div class="dashboardRow"><div class="rowMain"><div class="rowName">🚑 '+escapeHtml(h.vehicule)+'</div><div class="rowMeta">'+escapeHtml(h.salarie)+' • '+escapeHtml(h.dateHeure)+'</div></div><span class="dashboardBadge green">'+escapeHtml(h.pourcentage||'100')+'%</span></div>';
   });
-  html.push('</div></div></div>');
+  detailDesinfection+='</div></div>';
+  html.push(detailDesinfection);
 
   html.push('<div class="dashboardTwoCols">');
   html.push('<div class="dashboardSection"><div class="dashboardSectionHead"><div class="dashboardSectionTitle">🚑 Véhicules suivis</div></div>');
@@ -1737,7 +1743,17 @@ function ouvrirAlertesDashboard(type){
   const target=type==='rupture'?details[0]:details[1];
   if(target){target.classList.add('show'); target.scrollIntoView({behavior:'smooth',block:'nearest'});}
 }
+function ouvrirDetailsDashboard(type){
+  document.querySelectorAll('#dashboardContent .dashboardAlertDetail').forEach(function(el){el.classList.remove('show');});
+  let target=null;
+  if(type==='peremption') target=document.getElementById('dashboardDetailPeremption');
+  if(type==='desinfection') target=document.getElementById('dashboardDetailDesinfection');
+  if(target){target.classList.add('show'); target.scrollIntoView({behavior:'smooth',block:'nearest'});}
+}
 function fermerAlertesDashboard(){
+  document.querySelectorAll('#dashboardContent .dashboardAlertDetail').forEach(function(el){el.classList.remove('show');});
+}
+function fermerDetailsDashboard(){
   document.querySelectorAll('#dashboardContent .dashboardAlertDetail').forEach(function(el){el.classList.remove('show');});
 }
 </script>
