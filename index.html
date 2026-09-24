@@ -1296,7 +1296,7 @@ function chargerAlertesStock(){
     summary.textContent=ruptures+' rupture(s) • '+faibles+' stock(s) au minimum';
     list.innerHTML=rows.length?rows.map(function(r){
       const rupture=r.statut==='Rupture';
-      return '<div class="stockAlertItem '+(rupture?'stockAlertRupture':'stockAlertMin')+'"><div class="stockAlertTop"><div class="stockAlertName">'+escapeHtml(r.produit)+'</div><div class="stockAlertQty">'+escapeHtml(r.actuel)+'</div></div><div class="stockAlertMeta"><span>Minimum : '+escapeHtml(r.minimum)+'</span><span>'+ (rupture?'🔴 RUPTURE':'🟠 STOCK MIN') +'</span></div></div>';
+      return '<div class="stockAlertItem '+(rupture?'stockAlertRupture':'stockAlertMin')+'"><div class="stockAlertTop"><div class="stockAlertName">'+escapeHtml(r.produit)+'</div><div class="stockAlertQty">'+escapeHtml(String(r._actuel))+'</div></div><div class="stockAlertMeta"><span>Minimum : '+escapeHtml(String(r._minimum))+'</span><span>'+ (rupture?'🔴 RUPTURE':'🟠 STOCK MIN') +'</span></div></div>';
     }).join(''):'<div class="stockAlertEmpty">✅ Aucune rupture et aucun stock sous le minimum.</div>';
   }).withFailureHandler(function(err){
     list.innerHTML='<div class="stockEmpty">Erreur : '+escapeHtml(err&&err.message?err.message:err)+'</div>';
@@ -1567,38 +1567,32 @@ function dashboardJoursAvant_(value){
 }
 
 function afficherTableauBord(stock,historique,vehicules){
-  /* Les alertes sont calculées à partir des quantités réelles,
-     même si la colonne Statut de Sheets est vide ou contient une variante de texte. */
-  function stockNombre_(v){
-    const n=Number(String(v==null?'':v).replace(',','.').trim());
+  /* ALERTES STOCK : calcul direct depuis les champs exacts renvoyés par getStockData().
+     Stock sheet : B = minimum, C = actuel, F = statut.
+     Le calcul ne dépend pas du texte du statut : il utilise toujours les quantités. */
+  function nombreStock_(v){
+    if(v===null || v===undefined) return 0;
+    const t=String(v).replace(/\s/g,'').replace(',', '.');
+    const n=Number(t);
     return isNaN(n)?0:n;
-  }
-  function stockValeur_(r,cles){
-    for(let i=0;i<cles.length;i++){
-      const k=cles[i];
-      if(r && r[k]!==undefined && r[k]!==null && String(r[k]).trim()!=='') return r[k];
-    }
-    return '';
-  }
-  function stockStatut_(r){
-    /* On accepte les différents noms possibles renvoyés par une ancienne version
-       de l'API et on calcule toujours l'alerte avec les quantités. */
-    const actuel=stockNombre_(stockValeur_(r,['actuel','stockActuel','stock','quantite','quantité']));
-    const minimum=stockNombre_(stockValeur_(r,['minimum','stockMin','stockMinimum','min']));
-    const statut=String(stockValeur_(r,['statut','statutStock','status'])||'').trim().toLowerCase();
-    if(actuel<=0) return 'Rupture';
-    if(actuel<=minimum) return 'Stock min';
-    if(statut.indexOf('rupture')!==-1) return 'Rupture';
-    if(statut.indexOf('stock min')!==-1 || statut.indexOf('minimum')!==-1) return 'Stock min';
-    return 'OK';
   }
   const stockAvecStatut=stock.map(function(r){
     const x=Object.assign({},r);
-    x.statut=stockStatut_(x);
+    const actuel=nombreStock_(r.actuel);
+    const minimum=nombreStock_(r.minimum);
+    if(actuel<=0){
+      x.statut='Rupture';
+    }else if(actuel<=minimum){
+      x.statut='Stock min';
+    }else{
+      x.statut='OK';
+    }
+    x._actuel=actuel;
+    x._minimum=minimum;
     return x;
   });
-  const ruptures=stockAvecStatut.filter(r=>r.statut==='Rupture');
-  const minimum=stockAvecStatut.filter(r=>r.statut==='Stock min');
+  const ruptures=stockAvecStatut.filter(function(r){return r.statut==='Rupture';});
+  const minimum=stockAvecStatut.filter(function(r){return r.statut==='Stock min';});
   stock=stockAvecStatut;
 
   const peremptions=stock.map(function(r){
@@ -1624,11 +1618,11 @@ function afficherTableauBord(stock,historique,vehicules){
 
   html.push('<div class="dashboardSection"><div class="dashboardSectionHead"><div><div class="dashboardSectionTitle">📦 Alertes stock</div><div class="dashboardSectionSub">'+ruptures.length+' rupture(s) • '+minimum.length+' produit(s) au minimum</div></div></div>');
   html.push('<div class="dashboardRows">');
-  const alertes=ruptures.concat(minimum).slice(0,8);
+  const alertes=ruptures.concat(minimum).slice(0,20);
   if(!alertes.length) html.push('<div class="dashboardEmpty">✅ Aucun produit à surveiller.</div>');
   alertes.forEach(function(r){
     const rup=String(r.statut)==='Rupture';
-    html.push('<div class="dashboardRow '+(rup?'danger':'warning')+'"><div class="rowMain"><div class="rowName">'+escapeHtml(r.produit)+'</div><div class="rowMeta">Minimum : '+escapeHtml(r.minimum)+'</div></div><div><div style="font-weight:900;text-align:right;color:'+(rup?'#d72638':'#e68a00')+'">'+escapeHtml(r.actuel)+'</div><span class="dashboardBadge '+(rup?'red':'orange')+'">'+(rup?'RUPTURE':'STOCK MIN')+'</span></div></div>');
+    html.push('<div class="dashboardRow '+(rup?'danger':'warning')+'"><div class="rowMain"><div class="rowName">'+escapeHtml(r.produit)+'</div><div class="rowMeta">Minimum : '+escapeHtml(String(r._minimum))+'</div></div><div><div style="font-weight:900;text-align:right;color:'+(rup?'#d72638':'#e68a00')+'">'+escapeHtml(String(r._actuel))+'</div><span class="dashboardBadge '+(rup?'red':'orange')+'">'+(rup?'RUPTURE':'STOCK MIN')+'</span></div></div>');
   });
   html.push('</div></div>');
 
