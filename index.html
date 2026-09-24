@@ -1793,17 +1793,9 @@ function afficherTableauBord(stock,historique,vehicules){
   detailDesinfection+='</div></div>';
   html.push(detailDesinfection);
 
-  html.push('<div class="dashboardTwoCols">');
-  html.push('<div class="dashboardSection"><div class="dashboardSectionHead"><div class="dashboardSectionTitle">🚑 Véhicules suivis</div></div>');
-  if(!vehicules.length) html.push('<div class="dashboardEmpty">Aucun véhicule enregistré.</div>');
-  vehicules.slice(0,8).forEach(function(v){
-    const name=String(v||'').trim();
-    const h=recentVeh[name];
-    html.push('<div class="dashboardVehicle"><div class="dashboardVehicleIcon">🚑</div><div><div class="dashboardVehicleName">'+escapeHtml(name)+'</div><div class="dashboardVehicleMeta">'+(h?'Dernière désinfection : '+escapeHtml(h.dateHeure):'Aucune désinfection enregistrée')+'</div></div></div>');
-  });
-  html.push('</div>');
-
-  html.push('</div>');
+  /* La liste des véhicules n'est plus affichée ici.
+     Le suivi des désinfections est accessible depuis la tuile
+     « Désinfections récentes », comme les autres indicateurs. */
 
   html.push('<div class="dashboardRefreshNote">Données actualisées à l’ouverture de l’onglet ou avec ↻ Actualiser.</div>');
   document.getElementById('dashboardContent').innerHTML=html.join('');
