@@ -664,9 +664,10 @@ body{display:block}
       </div>
     </section>
 
-    <div style="text-align:center;font-size:10px;color:#71879a;margin-top:12px">SaniStock — Version 1.0.13</div>
+    <div style="text-align:center;font-size:10px;color:#71879a;margin-top:12px">SaniStock — Version 1.0.16</div>
     <div class="settingsAdminBlock">
       <button class="settingsAction secondary" type="button" onclick="changerCodeAdminUI()">🔐 Modifier le code administrateur</button>
+      <button class="settingsAction secondary" type="button" onclick="reinitialiserAccesProprietaire()">🔒 Réinitialiser mon accès propriétaire</button>
     </div>
   </div>
 </div>
@@ -917,6 +918,14 @@ let codeEntreeStockValide='';
 function demanderCodeEntreeStock(){
  const overlay=$('stockPinOverlay'), input=$('stockPinInput'), err=$('stockPinError');
  if(!overlay||!input) return;
+ if(appareilProprietaire()){
+   const savedStock=localStorage.getItem(OWNER_STOCK_CODE_KEY)||'';
+   if(savedStock){
+     codeEntreeStockValide=savedStock;
+     openStockModal('entree');
+     return;
+   }
+ }
  input.value=''; err.textContent='';
  overlay.classList.add('open'); overlay.setAttribute('aria-hidden','false');
  setTimeout(()=>input.focus(),50);
@@ -934,6 +943,7 @@ function validerCodeEntreeStock(){
   .withSuccessHandler(function(ok){
     if(!ok){codeEntreeStockValide='';err.textContent='Code incorrect';input.value='';input.focus();return}
     codeEntreeStockValide=code;
+    if(appareilProprietaire()) localStorage.setItem(OWNER_STOCK_CODE_KEY,String(code));
     fermerCodeEntreeStock();
     openStockModal('entree');
   })
@@ -1264,13 +1274,34 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
 <script>
 /* ===== GESTION DES PARAMÈTRES ===== */
 let codeAdminSession='';
-
+const OWNER_DEVICE_KEY='sanistock_owner_device_v1';
+const OWNER_ADMIN_CODE_KEY='sanistock_owner_admin_code_v1';
+const OWNER_STOCK_CODE_KEY='sanistock_owner_stock_code_v1';
+function appareilProprietaire(){ return localStorage.getItem(OWNER_DEVICE_KEY)==='1'; }
+function reinitialiserAccesProprietaire(){
+  localStorage.removeItem(OWNER_DEVICE_KEY);
+  localStorage.removeItem(OWNER_ADMIN_CODE_KEY);
+  localStorage.removeItem(OWNER_STOCK_CODE_KEY);
+  codeAdminSession='';
+  alert('🔒 L’accès propriétaire a été réinitialisé sur cet appareil.');
+}
 function gsDisponible(){
   return !!(window.google&&google.script&&google.script.run);
 }
 
 function ouvrirParametres(){
   if(!gsDisponible()){alert('Connexion SaniStock indisponible.');return}
+  if(appareilProprietaire()){
+    const saved=localStorage.getItem(OWNER_ADMIN_CODE_KEY)||'';
+    if(saved){
+      codeAdminSession=saved;
+      document.getElementById('settingsOverlay').classList.add('open');
+      document.getElementById('settingsOverlay').setAttribute('aria-hidden','false');
+      ouvrirOngletParametres('salaries');
+      return;
+    }
+    reinitialiserAccesProprietaire();
+  }
   const overlay=document.getElementById('saniPinOverlay');
   const input=document.getElementById('saniPinInput');
   const erreur=document.getElementById('saniPinError');
@@ -1295,6 +1326,8 @@ function ouvrirParametres(){
     google.script.run.withSuccessHandler(function(ok){
       if(!ok){erreur.textContent='Code administrateur incorrect.';input.value='';input.focus();return}
       codeAdminSession=String(code);
+      localStorage.setItem(OWNER_DEVICE_KEY,'1');
+      localStorage.setItem(OWNER_ADMIN_CODE_KEY,String(code));
       fermer();
       document.getElementById('settingsOverlay').classList.add('open');
       document.getElementById('settingsOverlay').setAttribute('aria-hidden','false');
@@ -1475,6 +1508,7 @@ function changerCodeAdminUI(){
   if(nouveau!==confirmation){messageParametres('❌ Les deux codes ne correspondent pas.',false);return}
   google.script.run.withSuccessHandler(function(){
     codeAdminSession=String(nouveau);
+    if(appareilProprietaire()) localStorage.setItem(OWNER_ADMIN_CODE_KEY,String(nouveau));
     messageParametres('✅ Code administrateur modifié.');
   }).withFailureHandler(function(e){
     messageParametres('❌ '+(e&&e.message?e.message:e),false);
