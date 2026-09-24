@@ -1817,9 +1817,8 @@ function afficherTableauBord(stock,historique,vehicules){
   }
   const stockAvecStatut=stock.map(function(r){
     const x=Object.assign({},r);
-    /* Dans la feuille Stock actuelle : B = Stock actuel, C = Stock min, D = Statut stock, E = Date péremption, F = Statut date.
-       getStockData() de l'ancienne version inverse encore B/C dans son objet.
-       On remet donc ici les valeurs dans le bon sens pour le tableau de bord. */
+    /* Feuille Stock : A = Produit, B = Stock minimum, C = Stock actuel, D = Statut stock, E = Date péremption, F = Statut date.
+       Le tableau de bord utilise directement les valeurs renvoyées par getStockAlertesAdmin(). */
     const actuel=nombreStock_(r.actuel);
     const minimum=nombreStock_(r.minimum);
     if(actuel<=0){
