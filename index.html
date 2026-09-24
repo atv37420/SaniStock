@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+A<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -1578,8 +1578,11 @@ function afficherTableauBord(stock,historique,vehicules){
   }
   const stockAvecStatut=stock.map(function(r){
     const x=Object.assign({},r);
-    const actuel=nombreStock_(r.actuel);
-    const minimum=nombreStock_(r.minimum);
+    /* Dans la feuille Stock actuelle : B = Stock actuel, C = Stock min, D = Statut stock, E = Date péremption, F = Statut date.
+       getStockData() de l'ancienne version inverse encore B/C dans son objet.
+       On remet donc ici les valeurs dans le bon sens pour le tableau de bord. */
+    const actuel=nombreStock_(r.minimum);
+    const minimum=nombreStock_(r.actuel);
     if(actuel<=0){
       x.statut='Rupture';
     }else if(actuel<=minimum){
@@ -1596,7 +1599,10 @@ function afficherTableauBord(stock,historique,vehicules){
   stock=stockAvecStatut;
 
   const peremptions=stock.map(function(r){
-    const jours=dashboardJoursAvant_(r.datePeremption);
+    /* Avec l'ancienne réponse getStockData(), la date E correspond à statutDate.
+       On conserve datePeremption si elle existe, sinon on essaie statutDate. */
+    const datePourDashboard = r.datePeremption || r.statutDate;
+    const jours=dashboardJoursAvant_(datePourDashboard);
     return {r:r,jours:jours};
   }).filter(function(x){return x.jours!==null && x.jours>=0 && x.jours<=90;})
     .sort(function(a,b){return a.jours-b.jours;});
