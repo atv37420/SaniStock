@@ -477,6 +477,49 @@ body{display:block}
 .btnVehicle{background:#e0eef9;color:#0758a5}
 .badgeActive{color:#15803d}.badgeInactive{color:#b42318}
 .settingsAdminBlock{margin-top:12px;padding-top:12px;border-top:1px solid #d5e1e9}
+/* ===== TABLEAU DE BORD ADMINISTRATEUR ===== */
+#dashboardContent{display:grid;gap:10px}
+.dashboardLoading,.dashboardError{background:#fff;border-radius:14px;padding:18px;text-align:center;color:#60778c;font-weight:800}
+.dashboardGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.dashboardKpi{background:#fff;border-radius:15px;padding:12px;border:1px solid #dbe7ef;box-shadow:0 4px 12px rgba(18,55,82,.06);min-height:70px}
+.dashboardKpi .kpiIcon{font-size:22px;float:left;margin-right:9px}
+.dashboardKpi .kpiValue{font-size:23px;font-weight:900;color:#0758a5;line-height:1}
+.dashboardKpi .kpiLabel{font-size:11px;font-weight:800;color:#60778c;margin-top:5px}
+.dashboardKpi.danger .kpiValue{color:#d72638}
+.dashboardKpi.warning .kpiValue{color:#e68a00}
+.dashboardKpi.success .kpiValue{color:#15803d}
+.dashboardSection{background:#fff;border-radius:15px;padding:12px;border:1px solid #dbe7ef;box-shadow:0 4px 12px rgba(18,55,82,.06)}
+.dashboardSectionHead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+.dashboardSectionTitle{font-weight:900;color:#073f91;font-size:15px}
+.dashboardSectionSub{font-size:10px;color:#71879a;margin-top:2px}
+.dashboardRows{display:grid;gap:6px}
+.dashboardRow{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 7px;border-radius:10px;background:#f7fbfe;border-left:4px solid #dbe7ef}
+.dashboardRow.danger{border-left-color:#d72638}
+.dashboardRow.warning{border-left-color:#e68a00}
+.dashboardRow .rowMain{min-width:0}
+.dashboardRow .rowName{font-size:12px;font-weight:900;color:#173f68;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dashboardRow .rowMeta{font-size:10px;color:#71879a;margin-top:2px}
+.dashboardBadge{flex:none;border-radius:999px;padding:5px 8px;font-size:10px;font-weight:900}
+.dashboardBadge.red{background:#ffe3e6;color:#c51f30}
+.dashboardBadge.orange{background:#fff0cf;color:#8a5a00}
+.dashboardBadge.green{background:#e3f7e9;color:#15803d}
+.dashboardBadge.blue{background:#e1effb;color:#0758a5}
+.dashboardTwoCols{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.dashboardEmpty{padding:12px;text-align:center;color:#15803d;font-size:11px;font-weight:800;background:#f3fbf5;border-radius:10px}
+.dashboardVehicle{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #edf2f6}
+.dashboardVehicle:last-child{border-bottom:0}
+.dashboardVehicleIcon{font-size:18px}
+.dashboardVehicleName{font-size:11px;font-weight:900;color:#173f68}
+.dashboardVehicleMeta{font-size:9px;color:#71879a;margin-top:2px}
+.dashboardRefreshNote{text-align:center;font-size:9px;color:#8aa0b1;margin-top:2px}
+@media(max-width:430px){
+  .dashboardTwoCols{grid-template-columns:1fr}
+  .dashboardGrid{grid-template-columns:1fr 1fr}
+  .settingsPanel{padding:14px}
+  .settingsTabs{gap:6px}
+  .settingsTab{font-size:11px;padding:10px 5px}
+}
+
 </style>
 
 
@@ -531,12 +574,12 @@ body{display:block}
       <h2>⚙️ Paramètres</h2>
       <button class="settingsClose" type="button" onclick="fermerParametres()">×</button>
     </div>
-    <p class="settingsIntro">Gérez les salariés et les véhicules de SaniStock.</p>
+    <p class="settingsIntro">Gérez les salariés, les véhicules et consultez le tableau de bord.</p>
 
     <div class="settingsTabs" role="tablist" aria-label="Gestion SaniStock">
-      <button id="settingsTabSalaries" class="settingsTab active" type="button" role="tab" aria-selected="true" onclick="ouvrirOngletParametres('salaries')">👥 Gérer les salariés</button>
-      <button id="settingsTabVehicules" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('vehicules')">🚑 Gérer les véhicules</button>
-      <button id="settingsTabAlertes" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('alertes')">📦 Alertes stock</button>
+      <button id="settingsTabSalaries" class="settingsTab active" type="button" role="tab" aria-selected="true" onclick="ouvrirOngletParametres('salaries')">👥 Salariés</button>
+      <button id="settingsTabVehicules" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('vehicules')">🚑 Véhicules</button>
+      <button id="settingsTabDashboard" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('dashboard')">📊 Tableau de bord</button>
     </div>
 
     <div id="settingsMsg" class="settingsMsg"></div>
@@ -557,13 +600,14 @@ body{display:block}
       <div id="vehicleSettingsList"></div>
     </section>
 
-    <section id="settingsPaneAlertes" class="settingsPane" role="tabpanel" hidden>
+    <section id="settingsPaneDashboard" class="settingsPane" role="tabpanel" hidden>
       <div class="settingsPaneHead">
-        <div><strong>📦 Alertes stock</strong><span>Vue responsable : uniquement les produits à surveiller.</span></div>
-        <button class="settingsAction" type="button" onclick="chargerAlertesStock()">↻ Actualiser</button>
+        <div><strong>📊 Tableau de bord</strong><span>Vue responsable de SaniStock — accessible uniquement depuis les paramètres.</span></div>
+        <button class="settingsAction" type="button" onclick="chargerTableauBord()">↻ Actualiser</button>
       </div>
-      <div id="stockAlertsSummary" style="margin:8px 0 10px;font-size:12px;font-weight:800;color:#31556f"></div>
-      <div id="stockAlertsList"></div>
+      <div id="dashboardContent">
+        <div class="dashboardLoading">Chargement du tableau de bord…</div>
+      </div>
     </section>
 
     <div style="text-align:center;font-size:10px;color:#71879a;margin-top:12px">SaniStock — Version 1.0.3</div>
@@ -1214,27 +1258,30 @@ function fermerParametres(){
 function ouvrirOngletParametres(onglet){
   const sal=document.getElementById('settingsPaneSalaries');
   const veh=document.getElementById('settingsPaneVehicules');
-  const ale=document.getElementById('settingsPaneAlertes');
+  const dash=document.getElementById('settingsPaneDashboard');
   const ts=document.getElementById('settingsTabSalaries');
   const tv=document.getElementById('settingsTabVehicules');
-  const ta=document.getElementById('settingsTabAlertes');
+  const td=document.getElementById('settingsTabDashboard');
 
   const isSal=onglet==='salaries';
   const isVeh=onglet==='vehicules';
-  const isAle=onglet==='alertes';
+  const isDash=onglet==='dashboard';
+
   sal.hidden=!isSal;
   veh.hidden=!isVeh;
-  ale.hidden=!isAle;
+  dash.hidden=!isDash;
+
   ts.classList.toggle('active',isSal);
   tv.classList.toggle('active',isVeh);
-  ta.classList.toggle('active',isAle);
+  td.classList.toggle('active',isDash);
+
   ts.setAttribute('aria-selected',String(isSal));
   tv.setAttribute('aria-selected',String(isVeh));
-  ta.setAttribute('aria-selected',String(isAle));
+  td.setAttribute('aria-selected',String(isDash));
 
   if(isSal) chargerGestionSalaries();
   else if(isVeh) chargerGestionVehicules();
-  else if(isAle) chargerAlertesStock();
+  else if(isDash) chargerTableauBord();
 }
 
 function chargerAlertesStock(){
@@ -1462,6 +1509,136 @@ function changerCodeAdminUI(){
 
 document.getElementById('settingsBtn').addEventListener('click',ouvrirParametres);
 document.getElementById('settingsOverlay').addEventListener('click',function(e){if(e.target===this)fermerParametres()});
+</script>
+
+
+<script>
+/* ===== TABLEAU DE BORD ADMINISTRATEUR =====
+   Accessible uniquement depuis Paramètres après validation du code admin.
+   Aucune entrée publique sur l'accueil.
+*/
+function chargerTableauBord(){
+  const box=document.getElementById('dashboardContent');
+  if(!box) return;
+  box.innerHTML='<div class="dashboardLoading">Chargement des données…</div>';
+
+  let stock=null, historique=null, vehicules=null, pending=3, failed=false;
+
+  function done(){
+    pending--;
+    if(pending>0 || failed) return;
+    afficherTableauBord(stock||[], historique||[], vehicules||[]);
+  }
+
+  function fail(err){
+    if(failed) return;
+    failed=true;
+    box.innerHTML='<div class="dashboardError">Impossible de charger le tableau de bord.<br><small>'+escapeHtml(err&&err.message?err.message:err)+'</small></div>';
+  }
+
+  google.script.run.withSuccessHandler(function(r){stock=Array.isArray(r)?r:[];done();})
+    .withFailureHandler(fail).getStockData();
+
+  google.script.run.withSuccessHandler(function(r){historique=Array.isArray(r)?r:[];done();})
+    .withFailureHandler(fail).getHistoriqueDesinfections(20);
+
+  google.script.run.withSuccessHandler(function(r){vehicules=Array.isArray(r)?r:[];done();})
+    .withFailureHandler(fail).getVehicules();
+}
+
+function dashboardDate_(value){
+  const s=String(value||'').trim();
+  let m=s.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+  if(m) return new Date(Number(m[3]),Number(m[2])-1,Number(m[1]));
+  m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(m) return new Date(Number(m[1]),Number(m[2])-1,Number(m[3]));
+  return null;
+}
+
+function dashboardJoursAvant_(value){
+  const d=dashboardDate_(value);
+  if(!d || isNaN(d.getTime())) return null;
+  const today=new Date(); today.setHours(0,0,0,0);
+  return Math.ceil((d-today)/86400000);
+}
+
+function afficherTableauBord(stock,historique,vehicules){
+  const ruptures=stock.filter(r=>String(r.statut)==='Rupture');
+  const minimum=stock.filter(r=>String(r.statut)==='Stock min');
+
+  const peremptions=stock.map(function(r){
+    const jours=dashboardJoursAvant_(r.datePeremption);
+    return {r:r,jours:jours};
+  }).filter(function(x){return x.jours!==null && x.jours>=0 && x.jours<=90;})
+    .sort(function(a,b){return a.jours-b.jours;});
+
+  const recentDes=historique.slice(0,6);
+  const recentVeh={};
+  historique.forEach(function(h){
+    const v=String(h.vehicule||'').trim();
+    if(v && !recentVeh[v]) recentVeh[v]=h;
+  });
+
+  const html=[];
+  html.push('<div class="dashboardGrid">');
+  html.push(dashboardKpi_('📦',ruptures.length,'Ruptures','danger'));
+  html.push(dashboardKpi_('⚠️',minimum.length,'Stock minimum','warning'));
+  html.push(dashboardKpi_('📅',peremptions.length,'Péremptions ≤ 90 j',''));
+  html.push(dashboardKpi_('🧼',historique.length,'Désinfections récentes','success'));
+  html.push('</div>');
+
+  html.push('<div class="dashboardSection"><div class="dashboardSectionHead"><div><div class="dashboardSectionTitle">📦 Alertes stock</div><div class="dashboardSectionSub">'+ruptures.length+' rupture(s) • '+minimum.length+' produit(s) au minimum</div></div></div>');
+  html.push('<div class="dashboardRows">');
+  const alertes=ruptures.concat(minimum).slice(0,8);
+  if(!alertes.length) html.push('<div class="dashboardEmpty">✅ Aucun produit à surveiller.</div>');
+  alertes.forEach(function(r){
+    const rup=String(r.statut)==='Rupture';
+    html.push('<div class="dashboardRow '+(rup?'danger':'warning')+'"><div class="rowMain"><div class="rowName">'+escapeHtml(r.produit)+'</div><div class="rowMeta">Minimum : '+escapeHtml(r.minimum)+'</div></div><div><div style="font-weight:900;text-align:right;color:'+(rup?'#d72638':'#e68a00')+'">'+escapeHtml(r.actuel)+'</div><span class="dashboardBadge '+(rup?'red':'orange')+'">'+(rup?'RUPTURE':'STOCK MIN')+'</span></div></div>');
+  });
+  html.push('</div></div>');
+
+  html.push('<div class="dashboardTwoCols">');
+  html.push('<div class="dashboardSection"><div class="dashboardSectionHead"><div class="dashboardSectionTitle">📅 Prochaines péremptions</div></div><div class="dashboardRows">');
+  if(!peremptions.length) html.push('<div class="dashboardEmpty">✅ Aucune péremption dans les 90 jours.</div>');
+  peremptions.slice(0,5).forEach(function(x){
+    const urgent=x.jours<=30;
+    html.push('<div class="dashboardRow '+(urgent?'danger':'warning')+'"><div class="rowMain"><div class="rowName">'+escapeHtml(x.r.produit)+'</div><div class="rowMeta">'+escapeHtml(x.r.datePeremption)+'</div></div><span class="dashboardBadge '+(urgent?'red':'orange')+'">'+x.jours+' j</span></div>');
+  });
+  html.push('</div></div>');
+
+  html.push('<div class="dashboardSection"><div class="dashboardSectionHead"><div class="dashboardSectionTitle">🧼 Dernières désinfections</div></div><div class="dashboardRows">');
+  if(!recentDes.length) html.push('<div class="dashboardEmpty">Aucune désinfection enregistrée.</div>');
+  recentDes.forEach(function(h){
+    html.push('<div class="dashboardRow"><div class="rowMain"><div class="rowName">🚑 '+escapeHtml(h.vehicule)+'</div><div class="rowMeta">'+escapeHtml(h.salarie)+' • '+escapeHtml(h.dateHeure)+'</div></div><span class="dashboardBadge green">'+escapeHtml(h.pourcentage||'100')+'%</span></div>');
+  });
+  html.push('</div></div></div>');
+
+  html.push('<div class="dashboardTwoCols">');
+  html.push('<div class="dashboardSection"><div class="dashboardSectionHead"><div class="dashboardSectionTitle">🚑 Véhicules suivis</div></div>');
+  if(!vehicules.length) html.push('<div class="dashboardEmpty">Aucun véhicule enregistré.</div>');
+  vehicules.slice(0,8).forEach(function(v){
+    const name=String(v||'').trim();
+    const h=recentVeh[name];
+    html.push('<div class="dashboardVehicle"><div class="dashboardVehicleIcon">🚑</div><div><div class="dashboardVehicleName">'+escapeHtml(name)+'</div><div class="dashboardVehicleMeta">'+(h?'Dernière désinfection : '+escapeHtml(h.dateHeure):'Aucune désinfection enregistrée')+'</div></div></div>');
+  });
+  html.push('</div>');
+
+  html.push('<div class="dashboardSection"><div class="dashboardSectionHead"><div class="dashboardSectionTitle">📊 Vue stock</div></div>');
+  const ok=stock.filter(r=>String(r.statut)==='OK').length;
+  html.push('<div class="dashboardRows">');
+  html.push('<div class="dashboardRow"><div class="rowMain"><div class="rowName">Produits suivis</div></div><span class="dashboardBadge blue">'+stock.length+'</span></div>');
+  html.push('<div class="dashboardRow"><div class="rowMain"><div class="rowName">🟢 Produits OK</div></div><span class="dashboardBadge green">'+ok+'</span></div>');
+  html.push('<div class="dashboardRow"><div class="rowMain"><div class="rowName">🔴 Ruptures</div></div><span class="dashboardBadge red">'+ruptures.length+'</span></div>');
+  html.push('<div class="dashboardRow"><div class="rowMain"><div class="rowName">🟠 Stock minimum</div></div><span class="dashboardBadge orange">'+minimum.length+'</span></div>');
+  html.push('</div></div></div>');
+
+  html.push('<div class="dashboardRefreshNote">Données actualisées à l’ouverture de l’onglet ou avec ↻ Actualiser.</div>');
+  document.getElementById('dashboardContent').innerHTML=html.join('');
+}
+
+function dashboardKpi_(icon,value,label,kind){
+  return '<div class="dashboardKpi '+(kind||'')+'"><div class="kpiIcon">'+icon+'</div><div class="kpiValue">'+value+'</div><div class="kpiLabel">'+label+'</div></div>';
+}
 </script>
 
 </body>
