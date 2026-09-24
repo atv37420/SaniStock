@@ -1536,11 +1536,12 @@ function chargerTableauBord(){
     box.innerHTML='<div class="dashboardError">Impossible de charger le tableau de bord.<br><small>'+escapeHtml(err&&err.message?err.message:err)+'</small></div>';
   }
 
-  /* Lecture admin complète du stock : quantités, minimums, statuts et péremptions. */
+  /* Lecture du stock via la fonction déjà disponible dans SaniStock.
+     Elle fournit aussi les dates/statuts de péremption. */
   google.script.run.withSuccessHandler(function(r){
     stock=Array.isArray(r)?r:[];
     done();
-  }).withFailureHandler(fail).getTableauBordAdmin({codeAdmin:codeAdminSession});
+  }).withFailureHandler(fail).getStockData();
 
   google.script.run.withSuccessHandler(function(r){historique=Array.isArray(r)?r:[];done();})
     .withFailureHandler(fail).getHistoriqueDesinfections(20);
@@ -1626,15 +1627,7 @@ function afficherTableauBord(stock,historique,vehicules){
   });
   html.push('</div>');
 
-  html.push('<div class="dashboardSection"><div class="dashboardSectionHead"><div class="dashboardSectionTitle">📊 Vue stock</div></div>');
-  const totalProduits=stock.length;
-  const ok=Math.max(0,totalProduits-stock.length);
-  html.push('<div class="dashboardRows">');
-  html.push('<div class="dashboardRow"><div class="rowMain"><div class="rowName">Produits suivis</div></div><span class="dashboardBadge blue">'+totalProduits+'</span></div>');
-  html.push('<div class="dashboardRow"><div class="rowMain"><div class="rowName">🟢 Produits OK</div></div><span class="dashboardBadge green">'+ok+'</span></div>');
-  html.push('<div class="dashboardRow"><div class="rowMain"><div class="rowName">🔴 Ruptures</div></div><span class="dashboardBadge red">'+ruptures.length+'</span></div>');
-  html.push('<div class="dashboardRow"><div class="rowMain"><div class="rowName">🟠 Stock minimum</div></div><span class="dashboardBadge orange">'+minimum.length+'</span></div>');
-  html.push('</div></div></div>');
+  html.push('</div>');
 
   html.push('<div class="dashboardRefreshNote">Données actualisées à l’ouverture de l’onglet ou avec ↻ Actualiser.</div>');
   document.getElementById('dashboardContent').innerHTML=html.join('');
