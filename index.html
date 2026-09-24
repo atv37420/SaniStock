@@ -1289,6 +1289,15 @@ function gsDisponible(){
   return !!(window.google&&google.script&&google.script.run);
 }
 
+
+function donneesAccesGestion() {
+  return {
+    codeAdmin: codeAdminSession || localStorage.getItem(OWNER_ADMIN_CODE_KEY) || '',
+    proprietaireNom: localStorage.getItem('sanistock_employee_name') || '',
+    proprietaireCode: localStorage.getItem('sanistock_employee_code') || ''
+  };
+}
+
 function ouvrirParametres(){
   if(!gsDisponible()){alert('Connexion SaniStock indisponible.');return}
   if(appareilProprietaire()){
@@ -1414,7 +1423,7 @@ function chargerGestionSalaries(){
     }).join('')||'<div class="employeeCard">Aucun salarié.</div>';
   }).withFailureHandler(function(e){
     list.innerHTML='Erreur : '+escapeHtml(e&&e.message?e.message:e);
-  }).getGestionSalaries({codeAdmin:(codeAdminSession||localStorage.getItem(OWNER_ADMIN_CODE_KEY)||'')});
+  }).getGestionSalaries(donneesAccesGestion());
 }
 
 function ajouterSalarieUI(){
@@ -1435,7 +1444,7 @@ function modifierCodeSalarieUI(nom){
     messageParametres('✅ Code mis à jour pour '+nom+'.'); chargerGestionSalaries();
   }).withFailureHandler(function(e){
     messageParametres('❌ '+(e&&e.message?e.message:e),false);
-  }).enregistrerCodeSalarie({salarie:nom,code:String(code).trim(),statut:'Actif',codeAdmin:(codeAdminSession||localStorage.getItem(OWNER_ADMIN_CODE_KEY)||'')});
+  }).enregistrerCodeSalarie(Object.assign({salarie:nom,code:String(code).trim(),statut:'Actif'},donneesAccesGestion()));
 }
 
 function changerStatutSalarieUI(nom,activer){
@@ -1454,7 +1463,7 @@ function supprimerSalarieUI(nom){
     messageParametres('✅ Salarié supprimé.'); chargerGestionSalaries(); chargerSalaries();
   }).withFailureHandler(function(e){
     messageParametres('❌ '+(e&&e.message?e.message:e),false);
-  }).supprimerSalarie({salarie:nom});
+  }).supprimerSalarie(Object.assign({salarie:nom},donneesAccesGestion()));
 }
 
 function chargerGestionVehicules(){
@@ -1468,7 +1477,7 @@ function chargerGestionVehicules(){
     }).join('')||'<div class="vehicleCard">Aucun véhicule enregistré.</div>';
   }).withFailureHandler(function(e){
     list.innerHTML='Erreur : '+escapeHtml(e&&e.message?e.message:e);
-  }).getGestionVehicules({codeAdmin:(codeAdminSession||localStorage.getItem(OWNER_ADMIN_CODE_KEY)||'')});
+  }).getGestionVehicules(donneesAccesGestion());
 }
 
 function ajouterVehiculeUI(){
