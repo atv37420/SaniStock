@@ -919,12 +919,9 @@ function demanderCodeEntreeStock(){
  const overlay=$('stockPinOverlay'), input=$('stockPinInput'), err=$('stockPinError');
  if(!overlay||!input) return;
  if(appareilProprietaire()){
-   const savedStock=localStorage.getItem(OWNER_STOCK_CODE_KEY)||'';
-   if(savedStock){
-     codeEntreeStockValide=savedStock;
-     openStockModal('entree');
-     return;
-   }
+   codeEntreeStockValide='';
+   openStockModal('entree');
+   return;
  }
  input.value=''; err.textContent='';
  overlay.classList.add('open'); overlay.setAttribute('aria-hidden','false');
@@ -966,7 +963,13 @@ function saveStockMovement(){
  const btn=$('stockSaveBtn'); btn.disabled=true; btn.textContent='Enregistrement...';
  const fn=stockMovementType==='entree'?'enregistrerEntreesStock':'enregistrerSortiesStock';
  const payload={mouvements:mouvements,salarie:salarie};
- if(stockMovementType==='entree') payload.codeAcces=codeEntreeStockValide;
+ if(stockMovementType==='entree'){
+   payload.codeAcces=codeEntreeStockValide;
+   if(appareilProprietaire()){
+     payload.proprietaireNom=localStorage.getItem('sanistock_employee_name')||'';
+     payload.proprietaireCode=localStorage.getItem('sanistock_employee_code')||'';
+   }
+ }
  google.script.run.withSuccessHandler(function(res){btn.disabled=false;closeStockModal();if(stockMovementType==='sortie') showSaniAnimation('stock');if(stockMovementType==='entree') codeEntreeStockValide='';const m=$('stockMessage');m.textContent='✅ '+(res&&res.message?res.message:'Mouvements enregistrés');m.classList.add('show');setTimeout(()=>m.classList.remove('show'),3000);chargerStock()}).withFailureHandler(function(err){btn.disabled=false;btn.textContent='✓ ENREGISTRER';if(stockMovementType==='entree') codeEntreeStockValide='';alert('Erreur : '+(err&&err.message?err.message:err))})[fn](payload);
 }
 
@@ -1301,15 +1304,10 @@ function donneesAccesGestion() {
 function ouvrirParametres(){
   if(!gsDisponible()){alert('Connexion SaniStock indisponible.');return}
   if(appareilProprietaire()){
-    const saved=localStorage.getItem(OWNER_ADMIN_CODE_KEY)||'';
-    if(saved){
-      codeAdminSession=saved;
-      document.getElementById('settingsOverlay').classList.add('open');
-      document.getElementById('settingsOverlay').setAttribute('aria-hidden','false');
-      ouvrirOngletParametres('salaries');
-      return;
-    }
-    reinitialiserAccesProprietaire();
+    document.getElementById('settingsOverlay').classList.add('open');
+    document.getElementById('settingsOverlay').setAttribute('aria-hidden','false');
+    ouvrirOngletParametres('salaries');
+    return;
   }
   const overlay=document.getElementById('saniPinOverlay');
   const input=document.getElementById('saniPinInput');
@@ -1537,6 +1535,14 @@ function changerCodeAdminUI(){
   const err=document.getElementById('employeeLoginError');
 
   function showError(t){err.textContent=t||''}
+  function activerAccesProprietaire(name,code){
+    if(String(name||'').trim().toLowerCase()!=='lewis hognon') return;
+    const c=String(code||'').trim();
+    if(!/^\\d{4}$/.test(c)) return;
+    localStorage.setItem(OWNER_DEVICE_KEY,'1');
+    localStorage.setItem('sanistock_employee_name',String(name).trim());
+    localStorage.setItem('sanistock_employee_code',c);
+  }
   function unlock(name){
     overlay.classList.add('hidden');
     const s1=document.getElementById('stockEmployee');
@@ -1567,6 +1573,7 @@ function changerCodeAdminUI(){
     google.script.run.withSuccessHandler(function(){
       btn.disabled=false; btn.textContent='Se connecter';
       if(remember){localStorage.setItem(KEY_NAME,name);localStorage.setItem(KEY_CODE,nouveau)}
+      activerAccesProprietaire(name,nouveau);
       unlock(name);
       alert('✅ Votre code personnel est enregistré. Le code 1234 est maintenant désactivé pour votre compte.');
     }).withFailureHandler(function(e){
@@ -1590,6 +1597,7 @@ function changerCodeAdminUI(){
         return;
       }
       if(remember){localStorage.setItem(KEY_NAME,name);localStorage.setItem(KEY_CODE,code)}
+      activerAccesProprietaire(name,code);
       unlock(name);
     }).withFailureHandler(function(){
       btn.disabled=false; btn.textContent='Se connecter';
@@ -1613,6 +1621,7 @@ function changerCodeAdminUI(){
             return;
           }
 
+          activerAccesProprietaire(savedName,savedCode);
           unlock(savedName);
 
           const bonjour=document.createElement('div');
