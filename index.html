@@ -133,6 +133,7 @@ body{display:block}
   .penseBeteAccueil{left:5%;right:5%;bottom:10%;padding:5px 8px 6px;border-radius:10px}
   .penseBeteAccueil .penseTitre{font-size:9px}
   .penseBeteAccueil .penseTexte{font-size:9.5px}
+  .homeInfo{left:5%;right:5%;bottom:23%;padding:7px 8px}.homeInfoTitle{font-size:10px}.homeInfoText{font-size:9px}
 }
 
 .page{padding:20px;background:#edf5fa}
@@ -487,7 +488,7 @@ body{display:block}
 .settingsHead h2{margin:0;color:#073f91}
 .settingsClose{border:0;background:#dce7ef;border-radius:10px;width:36px;height:36px;font-size:20px;cursor:pointer}
 .settingsIntro{font-size:11px;margin:8px 0 15px}
-.settingsTabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:0 0 14px}
+.settingsTabs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:0 0 14px}
 .settingsTab{border:0;border-radius:12px;padding:12px 8px;background:#dce7ef;color:#173f68;font-weight:900;cursor:pointer}
 .settingsTab.active{background:#0758a5;color:#fff}
 .settingsPane[hidden]{display:none !important}
@@ -506,7 +507,18 @@ body{display:block}
 .settingsAction{border:0;border-radius:12px;padding:10px 11px;background:#0758a5;color:#fff;font-weight:800;cursor:pointer}
 .settingsAction.secondary{background:#536c80}
 .settingsMsg{min-height:18px;font-size:10px;font-weight:700;margin:8px 0}
-#settingsList,#vehicleSettingsList{display:grid;gap:8px}
+#settingsList,#vehicleSettingsList,#informationSettingsList{display:grid;gap:8px}
+.infoForm{display:grid;gap:8px;margin-bottom:12px}
+.infoForm input,.infoForm textarea,.infoForm select{width:100%;box-sizing:border-box;border:1px solid #cbd8e2;border-radius:10px;padding:10px;font:inherit}
+.infoForm textarea{min-height:90px;resize:vertical}
+.infoCard{background:#fff;border:1px solid #d8e2ea;border-radius:12px;padding:11px}
+.infoCardHead{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.infoBadge{font-size:10px;font-weight:900;padding:4px 7px;border-radius:999px;background:#e8eef3}
+.infoBadge.urgent{background:#ffe0e0;color:#b00020}.infoBadge.important{background:#fff0cf;color:#8a5a00}
+.infoDelete{border:0;border-radius:9px;background:#e9eef2;padding:7px 9px;cursor:pointer}
+.homeInfo{position:absolute;left:8%;right:8%;bottom:23%;z-index:5;background:rgba(255,255,255,.96);border-radius:13px;padding:8px 10px;box-shadow:0 6px 20px rgba(0,0,0,.18);display:none;text-align:left;color:#173f68}
+.homeInfo.show{display:block}.homeInfoTitle{font-weight:900;font-size:12px}.homeInfoText{font-size:10px;margin-top:3px;white-space:pre-wrap}.homeInfoMeta{font-size:8px;margin-top:4px;color:#71879a}
+
 .employeeCard,.vehicleCard{background:#fff;border-radius:14px;padding:12px;box-shadow:0 3px 12px rgba(0,45,90,.08)}
 .employeeTop,.vehicleTop{display:flex;justify-content:space-between;gap:8px;align-items:center}
 .employeeName,.vehicleName{font-weight:800}
@@ -570,7 +582,7 @@ body{display:block}
   .dashboardTwoCols{grid-template-columns:1fr}
   .dashboardGrid{grid-template-columns:1fr 1fr}
   .settingsPanel{padding:14px}
-  .settingsTabs{gap:6px}
+  .settingsTabs{grid-template-columns:1fr 1fr;gap:6px}
   .settingsTab{font-size:11px;padding:10px 5px}
 }
 
@@ -634,6 +646,7 @@ body{display:block}
       <button id="settingsTabSalaries" class="settingsTab active" type="button" role="tab" aria-selected="true" onclick="ouvrirOngletParametres('salaries')">👥 Salariés</button>
       <button id="settingsTabVehicules" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('vehicules')">🚑 Véhicules</button>
       <button id="settingsTabDashboard" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('dashboard')">📊 Tableau de bord</button>
+      <button id="settingsTabInformations" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('informations')">📢 Informations</button>
     </div>
 
     <div id="settingsMsg" class="settingsMsg"></div>
@@ -664,7 +677,25 @@ body{display:block}
       </div>
     </section>
 
-    <div style="text-align:center;font-size:10px;color:#71879a;margin-top:12px">SaniStock — Version 1.0.23</div>
+    <section id="settingsPaneInformations" class="settingsPane" role="tabpanel" hidden>
+      <div class="settingsPaneHead">
+        <div><strong>📢 Informations</strong><span>Publier un message visible par les salariés sur l’accueil.</span></div>
+      </div>
+      <div class="infoForm">
+        <input id="infoTitre" type="text" maxlength="80" placeholder="Titre de l'information">
+        <textarea id="infoMessage" maxlength="500" placeholder="Message à afficher aux salariés"></textarea>
+        <select id="infoPriorite">
+          <option value="info">🔵 Information</option>
+          <option value="important">🟠 Important</option>
+          <option value="urgent">🔴 Urgent</option>
+        </select>
+        <input id="infoExpiration" type="date" aria-label="Date d'expiration">
+        <button class="settingsAction" type="button" onclick="publierInformationUI()">📢 Publier l'information</button>
+      </div>
+      <div id="informationSettingsList"></div>
+    </section>
+
+    <div style="text-align:center;font-size:10px;color:#71879a;margin-top:12px">SaniStock — Version 1.0.24</div>
     <div class="settingsAdminBlock">
       <button class="settingsAction secondary" type="button" onclick="changerCodeAdminUI()">🔐 Modifier le code administrateur</button>
       <button class="settingsAction secondary" type="button" onclick="reinitialiserAccesProprietaire()">🔒 Réinitialiser mon accès propriétaire</button>
@@ -721,6 +752,7 @@ body{display:block}
   <button type="button" class="clickZone stockZone" onclick="showPage('stockPage')" aria-label="Stock"></button>
   <button type="button" class="clickZone disZone" onclick="showPage('disinfectionPage')" aria-label="Désinfection"></button>
   <button type="button" class="clickZone settingsZone" onclick="ouvrirParametres()" aria-label="Paramètres"></button>
+  <div id="homeInformation" class="homeInfo" aria-live="polite"></div>
   <div id="penseBeteAccueil" class="penseBeteAccueil" aria-live="polite">
     <div class="penseTitre">🚑 PENSE-BÊTE DU JOUR</div>
     <div id="penseBeteTexte" class="penseTexte">Malaise → contrôler les constantes et réaliser une glycémie si indiquée.</div>
@@ -1360,26 +1392,88 @@ function ouvrirOngletParametres(onglet){
   const ts=document.getElementById('settingsTabSalaries');
   const tv=document.getElementById('settingsTabVehicules');
   const td=document.getElementById('settingsTabDashboard');
+  const ti=document.getElementById('settingsTabInformations');
 
   const isSal=onglet==='salaries';
   const isVeh=onglet==='vehicules';
   const isDash=onglet==='dashboard';
+  const isInfo=onglet==='informations';
 
   sal.hidden=!isSal;
   veh.hidden=!isVeh;
   dash.hidden=!isDash;
+  document.getElementById('settingsPaneInformations').hidden=!isInfo;
 
   ts.classList.toggle('active',isSal);
   tv.classList.toggle('active',isVeh);
   td.classList.toggle('active',isDash);
+  ti.classList.toggle('active',isInfo);
 
   ts.setAttribute('aria-selected',String(isSal));
   tv.setAttribute('aria-selected',String(isVeh));
   td.setAttribute('aria-selected',String(isDash));
+  ti.setAttribute('aria-selected',String(isInfo));
 
   if(isSal) chargerGestionSalaries();
   else if(isVeh) chargerGestionVehicules();
   else if(isDash) chargerTableauBord();
+  else if(isInfo) chargerInformationsUI();
+}
+
+function chargerInformationsUI(){
+  const list=document.getElementById('informationSettingsList');
+  if(!list) return;
+  list.innerHTML='<div class="settingsMsg">Chargement des informations…</div>';
+  google.script.run.withSuccessHandler(function(rows){
+    rows=Array.isArray(rows)?rows:[];
+    list.innerHTML=rows.length?rows.map(function(r){
+      const p=String(r.priorite||'info');
+      const label=p==='urgent'?'🔴 URGENT':p==='important'?'🟠 IMPORTANT':'🔵 INFORMATION';
+      return '<div class="infoCard"><div class="infoCardHead"><strong>'+escapeHtml(r.titre||'Sans titre')+'</strong><span class="infoBadge '+p+'">'+label+'</span></div><div style="font-size:11px;margin-top:6px;white-space:pre-wrap">'+escapeHtml(r.message||'')+'</div><div style="font-size:9px;color:#71879a;margin-top:5px">Expiration : '+escapeHtml(r.expiration||'Aucune')+'</div><div style="margin-top:7px;text-align:right"><button class="infoDelete" onclick="supprimerInformationUI('+Number(r.id||0)+')">🗑️ Supprimer</button></div></div>';
+    }).join(''):'<div class="settingsMsg">Aucune information publiée.</div>';
+  }).withFailureHandler(function(err){
+    list.innerHTML='<div class="settingsMsg">Erreur : '+escapeHtml(err&&err.message?err.message:err)+'</div>';
+  }).getInformations(donneesAccesGestion(), true);
+}
+
+function publierInformationUI(){
+  const titre=(document.getElementById('infoTitre').value||'').trim();
+  const message=(document.getElementById('infoMessage').value||'').trim();
+  const priorite=document.getElementById('infoPriorite').value;
+  const expiration=document.getElementById('infoExpiration').value||'';
+  if(!titre || !message){ alert('⚠️ Le titre et le message sont obligatoires.'); return; }
+  messageParametres('Publication en cours…',true);
+  google.script.run.withSuccessHandler(function(){
+    document.getElementById('infoTitre').value='';
+    document.getElementById('infoMessage').value='';
+    document.getElementById('infoPriorite').value='info';
+    document.getElementById('infoExpiration').value='';
+    messageParametres('📢 Information publiée.',true);
+    chargerInformationsUI();
+    chargerInformationAccueil();
+  }).withFailureHandler(function(err){
+    messageParametres('Erreur : '+(err&&err.message?err.message:err),false);
+  }).ajouterInformation(Object.assign(donneesAccesGestion(),{titre:titre,message:message,priorite:priorite,expiration:expiration}));
+}
+
+function supprimerInformationUI(id){
+  if(!confirm('Supprimer cette information ?')) return;
+  google.script.run.withSuccessHandler(function(){
+    chargerInformationsUI(); chargerInformationAccueil();
+  }).withFailureHandler(function(err){ alert('Erreur : '+(err&&err.message?err.message:err)); })
+    .supprimerInformation(Object.assign(donneesAccesGestion(),{id:id}));
+}
+
+function chargerInformationAccueil(){
+  const box=document.getElementById('homeInformation');
+  if(!box || !gsDisponible()) return;
+  google.script.run.withSuccessHandler(function(r){
+    if(!r || !r.titre){ box.classList.remove('show'); box.innerHTML=''; return; }
+    const p=String(r.priorite||'info');
+    const icon=p==='urgent'?'🔴':p==='important'?'🟠':'📢';
+    box.innerHTML='<div class="homeInfoTitle">'+icon+' '+escapeHtml(r.titre)+'</div><div class="homeInfoText">'+escapeHtml(r.message||'')+'</div><div class="homeInfoMeta">'+(r.expiration?'Jusqu’au '+escapeHtml(r.expiration):'Information publiée par SaniStock')+'</div>';
+    box.classList.add('show');
+  }).withFailureHandler(function(){ box.classList.remove('show'); }).getInformations(null,false);
 }
 
 function chargerAlertesStock(){
@@ -1651,6 +1745,7 @@ function changerCodeAdminUI(){
 
 document.getElementById('settingsBtn').addEventListener('click',ouvrirParametres);
 document.getElementById('settingsOverlay').addEventListener('click',function(e){if(e.target===this)fermerParametres()});
+setTimeout(chargerInformationAccueil,700);
 </script>
 
 
