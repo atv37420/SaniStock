@@ -531,6 +531,7 @@ body{display:block}
 .dashboardKpi.warning .kpiValue{color:#e68a00}
 .dashboardKpi.success .kpiValue{color:#15803d}
 .dashboardKpi.clickable{cursor:pointer;transition:transform .15s ease,box-shadow .15s ease;border:2px solid transparent}
+.dashboardKpi{appearance:none;-webkit-appearance:none;width:100%;font:inherit;text-align:center;display:block;position:relative;z-index:5;pointer-events:auto}
 .dashboardKpi.clickable:hover{transform:translateY(-1px);box-shadow:0 7px 18px rgba(18,55,82,.12)}
 .dashboardKpi.clickable:active{transform:scale(.98)}
 .dashboardKpi.danger.clickable{border-color:#ffd0d6}
@@ -1682,7 +1683,7 @@ function afficherTableauBord(stock,historique,vehicules){
   html.push('</div>');
 
   function lignesAlertesDashboard_(liste,titre,classe){
-    let out='<div id="dashboardAlertDetail" class="dashboardAlertDetail">';
+    let out='<div id="dashboardAlertDetail" class="dashboardAlertDetail" hidden>';
     out+='<div class="dashboardAlertDetailHead"><div><div class="dashboardAlertDetailTitle">'+titre+'</div><div class="dashboardSectionSub">'+liste.length+' produit(s)</div></div><button class="dashboardAlertClose" type="button" onclick="fermerAlertesDashboard()">✕ Fermer</button></div>';
     out+='<div class="dashboardRows">';
     if(!liste.length) out+='<div class="dashboardEmpty">✅ Aucune alerte dans cette catégorie.</div>';
@@ -1697,7 +1698,7 @@ function afficherTableauBord(stock,historique,vehicules){
   html.push(lignesAlertesDashboard_(minimum,'🟠 Produits au stock minimum','warning'));
 
   /* Détails cachés au départ : ils s'ouvrent uniquement en cliquant sur la tuile correspondante. */
-  let detailPeremption='<div id="dashboardDetailPeremption" class="dashboardAlertDetail">';
+  let detailPeremption='<div id="dashboardDetailPeremption" class="dashboardAlertDetail" hidden>';
   detailPeremption+='<div class="dashboardAlertDetailHead"><div><div class="dashboardAlertDetailTitle">📅 Prochaines péremptions</div><div class="dashboardSectionSub">'+peremptions.length+' produit(s) dans les 90 jours</div></div><button class="dashboardAlertClose" type="button" onclick="fermerDetailsDashboard()">✕ Fermer</button></div>';
   detailPeremption+='<div class="dashboardRows">';
   if(!peremptions.length) detailPeremption+='<div class="dashboardEmpty">✅ Aucune péremption dans les 90 jours.</div>';
@@ -1708,7 +1709,7 @@ function afficherTableauBord(stock,historique,vehicules){
   detailPeremption+='</div></div>';
   html.push(detailPeremption);
 
-  let detailDesinfection='<div id="dashboardDetailDesinfection" class="dashboardAlertDetail">';
+  let detailDesinfection='<div id="dashboardDetailDesinfection" class="dashboardAlertDetail" hidden>';
   detailDesinfection+='<div class="dashboardAlertDetailHead"><div><div class="dashboardAlertDetailTitle">🧼 Désinfections des véhicules</div><div class="dashboardSectionSub">'+historique.length+' désinfection(s) récente(s)</div></div><button class="dashboardAlertClose" type="button" onclick="fermerDetailsDashboard()">✕ Fermer</button></div>';
   detailDesinfection+='<div class="dashboardRows">';
   if(!recentDes.length) detailDesinfection+='<div class="dashboardEmpty">Aucune désinfection enregistrée.</div>';
@@ -1735,26 +1736,29 @@ function afficherTableauBord(stock,historique,vehicules){
 }
 
 function dashboardKpi_(icon,value,label,kind,onclick){
-  return '<div class="dashboardKpi '+(kind||'')+(onclick?' clickable" role="button" tabindex="0" onclick="'+onclick+'"':'"')+'><div class="kpiIcon">'+icon+'</div><div class="kpiValue">'+value+'</div><div class="kpiLabel">'+label+(onclick?' • cliquer pour voir':'')+'</div></div>';
+  /* Utilise un vrai <button> : le clic reste fiable même si le navigateur bloque
+     certains gestionnaires inline. Les 4 tuiles du tableau de bord sont donc
+     de véritables boutons, pas seulement des <div> cliquables. */
+  return '<button type="button" class="dashboardKpi '+(kind||'')+(onclick?' clickable" onclick="'+onclick+'"':'"')+' aria-label="'+escapeHtml(label)+'"><span class="kpiIcon">'+icon+'</span><span class="kpiValue">'+value+'</span><span class="kpiLabel">'+label+(onclick?' • cliquer pour voir':'')+'</span></button>';
 }
 function ouvrirAlertesDashboard(type){
   const details=document.querySelectorAll('#dashboardContent .dashboardAlertDetail');
-  details.forEach(function(el){el.classList.remove('show');});
+  details.forEach(function(el){el.classList.remove('show'); el.hidden=true;});
   const target=type==='rupture'?details[0]:details[1];
-  if(target){target.classList.add('show'); target.scrollIntoView({behavior:'smooth',block:'nearest'});}
+  if(target){target.hidden=false; target.classList.add('show'); target.scrollIntoView({behavior:'smooth',block:'nearest'});}
 }
 function ouvrirDetailsDashboard(type){
-  document.querySelectorAll('#dashboardContent .dashboardAlertDetail').forEach(function(el){el.classList.remove('show');});
+  document.querySelectorAll('#dashboardContent .dashboardAlertDetail').forEach(function(el){el.classList.remove('show'); el.hidden=true;});
   let target=null;
   if(type==='peremption') target=document.getElementById('dashboardDetailPeremption');
   if(type==='desinfection') target=document.getElementById('dashboardDetailDesinfection');
-  if(target){target.classList.add('show'); target.scrollIntoView({behavior:'smooth',block:'nearest'});}
+  if(target){target.hidden=false; target.classList.add('show'); target.scrollIntoView({behavior:'smooth',block:'nearest'});}
 }
 function fermerAlertesDashboard(){
-  document.querySelectorAll('#dashboardContent .dashboardAlertDetail').forEach(function(el){el.classList.remove('show');});
+  document.querySelectorAll('#dashboardContent .dashboardAlertDetail').forEach(function(el){el.classList.remove('show'); el.hidden=true;});
 }
 function fermerDetailsDashboard(){
-  document.querySelectorAll('#dashboardContent .dashboardAlertDetail').forEach(function(el){el.classList.remove('show');});
+  document.querySelectorAll('#dashboardContent .dashboardAlertDetail').forEach(function(el){el.classList.remove('show'); el.hidden=true;});
 }
 </script>
 
