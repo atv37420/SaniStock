@@ -1942,10 +1942,16 @@ function changerCodeAdminUI(){
           unlock(savedName);
 
           const bonjour=document.createElement('div');
-          bonjour.textContent='Bonjour '+savedName+' 👋';
-          bonjour.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:25000;background:rgba(255,255,255,.96);color:#073f91;padding:10px 16px;border-radius:999px;font-weight:900;box-shadow:0 5px 18px rgba(0,0,0,.18);white-space:nowrap';
+          bonjour.innerHTML='<div style=\"font-size:18px;font-weight:600;letter-spacing:.2px;opacity:.95\">Bonjour</div><div style=\"font-size:30px;font-weight:900;letter-spacing:.2px;margin-top:3px;white-space:nowrap\">'+savedName+' 👋</div><div style=\"height:3px;width:120px;margin:12px auto 0;border-radius:99px;background:linear-gradient(90deg,transparent,#16a8ff,#ffffff,#16a8ff,transparent);box-shadow:0 0 14px #16a8ff;animation:saniBonjourLine 1.35s ease-in-out infinite alternate\"></div>';
+          bonjour.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.82);z-index:25000;text-align:center;color:#fff;padding:22px 28px 20px;border-radius:24px;background:linear-gradient(145deg,rgba(7,63,145,.94),rgba(0,122,255,.88));border:1px solid rgba(82,194,255,.9);box-shadow:0 0 18px rgba(22,168,255,.65),0 0 55px rgba(22,168,255,.35),0 18px 50px rgba(0,0,0,.28);white-space:nowrap;opacity:0;backdrop-filter:blur(8px);font-family:Arial,sans-serif;animation:saniBonjourIn .55s cubic-bezier(.2,.85,.25,1) forwards';
+          if(!document.getElementById('saniBonjourAnimStyle')){
+            const st=document.createElement('style');
+            st.id='saniBonjourAnimStyle';
+            st.textContent='@keyframes saniBonjourIn{0%{opacity:0;transform:translate(-50%,-50%) scale(.72);filter:blur(7px)}65%{opacity:1;transform:translate(-50%,-50%) scale(1.04);filter:blur(0)}100%{opacity:1;transform:translate(-50%,-50%) scale(1)}}@keyframes saniBonjourLine{0%{transform:scaleX(.55);opacity:.55}100%{transform:scaleX(1.15);opacity:1}}';
+            document.head.appendChild(st);
+          }
           document.body.appendChild(bonjour);
-          setTimeout(function(){bonjour.remove()},2200);
+          setTimeout(function(){bonjour.style.transition='opacity .45s ease, transform .45s ease';bonjour.style.opacity='0';bonjour.style.transform='translate(-50%,-50%) scale(.94)';setTimeout(function(){bonjour.remove()},470)},2200);
         }).withFailureHandler(function(){
           localStorage.removeItem(KEY_NAME);
           localStorage.removeItem(KEY_CODE);
