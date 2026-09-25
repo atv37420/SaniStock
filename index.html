@@ -1361,6 +1361,7 @@ function ouvrirParametres(){
   if(appareilProprietaire()){
     document.getElementById('settingsOverlay').classList.add('open');
     document.getElementById('settingsOverlay').setAttribute('aria-hidden','false');
+    /* Recharge systématiquement les données à l'ouverture. */
     ouvrirOngletParametres('salaries');
     return;
   }
@@ -1406,6 +1407,16 @@ function fermerParametres(){
   const o=document.getElementById('settingsOverlay');
   o.classList.remove('open');
   o.setAttribute('aria-hidden','true');
+}
+
+/* Actualisation automatique à chaque nouvelle ouverture des paramètres. */
+function actualiserParametresAChaqueOuverture(){
+  try{
+    if(!appareilProprietaire()) return;
+    const active=document.querySelector('#settingsTabs .settingsTab.active');
+    const onglet=active ? active.getAttribute('data-onglet') : 'salaries';
+    ouvrirOngletParametres(onglet || 'salaries');
+  }catch(e){}
 }
 
 function ouvrirOngletParametres(onglet){
