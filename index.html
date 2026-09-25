@@ -24,7 +24,7 @@
   let n = 0;
 
   const OFFLINE_DB = 'SaniStockOfflineDB';
-  const OFFLINE_VERSION = 1;
+  const OFFLINE_VERSION = 2;
   const WRITE_ACTIONS = new Set([
     'enregistrerEntreesStock',
     'enregistrerSortiesStock',
@@ -2114,6 +2114,23 @@ function changerCodeAdminUI(){
   function verify(name,code,remember){
     if(!name||!code){showError('Sélectionnez votre nom et entrez votre code.');return}
     btn.disabled=true; btn.textContent='Vérification…'; showError('');
+
+    /* ===== CONNEXION SALARIÉ HORS LIGNE ===== */
+    if(!navigator.onLine){
+      const savedName=localStorage.getItem(KEY_NAME)||'';
+      const savedCode=localStorage.getItem(KEY_CODE)||'';
+      if(name===savedName && String(code)===String(savedCode) && savedName && savedCode){
+        btn.disabled=false; btn.textContent='Se connecter';
+        activerAccesProprietaire(name,code);
+        unlock(name);
+        showError('');
+        return;
+      }
+      btn.disabled=false; btn.textContent='Se connecter';
+      showError('Hors ligne : utilisez le nom et le code déjà enregistrés sur cet appareil.');
+      return;
+    }
+
     google.script.run.withSuccessHandler(function(result){
       btn.disabled=false; btn.textContent='Se connecter';
       if(!result || result.valide !== true){
@@ -2136,6 +2153,7 @@ function changerCodeAdminUI(){
   function loadNames(){
     google.script.run.withSuccessHandler(function(noms){
       noms=Array.isArray(noms)?noms:[];
+      try{ localStorage.setItem('sanistock_cached_employee_names',JSON.stringify(noms)); }catch(e){}
       nameSel.innerHTML='<option value="">Sélectionner votre nom</option>'+noms.map(function(n){return '<option value="'+escapeHtml(n)+'">'+escapeHtml(n)+'</option>'}).join('');
       const savedName=localStorage.getItem(KEY_NAME)||'';
       const savedCode=localStorage.getItem(KEY_CODE)||'';
@@ -2170,8 +2188,15 @@ function changerCodeAdminUI(){
         }).verifierCodeSalarie({salarie:savedName,code:String(savedCode)});
       }
     }).withFailureHandler(function(){
-      nameSel.innerHTML='<option value="">Connexion impossible</option>';
-      showError('Impossible de charger les salariés.');
+      let noms=[];
+      try{ noms=JSON.parse(localStorage.getItem('sanistock_cached_employee_names')||'[]'); }catch(e){ noms=[]; }
+      noms=Array.isArray(noms)?noms:[];
+      nameSel.innerHTML='<option value="">Sélectionner votre nom</option>'+noms.map(function(n){return '<option value="'+escapeHtml(n)+'">'+escapeHtml(n)+'</option>'}).join('');
+      if(!navigator.onLine){
+        showError(noms.length?'Mode hors ligne : choisissez votre nom puis utilisez votre code mémorisé.':'Aucun salarié enregistré sur cet appareil. Connectez-vous une première fois avec Internet.');
+      }else{
+        showError('Impossible de charger les salariés.');
+      }
     }).getSalaries();
   }
   btn.addEventListener('click',function(){verify(nameSel.value,(codeInput.value||'').trim(),true)});
@@ -2186,6 +2211,18 @@ function changerCodeAdminUI(){
     location.reload();
   };
   setTimeout(loadNames,250);
+
+  /* Prépare immédiatement le menu avec la dernière liste connue si Internet est absent. */
+  if(!navigator.onLine){
+    try{
+      const noms=JSON.parse(localStorage.getItem('sanistock_cached_employee_names')||'[]');
+      if(Array.isArray(noms) && noms.length){
+        nameSel.innerHTML='<option value="">Sélectionner votre nom</option>'+noms.map(function(n){return '<option value="'+escapeHtml(n)+'">'+escapeHtml(n)+'</option>'}).join('');
+      }
+      const savedName=localStorage.getItem(KEY_NAME)||'';
+      if(savedName) nameSel.value=savedName;
+    }catch(e){}
+  }
 })();
 
 document.getElementById('settingsBtn').addEventListener('click',ouvrirParametres);
