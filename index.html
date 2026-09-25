@@ -18,62 +18,273 @@
 
 
 <script>
-/* ===== PONT GITHUB -> GOOGLE APPS SCRIPT ===== */
+/* ===== PONT GITHUB -> GOOGLE APPS SCRIPT + MODE HORS LIGNE ===== */
 (function(){
   const API_URL = 'https://script.google.com/macros/s/AKfycbxz5dZkT7FyFx8ohxWmg2Pt23Yqx0LQDMqqJg8LM8bkfN3ulkb37VqUO8m8WvjyuGBqrg/exec';
   let n = 0;
 
-  function createRunner(success, failure){
-    const target = {
-      withSuccessHandler(fn){ return createRunner(fn, failure); },
-      withFailureHandler(fn){ return createRunner(success, fn); }
+  const OFFLINE_DB = 'SaniStockOfflineDB';
+  const OFFLINE_VERSION = 1;
+  const WRITE_ACTIONS = new Set([
+    'enregistrerEntreesStock',
+    'enregistrerSortiesStock',
+    'enregistrerDesinfection',
+    'ajouterInformation',
+    'supprimerInformation'
+  ]);
+
+  function openOfflineDB(){
+    return new Promise((resolve,reject)=>{
+      if(!window.indexedDB){ reject(new Error('IndexedDB indisponible')); return; }
+      const req=indexedDB.open(OFFLINE_DB,OFFLINE_VERSION);
+      req.onupgradeneeded=function(){
+        const db=req.result;
+        if(!db.objectStoreNames.contains('pending')){
+          db.createObjectStore('pending',{keyPath:'id',autoIncrement:true});
+        }
+        if(!db.objectStoreNames.contains('cache')){
+          db.createObjectStore('cache',{keyPath:'key'});
+        }
+      };
+      req.onsuccess=()=>resolve(req.result);
+      req.onerror=()=>reject(req.error);
+    });
+  }
+
+  async function dbPut(storeName,value){
+    const db=await openOfflineDB();
+    return new Promise((resolve,reject)=>{
+      const tx=db.transaction(storeName,'readwrite');
+      tx.objectStore(storeName).put(value);
+      tx.oncomplete=()=>{db.close();resolve(true)};
+      tx.onerror=()=>{db.close();reject(tx.error)};
+    });
+  }
+
+  async function dbGet(storeName,key){
+    const db=await openOfflineDB();
+    return new Promise((resolve,reject)=>{
+      const tx=db.transaction(storeName,'readonly');
+      const req=tx.objectStore(storeName).get(key);
+      req.onsuccess=()=>{db.close();resolve(req.result||null)};
+      req.onerror=()=>{db.close();reject(req.error)};
+    });
+  }
+
+  async function dbAll(storeName){
+    const db=await openOfflineDB();
+    return new Promise((resolve,reject)=>{
+      const tx=db.transaction(storeName,'readonly');
+      const req=tx.objectStore(storeName).getAll();
+      req.onsuccess=()=>{db.close();resolve(req.result||[])};
+      req.onerror=()=>{db.close();reject(req.error)};
+    });
+  }
+
+  async function dbDelete(storeName,key){
+    const db=await openOfflineDB();
+    return new Promise((resolve,reject)=>{
+      const tx=db.transaction(storeName,'readwrite');
+      tx.objectStore(storeName).delete(key);
+      tx.oncomplete=()=>{db.close();resolve(true)};
+      tx.onerror=()=>{db.close();reject(tx.error)};
+    });
+  }
+
+  function offlineKey(action,data){
+    let raw='';
+    try{ raw=JSON.stringify(data||{}); }catch(e){ raw=''; }
+    return action+'|'+raw;
+  }
+
+  async function cacheResponse(action,data,result){
+    try{
+      await dbPut('cache',{key:offlineKey(action,data),action:action,data:data||null,result:result});
+    }catch(e){}
+  }
+
+  async function getCachedResponse(action,data){
+    try{
+      const x=await dbGet('cache',offlineKey(action,data));
+      return x ? x.result : null;
+    }catch(e){ return null; }
+  }
+
+  async function queueWrite(action,data){
+    await dbPut('pending',{
+      action:action,
+      data:data||null,
+      createdAt:new Date().toISOString()
+    });
+    window.dispatchEvent(new CustomEvent('sanistock-offline-queued'));
+  }
+
+  function offlineMessage(action){
+    if(action==='enregistrerSortiesStock') return 'Sortie enregistrée hors ligne. Elle sera synchronisée dès le retour de la connexion.';
+    if(action==='enregistrerEntreesStock') return 'Entrée enregistrée hors ligne. Elle sera synchronisée dès le retour de la connexion.';
+    if(action==='enregistrerDesinfection') return 'Désinfection enregistrée hors ligne. Elle sera synchronisée dès le retour de la connexion.';
+    return 'Action enregistrée hors ligne. Elle sera synchronisée dès le retour de la connexion.';
+  }
+
+  function sendJsonp(action,data,onSuccess,onFailure){
+    const cb='__sanistock_cb_'+Date.now()+'_'+(++n);
+    const script=document.createElement('script');
+    let done=false;
+
+    const cleanup=()=>{
+      if(done) return;
+      done=true;
+      try{delete window[cb]}catch(e){window[cb]=undefined}
+      if(script.parentNode) script.parentNode.removeChild(script);
     };
-    return new Proxy(target, {
-      get(obj, prop){
+
+    window[cb]=function(res){
+      cleanup();
+      if(res && res.success){
+        if(typeof onSuccess==='function') onSuccess(res.data);
+      }else{
+        if(typeof onFailure==='function') onFailure({message:(res&&res.error)||'Erreur SaniStock'});
+      }
+    };
+
+    script.onerror=function(){
+      cleanup();
+      if(typeof onFailure==='function') onFailure({message:'Connexion à Google Apps Script impossible'});
+    };
+
+    const q=new URLSearchParams({
+      api:'1',
+      action:String(action),
+      callback:cb,
+      data:JSON.stringify(data==null?null:data)
+    });
+    script.src=API_URL+'?'+q.toString();
+    document.head.appendChild(script);
+
+    setTimeout(function(){
+      if(!done){
+        cleanup();
+        if(typeof onFailure==='function') onFailure({message:'Délai de connexion dépassé'});
+      }
+    },15000);
+  }
+
+  async function synchroniser(){
+    if(!navigator.onLine) return;
+    let pending=[];
+    try{ pending=await dbAll('pending'); }catch(e){ return; }
+    if(!pending.length){
+      updateOfflineStatus();
+      return;
+    }
+
+    for(const item of pending){
+      if(!navigator.onLine) break;
+      await new Promise(resolve=>{
+        sendJsonp(item.action,item.data,async function(){
+          await dbDelete('pending',item.id);
+          resolve();
+        },function(){
+          resolve();
+        });
+      });
+    }
+
+    updateOfflineStatus();
+    window.dispatchEvent(new CustomEvent('sanistock-sync-complete'));
+  }
+
+  async function pendingCount(){
+    try{
+      const rows=await dbAll('pending');
+      return rows.length;
+    }catch(e){ return 0; }
+  }
+
+  async function updateOfflineStatus(){
+    const count=await pendingCount();
+    document.documentElement.dataset.sanistockOnline=navigator.onLine?'1':'0';
+    document.documentElement.dataset.sanistockPending=String(count);
+    window.dispatchEvent(new CustomEvent('sanistock-status',{detail:{online:navigator.onLine,pending:count}}));
+  }
+
+  window.SaniStockOffline={
+    synchroniser:synchroniser,
+    pendingCount:pendingCount,
+    updateStatus:updateOfflineStatus
+  };
+
+  function createRunner(success,failure){
+    const target={
+      withSuccessHandler(fn){return createRunner(fn,failure);},
+      withFailureHandler(fn){return createRunner(success,fn);}
+    };
+
+    return new Proxy(target,{
+      get(obj,prop){
         if(prop in obj) return obj[prop];
+
         return function(){
-          const args = Array.from(arguments);
-          let data = args.length <= 1 ? (args[0] ?? null) : args;
-          // Les fonctions de vérification reçoivent un code simple depuis l'interface.
-          // L'API Apps Script attend un objet {code: "..."}.
-          if ((prop === 'verifierCodeAdmin' || prop === 'verifierCodeSalarie' || prop === 'verifierCodeEntreeStock')
-              && (typeof data === 'string' || typeof data === 'number')) {
-            data = { code: String(data) };
+          const args=Array.from(arguments);
+          let data=args.length<=1?(args[0]??null):args;
+
+          if((prop==='verifierCodeAdmin'||prop==='verifierCodeSalarie'||prop==='verifierCodeEntreeStock')
+             &&(typeof data==='string'||typeof data==='number')){
+            data={code:String(data)};
           }
-          const cb = '__sanistock_cb_' + Date.now() + '_' + (++n);
-          const script = document.createElement('script');
-          let done = false;
-          const cleanup = () => {
-            if(done) return; done = true;
-            try{ delete window[cb]; }catch(e){ window[cb]=undefined; }
-            if(script.parentNode) script.parentNode.removeChild(script);
-          };
-          window[cb] = function(res){
-            cleanup();
-            if(res && res.success){ if(typeof success==='function') success(res.data); }
-            else { if(typeof failure==='function') failure({message:(res&&res.error)||'Erreur SaniStock'}); }
-          };
-          script.onerror = function(){
-            cleanup();
-            if(typeof failure==='function') failure({message:'Connexion à Google Apps Script impossible'});
-          };
-          const q = new URLSearchParams({api:'1', action:String(prop), callback:cb, data:JSON.stringify(data)});
-          script.src = API_URL + '?' + q.toString();
-          document.head.appendChild(script);
-          setTimeout(function(){
-            if(!done){ cleanup(); if(typeof failure==='function') failure({message:'Délai de connexion dépassé'}); }
-          }, 15000);
+
+          /* Hors connexion : on rejoue les lectures depuis le dernier cache disponible. */
+          if(!navigator.onLine){
+            if(WRITE_ACTIONS.has(String(prop))){
+              queueWrite(String(prop),data)
+                .then(()=>{if(typeof success==='function') success({message:offlineMessage(String(prop)),offline:true})})
+                .catch(()=>{if(typeof failure==='function') failure({message:'Impossible d’enregistrer hors ligne'})});
+              return;
+            }
+
+            getCachedResponse(String(prop),data).then(cached=>{
+              if(cached!==null && typeof success==='function') success(cached);
+              else if(typeof failure==='function') failure({message:'Données indisponibles hors connexion'});
+            });
+            return;
+          }
+
+          sendJsonp(String(prop),data,async function(result){
+            await cacheResponse(String(prop),data,result);
+            if(typeof success==='function') success(result);
+            synchroniser();
+          },function(err){
+            /* On ne met en attente qu'en cas de perte réelle de réseau. */
+            if(WRITE_ACTIONS.has(String(prop)) && !navigator.onLine){
+              queueWrite(String(prop),data)
+                .then(()=>{if(typeof success==='function') success({message:offlineMessage(String(prop)),offline:true})})
+                .catch(()=>{if(typeof failure==='function') failure(err)});
+            }else if(typeof failure==='function'){
+              failure(err);
+            }
+          });
         };
       }
     });
   }
 
-  window.google = window.google || {};
-  window.google.script = window.google.script || {};
-  Object.defineProperty(window.google.script, 'run', {
+  window.google=window.google||{};
+  window.google.script=window.google.script||{};
+  Object.defineProperty(window.google.script,'run',{
     configurable:true,
-    get:function(){ return createRunner(null,null); }
+    get:function(){return createRunner(null,null);}
   });
+
+  window.addEventListener('online',function(){
+    updateOfflineStatus();
+    setTimeout(synchroniser,500);
+  });
+  window.addEventListener('offline',function(){
+    updateOfflineStatus();
+  });
+
+  updateOfflineStatus();
+  if(navigator.onLine) setTimeout(synchroniser,1000);
 })();
 </script>
 
@@ -2729,6 +2940,38 @@ if ("serviceWorker" in navigator) {
       .catch(error => console.error("Erreur Service Worker :", error));
   });
 }
+</script>
+
+
+<!-- ===== INDICATEUR MODE HORS LIGNE ===== -->
+<div id="sanistockOfflineBadge" style="position:fixed;left:50%;bottom:10px;transform:translateX(-50%);z-index:99999;display:none;padding:7px 12px;border-radius:999px;background:#333;color:#fff;font:700 11px Arial,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.25);pointer-events:none"></div>
+<script>
+(function(){
+  const badge=document.getElementById('sanistockOfflineBadge');
+  async function refresh(){
+    if(!badge) return;
+    const online=navigator.onLine;
+    let pending=0;
+    try{ pending=await (window.SaniStockOffline?window.SaniStockOffline.pendingCount():0); }catch(e){}
+    if(!online){
+      badge.textContent='📴 Hors connexion'+(pending?' · '+pending+' en attente':'');
+      badge.style.display='block';
+    }else if(pending){
+      badge.textContent='🔄 Synchronisation de '+pending+' opération'+(pending>1?'s':'')+'…';
+      badge.style.display='block';
+    }else{
+      badge.textContent='🟢 En ligne';
+      badge.style.display='block';
+      setTimeout(()=>{if(navigator.onLine && !Number(document.documentElement.dataset.sanistockPending||0)) badge.style.display='none'},2500);
+    }
+  }
+  window.addEventListener('online',refresh);
+  window.addEventListener('offline',refresh);
+  window.addEventListener('sanistock-status',refresh);
+  window.addEventListener('sanistock-offline-queued',refresh);
+  window.addEventListener('sanistock-sync-complete',refresh);
+  setTimeout(refresh,800);
+})();
 </script>
 
 </body>
