@@ -1615,15 +1615,18 @@ function chargerAlertesStock(){
   }).getStockAlertesAdmin(donneesAccesGestion());
 }
 
+let messageParametresTimer=null;
 function messageParametres(t,ok=true){
   const m=document.getElementById('settingsMsg');
   if(!m) return;
+  if(messageParametresTimer) clearTimeout(messageParametresTimer);
   m.style.color=ok?'#15803d':'#b42318';
   m.textContent=t||'';
-  if(window._sanistockMsgTimer) clearTimeout(window._sanistockMsgTimer);
   if(t){
-    window._sanistockMsgTimer=setTimeout(function(){
+    messageParametresTimer=setTimeout(function(){
       m.textContent='';
+      m.style.color='';
+      messageParametresTimer=null;
     },3000);
   }
 }
