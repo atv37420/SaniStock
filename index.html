@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>SaniStock</title>
-<!-- Icône SaniStock pour téléphone -->
+<!-- Icône SaniStock pour téAléphone -->
 <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/atv37420/SaniStock/main/0.png">
 <link rel="shortcut icon" type="image/png" href="https://raw.githubusercontent.com/atv37420/SaniStock/main/0.png">
 <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/atv37420/SaniStock/main/0.png">
@@ -1490,6 +1490,8 @@ function chargerInformationAccueil(){
   const modal=document.getElementById('homeInformationModal');
   if(!gsDisponible()) return;
   google.script.run.withSuccessHandler(function(r){
+    /* getInformations() renvoie une liste : on prend la première information. */
+    if(Array.isArray(r)) r=r.length?r[0]:null;
     if(!r || !r.titre){
       if(modal){ modal.classList.remove('show'); modal.setAttribute('aria-hidden','true'); }
       if(box){ box.classList.remove('show'); box.innerHTML=''; }
