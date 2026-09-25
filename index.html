@@ -1,4 +1,4 @@
-<!-- SaniStock version 1.0.28 : admin exempté des alertes + actualisation automatique -->
+<!-- SaniStock version 1.0.29 : admin exempté des alertes + actualisation automatique -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -1475,6 +1475,10 @@ function publierInformationUI(){
     fermerInformationAccueilSilencieux();
     chargerInformationsUI();
     chargerInformationAccueil();
+    setTimeout(function(){
+      const el=document.getElementById('settingsMsg');
+      if(el){ el.textContent=''; el.classList.remove('show'); }
+    },3000);
   }).withFailureHandler(function(err){
     messageParametres('Erreur : '+(err&&err.message?err.message:err),false);
   }).ajouterInformation(Object.assign(donneesAccesGestion(),{titre:titre,message:message,priorite:priorite,expiration:expiration}));
@@ -1521,6 +1525,7 @@ function chargerInformationAccueil(){
       return;
     }
     if(modal){
+      modal.style.display='flex';
       document.getElementById('homeInfoModalBadge').textContent=icon+' '+(p==='urgent'?'URGENT':p==='important'?'IMPORTANT':'INFORMATION');
       document.getElementById('homeInfoModalTitle').textContent=String(r.titre||'');
       document.getElementById('homeInfoModalText').textContent=String(r.message||'');
@@ -1566,10 +1571,16 @@ function marquerInformationLue(id){
   if(id && informationsLues.indexOf(id)<0) informationsLues.push(id);
   localStorage.setItem(cleLecture,JSON.stringify(informationsLues));
   const box=document.getElementById('homeInformation');
-  if(box){ box.classList.remove('show'); box.innerHTML=''; }
+  if(box){
+    box.classList.remove('show');
+    box.style.display='none';
+    box.innerHTML='';
+    box.setAttribute('aria-hidden','true');
+  }
   const modal=document.getElementById('homeInformationModal');
   if(modal){
     modal.classList.remove('show');
+    modal.style.display='none';
     modal.setAttribute('aria-hidden','true');
   }
 }
