@@ -1943,7 +1943,7 @@ function changerCodeAdminUI(){
 
           const bonjour=document.createElement('div');
           bonjour.textContent='Bonjour '+savedName+' 👋';
-          bonjour.style.cssText='position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:25000;background:rgba(255,255,255,.96);color:#073f91;padding:10px 16px;border-radius:999px;font-weight:900;box-shadow:0 5px 18px rgba(0,0,0,.18);white-space:nowrap';
+          bonjour.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:25000;background:rgba(255,255,255,.96);color:#073f91;padding:10px 16px;border-radius:999px;font-weight:900;box-shadow:0 5px 18px rgba(0,0,0,.18);white-space:nowrap';
           document.body.appendChild(bonjour);
           setTimeout(function(){bonjour.remove()},2200);
         }).withFailureHandler(function(){
