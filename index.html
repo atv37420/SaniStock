@@ -789,7 +789,7 @@ body{display:block}
     <button type="button" class="homeButton4 medication4" onclick="showPage('medicationPage')" aria-label="Mémo médicaments"><span class="homeButtonIcon">💊</span><span class="homeButtonTitle">MÉMO MÉDICAMENTS</span><span class="homeButtonDesc">Infos sur les médicaments</span></button>
     <button type="button" class="homeButton4 settings4" onclick="ouvrirParametres()" aria-label="Paramètres"><span class="homeButtonIcon">⚙️</span><span class="homeButtonTitle">PARAMÈTRES</span><span class="homeButtonDesc">Gérer l’application</span></button>
   </div>
-  <div class="saniVersion" aria-label="Version de SaniStock">Version 1.0.40</div>
+  <div class="saniVersion" aria-label="Version de SaniStock">Version 1.0.41</div>
   <div id="homeInformation" class="homeInfo" aria-live="polite"></div>
 <div id="homeInformationModal" class="homeInfoModal" aria-hidden="true">
   <div class="homeInfoModalCard" role="dialog" aria-modal="true" aria-labelledby="homeInfoModalTitle">
@@ -908,6 +908,7 @@ function showPage(id){
 
  window.scrollTo(0,0);
  if(id==='stockPage') chargerStock();
+ if(id==='medicationPage') setTimeout(function(){ if(typeof renderMedicationMemo==='function') renderMedicationMemo(); },0);
 
  setTimeout(function(){
    if(actuelle){
@@ -2646,12 +2647,13 @@ function renderMedicationMemo(){
  const input=document.getElementById('medicationSearch');
  if(!list||!input) return;
  const q=input.value.trim().toLowerCase();
- const rows=SANISTOCK_MEDICATIONS.filter(m=>
-   !q || (m.name+' '+m.active+' '+m.role).toLowerCase().includes(q)
- );
- list.innerHTML=rows.length
-   ?rows.map(m=>'<div class="medicationCard" style="background:#f7fafc;border:1px solid #d9e4ec;border-radius:12px;padding:14px;margin-bottom:10px"><strong style="color:#0757a0">💊 '+m.name+'</strong><br><span>'+m.active+'</span><br><small>'+m.role+'</small></div>').join('')
-   :'<div style="padding:14px;text-align:center">Aucun médicament trouvé.</div>';
+ const rows=SANISTOCK_MEDICATIONS.filter(function(m){
+   return !q || (m.name+' '+m.active+' '+m.role).toLowerCase().includes(q);
+ });
+ const info='<div style="padding:10px 14px;margin-bottom:12px;background:#eef6ff;border:1px solid #cfe2f5;border-radius:12px;font-weight:700;color:#0757a0">💊 '+rows.length+' médicament(s) affiché(s) — '+SANISTOCK_MEDICATIONS.length+' au total</div>';
+ list.innerHTML=info+(rows.length
+   ?rows.map(function(m){return '<div class="medicationCard" style="background:#f7fafc;border:1px solid #d9e4ec;border-radius:12px;padding:14px;margin-bottom:10px"><strong style="color:#0757a0">💊 '+m.name+'</strong><br><span>'+m.active+'</span><br><small>'+m.role+'</small></div>';}).join('')
+   :'<div style="padding:14px;text-align:center">Aucun médicament trouvé.</div>');
 }
 
 document.addEventListener('DOMContentLoaded',function(){
