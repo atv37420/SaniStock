@@ -984,7 +984,9 @@ let codeEntreeStockValide='';
 function demanderCodeEntreeStock(){
  const overlay=$('stockPinOverlay'), input=$('stockPinInput'), err=$('stockPinError');
  if(!overlay||!input) return;
- if(appareilProprietaire()){
+ const salarie=String(($('stockEmployee')&&$('stockEmployee').value)||'').trim().replace(/\s+/g,' ').toLowerCase();
+ const entreesSansCode=['mike boucher','emilie roy','laurent guette','lewis hognon'];
+ if(appareilProprietaire() || entreesSansCode.indexOf(salarie)!==-1){
    codeEntreeStockValide='';
    openStockModal('entree');
    return;
