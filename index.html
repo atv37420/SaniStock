@@ -1,4 +1,4 @@
-<!-- SaniStock version 1.0.29 : admin exempté des alertes + actualisation automatique -->
+<!-- SaniStock version 1.0.38 : admin exempté des alertes + actualisation automatique -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -789,7 +789,7 @@ body{display:block}
     <button type="button" class="homeButton4 medication4" onclick="showPage('medicationPage')" aria-label="Mémo médicaments"><span class="homeButtonIcon">💊</span><span class="homeButtonTitle">MÉMO MÉDICAMENTS</span><span class="homeButtonDesc">Infos sur les médicaments</span></button>
     <button type="button" class="homeButton4 settings4" onclick="ouvrirParametres()" aria-label="Paramètres"><span class="homeButtonIcon">⚙️</span><span class="homeButtonTitle">PARAMÈTRES</span><span class="homeButtonDesc">Gérer l’application</span></button>
   </div>
-  <div class="saniVersion" aria-label="Version de SaniStock">Version 1.0.36</div>
+  <div class="saniVersion" aria-label="Version de SaniStock">Version 1.0.38</div>
   <div id="homeInformation" class="homeInfo" aria-live="polite"></div>
 <div id="homeInformationModal" class="homeInfoModal" aria-hidden="true">
   <div class="homeInfoModalCard" role="dialog" aria-modal="true" aria-labelledby="homeInfoModalTitle">
@@ -2131,22 +2131,248 @@ function fermerDetailsDashboard(){
 </script>
 
 <script>
+/* ===== MÉMO MÉDICAMENTS — VERSION 1.0.37 =====
+   Liste informative, sans posologie ni protocole.
+   La dotation et l'utilisation restent soumises aux protocoles en vigueur.
+*/
 const SANISTOCK_MEDICATIONS=[
+ {name:'ADRÉNALINE',active:'Adrénaline',role:'Médicament d’urgence / vasopresseur'},
+ {name:'ADÉNOSINE',active:'Adénosine',role:'Antiarythmique'},
+ {name:'AMIODARONE',active:'Amiodarone',role:'Antiarythmique'},
+ {name:'ATROPINE',active:'Atropine',role:'Anticholinergique'},
+ {name:'BISOPROLOL',active:'Bisoprolol',role:'Bêtabloquant'},
+ {name:'BRICANYL',active:'Terbutaline',role:'Bronchodilatateur'},
+ {name:'CALCIUM GLUCONATE',active:'Gluconate de calcium',role:'Correction d’un déficit calcique / antidote dans certaines situations'},
+ {name:'CLOPIDOGREL',active:'Clopidogrel',role:'Antiagrégant plaquettaire'},
+ {name:'DAFALGAN',active:'Paracétamol',role:'Antalgique / antipyrétique'},
+ {name:'DEXAMÉTHASONE',active:'Dexaméthasone',role:'Corticoïde'},
+ {name:'DIAZÉPAM',active:'Diazépam',role:'Benzodiazépine / anticonvulsivant'},
  {name:'DOLIPRANE',active:'Paracétamol',role:'Antalgique / antipyrétique'},
+ {name:'ENOXAPARINE',active:'Énoxaparine',role:'Anticoagulant'},
+ {name:'FUROSÉMIDE',active:'Furosémide',role:'Diurétique'},
+ {name:'GLUCAGON',active:'Glucagon',role:'Traitement de certaines hypoglycémies sévères'},
+ {name:'GLUCOSE',active:'Glucose',role:'Correction de l’hypoglycémie'},
+ {name:'HYDROCORTISONE',active:'Hydrocortisone',role:'Corticoïde'},
+ {name:'HÉPARINE',active:'Héparine non fractionnée',role:'Anticoagulant'},
+ {name:'IBUPROFÈNE',active:'Ibuprofène',role:'Anti-inflammatoire non stéroïdien / antalgique'},
+ {name:'IPRATROPIUM',active:'Ipratropium',role:'Bronchodilatateur anticholinergique'},
  {name:'KARDÉGIC',active:'Acide acétylsalicylique',role:'Antiagrégant plaquettaire'},
- {name:'VENTOLINE',active:'Salbutamol',role:'Bronchodilatateur'}
+ {name:'KÉTAMINE',active:'Kétamine',role:'Anesthésique / analgésique'},
+ {name:'KÉTOPROFÈNE',active:'Kétoprofène',role:'Anti-inflammatoire non stéroïdien / antalgique'},
+ {name:'LABÉTALOL',active:'Labétalol',role:'Antihypertenseur / bêtabloquant'},
+ {name:'LIDOCAÏNE',active:'Lidocaïne',role:'Anesthésique local / antiarythmique selon indication'},
+ {name:'MAGNÉSIUM SULFATE',active:'Sulfate de magnésium',role:'Correction d’un déficit en magnésium / indications d’urgence spécifiques'},
+ {name:'MIDAZOLAM',active:'Midazolam',role:'Benzodiazépine / sédatif / anticonvulsivant'},
+ {name:'MORPHINE',active:'Morphine',role:'Antalgique opioïde'},
+ {name:'MÉDROL',active:'Méthylprednisolone',role:'Corticoïde'},
+ {name:'MÉTAMIZOLE',active:'Métamizole',role:'Antalgique / antipyrétique'},
+ {name:'MÉTOCLOPRAMIDE',active:'Métoclopramide',role:'Antiémétique'},
+ {name:'NALBUPHINE',active:'Nalbuphine',role:'Antalgique opioïde'},
+ {name:'NALOXONE',active:'Naloxone',role:'Antagoniste des opioïdes'},
+ {name:'NICARDIPINE',active:'Nicardipine',role:'Antihypertenseur / inhibiteur calcique'},
+ {name:'NITROGLYCÉRINE',active:'Trinitrine',role:'Vasodilatateur / antiangineux'},
+ {name:'NORADRÉNALINE',active:'Noradrénaline',role:'Vasopresseur'},
+ {name:'ONDANSÉTRON',active:'Ondansétron',role:'Antiémétique'},
+ {name:'OXYGÈNE MÉDICAL',active:'Oxygène',role:'Gaz médical utilisé selon indication'},
+ {name:'PANTOPRAZOLE',active:'Pantoprazole',role:'Inhibiteur de la pompe à protons'},
+ {name:'PARACÉTAMOL',active:'Paracétamol',role:'Antalgique / antipyrétique'},
+ {name:'SALBUTAMOL',active:'Salbutamol',role:'Bronchodilatateur'},
+ {name:'SODIUM BICARBONATE',active:'Bicarbonate de sodium',role:'Correction de certaines acidémies / indications spécifiques'},
+ {name:'SULFATE DE MAGNÉSIUM',active:'Sulfate de magnésium',role:'Correction d’un déficit en magnésium / indications spécifiques'},
+ {name:'TERBUTALINE',active:'Terbutaline',role:'Bronchodilatateur'},
+ {name:'TRAMADOL',active:'Tramadol',role:'Antalgique opioïde'},
+ {name:'TRANEXAMIQUE',active:'Acide tranexamique',role:'Antifibrinolytique / hémostatique'},
+ {name:'TRINITRINE',active:'Trinitrine',role:'Vasodilatateur / antiangineux'},
+ {name:'URAPIDIL',active:'Urapidil',role:'Antihypertenseur'},
+ {name:'VENTOLINE',active:'Salbutamol',role:'Bronchodilatateur'},
+ {name:'VITAMINE K',active:'Phytoménadione',role:'Vitamine / traitement de certaines hypoprothrombinémies'},
+ {name:'ÉPINÉPHRINE',active:'Adrénaline',role:'Médicament d’urgence / vasopresseur'}
+,
+ {name:'ACÉCLOFÉNAC',active:'Acéclofénac',role:'Antalgique • anti-inflammatoire'},
+ {name:'ACÉTAZOLAMIDE',active:'Acétazolamide',role:'Diurétique • glaucome'},
+ {name:'ACICLOVIR',active:'Aciclovir',role:'Antiviral • herpès'},
+ {name:'ACIDE ACÉTYLSALICYLIQUE',active:'Acide acétylsalicylique',role:'Antiagrégant • douleur • fièvre'},
+ {name:'ACIDE FOLIQUE',active:'Acide folique',role:'Carence • supplémentation'},
+ {name:'ACIDE TRANEXAMIQUE',active:'Acide tranexamique',role:'Hémorragie • antifibrinolytique'},
+ {name:'ALBENDAZOLE',active:'Albendazole',role:'Antiparasitaire'},
+ {name:'ALBUTÉROL',active:'Salbutamol',role:'Bronchodilatateur • asthme'},
+ {name:'ALLOPURINOL',active:'Allopurinol',role:'Goutte • hyperuricémie'},
+ {name:'ALPRAZOLAM',active:'Alprazolam',role:'Anxiété • benzodiazépine'},
+ {name:'ALPROSTADIL',active:'Alprostadil',role:'Vasodilatateur • circulation'},
+ {name:'AMIKACINE',active:'Amikacine',role:'Antibiotique • infections sévères'},
+ {name:'AMITRIPTYLINE',active:'Amitriptyline',role:'Douleur neuropathique • antidépresseur'},
+ {name:'AMLODIPINE',active:'Amlodipine',role:'Hypertension • angor'},
+ {name:'AMOXICILLINE',active:'Amoxicilline',role:'Antibiotique • infections bactériennes'},
+ {name:'AMOXICILLINE/ACIDE CLAVULANIQUE',active:'Amoxicilline + acide clavulanique',role:'Antibiotique • infections'},
+ {name:'APIXABAN',active:'Apixaban',role:'Anticoagulant • thrombose'},
+ {name:'ARIPIPRAZOLE',active:'Aripiprazole',role:'Antipsychotique • troubles psychiatriques'},
+ {name:'ARTÉMÉTHER/LUMÉFANTRINE',active:'Artéméther + luméfantrine',role:'Antipaludique'},
+ {name:'ASCORBATE DE SODIUM',active:'Vitamine C',role:'Supplémentation • carence'},
+ {name:'ATÉNOLOL',active:'Aténolol',role:'Bêtabloquant • hypertension'},
+ {name:'ATORVASTATINE',active:'Atorvastatine',role:'Cholestérol • statine'},
+ {name:'AZITHROMYCINE',active:'Azithromycine',role:'Antibiotique • infections'},
+ {name:'BACLOFÈNE',active:'Baclofène',role:'Spasticité • myorelaxant'},
+ {name:'BÉCLOMÉTASONE',active:'Béclométasone',role:'Corticoïde • inflammation'},
+ {name:'BETAMÉTHASONE',active:'Bétaméthasone',role:'Corticoïde • inflammation'},
+ {name:'BISACODYL',active:'Bisacodyl',role:'Constipation • laxatif'},
+ {name:'BROMAZÉPAM',active:'Bromazépam',role:'Anxiété • benzodiazépine'},
+ {name:'BUDÉSONIDE',active:'Budésonide',role:'Corticoïde inhalé • asthme'},
+ {name:'BUPIVACAÏNE',active:'Bupivacaïne',role:'Anesthésique local'},
+ {name:'BUPRÉNORPHINE',active:'Buprénorphine',role:'Opioïde • douleur • substitution'},
+ {name:'BUSPIRONE',active:'Buspirone',role:'Anxiété'},
+ {name:'CABERGOLINE',active:'Cabergoline',role:'Hyperprolactinémie'},
+ {name:'CANDÉSARTAN',active:'Candésartan',role:'Hypertension • insuffisance cardiaque'},
+ {name:'CAPTOPRIL',active:'Captopril',role:'Hypertension • insuffisance cardiaque'},
+ {name:'CARBAMAZÉPINE',active:'Carbamazépine',role:'Épilepsie • douleur neuropathique'},
+ {name:'CARBOPLATINE',active:'Carboplatine',role:'Anticancéreux'},
+ {name:'CARBOPROST',active:'Carboprost',role:'Hémorragie obstétricale'},
+ {name:'CARVÉDILOL',active:'Carvédilol',role:'Insuffisance cardiaque • bêtabloquant'},
+ {name:'CÉFALEXINE',active:'Céfalexine',role:'Antibiotique • infections'},
+ {name:'CEFEPIME',active:'Céfépime',role:'Antibiotique • infections sévères'},
+ {name:'CEFOTAXIME',active:'Céfotaxime',role:'Antibiotique • infections sévères'},
+ {name:'CEFTRIAXONE',active:'Ceftriaxone',role:'Antibiotique • infections sévères'},
+ {name:'CELECOXIB',active:'Célécoxib',role:'Douleur • anti-inflammatoire'},
+ {name:'CÉLIPROLOL',active:'Céliprolol',role:'Bêtabloquant • hypertension'},
+ {name:'CÉTIRIZINE',active:'Cétirizine',role:'Allergie • antihistaminique'},
+ {name:'CHLORPROMAZINE',active:'Chlorpromazine',role:'Antipsychotique • agitation'},
+ {name:'CIPROFLOXACINE',active:'Ciprofloxacine',role:'Antibiotique • infections'},
+ {name:'CITALOPRAM',active:'Citalopram',role:'Antidépresseur • ISRS'},
+ {name:'CLARITHROMYCINE',active:'Clarithromycine',role:'Antibiotique • infections'},
+ {name:'CLINDAMYCINE',active:'Clindamycine',role:'Antibiotique • infections'},
+ {name:'CLOBAZAM',active:'Clobazam',role:'Épilepsie • anxiété'},
+ {name:'CLOMIPRAMINE',active:'Clomipramine',role:'Antidépresseur • douleur neuropathique'},
+ {name:'CLONAZÉPAM',active:'Clonazépam',role:'Convulsions • benzodiazépine'},
+ {name:'CLONIDINE',active:'Clonidine',role:'Hypertension • sympatholytique'},
+ {name:'CLOTRIMAZOLE',active:'Clotrimazole',role:'Antifongique • mycoses'},
+ {name:'COLCHICINE',active:'Colchicine',role:'Goutte • inflammation'},
+ {name:'DABIGATRAN',active:'Dabigatran',role:'Anticoagulant • thrombose'},
+ {name:'DALTEPARINE',active:'Daltéparine',role:'Anticoagulant • thrombose'},
+ {name:'DAPAGLIFLOZINE',active:'Dapagliflozine',role:'Diabète • insuffisance cardiaque'},
+ {name:'DESLORATADINE',active:'Desloratadine',role:'Allergie • antihistaminique'},
+ {name:'DEXKÉTOPROFÈNE',active:'Dexkétoprofène',role:'Douleur • anti-inflammatoire'},
+ {name:'DICLOFÉNAC',active:'Diclofénac',role:'Douleur • inflammation'},
+ {name:'DIGOXINE',active:'Digoxine',role:'Insuffisance cardiaque • rythme cardiaque'},
+ {name:'DILTIAZEM',active:'Diltiazem',role:'Rythme cardiaque • hypertension'},
+ {name:'DIMENHYDRINATE',active:'Dimenhydrinate',role:'Nausées • vertiges'},
+ {name:'DOMPÉRIDONE',active:'Domperidone',role:'Nausées • vomissements'},
+ {name:'DOPAMINE',active:'Dopamine',role:'Soutien cardiovasculaire • vasopresseur'},
+ {name:'DOBUTAMINE',active:'Dobutamine',role:'Insuffisance cardiaque • inotrope'},
+ {name:'DOXYCYCLINE',active:'Doxycycline',role:'Antibiotique • infections'},
+ {name:'DROPERIDOL',active:'Dropéridol',role:'Nausées • agitation'},
+ {name:'DULOXÉTINE',active:'Duloxétine',role:'Dépression • douleur neuropathique'},
+ {name:'EMPAGLIFLOZINE',active:'Empagliflozine',role:'Diabète • insuffisance cardiaque'},
+ {name:'ENALAPRIL',active:'Énalapril',role:'Hypertension • insuffisance cardiaque'},
+ {name:'ERYTHROMYCINE',active:'Érythromycine',role:'Antibiotique • infections'},
+ {name:'ESCITALOPRAM',active:'Escitalopram',role:'Antidépresseur • ISRS'},
+ {name:'ESOMÉPRAZOLE',active:'Esoméprazole',role:'Acidité gastrique • reflux'},
+ {name:'ÉPHÉDRINE',active:'Éphédrine',role:'Hypotension • vasopresseur'},
+ {name:'ETOMIDATE',active:'Étomidate',role:'Induction • sédation'},
+ {name:'EZETIMIBE',active:'Ézétimibe',role:'Cholestérol'},
+ {name:'FAMCICLOVIR',active:'Famciclovir',role:'Antiviral • herpès'},
+ {name:'FENOFIBRATE',active:'Fénofibrate',role:'Cholestérol • triglycérides'},
+ {name:'FENTANYL',active:'Fentanyl',role:'Douleur intense • opioïde'},
+ {name:'FER',active:'Fer',role:'Carence martiale • anémie'},
+ {name:'FLUCONAZOLE',active:'Fluconazole',role:'Antifongique • mycoses'},
+ {name:'FLUMAZÉNIL',active:'Flumazénil',role:'Antidote • benzodiazépines'},
+ {name:'FLUOXÉTINE',active:'Fluoxétine',role:'Antidépresseur • ISRS'},
+ {name:'FLUTICASONE',active:'Fluticasone',role:'Corticoïde • inflammation respiratoire'},
+ {name:'FONDAPARINUX',active:'Fondaparinux',role:'Anticoagulant • thrombose'},
+ {name:'FUROSEMIDE',active:'Furosémide',role:'Diurétique • œdème'},
+ {name:'GABAPENTINE',active:'Gabapentine',role:'Douleur neuropathique • épilepsie'},
+ {name:'GENTAMICINE',active:'Gentamicine',role:'Antibiotique • infections sévères'},
+ {name:'GLICLAZIDE',active:'Gliclazide',role:'Diabète • hypoglycémiant'},
+ {name:'GLIMEPIRIDE',active:'Glimépiride',role:'Diabète • hypoglycémiant'},
+ {name:'HALOPÉRIDOL',active:'Halopéridol',role:'Agitation • antipsychotique'},
+ {name:'HYDROCHLOROTHIAZIDE',active:'Hydrochlorothiazide',role:'Hypertension • diurétique'},
+ {name:'HYDROXYZINE',active:'Hydroxyzine',role:'Allergie • anxiété'},
+ {name:'IMIPRAMINE',active:'Imipramine',role:'Antidépresseur'},
+ {name:'INSULINE',active:'Insuline',role:'Diabète • glycémie'},
+ {name:'ISOPRENALINE',active:'Isoprénaline',role:'Bradycardie • soutien cardiaque'},
+ {name:'IVERMECTINE',active:'Ivermectine',role:'Antiparasitaire'},
+ {name:'LAMOTRIGINE',active:'Lamotrigine',role:'Épilepsie • stabilisateur humeur'},
+ {name:'LANSOPRAZOLE',active:'Lansoprazole',role:'Acidité gastrique • reflux'},
+ {name:'LÉVÉTIRACÉTAM',active:'Lévétiracétam',role:'Convulsions • épilepsie'},
+ {name:'LEVOTHYROXINE',active:'Lévothyroxine',role:'Hypothyroïdie'},
+ {name:'LORATADINE',active:'Loratadine',role:'Allergie • antihistaminique'},
+ {name:'LORAZÉPAM',active:'Lorazépam',role:'Anxiété • convulsions'},
+ {name:'LOSARTAN',active:'Losartan',role:'Hypertension • insuffisance cardiaque'},
+ {name:'MANNITOL',active:'Mannitol',role:'Œdème cérébral • diurétique osmotique'},
+ {name:'MELOXICAM',active:'Méloxicam',role:'Douleur • anti-inflammatoire'},
+ {name:'MÉMANTINE',active:'Mémantine',role:'Troubles cognitifs • Alzheimer'},
+ {name:'MÉFORMINE',active:'Metformine',role:'Diabète • glycémie'},
+ {name:'MÉTHADONE',active:'Méthadone',role:'Opioïde • douleur • substitution'},
+ {name:'MÉTHYLPREDNISOLONE',active:'Méthylprednisolone',role:'Corticoïde • inflammation'},
+ {name:'MÉTOPROLOL',active:'Métoprolol',role:'Bêtabloquant • cœur • hypertension'},
+ {name:'MÉTRONIDAZOLE',active:'Métronidazole',role:'Antibiotique • infections'},
+ {name:'MISOPROSTOL',active:'Misoprostol',role:'Obstétrique • hémorragie'},
+ {name:'MOXIFLOXACINE',active:'Moxifloxacine',role:'Antibiotique • infections'},
+ {name:'MOXONIDINE',active:'Moxonidine',role:'Hypertension'},
+ {name:'N-ACÉTYLCYSTÉINE',active:'N-acétylcystéine',role:'Antidote • intoxication paracétamol'},
+ {name:'NAPROXÈNE',active:'Naproxène',role:'Douleur • inflammation'},
+ {name:'NIFÉDIPINE',active:'Nifédipine',role:'Hypertension • vasodilatateur'},
+ {name:'NITROFURANTOÏNE',active:'Nitrofurantoïne',role:'Antibiotique • infections urinaires'},
+ {name:'NORFLOXACINE',active:'Norfloxacine',role:'Antibiotique • infections urinaires'},
+ {name:'OMÉPRAZOLE',active:'Oméprazole',role:'Acidité gastrique • reflux'},
+ {name:'OXYCODONE',active:'Oxycodone',role:'Douleur intense • opioïde'},
+ {name:'OXYTOCINE',active:'Oxytocine',role:'Obstétrique • contractions • hémorragie'},
+ {name:'PAROXÉTINE',active:'Paroxétine',role:'Antidépresseur • ISRS'},
+ {name:'PHÉNYTOÏNE',active:'Phénytoïne',role:'Épilepsie • anticonvulsivant'},
+ {name:'PHÉNYLÉPHRINE',active:'Phényléphrine',role:'Hypotension • vasoconstricteur'},
+ {name:'PIPÉRACILLINE/TAZOBACTAM',active:'Pipéracilline + tazobactam',role:'Antibiotique • infections sévères'},
+ {name:'POTASSIUM CHLORURE',active:'Chlorure de potassium',role:'Hypokaliémie • électrolyte'},
+ {name:'PREDNISOLONE',active:'Prednisolone',role:'Corticoïde • inflammation • allergie'},
+ {name:'PROCAÏNE',active:'Procaïne',role:'Anesthésique local'},
+ {name:'PROCHLORPÉRAZINE',active:'Prochlorpérazine',role:'Nausées • vertiges'},
+ {name:'PROPRANOLOL',active:'Propranolol',role:'Bêtabloquant • rythme • hypertension'},
+ {name:'PROPOFOL',active:'Propofol',role:'Anesthésie • sédation'},
+ {name:'PROTAMINE',active:'Protamine',role:'Antidote • héparine'},
+ {name:'QUÉTIAPINE',active:'Quétiapine',role:'Antipsychotique • troubles psychiatriques'},
+ {name:'RAMIPRIL',active:'Ramipril',role:'Hypertension • insuffisance cardiaque'},
+ {name:'RIVAROXABAN',active:'Rivaroxaban',role:'Anticoagulant • thrombose'},
+ {name:'RISPERIDONE',active:'Rispéridone',role:'Antipsychotique • agitation'},
+ {name:'RINGER LACTATE',active:'Solution de Ringer lactate',role:'Remplissage • perfusion'},
+ {name:'ROCURONIUM',active:'Rocuronium',role:'Curare • bloc neuromusculaire'},
+ {name:'ROSUVASTATINE',active:'Rosuvastatine',role:'Cholestérol • statine'},
+ {name:'SERTRALINE',active:'Sertraline',role:'Antidépresseur • ISRS'},
+ {name:'SILDÉNAFIL',active:'Sildénafil',role:'Dysfonction érectile • vasodilatation'},
+ {name:'SODIUM CHLORURE 0,9 %',active:'Chlorure de sodium 0,9 %',role:'Perfusion • dilution • remplissage'},
+ {name:'SODIUM CHLORURE HYPERTONIQUE',active:'Chlorure de sodium hypertonique',role:'Hyponatrémie sévère • osmothérapie'},
+ {name:'SPIRONOLACTONE',active:'Spironolactone',role:'Diurétique • insuffisance cardiaque'},
+ {name:'SUCCINYLCHOLINE',active:'Suxaméthonium',role:'Curare • intubation'},
+ {name:'TAMSULOSINE',active:'Tamsulosine',role:'Troubles urinaires • prostate'},
+ {name:'TEMAZEPAM',active:'Témazépam',role:'Sommeil • benzodiazépine'},
+ {name:'TICAGRÉLOR',active:'Ticagrélor',role:'Antiagrégant • syndrome coronarien'},
+ {name:'TRIAMCINOLONE',active:'Triamcinolone',role:'Corticoïde • inflammation'},
+ {name:'VALPROATE DE SODIUM',active:'Valproate de sodium',role:'Épilepsie • anticonvulsivant'},
+ {name:'VALSARTAN',active:'Valsartan',role:'Hypertension • insuffisance cardiaque'},
+ {name:'VANCOMYCINE',active:'Vancomycine',role:'Antibiotique • infections sévères'},
+ {name:'VENLAFAXINE',active:'Venlafaxine',role:'Antidépresseur • anxiété'},
+ {name:'VERAPAMIL',active:'Vérapamil',role:'Rythme cardiaque • hypertension'},
+ {name:'VITAMINE B1',active:'Thiamine',role:'Carence • neurologie'},
+ {name:'VITAMINE B6',active:'Pyridoxine',role:'Carence • neurologie'},
+ {name:'VITAMINE C',active:'Acide ascorbique',role:'Carence • supplémentation'},
+ {name:'ZOLPIDEM',active:'Zolpidem',role:'Insomnie • hypnotique'}
 ];
+
 function renderMedicationMemo(){
  const list=document.getElementById('medicationList');
  const input=document.getElementById('medicationSearch');
  if(!list||!input) return;
  const q=input.value.trim().toLowerCase();
- const rows=SANISTOCK_MEDICATIONS.filter(m=>!q || (m.name+' '+m.active+' '+m.role).toLowerCase().includes(q));
- list.innerHTML=rows.length?rows.map(m=>'<div style="background:#f7fafc;border:1px solid #d9e4ec;border-radius:12px;padding:14px;margin-bottom:10px"><strong>'+m.name+'</strong><br><span>'+m.active+'</span><br><small>'+m.role+'</small></div>').join(''):'<div style="padding:14px;text-align:center">Aucun médicament trouvé.</div>';
+ const rows=SANISTOCK_MEDICATIONS.filter(m=>
+   !q || (m.name+' '+m.active+' '+m.role).toLowerCase().includes(q)
+ );
+ list.innerHTML=rows.length
+   ?rows.map(m=>'<div class="medicationCard" style="background:#f7fafc;border:1px solid #d9e4ec;border-radius:12px;padding:14px;margin-bottom:10px"><strong style="color:#0757a0">💊 '+m.name+'</strong><br><span>'+m.active+'</span><br><small>'+m.role+'</small></div>').join('')
+   :'<div style="padding:14px;text-align:center">Aucun médicament trouvé.</div>';
 }
+
 document.addEventListener('DOMContentLoaded',function(){
  const input=document.getElementById('medicationSearch');
- if(input){input.addEventListener('input',renderMedicationMemo);renderMedicationMemo();}
+ if(input){
+   input.addEventListener('input',renderMedicationMemo);
+   renderMedicationMemo();
+ }
 });
 </script>
 </body>
