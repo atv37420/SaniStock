@@ -1,4 +1,4 @@
-<!-- SaniStock version 1.0.26 : bouton J’ai lu renforcé -->
+<!-- SaniStock version 1.0.28 : admin exempté des alertes + actualisation automatique -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -704,11 +704,12 @@ body{display:block}
         </select>
         <input id="infoExpiration" type="date" aria-label="Date d'expiration">
         <button class="settingsAction" type="button" onclick="publierInformationUI()">📢 Publier l'information</button>
+        <button class="settingsAction secondary" type="button" onclick="reinitialiserLectureInformationAdmin()">🔄 Réafficher le message sur mon appareil</button>
       </div>
       <div id="informationSettingsList"></div>
     </section>
 
-    <div style="text-align:center;font-size:10px;color:#71879a;margin-top:12px">SaniStock — Version 1.0.25</div>
+    <div style="text-align:center;font-size:10px;color:#71879a;margin-top:12px">SaniStock — Version 1.0.27</div>
     <div class="settingsAdminBlock">
       <button class="settingsAction secondary" type="button" onclick="changerCodeAdminUI()">🔐 Modifier le code administrateur</button>
       <button class="settingsAction secondary" type="button" onclick="reinitialiserAccesProprietaire()">🔒 Réinitialiser mon accès propriétaire</button>
@@ -1471,6 +1472,7 @@ function publierInformationUI(){
     document.getElementById('infoPriorite').value='info';
     document.getElementById('infoExpiration').value='';
     messageParametres('📢 Information publiée.',true);
+    fermerInformationAccueilSilencieux();
     chargerInformationsUI();
     chargerInformationAccueil();
   }).withFailureHandler(function(err){
@@ -1481,7 +1483,9 @@ function publierInformationUI(){
 function supprimerInformationUI(id){
   if(!confirm('Supprimer cette information ?')) return;
   google.script.run.withSuccessHandler(function(){
-    chargerInformationsUI(); chargerInformationAccueil();
+    fermerInformationAccueilSilencieux();
+    chargerInformationsUI();
+    chargerInformationAccueil();
   }).withFailureHandler(function(err){ alert('Erreur : '+(err&&err.message?err.message:err)); })
     .supprimerInformation(Object.assign(donneesAccesGestion(),{id:id}));
 }
@@ -1489,6 +1493,12 @@ function supprimerInformationUI(id){
 function chargerInformationAccueil(){
   const box=document.getElementById('homeInformation');
   const modal=document.getElementById('homeInformationModal');
+  /* Le propriétaire/admin ne reçoit jamais la fenêtre d'information qu'il vient de publier. */
+  if(appareilProprietaire()){
+    if(modal){ modal.classList.remove('show'); modal.setAttribute('aria-hidden','true'); }
+    if(box){ box.classList.remove('show'); box.innerHTML=''; }
+    return;
+  }
   if(!gsDisponible()) return;
   google.script.run.withSuccessHandler(function(r){
     /* getInformations() renvoie une liste : on prend la première information. */
@@ -1528,6 +1538,23 @@ function chargerInformationAccueil(){
   }).withFailureHandler(function(err){
     /* Ne bloque jamais l’application si les informations ne sont pas disponibles. */
   }).getInformations(null,false);
+}
+
+function fermerInformationAccueilSilencieux(){
+  const box=document.getElementById('homeInformation');
+  const modal=document.getElementById('homeInformationModal');
+  if(box){ box.classList.remove('show'); box.innerHTML=''; }
+  if(modal){ modal.classList.remove('show'); modal.setAttribute('aria-hidden','true'); }
+}
+
+function reinitialiserLectureInformationAdmin(){
+  const nomSalarie=localStorage.getItem('sanistock_employee_name')||'';
+  if(!nomSalarie){ alert('Aucun salarié connecté sur cet appareil.'); return; }
+  if(!confirm('Réafficher la dernière information sur cet appareil ?')) return;
+  const cleLecture='sanistock_information_lue_'+nomSalarie.toLowerCase().replace(/\s+/g,'_');
+  localStorage.removeItem(cleLecture);
+  chargerInformationAccueil();
+  messageParametres('🔄 Information réaffichée sur cet appareil.',true);
 }
 
 function marquerInformationLue(id){
