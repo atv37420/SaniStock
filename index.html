@@ -518,6 +518,7 @@ body{display:block}
 .infoDelete{border:0;border-radius:9px;background:#e9eef2;padding:7px 9px;cursor:pointer}
 .homeInfo{position:absolute;left:8%;right:8%;bottom:23%;z-index:5;background:rgba(255,255,255,.96);border-radius:13px;padding:8px 10px;box-shadow:0 6px 20px rgba(0,0,0,.18);display:none;text-align:left;color:#173f68}
 .homeInfo.show{display:block}.homeInfoTitle{font-weight:900;font-size:12px}.homeInfoText{font-size:10px;margin-top:3px;white-space:pre-wrap}.homeInfoMeta{font-size:8px;margin-top:4px;color:#71879a}
+.homeInfoReadBtn{margin-top:7px;border:0;border-radius:9px;padding:6px 10px;background:#0757a0;color:#fff;font-size:10px;font-weight:900;cursor:pointer}
 
 .employeeCard,.vehicleCard{background:#fff;border-radius:14px;padding:12px;box-shadow:0 3px 12px rgba(0,45,90,.08)}
 .employeeTop,.vehicleTop{display:flex;justify-content:space-between;gap:8px;align-items:center}
@@ -1471,9 +1472,27 @@ function chargerInformationAccueil(){
     if(!r || !r.titre){ box.classList.remove('show'); box.innerHTML=''; return; }
     const p=String(r.priorite||'info');
     const icon=p==='urgent'?'🔴':p==='important'?'🟠':'📢';
-    box.innerHTML='<div class="homeInfoTitle">'+icon+' '+escapeHtml(r.titre)+'</div><div class="homeInfoText">'+escapeHtml(r.message||'')+'</div><div class="homeInfoMeta">'+(r.expiration?'Jusqu’au '+escapeHtml(r.expiration):'Information publiée par SaniStock')+'</div>';
+    const nomSalarie=localStorage.getItem('sanistock_employee_name')||'visiteur';
+    const cleLecture='sanistock_information_lue_'+nomSalarie.toLowerCase().replace(/\s+/g,'_');
+    let informationsLues=[];
+    try{ informationsLues=JSON.parse(localStorage.getItem(cleLecture)||'[]'); }catch(e){ informationsLues=[]; }
+    const idInfo=String(r.id||'');
+    if(idInfo && informationsLues.indexOf(idInfo)>=0){ box.classList.remove('show'); box.innerHTML=''; return; }
+    box.innerHTML='<div class="homeInfoTitle">'+icon+' '+escapeHtml(r.titre)+'</div><div class="homeInfoText">'+escapeHtml(r.message||'')+'</div><div class="homeInfoMeta">'+(r.expiration?'Jusqu’au '+escapeHtml(r.expiration):'Information publiée par SaniStock')+'</div><button type="button" class="homeInfoReadBtn" onclick="marquerInformationLue(\''+escapeHtml(idInfo)+'\')">👍 J’ai lu</button>';
     box.classList.add('show');
   }).withFailureHandler(function(){ box.classList.remove('show'); }).getInformations(null,false);
+}
+
+function marquerInformationLue(id){
+  const nomSalarie=localStorage.getItem('sanistock_employee_name')||'visiteur';
+  const cleLecture='sanistock_information_lue_'+nomSalarie.toLowerCase().replace(/\s+/g,'_');
+  let informationsLues=[];
+  try{ informationsLues=JSON.parse(localStorage.getItem(cleLecture)||'[]'); }catch(e){ informationsLues=[]; }
+  id=String(id||'');
+  if(id && informationsLues.indexOf(id)<0) informationsLues.push(id);
+  localStorage.setItem(cleLecture,JSON.stringify(informationsLues));
+  const box=document.getElementById('homeInformation');
+  if(box){ box.classList.remove('show'); box.innerHTML=''; }
 }
 
 function chargerAlertesStock(){
@@ -1640,6 +1659,7 @@ function changerCodeAdminUI(){
   }
   function unlock(name){
     overlay.classList.add('hidden');
+    setTimeout(chargerInformationAccueil,120);
     const s1=document.getElementById('stockEmployee');
     const s2=document.getElementById('employee');
     function appliquerSalarieConnecte(){
