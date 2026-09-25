@@ -1706,6 +1706,10 @@ function changerCodeAdminUI(){
       if(s2){s2.value=name;s2.disabled=true;}
     }
     appliquerSalarieConnecte();
+    // Vérifie et affiche immédiatement la dernière information non lue après connexion.
+    setTimeout(function(){
+      try{ chargerInformationAccueil(); }catch(e){}
+    },150);
     setTimeout(appliquerSalarieConnecte,500);
     setTimeout(appliquerSalarieConnecte,1500);
   }
