@@ -1,0 +1,22 @@
+{
+  "name": "SaniStock",
+  "short_name": "SaniStock",
+  "description": "Application de gestion SaniStock",
+  "start_url": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#000000",
+  "theme_color": "#0757a0",
+  "icons": [
+    {
+      "src": "https://raw.githubusercontent.com/atv37420/SaniStock/main/0.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://raw.githubusercontent.com/atv37420/SaniStock/main/0.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
