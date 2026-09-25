@@ -1837,9 +1837,8 @@ function afficherTableauBord(stock,historique,vehicules){
   stock=stockAvecStatut;
 
   const peremptions=stock.map(function(r){
-    /* Avec l'ancienne réponse getStockData(), la date E correspond à statutDate.
-       On conserve datePeremption si elle existe, sinon on essaie statutDate. */
-    const datePourDashboard = r.datePeremption || r.statutDate;
+    /* Feuille Stock : D = date de péremption, E = statut date, F = statut stock. */
+    const datePourDashboard = r.datePeremption;
     const jours=dashboardJoursAvant_(datePourDashboard);
     return {r:r,jours:jours};
   }).filter(function(x){return x.jours!==null && x.jours>=0 && x.jours<=90;})
