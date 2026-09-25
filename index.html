@@ -656,6 +656,29 @@ body{display:block}
 }
 </style>
 
+
+<style>
+/* La version reste uniquement sur l'accueil */
+#settingsOverlay .saniVersion,
+#settingsOverlay .version,
+#settingsOverlay .appVersion,
+#settingsOverlay .settingsVersion,
+#settingsOverlay [id*="version" i],
+#settingsOverlay [class*="version" i],
+.settingsOverlay .saniVersion,
+.settingsOverlay .version,
+.settingsOverlay .appVersion,
+.settingsOverlay .settingsVersion,
+.settingsPanel .version,
+.settingsPanel .appVersion,
+.settingsPanel .settingsVersion,
+.settingsContent .version,
+.settingsContent .appVersion,
+.settingsContent .settingsVersion {
+  display: none !important;
+}
+</style>
+
 </head>
 <body>
 
