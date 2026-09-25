@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>SaniStock</title>
-<!-- Icône SaniStock pour téAléphone -->
+<!-- Icône SaniStock pour téléphone -->
 <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/atv37420/SaniStock/main/0.png">
 <link rel="shortcut icon" type="image/png" href="https://raw.githubusercontent.com/atv37420/SaniStock/main/0.png">
 <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/atv37420/SaniStock/main/0.png">
@@ -528,7 +528,7 @@ body{display:block}
 .homeInfoModalTitle{font-size:21px;font-weight:900;color:#073f91;line-height:1.15}
 .homeInfoModalText{margin-top:12px;font-size:15px;line-height:1.5;white-space:pre-wrap;color:#284c69}
 .homeInfoModalMeta{margin-top:12px;font-size:11px;color:#71879a}
-.homeInfoModalBtn{width:100%;margin-top:18px;border:0;border-radius:13px;padding:13px;background:#0757a0;color:#fff;font-size:15px;font-weight:900;cursor:pointer}
+.homeInfoModalBtn{width:100%;margin-top:18px;border:0;border-radius:13px;padding:13px;background:#0757a0;color:#fff;font-size:15px;font-weight:900;cursor:pointer;pointer-events:auto;position:relative;z-index:2;touch-action:manipulation;-webkit-tap-highlight-color:rgba(255,255,255,.2)}
 
 
 .employeeCard,.vehicleCard{background:#fff;border-radius:14px;padding:12px;box-shadow:0 3px 12px rgba(0,45,90,.08)}
@@ -707,7 +707,7 @@ body{display:block}
       <div id="informationSettingsList"></div>
     </section>
 
-    <div style="text-align:center;font-size:10px;color:#71879a;margin-top:12px">SaniStock — Version 1.0.24</div>
+    <div style="text-align:center;font-size:10px;color:#71879a;margin-top:12px">SaniStock — Version 1.0.25</div>
     <div class="settingsAdminBlock">
       <button class="settingsAction secondary" type="button" onclick="changerCodeAdminUI()">🔐 Modifier le code administrateur</button>
       <button class="settingsAction secondary" type="button" onclick="reinitialiserAccesProprietaire()">🔒 Réinitialiser mon accès propriétaire</button>
@@ -1534,6 +1534,11 @@ function marquerInformationLue(id){
   localStorage.setItem(cleLecture,JSON.stringify(informationsLues));
   const box=document.getElementById('homeInformation');
   if(box){ box.classList.remove('show'); box.innerHTML=''; }
+  const modal=document.getElementById('homeInformationModal');
+  if(modal){
+    modal.classList.remove('show');
+    modal.setAttribute('aria-hidden','true');
+  }
 }
 
 function chargerAlertesStock(){
