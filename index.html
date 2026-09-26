@@ -611,7 +611,7 @@ body{display:block}
 .homeButton4 .homeButtonTitle{font-size:clamp(12px,1.25vw,18px);line-height:1.1}.homeButton4 .homeButtonDesc{font-size:clamp(8px,.78vw,11px);font-weight:600;line-height:1.2;opacity:.95;max-width:100%}
 .homeButton4:active{transform:scale(.98)}
 .stock4{background:#0758a5}.disinfection4{background:#d62828}.medication4{background:#188038}.settings4{background:#5f6368}.homeButtonIcon{font-size:1.55em;line-height:1;display:inline-block;position:relative;z-index:2}.homeButton4 .homeButtonDesc{color:rgba(255,255,255,.96)}
-.homeButtonFx{position:absolute;inset:0;pointer-events:none;z-index:3;opacity:0}
+.homeButtonFx{position:absolute;inset:0;pointer-events:none;z-index:30;opacity:1;overflow:visible}
 
 /* Animations au clic des 4 carrés */
 .homeButton4.animating{animation:homeButtonPress .28s ease-out}
@@ -647,30 +647,6 @@ body{display:block}
 @media(max-width:700px){.homeButtons4{left:3%;right:3%;gap:7px;top:53%}.homeButton4{min-height:88px;padding:8px 5px;border-radius:12px;gap:4px}.homeButton4 .homeButtonTitle{font-size:10px}.homeButton4 .homeButtonDesc{font-size:7.5px;line-height:1.15}.homeButtonIcon{font-size:1.3em}}
 
 .saniVersion{position:absolute;left:50%;bottom:38px;transform:translateX(-50%);z-index:20;color:#fff;background:rgba(0,0,0,.48);padding:4px 10px;border-radius:10px;font-size:11px;font-weight:600;letter-spacing:.2px;pointer-events:none}
-</style>
-
-<style>
-/* ===== ANIMATIONS DES 4 BOUTONS — VERSION RENFORCÉE ===== */
-.homeButton4{will-change:transform,box-shadow;isolation:isolate}
-.homeButton4 .homeButtonIcon{will-change:transform;transform-origin:center}
-.homeButton4.animating{animation:saniButtonPulse .68s cubic-bezier(.2,.8,.2,1)!important}
-@keyframes saniButtonPulse{0%{transform:scale(1);box-shadow:0 7px 18px rgba(0,0,0,.28)}35%{transform:scale(.92);box-shadow:0 0 0 8px rgba(255,255,255,.18),0 10px 28px rgba(0,0,0,.38)}65%{transform:scale(1.045);box-shadow:0 0 0 4px rgba(255,255,255,.12),0 12px 30px rgba(0,0,0,.40)}100%{transform:scale(1);box-shadow:0 7px 18px rgba(0,0,0,.28)}}
-.homeButton4.anim-disinfection .homeButtonIcon{animation:saniDropIcon .72s ease-in-out!important}
-@keyframes saniDropIcon{0%,100%{transform:translateY(0) rotate(0) scale(1)}25%{transform:translateY(-5px) rotate(-10deg) scale(1.18)}50%{transform:translateY(4px) rotate(10deg) scale(1.1)}75%{transform:translateY(-2px) rotate(-5deg) scale(1.06)}}
-.homeButton4.anim-stock .homeButtonIcon{animation:saniBoxIcon .68s ease-in-out!important}
-@keyframes saniBoxIcon{0%,100%{transform:translateY(0) rotate(0) scale(1)}30%{transform:translateY(5px) scale(1.16) rotate(-3deg)}55%{transform:translateY(-6px) scale(1.24) rotate(3deg)}78%{transform:translateY(2px) scale(1.08)}}
-.homeButton4.anim-medication .homeButtonIcon{animation:saniCapsuleIcon .68s ease-in-out!important}
-@keyframes saniCapsuleIcon{0%,100%{transform:rotate(0) scale(1)}25%{transform:rotate(-22deg) scale(1.16)}50%{transform:rotate(22deg) scale(1.16)}75%{transform:rotate(-10deg) scale(1.08)}}
-.homeButton4.anim-settings .homeButtonIcon{animation:saniGearIcon .68s ease-in-out!important}
-@keyframes saniGearIcon{0%,100%{transform:rotate(0) scale(1)}30%{transform:rotate(45deg) scale(1.15)}60%{transform:rotate(-25deg) scale(1.12)}80%{transform:rotate(12deg) scale(1.05)}}
-.homeButton4.anim-disinfection .homeButtonFx:before{content:'💧';position:absolute;left:50%;top:38%;font-size:23px;opacity:0;animation:saniDrop .72s ease-out!important}
-.homeButton4.anim-disinfection .homeButtonFx:after{content:'✨';position:absolute;left:50%;top:22%;font-size:22px;opacity:0;animation:saniSpark .72s ease-out .08s!important}
-.homeButton4.anim-stock .homeButtonFx:after{content:'↑';position:absolute;left:50%;top:10%;font-size:25px;font-weight:900;opacity:0;animation:saniArrow .68s ease-out!important}
-.homeButton4.anim-medication .homeButtonFx:after{content:'✦';position:absolute;left:50%;top:18%;font-size:22px;opacity:0;animation:saniSpark .68s ease-out!important}
-.homeButton4.anim-settings .homeButtonFx:after{content:'✦';position:absolute;right:22%;top:18%;font-size:20px;opacity:0;animation:saniSpark .68s ease-out!important}
-@keyframes saniDrop{0%{opacity:0;transform:translate(-50%,-4px) scale(.45)}25%{opacity:1}100%{opacity:0;transform:translate(-50%,32px) scale(1.2)}}
-@keyframes saniSpark{0%{opacity:0;transform:translate(-50%,10px) scale(.45)}35%{opacity:1}100%{opacity:0;transform:translate(-50%,-16px) scale(1.2)}}
-@keyframes saniArrow{0%{opacity:0;transform:translate(-50%,12px)}35%{opacity:1}100%{opacity:0;transform:translate(-50%,-12px)}}
 </style>
 
 <style>
@@ -1449,18 +1425,123 @@ function animateHomeButton(button, kind, action){
   if(button.dataset.animBusy==='1') return;
   button.dataset.animBusy='1';
 
-  const classes=['animating','anim-stock','anim-disinfection','anim-medication','anim-settings'];
-  classes.forEach(c=>button.classList.remove(c));
-  void button.offsetWidth;
-  button.classList.add('animating','anim-'+kind);
+  const icon=button.querySelector('.homeButtonIcon');
+  const fx=button.querySelector('.homeButtonFx');
 
-  // Animation volontairement visible mais très courte.
-  const duration = kind==='disinfection' ? 720 : 680;
-  setTimeout(function(){
-    button.classList.remove('animating','anim-'+kind);
-    button.dataset.animBusy='0';
-    if(typeof action==='function') action();
-  }, duration);
+  button.classList.remove('animating','anim-stock','anim-disinfection','anim-medication','anim-settings');
+  if(fx) fx.innerHTML='';
+  void button.offsetWidth;
+
+  /* Animation visuelle forcée : elle ne dépend pas de prefers-reduced-motion. */
+  if(icon){
+    icon.style.transition='none';
+    icon.style.transform='scale(1) rotate(0deg)';
+  }
+
+  const start=performance.now();
+  const duration=760;
+
+  function frame(now){
+    const p=Math.min(1,(now-start)/duration);
+    const e=p<.5 ? 2*p*p : 1-Math.pow(-2*p+2,2)/2;
+
+    let transform='scale(1) rotate(0deg)';
+
+    if(kind==='stock'){
+      /* 📦 La boîte monte/s'ouvre puis revient. */
+      const s=1 + Math.sin(p*Math.PI)*0.20;
+      const y=-Math.sin(p*Math.PI)*5;
+      const r=Math.sin(p*Math.PI*2)*3;
+      transform=`translateY(${y}px) scale(${s}) rotate(${r}deg)`;
+    }else if(kind==='disinfection'){
+      /* 🧴 Le produit bouge + effet de nettoyage. */
+      const x=Math.sin(p*Math.PI*4)*5;
+      const r=Math.sin(p*Math.PI*4)*12;
+      const s=1 + Math.sin(p*Math.PI)*0.10;
+      transform=`translateX(${x}px) scale(${s}) rotate(${r}deg)`;
+    }else if(kind==='medication'){
+      /* 💊 La capsule tourne légèrement. */
+      const r=Math.sin(p*Math.PI*2)*22;
+      const s=1 + Math.sin(p*Math.PI)*0.10;
+      transform=`scale(${s}) rotate(${r}deg)`;
+    }else if(kind==='settings'){
+      /* ⚙️ L'engrenage tourne franchement. */
+      const r=p*360;
+      const s=1 + Math.sin(p*Math.PI)*0.08;
+      transform=`scale(${s}) rotate(${r}deg)`;
+    }
+
+    if(icon) icon.style.transform=transform;
+
+    if(fx){
+      if(kind==='disinfection'){
+        const drop=document.createElement('span');
+        drop.textContent='💧';
+        drop.style.cssText='position:absolute;left:50%;top:42%;font-size:24px;z-index:10;pointer-events:none;transform:translate(-50%,-10px);opacity:1;';
+        fx.appendChild(drop);
+        requestAnimationFrame(()=>{
+          drop.style.transition='transform .7s ease-out,opacity .7s ease-out';
+          drop.style.transform='translate(-50%,32px) scale(1.25)';
+          drop.style.opacity='0';
+        });
+        const shine=document.createElement('span');
+        shine.textContent='✨';
+        shine.style.cssText='position:absolute;left:50%;top:20%;font-size:25px;z-index:10;pointer-events:none;transform:translateX(-50%) scale(.4);opacity:1;';
+        fx.appendChild(shine);
+        requestAnimationFrame(()=>{
+          shine.style.transition='transform .55s ease-out,opacity .55s ease-out';
+          shine.style.transform='translate(-50%,-12px) scale(1.2)';
+          shine.style.opacity='0';
+        });
+      }else if(kind==='stock'){
+        const up=document.createElement('span');
+        up.textContent='↑';
+        up.style.cssText='position:absolute;left:50%;top:10%;font-size:28px;font-weight:900;z-index:10;pointer-events:none;transform:translateX(-50%);opacity:1;';
+        fx.appendChild(up);
+        requestAnimationFrame(()=>{
+          up.style.transition='transform .7s ease-out,opacity .7s ease-out';
+          up.style.transform='translate(-50%,-14px) scale(1.15)';
+          up.style.opacity='0';
+        });
+      }else if(kind==='medication'){
+        const star=document.createElement('span');
+        star.textContent='✦';
+        star.style.cssText='position:absolute;left:50%;top:18%;font-size:24px;z-index:10;pointer-events:none;transform:translateX(-50%) scale(.4);opacity:1;';
+        fx.appendChild(star);
+        requestAnimationFrame(()=>{
+          star.style.transition='transform .6s ease-out,opacity .6s ease-out';
+          star.style.transform='translate(-50%,-12px) scale(1.3)';
+          star.style.opacity='0';
+        });
+      }else if(kind==='settings'){
+        const star=document.createElement('span');
+        star.textContent='✦';
+        star.style.cssText='position:absolute;right:20%;top:18%;font-size:22px;z-index:10;pointer-events:none;transform:scale(.4);opacity:1;';
+        fx.appendChild(star);
+        requestAnimationFrame(()=>{
+          star.style.transition='transform .6s ease-out,opacity .6s ease-out';
+          star.style.transform='scale(1.3) translateY(-8px)';
+          star.style.opacity='0';
+        });
+      }
+    }
+
+    if(p<1){
+      requestAnimationFrame(frame);
+    }else{
+      if(icon){
+        icon.style.transition='transform .12s ease-out';
+        icon.style.transform='scale(1) rotate(0deg)';
+      }
+      button.dataset.animBusy='0';
+      setTimeout(()=>{
+        if(fx) fx.innerHTML='';
+        if(typeof action==='function') action();
+      },80);
+    }
+  }
+
+  requestAnimationFrame(frame);
 }
 
 function detectVehicleType(nom){
