@@ -1,4 +1,4 @@
-<!-- SaniStock version 1.0.55 : animation Mémo médicaments alignée sur les rubriques principales -->
+<!-- SaniStock version 1.0.56 : animation ambulance visible au démarrage de la connexion -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -984,7 +984,7 @@ body{display:block}
 
 <style>
 /* ===== CONNEXION SALARIÉ PERSISTANTE ===== */
-/* ===== ANIMATION CONNEXION AMBULANCE — VERSION 1.0.55 ===== */
+/* ===== ANIMATION CONNEXION AMBULANCE — VERSION 1.0.56 ===== */
 .loginAmbulanceAnim{display:none;position:relative;height:92px;margin:2px 0 12px;overflow:hidden;border-radius:16px;background:linear-gradient(180deg,#eef8ff,#d9efff);border:1px solid #c8e4f7}
 .loginAmbulanceAnim.show{display:block}
 .loginAmbulanceRoad{position:absolute;left:0;right:0;bottom:17px;height:2px;background:#a8c9dc}
@@ -1243,7 +1243,7 @@ body{display:block}
     <button type="button" class="homeButton4 medication4" onclick="animateHomeButton(this,'medication',function(){showPage('medicationPage')})" aria-label="Mémo médicaments"><span class="homeButtonIcon">💊</span><span class="homeButtonTitle">MÉMO MÉDICAMENTS</span><span class="homeButtonDesc">Infos sur les médicaments</span><span class="homeButtonFx" aria-hidden="true"></span></button>
     <button type="button" class="homeButton4 settings4" onclick="animateHomeButton(this,'settings',function(){ouvrirParametres()})" aria-label="Paramètres"><span class="homeButtonIcon">⚙️</span><span class="homeButtonTitle">PARAMÈTRES</span><span class="homeButtonDesc">Gérer l’application</span><span class="homeButtonFx" aria-hidden="true"></span></button>
   </div>
-  <div class="saniVersion" aria-label="Version de SaniStock">Version 1.0.55</div>
+  <div class="saniVersion" aria-label="Version de SaniStock">Version 1.0.56</div>
   <div id="homeInformation" class="homeInfo" aria-live="polite"></div>
 <div id="homeInformationModal" class="homeInfoModal" aria-hidden="true">
   <div class="homeInfoModalCard" role="dialog" aria-modal="true" aria-labelledby="homeInfoModalTitle">
@@ -2508,6 +2508,12 @@ function changerCodeAdminUI(){
   }
 
   function showError(t){err.textContent=t||''}
+
+  /* L'animation ambulance est visible dès l'ouverture de l'écran de connexion.
+     Elle reste affichée pendant le chargement du nom et du code, puis continue
+     naturellement pendant la vérification. */
+  setLoginAnimation(true);
+
   function activerAccesProprietaire(name,code){
     const nom=String(name||'').trim().replace(/\s+/g,' ').toLowerCase();
     const c=String(code||'').trim();
@@ -2610,10 +2616,22 @@ function changerCodeAdminUI(){
     }).verifierCodeSalarie({salarie:name,code:String(code)});
   }
   function loadNames(){
+    if(loginAnim){
+      const txt=loginAnim.querySelector('.loginAmbulanceText');
+      const st=loginAnim.querySelector('.loginAmbulanceStatus');
+      if(txt) txt.textContent='🚑 Chargement de SaniStock…';
+      if(st) st.textContent='Préparation de votre connexion';
+    }
     google.script.run.withSuccessHandler(function(noms){
       noms=Array.isArray(noms)?noms:[];
       try{ localStorage.setItem('sanistock_cached_employee_names',JSON.stringify(noms)); }catch(e){}
       nameSel.innerHTML='<option value="">Sélectionner votre nom</option>'+noms.map(function(n){return '<option value="'+escapeHtml(n)+'">'+escapeHtml(n)+'</option>'}).join('');
+      if(loginAnim){
+        const txt=loginAnim.querySelector('.loginAmbulanceText');
+        const st=loginAnim.querySelector('.loginAmbulanceStatus');
+        if(txt) txt.textContent='🚑 SaniStock prêt';
+        if(st) st.textContent='Entrez votre nom et votre code';
+      }
       const savedName=localStorage.getItem(KEY_NAME)||'';
       const savedCode=localStorage.getItem(KEY_CODE)||'';
       if(savedName&&savedCode&&noms.includes(savedName)){
