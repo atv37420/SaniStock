@@ -1,4 +1,4 @@
-<!-- SaniStock version 1.0.45 : admin exempté des alertes + actualisation automatique -->
+<!-- SaniStock version 1.0.46 : admin exempté des alertes + actualisation automatique -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -1655,7 +1655,7 @@ function adapterChecklistVehicule(){
  const wrap=$('disinfectionTasks'); if(!wrap) return;
  const list=currentChecklist();
  wrap.innerHTML=list.map(function(t,i){
-   return '<button class="task" onclick="toggleTask(\\''+t.id+'\\',this)"><i class="taskNumber">'+(i+1)+'</i><b class="taskName">'+t.label+'</b><span>✓ Fait</span><input id="'+t.id+'" type="checkbox"></button>';
+   return '<button class="task" onclick="toggleTask(\''+t.id+'\',this)"><i class="taskNumber">'+(i+1)+'</i><b class="taskName">'+t.label+'</b><span>✓ Fait</span><input id="'+t.id+'" type="checkbox"></button>';
  }).join('');
  const help=$('allBtnHelp');
  if(help) help.textContent=isAmbulanceVehicle($('vehicle').value)?'Valide automatiquement les 8 étapes Ambulance':'Valide automatiquement les étapes principales';
