@@ -1830,15 +1830,16 @@ function chargerDatesAnniversaires(){
   google.script.run.withSuccessHandler(function(rows){
     rows=Array.isArray(rows)?rows:[];
     try{ localStorage.setItem('sanistock_birthday_cache',JSON.stringify(rows)); }catch(e){}
-    list.innerHTML=rows.length?rows.map(function(r){
+    list.innerHTML=rows.length?rows.map(function(r,i){
+      const index=i;
       const nom=JSON.stringify(String(r.salarie||'')).replace(/"/g,'&quot;');
       const date=r.dateAnniversaire||'';
       const actif=String(r.statut||'Actif').toLowerCase()!=='inactif';
       return '<div class="datesCard"><div class="datesRow">'+
         '<strong>👤 '+escapeHtml(r.salarie||'')+'</strong>'+
-        '<input type="date" id="dateAnniv_'+Number(r.index||0)+'" value="'+escapeHtml(date)+'" '+(actif?'':'disabled')+'>'+ 
-        '<button class="datesBtn" onclick="enregistrerDateAnniversaireUI('+Number(r.index||0)+','+nom+')">💾</button>'+ 
-        '<button class="datesBtn secondary" onclick="changerStatutAnniversaireUI('+Number(r.index||0)+','+nom+','+(!actif)+')">'+(actif?'⛔':'✅')+'</button>'+ 
+        '<input type="date" id="dateAnniv_'+index+'" value="'+escapeHtml(date)+'" '+(actif?'':'disabled')+'>'+ 
+        '<button class="datesBtn" onclick="enregistrerDateAnniversaireUI('+index+','+nom+')">💾</button>'+ 
+        '<button class="datesBtn secondary" onclick="changerStatutAnniversaireUI('+index+','+nom+','+(!actif)+')">'+(actif?'⛔':'✅')+'</button>'+ 
         '</div><div style="font-size:9px;color:#71879a;margin-top:5px">'+(actif?'Anniversaire activé':'Anniversaire désactivé')+'</div></div>';
     }).join(''):'<div class="settingsMsg">Aucun salarié trouvé.</div>';
   }).withFailureHandler(function(e){
@@ -1866,12 +1867,18 @@ function enregistrerDateAnniversaireUI(index,nom){
 }
 
 function changerStatutAnniversaireUI(index,nom,activer){
+  const input=document.getElementById('dateAnniv_'+Number(index));
+  const date=input ? input.value : '';
+  if(!date){
+    messageParametres('⚠️ Enregistrez d’abord la date d’anniversaire de '+nom+'.',false);
+    return;
+  }
   google.script.run.withSuccessHandler(function(){
     messageParametres('✅ Anniversaire de '+nom+' : '+(activer?'activé':'désactivé')+'.');
     chargerDatesAnniversaires();
   }).withFailureHandler(function(e){
     messageParametres('❌ '+(e&&e.message?e.message:e),false);
-  }).enregistrerAnniversaire(Object.assign({index:Number(index),salarie:nom,statut:activer?'Actif':'Inactif'},donneesAccesGestion()));
+  }).enregistrerAnniversaire(Object.assign({index:Number(index),salarie:nom,dateAnniversaire:date,statut:activer?'Actif':'Inactif'},donneesAccesGestion()));
 }
 
 function verifierAnniversaireConnecte(){
