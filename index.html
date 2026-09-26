@@ -1791,7 +1791,7 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
 
 
 <script>
-/* ===== ÉTAT DE CONNEXION SANISTOCK ===== */
+/* ===== ÉTAT DE CONNEXION SANISTOCK : HAUT DROITE ===== */
 (function(){
   var box=document.getElementById('saniConnection');
   var title=document.getElementById('saniConnTitle');
@@ -1800,41 +1800,61 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
   function etat(type,titre,sousTitre){
     if(!box) return;
     box.className=type;
-    title.textContent=titre;
-    sub.textContent=sousTitre;
+    if(title) title.textContent=titre;
+    if(sub) sub.textContent=sousTitre;
+  }
+
+  function afficherStatut(){
+    var online=navigator.onLine;
+    var pending=Number(document.documentElement.dataset.sanistockPending||0);
+
+    if(!online){
+      etat('error','Hors ligne','Actions enregistrées hors ligne');
+    }else if(pending>0){
+      etat('loading','Synchronisation',''+pending+' opération'+(pending>1?'s':'')+' en cours');
+    }else{
+      etat('ok','En ligne','SaniStock connecté');
+    }
   }
 
   function verifierConnexionSaniStock(){
-    etat(navigator.onLine ? 'loading' : 'error', navigator.onLine ? 'En ligne' : 'Hors ligne', navigator.onLine ? 'Vérification de la connexion' : 'Pas de connexion internet');
-
-    if(typeof google==='undefined' || !google.script || !google.script.run){
-      etat('error','SaniStock hors ligne','Connexion indisponible');
+    if(!navigator.onLine){
+      afficherStatut();
       return;
     }
 
-    // Test léger : on appelle la fonction stock déjà utilisée par l'application.
+    etat('loading','En ligne','Vérification de la connexion');
+
+    if(typeof google==='undefined' || !google.script || !google.script.run){
+      afficherStatut();
+      return;
+    }
+
     google.script.run
       .withSuccessHandler(function(){
-        etat('ok','En ligne','Internet disponible');
+        afficherStatut();
       })
       .withFailureHandler(function(){
-        etat(navigator.onLine ? 'ok' : 'error', navigator.onLine ? 'En ligne' : 'Hors ligne', navigator.onLine ? 'Serveur indisponible' : 'Pas de connexion internet');
+        etat('loading','En ligne','Serveur temporairement indisponible');
       })
       .getStockData();
   }
 
-  if(box){
-    box.addEventListener('click',verifierConnexionSaniStock);
-  }
+  if(box) box.addEventListener('click',verifierConnexionSaniStock);
 
   window.addEventListener('load',function(){
     setTimeout(verifierConnexionSaniStock,700);
   });
 
-  window.addEventListener('online',verifierConnexionSaniStock);
-  window.addEventListener('offline',function(){
-    etat('error','Hors ligne','Pas de connexion internet');
+  window.addEventListener('online',function(){
+    setTimeout(afficherStatut,100);
+    setTimeout(verifierConnexionSaniStock,400);
   });
+
+  window.addEventListener('offline',afficherStatut);
+  window.addEventListener('sanistock-status',afficherStatut);
+  window.addEventListener('sanistock-offline-queued',afficherStatut);
+  window.addEventListener('sanistock-sync-complete',afficherStatut);
 })();
 </script>
 
@@ -3322,37 +3342,6 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 
-
-<!-- ===== INDICATEUR MODE HORS LIGNE ===== -->
-<div id="sanistockOfflineBadge" style="position:fixed;left:50%;bottom:10px;transform:translateX(-50%);z-index:99999;display:none;padding:7px 12px;border-radius:999px;background:#333;color:#fff;font:700 11px Arial,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.25);pointer-events:none"></div>
-<script>
-(function(){
-  const badge=document.getElementById('sanistockOfflineBadge');
-  async function refresh(){
-    if(!badge) return;
-    const online=navigator.onLine;
-    let pending=0;
-    try{ pending=await (window.SaniStockOffline?window.SaniStockOffline.pendingCount():0); }catch(e){}
-    if(!online){
-      badge.textContent='📴 Hors connexion'+(pending?' · '+pending+' en attente':'');
-      badge.style.display='block';
-    }else if(pending){
-      badge.textContent='🔄 Synchronisation de '+pending+' opération'+(pending>1?'s':'')+'…';
-      badge.style.display='block';
-    }else{
-      badge.textContent='🟢 En ligne';
-      badge.style.display='block';
-      setTimeout(()=>{if(navigator.onLine && !Number(document.documentElement.dataset.sanistockPending||0)) badge.style.display='none'},2500);
-    }
-  }
-  window.addEventListener('online',refresh);
-  window.addEventListener('offline',refresh);
-  window.addEventListener('sanistock-status',refresh);
-  window.addEventListener('sanistock-offline-queued',refresh);
-  window.addEventListener('sanistock-sync-complete',refresh);
-  setTimeout(refresh,800);
-})();
-</script>
 
 </body>
 </html>
