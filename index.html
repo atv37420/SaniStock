@@ -1,4 +1,4 @@
-<!-- SaniStock version 1.0.60 : boutons sans animation -->
+<!-- SaniStock version 1.0.61 : boutons colorés sans animation -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -654,6 +654,7 @@ body{display:block}
 .homeButtons4{position:absolute;z-index:20;left:5%;right:5%;top:52%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
 .homeButton4{position:relative;overflow:hidden;border:0;border-radius:16px;padding:12px 10px;min-height:96px;color:#fff;font-weight:900;box-shadow:0 7px 18px rgba(0,0,0,.28);cursor:pointer;touch-action:manipulation;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;transform-origin:center}
 .homeButton4 .homeButtonTitle{font-size:clamp(12px,1.25vw,18px);line-height:1.1}.homeButton4 .homeButtonDesc{font-size:clamp(8px,.78vw,11px);font-weight:600;line-height:1.2;opacity:.95;max-width:100%}
+.homeButton4.stock4{background:#1479e8}.homeButton4.disinfection4{background:#e53935}.homeButton4.medication4{background:#2eaf5d}.homeButton4.settings4{background:#6b7280}
 /* Les boutons principaux restent fixes : aucune animation au repos ni au clic. */
 @media(max-width:700px){.homeButtons4{left:3%;right:3%;gap:7px;top:53%}.homeButton4{min-height:88px;padding:8px 5px;border-radius:12px;gap:4px}.homeButton4 .homeButtonTitle{font-size:10px}.homeButton4 .homeButtonDesc{font-size:7.5px;line-height:1.15}.homeButtonIcon{font-size:1.3em}}
 
@@ -1163,7 +1164,7 @@ body{display:block}
     <button type="button" class="homeButton4 medication4" onclick="showPage('medicationPage')" aria-label="Mémo médicaments"><span class="homeButtonIcon">💊</span><span class="homeButtonTitle">MÉMO MÉDICAMENTS</span><span class="homeButtonDesc">Infos sur les médicaments</span></button>
     <button type="button" class="homeButton4 settings4" onclick="ouvrirParametres()" aria-label="Paramètres"><span class="homeButtonIcon">⚙️</span><span class="homeButtonTitle">PARAMÈTRES</span><span class="homeButtonDesc">Gérer l’application</span></button>
   </div>
-  <div class="saniVersion" aria-label="Version de SaniStock">Version 1.0.60</div>
+  <div class="saniVersion" aria-label="Version de SaniStock">Version 1.0.61</div>
   <div id="homeInformation" class="homeInfo" aria-live="polite"></div>
 <div id="homeInformationModal" class="homeInfoModal" aria-hidden="true">
   <div class="homeInfoModalCard" role="dialog" aria-modal="true" aria-labelledby="homeInfoModalTitle">
