@@ -1,4 +1,4 @@
-<!-- SaniStock version 1.0.56 : animation ambulance visible au démarrage de la connexion -->
+<!-- SaniStock version 1.0.59 : connexion automatique + code seul en secours + cœur ECG -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -997,6 +997,8 @@ body{display:block}
 @keyframes loginHeartSpin{to{transform:translate(-50%,-52%) rotate(360deg)}}
 @keyframes loginHeartBeat{0%,100%{transform:translate(-50%,-57%) scale(.94)}35%{transform:translate(-50%,-57%) scale(1.08)}55%{transform:translate(-50%,-57%) scale(.98)}70%{transform:translate(-50%,-57%) scale(1.04)}}
 @keyframes loginECGMove{from{stroke-dashoffset:500}to{stroke-dashoffset:0}}
+.employeeLoginSavedUser{margin:0 0 10px;padding:11px 14px;border-radius:12px;background:#eef7ff;border:1px solid #c9e4f8;color:#0757a0;font-weight:800;text-align:center;font-size:14px}
+.employeeLoginAuto .employeeLoginCard{animation:loginCardPulse .55s ease-in-out infinite alternate}
 .loginVerifying .employeeLoginCard{animation:loginCardPulse .55s ease-in-out infinite alternate}
 @keyframes loginCardPulse{from{box-shadow:0 20px 60px rgba(0,0,0,.35)}to{box-shadow:0 20px 70px rgba(20,160,255,.25)}}
 #employeeLoginOverlay{display:flex;position:fixed;inset:0;z-index:30000;background:linear-gradient(180deg,#0757a0 0%,#032f61 100%);padding:22px;align-items:center;justify-content:center;color:#173f68}
@@ -1081,6 +1083,7 @@ body{display:block}
       <div class="loginECG" aria-hidden="true"><svg viewBox="0 0 420 42" preserveAspectRatio="none"><path d="M0 22 H62 L72 22 L80 10 L89 34 L98 22 H145 L155 22 L164 17 L172 27 L180 22 H222 L232 22 L241 4 L251 38 L261 22 H308 L318 22 L327 15 L336 29 L345 22 H420"></path></svg></div>
       <div class="loginHeartStatus">SaniStock vérifie vos identifiants</div>
     </div>
+    <div id="employeeLoginSavedUser" class="employeeLoginSavedUser" style="display:none"></div>
     <select id="employeeLoginName"><option value="">Chargement des salariés…</option></select>
     <input id="employeeLoginCode" type="password" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="Votre code personnel">
     <button id="employeeLoginBtn" type="button">Se connecter</button>
@@ -1242,7 +1245,7 @@ body{display:block}
     <button type="button" class="homeButton4 medication4" onclick="animateHomeButton(this,'medication',function(){showPage('medicationPage')})" aria-label="Mémo médicaments"><span class="homeButtonIcon">💊</span><span class="homeButtonTitle">MÉMO MÉDICAMENTS</span><span class="homeButtonDesc">Infos sur les médicaments</span><span class="homeButtonFx" aria-hidden="true"></span></button>
     <button type="button" class="homeButton4 settings4" onclick="animateHomeButton(this,'settings',function(){ouvrirParametres()})" aria-label="Paramètres"><span class="homeButtonIcon">⚙️</span><span class="homeButtonTitle">PARAMÈTRES</span><span class="homeButtonDesc">Gérer l’application</span><span class="homeButtonFx" aria-hidden="true"></span></button>
   </div>
-  <div class="saniVersion" aria-label="Version de SaniStock">Version 1.0.58</div>
+  <div class="saniVersion" aria-label="Version de SaniStock">Version 1.0.59</div>
   <div id="homeInformation" class="homeInfo" aria-live="polite"></div>
 <div id="homeInformationModal" class="homeInfoModal" aria-hidden="true">
   <div class="homeInfoModalCard" role="dialog" aria-modal="true" aria-labelledby="homeInfoModalTitle">
@@ -2483,23 +2486,28 @@ function changerCodeAdminUI(){
 }
 
 
-/* ===== CONNEXION SALARIÉ : CODE SAISI UNE SEULE FOIS ===== */
+/* ===== CONNEXION SALARIÉ : PREMIÈRE FOIS / AUTOMATIQUE / CODE SEUL ===== */
 
 (function(){
   const KEY_NAME='sanistock_employee_name';
   const KEY_CODE='sanistock_employee_code';
   const overlay=document.getElementById('employeeLoginOverlay');
   const nameSel=document.getElementById('employeeLoginName');
+  const savedUser=document.getElementById('employeeLoginSavedUser');
   const codeInput=document.getElementById('employeeLoginCode');
   const btn=document.getElementById('employeeLoginBtn');
   const err=document.getElementById('employeeLoginError');
   const loginAnim=document.getElementById('loginAmbulanceAnim');
 
-  function setLoginAnimation(show){
+  function setLoginAnimation(show,status,title){
     if(!loginAnim) return;
+    const txt=loginAnim.querySelector('.loginHeartText');
+    const st=loginAnim.querySelector('.loginHeartStatus');
     if(show){
       loginAnim.classList.add('show');
       overlay.classList.add('loginVerifying');
+      if(txt) txt.textContent=title||'❤️ Vérification sécurisée…';
+      if(st) st.textContent=status||'SaniStock vérifie vos identifiants';
     }else{
       loginAnim.classList.remove('show');
       overlay.classList.remove('loginVerifying');
@@ -2507,11 +2515,51 @@ function changerCodeAdminUI(){
   }
 
   function showError(t){err.textContent=t||''}
-
-  /* L'animation ambulance est visible dès l'ouverture de l'écran de connexion.
-     Elle reste affichée pendant le chargement du nom et du code, puis continue
-     naturellement pendant la vérification. */
-  setLoginAnimation(true);
+  function savedCredentials(){
+    return {name:localStorage.getItem(KEY_NAME)||'',code:localStorage.getItem(KEY_CODE)||''};
+  }
+  function afficherModePremiereConnexion(){
+    if(savedUser) savedUser.style.display='none';
+    nameSel.style.display='block';
+    nameSel.disabled=false;
+    codeInput.style.display='block';
+    codeInput.placeholder='Votre code personnel';
+    codeInput.value='';
+    btn.style.display='block';
+    btn.disabled=false;
+    btn.textContent='Se connecter';
+    showError('');
+    setLoginAnimation(false);
+  }
+  function afficherModeCodeSeul(name,message){
+    if(savedUser){
+      savedUser.textContent='👤 '+name;
+      savedUser.style.display='block';
+    }
+    nameSel.style.display='none';
+    nameSel.disabled=true;
+    codeInput.style.display='block';
+    codeInput.placeholder='Entrez votre mot de passe';
+    codeInput.value='';
+    btn.style.display='block';
+    btn.disabled=false;
+    btn.textContent='Se connecter';
+    setLoginAnimation(false);
+    showError(message||'Entrez votre mot de passe pour continuer.');
+    setTimeout(function(){codeInput.focus()},80);
+  }
+  function afficherModeAutomatique(name){
+    if(savedUser){
+      savedUser.textContent='👤 '+name;
+      savedUser.style.display='block';
+    }
+    nameSel.style.display='none';
+    nameSel.disabled=true;
+    codeInput.style.display='none';
+    btn.style.display='none';
+    showError('');
+    setLoginAnimation(true,'Connexion automatique…','❤️ Connexion automatique…');
+  }
 
   function activerAccesProprietaire(name,code){
     const nom=String(name||'').trim().replace(/\s+/g,' ').toLowerCase();
@@ -2535,10 +2583,7 @@ function changerCodeAdminUI(){
       if(s2){s2.value=name;s2.disabled=true;}
     }
     appliquerSalarieConnecte();
-    // Vérifie et affiche immédiatement la dernière information non lue après connexion.
-    setTimeout(function(){
-      try{ chargerInformationAccueil(); }catch(e){}
-    },150);
+    setTimeout(function(){try{chargerInformationAccueil()}catch(e){}},150);
     setTimeout(appliquerSalarieConnecte,500);
     setTimeout(appliquerSalarieConnecte,1500);
   }
@@ -2552,10 +2597,7 @@ function changerCodeAdminUI(){
     }
     const confirmation=prompt('Confirmez votre nouveau code personnel :');
     if(confirmation===null)return false;
-    if(String(confirmation).trim()!==nouveau){
-      showError('Les deux codes ne correspondent pas.');
-      return false;
-    }
+    if(String(confirmation).trim()!==nouveau){showError('Les deux codes ne correspondent pas.');return false;}
     btn.disabled=true; btn.textContent='Enregistrement…'; showError('');
     google.script.run.withSuccessHandler(function(){
       btn.disabled=false; btn.textContent='Se connecter';
@@ -2570,25 +2612,18 @@ function changerCodeAdminUI(){
     return true;
   }
   function verify(name,code,remember){
-    if(!name||!code){showError('Sélectionnez votre nom et entrez votre code.');return}
+    if(!name||!code){showError('Sélectionnez votre nom et entrez votre mot de passe.');return}
     btn.disabled=true; btn.textContent='Vérification…'; showError('');
-    setLoginAnimation(true);
+    setLoginAnimation(true,'Vérification en cours…','❤️ Vérification sécurisée…');
 
-    /* ===== CONNEXION SALARIÉ HORS LIGNE ===== */
     if(!navigator.onLine){
-      const savedName=localStorage.getItem(KEY_NAME)||'';
-      const savedCode=localStorage.getItem(KEY_CODE)||'';
-      if(name===savedName && String(code)===String(savedCode) && savedName && savedCode){
+      const saved=savedCredentials();
+      if(name===saved.name && String(code)===String(saved.code) && saved.name && saved.code){
         btn.disabled=false; btn.textContent='Se connecter';
-        activerAccesProprietaire(name,code);
-        setLoginAnimation(false);
-        unlock(name);
-        showError('');
-        return;
+        activerAccesProprietaire(name,code); setLoginAnimation(false); unlock(name); showError(''); return;
       }
-      btn.disabled=false; btn.textContent='Se connecter';
-      setLoginAnimation(false);
-      showError('Hors ligne : utilisez le nom et le code déjà enregistrés sur cet appareil.');
+      btn.disabled=false; btn.textContent='Se connecter'; setLoginAnimation(false);
+      showError('Hors ligne : utilisez le mot de passe déjà enregistré sur cet appareil.');
       return;
     }
 
@@ -2596,11 +2631,14 @@ function changerCodeAdminUI(){
       btn.disabled=false; btn.textContent='Se connecter';
       setLoginAnimation(false);
       if(!result || result.valide !== true){
-        localStorage.removeItem(KEY_NAME); localStorage.removeItem(KEY_CODE);
-        showError('Nom ou code incorrect, ou accès désactivé.'); codeInput.value=''; codeInput.focus(); return;
+        if(remember && localStorage.getItem(KEY_NAME)===name){
+          /* L’auto-connexion a échoué : on conserve le nom et on demande seulement le mot de passe. */
+          afficherModeCodeSeul(name,'Connexion automatique impossible. Entrez votre mot de passe.');
+          return;
+        }
+        showError('Nom ou mot de passe incorrect, ou accès désactivé.'); codeInput.value=''; codeInput.focus(); return;
       }
       if(result.premiereConnexion===true){
-        setLoginAnimation(false);
         codeInput.value='';
         demanderNouveauCode(name,remember);
         return;
@@ -2610,93 +2648,67 @@ function changerCodeAdminUI(){
       unlock(name);
     }).withFailureHandler(function(){
       btn.disabled=false; btn.textContent='Se connecter';
-      setLoginAnimation(false);
-      showError('Connexion SaniStock impossible. Vérifiez Internet.');
+      if(remember && localStorage.getItem(KEY_NAME)===name){
+        afficherModeCodeSeul(name,'Connexion automatique impossible. Entrez votre mot de passe.');
+      }else{
+        setLoginAnimation(false);
+        showError('Connexion SaniStock impossible. Vérifiez Internet.');
+      }
     }).verifierCodeSalarie({salarie:name,code:String(code)});
   }
+  function autoConnect(savedName,savedCode){
+    afficherModeAutomatique(savedName);
+    google.script.run.withSuccessHandler(function(result){
+      if(result && result.valide===true && result.premiereConnexion!==true){
+        activerAccesProprietaire(savedName,savedCode);
+        setLoginAnimation(false);
+        unlock(savedName);
+        return;
+      }
+      /* Si l’auto n’est plus valide, on garde le nom et on demande uniquement le mot de passe. */
+      afficherModeCodeSeul(savedName,'Connexion automatique impossible. Entrez votre mot de passe.');
+    }).withFailureHandler(function(){
+      afficherModeCodeSeul(savedName,'Connexion automatique impossible. Entrez votre mot de passe.');
+    }).verifierCodeSalarie({salarie:savedName,code:String(savedCode)});
+  }
   function loadNames(){
-    if(loginAnim){
-      const txt=loginAnim.querySelector('.loginHeartText');
-      const st=loginAnim.querySelector('.loginHeartStatus');
-      if(txt) txt.textContent='🚑 Chargement de SaniStock…';
-      if(st) st.textContent='Préparation de votre connexion';
-    }
+    setLoginAnimation(true,'Préparation de votre connexion','❤️ SaniStock se prépare…');
     google.script.run.withSuccessHandler(function(noms){
       noms=Array.isArray(noms)?noms:[];
-      try{ localStorage.setItem('sanistock_cached_employee_names',JSON.stringify(noms)); }catch(e){}
+      try{localStorage.setItem('sanistock_cached_employee_names',JSON.stringify(noms));}catch(e){}
       nameSel.innerHTML='<option value="">Sélectionner votre nom</option>'+noms.map(function(n){return '<option value="'+escapeHtml(n)+'">'+escapeHtml(n)+'</option>'}).join('');
-      if(loginAnim){
-        const txt=loginAnim.querySelector('.loginHeartText');
-        const st=loginAnim.querySelector('.loginHeartStatus');
-        if(txt) txt.textContent='🚑 SaniStock prêt';
-        if(st) st.textContent='Entrez votre nom et votre code';
-      }
-      const savedName=localStorage.getItem(KEY_NAME)||'';
-      const savedCode=localStorage.getItem(KEY_CODE)||'';
-      if(savedName&&savedCode&&noms.includes(savedName)){
-        /* Connexion automatique uniquement après validation serveur du code mémorisé. */
-        nameSel.value=savedName;
-        google.script.run.withSuccessHandler(function(result){
-          if(!result || result.valide !== true || result.premiereConnexion===true){
-            localStorage.removeItem(KEY_NAME);
-            localStorage.removeItem(KEY_CODE);
-            nameSel.value='';
-            return;
-          }
-
-          activerAccesProprietaire(savedName,savedCode);
-          unlock(savedName);
-
-          const bonjour=document.createElement('div');
-          bonjour.innerHTML='<div style=\"font-size:18px;font-weight:600;letter-spacing:.2px;opacity:.95\">Bonjour</div><div style=\"font-size:30px;font-weight:900;letter-spacing:.2px;margin-top:3px;white-space:nowrap\">'+savedName+' 👋</div><div style=\"height:3px;width:120px;margin:12px auto 0;border-radius:99px;background:linear-gradient(90deg,transparent,#16a8ff,#ffffff,#16a8ff,transparent);box-shadow:0 0 14px #16a8ff;animation:saniBonjourLine 1.35s ease-in-out infinite alternate\"></div>';
-          bonjour.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.82);z-index:25000;text-align:center;color:#fff;padding:22px 28px 20px;border-radius:24px;background:linear-gradient(145deg,rgba(7,63,145,.94),rgba(0,122,255,.88));border:1px solid rgba(82,194,255,.9);box-shadow:0 0 18px rgba(22,168,255,.65),0 0 55px rgba(22,168,255,.35),0 18px 50px rgba(0,0,0,.28);white-space:nowrap;opacity:0;backdrop-filter:blur(8px);font-family:Arial,sans-serif;animation:saniBonjourIn .55s cubic-bezier(.2,.85,.25,1) forwards';
-          if(!document.getElementById('saniBonjourAnimStyle')){
-            const st=document.createElement('style');
-            st.id='saniBonjourAnimStyle';
-            st.textContent='@keyframes saniBonjourIn{0%{opacity:0;transform:translate(-50%,-50%) scale(.72);filter:blur(7px)}65%{opacity:1;transform:translate(-50%,-50%) scale(1.04);filter:blur(0)}100%{opacity:1;transform:translate(-50%,-50%) scale(1)}}@keyframes saniBonjourLine{0%{transform:scaleX(.55);opacity:.55}100%{transform:scaleX(1.15);opacity:1}}';
-            document.head.appendChild(st);
-          }
-          document.body.appendChild(bonjour);
-          setTimeout(function(){bonjour.style.transition='opacity .45s ease, transform .45s ease';bonjour.style.opacity='0';bonjour.style.transform='translate(-50%,-50%) scale(.94)';setTimeout(function(){bonjour.remove()},470)},2200);
-        }).withFailureHandler(function(){
-          localStorage.removeItem(KEY_NAME);
-          localStorage.removeItem(KEY_CODE);
-        }).verifierCodeSalarie({salarie:savedName,code:String(savedCode)});
+      const saved=savedCredentials();
+      if(saved.name&&saved.code&&noms.includes(saved.name)){
+        autoConnect(saved.name,saved.code);
+      }else{
+        afficherModePremiereConnexion();
       }
     }).withFailureHandler(function(){
-      let noms=[];
-      try{ noms=JSON.parse(localStorage.getItem('sanistock_cached_employee_names')||'[]'); }catch(e){ noms=[]; }
+      let noms=[]; try{noms=JSON.parse(localStorage.getItem('sanistock_cached_employee_names')||'[]')}catch(e){noms=[]}
       noms=Array.isArray(noms)?noms:[];
       nameSel.innerHTML='<option value="">Sélectionner votre nom</option>'+noms.map(function(n){return '<option value="'+escapeHtml(n)+'">'+escapeHtml(n)+'</option>'}).join('');
-      if(!navigator.onLine){
-        showError(noms.length?'Mode hors ligne : choisissez votre nom puis utilisez votre code mémorisé.':'Aucun salarié enregistré sur cet appareil. Connectez-vous une première fois avec Internet.');
+      const saved=savedCredentials();
+      if(saved.name){
+        afficherModeCodeSeul(saved.name,noms.length?'Mode hors ligne : entrez votre mot de passe déjà enregistré.':'Connexion automatique impossible. Entrez votre mot de passe.');
       }else{
-        showError('Impossible de charger les salariés.');
+        afficherModePremiereConnexion();
+        showError(noms.length?'Mode hors ligne : choisissez votre nom puis utilisez votre mot de passe.':'Aucun salarié enregistré sur cet appareil. Connectez-vous une première fois avec Internet.');
       }
     }).getSalaries();
   }
   btn.addEventListener('click',function(){verify(nameSel.value,(codeInput.value||'').trim(),true)});
   codeInput.addEventListener('keydown',function(e){if(e.key==='Enter')btn.click()});
   window.deconnecterSaniStock=function(){
-    localStorage.removeItem(KEY_NAME); localStorage.removeItem(KEY_CODE);
-    localStorage.removeItem(OWNER_DEVICE_KEY);
-    localStorage.removeItem(OWNER_ADMIN_CODE_KEY);
-    localStorage.removeItem(OWNER_STOCK_CODE_KEY);
-    const logoutBtn=document.getElementById('homeLogoutBtn');
-    if(logoutBtn) logoutBtn.style.display='none';
-    location.reload();
+    localStorage.removeItem(KEY_NAME); localStorage.removeItem(KEY_CODE); localStorage.removeItem(OWNER_DEVICE_KEY); localStorage.removeItem(OWNER_ADMIN_CODE_KEY); localStorage.removeItem(OWNER_STOCK_CODE_KEY); location.reload();
   };
+  /* Première ouverture : le formulaire normal reste visible pendant le chargement. */
+  setLoginAnimation(false);
   setTimeout(loadNames,250);
 
-  /* Prépare immédiatement le menu avec la dernière liste connue si Internet est absent. */
   if(!navigator.onLine){
     try{
       const noms=JSON.parse(localStorage.getItem('sanistock_cached_employee_names')||'[]');
-      if(Array.isArray(noms) && noms.length){
-        nameSel.innerHTML='<option value="">Sélectionner votre nom</option>'+noms.map(function(n){return '<option value="'+escapeHtml(n)+'">'+escapeHtml(n)+'</option>'}).join('');
-      }
-      const savedName=localStorage.getItem(KEY_NAME)||'';
-      if(savedName) nameSel.value=savedName;
+      if(Array.isArray(noms)&&noms.length){nameSel.innerHTML='<option value="">Sélectionner votre nom</option>'+noms.map(function(n){return '<option value="'+escapeHtml(n)+'">'+escapeHtml(n)+'</option>'}).join('');}
     }catch(e){}
   }
 })();
