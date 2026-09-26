@@ -1836,7 +1836,7 @@ function chargerDatesAnniversaires(){
       const date=r.dateAnniversaire||'';
       const actif=String(r.statut||'Actif').toLowerCase()!=='inactif';
       return '<div class="datesCard"><div class="datesRow">'+
-        '<strong>👤 '+escapeHtml(r.salarie||'')+'</strong>'+
+        '<strong>👤 '+escapeHtml(r.salarie||'')+'</strong>'+ 
         '<input type="date" id="dateAnniv_'+index+'" value="'+escapeHtml(date)+'" '+(actif?'':'disabled')+'>'+ 
         '<button class="datesBtn" onclick="enregistrerDateAnniversaireUI('+index+','+nom+')">💾</button>'+ 
         '<button class="datesBtn secondary" onclick="changerStatutAnniversaireUI('+index+','+nom+','+(!actif)+')">'+(actif?'⛔':'✅')+'</button>'+ 
@@ -1846,7 +1846,7 @@ function chargerDatesAnniversaires(){
     let cache=[];
     try{cache=JSON.parse(localStorage.getItem('sanistock_birthday_cache')||'[]');}catch(x){cache=[];}
     if(Array.isArray(cache)&&cache.length){
-      list.innerHTML=cache.map(function(r){
+      list.innerHTML=cache.map(function(r,i){
         return '<div class="datesCard"><div class="datesRow"><strong>👤 '+escapeHtml(r.salarie||'')+'</strong><span>'+escapeHtml(r.dateAnniversaire||'Non renseignée')+'</span></div></div>';
       }).join('');
     }else{
@@ -1858,27 +1858,31 @@ function chargerDatesAnniversaires(){
 function enregistrerDateAnniversaireUI(index,nom){
   const input=document.getElementById('dateAnniv_'+Number(index));
   if(!input||!input.value){alert('Choisissez une date d’anniversaire.');return;}
+  const acces=donneesAccesGestion();
+  const data=Object.assign({},acces,{index:Number(index),salarie:nom,dateAnniversaire:input.value,statut:'Actif'});
   google.script.run.withSuccessHandler(function(){
     messageParametres('✅ Date d’anniversaire enregistrée pour '+nom+'.');
     chargerDatesAnniversaires();
   }).withFailureHandler(function(e){
     messageParametres('❌ '+(e&&e.message?e.message:e),false);
-  }).enregistrerAnniversaire(Object.assign({index:Number(index),salarie:nom,dateAnniversaire:input.value},donneesAccesGestion()));
+  }).enregistrerAnniversaire(data);
 }
 
 function changerStatutAnniversaireUI(index,nom,activer){
   const input=document.getElementById('dateAnniv_'+Number(index));
-  const date=input ? input.value : '';
-  if(!date){
-    messageParametres('⚠️ Enregistrez d’abord la date d’anniversaire de '+nom+'.',false);
+  const dateExistante=input ? input.value : '';
+  if(!dateExistante){
+    alert('⚠️ Enregistrez d’abord une date d’anniversaire pour '+nom+'.');
     return;
   }
+  const acces=donneesAccesGestion();
+  const data=Object.assign({},acces,{index:Number(index),salarie:nom,dateAnniversaire:dateExistante,statut:activer?'Actif':'Inactif'});
   google.script.run.withSuccessHandler(function(){
     messageParametres('✅ Anniversaire de '+nom+' : '+(activer?'activé':'désactivé')+'.');
     chargerDatesAnniversaires();
   }).withFailureHandler(function(e){
     messageParametres('❌ '+(e&&e.message?e.message:e),false);
-  }).enregistrerAnniversaire(Object.assign({index:Number(index),salarie:nom,dateAnniversaire:date,statut:activer?'Actif':'Inactif'},donneesAccesGestion()));
+  }).enregistrerAnniversaire(data);
 }
 
 function verifierAnniversaireConnecte(){
@@ -1897,7 +1901,6 @@ function verifierAnniversaireConnecte(){
     afficherMessageAnniversaire(row.prenom||nom.split(/\s+/)[0]);
   }
 
-  /* Le jour J doit aussi fonctionner sans Internet grâce au dernier cache connu. */
   try{
     const cache=JSON.parse(localStorage.getItem('sanistock_birthday_cache')||'[]');
     if(Array.isArray(cache)){
