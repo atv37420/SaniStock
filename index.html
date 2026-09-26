@@ -1,4 +1,4 @@
-<!-- SaniStock version 1.0.44 : admin exempté des alertes + actualisation automatique -->
+<!-- SaniStock version 1.0.45 : admin exempté des alertes + actualisation automatique -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -427,7 +427,12 @@ body{display:block}
 .progressHead{display:flex;justify-content:space-between;align-items:center;color:#0757a0;font-size:10px}.progressHead strong{font-size:19px}
 .progress{height:9px;background:#dce7ef;border-radius:20px;overflow:hidden;margin:9px 0 14px}.progress span{display:block;width:0;height:100%;background:#0875c9;transition:.2s}
 .task{position:relative;width:100%;display:grid;grid-template-columns:35px 1fr auto;align-items:center;gap:8px;margin:8px 0;padding:10px;border:1px solid #d8e5ed;border-radius:13px;background:#fff;color:#173f68;text-align:left;cursor:pointer}
-.task input{position:absolute;opacity:0}.task i{font-style:normal;width:31px;height:31px;border-radius:50%;display:grid;place-items:center;background:#e8f3fb;color:#0757a0;font-weight:900;font-size:16px}.task b{font-size:11px}.taskIcon{display:inline-flex;align-items:center;justify-content:center;margin-right:7px;font-size:16px;vertical-align:-2px}.task span{padding:7px 9px;border-radius:8px;background:#e6f7eb;color:#148c47;font-size:10px;font-weight:900}.task em{font-style:normal;background:#df2633;color:#fff;font-size:8px;padding:3px 5px;border-radius:6px}.task.done{background:#f0fbf4;border-color:#4eb879}.task.done span{background:#15934b;color:#fff}
+.task input{position:absolute;opacity:0}
+.taskNumber{font-style:normal;width:29px;height:29px;border-radius:50%;display:grid;place-items:center;background:#e8f3fb;color:#0757a0;font-weight:900}
+.taskName{display:flex;align-items:center;gap:8px;font-size:11px}
+.taskIcon{display:inline-grid;place-items:center;width:25px;height:25px;min-width:25px;border-radius:7px;background:#eef5fa;color:#075ba9;font-size:16px;font-weight:900;line-height:1}
+.taskLabel{display:inline}
+.task i{font-style:normal;width:31px;height:31px;border-radius:50%;display:grid;place-items:center;background:#e8f3fb;color:#0757a0;font-weight:900;font-size:16px}.task b{font-size:11px}.taskIcon{display:inline-flex;align-items:center;justify-content:center;margin-right:7px;font-size:16px;vertical-align:-2px}.task span{padding:7px 9px;border-radius:8px;background:#e6f7eb;color:#148c47;font-size:10px;font-weight:900}.task em{font-style:normal;background:#df2633;color:#fff;font-size:8px;padding:3px 5px;border-radius:6px}.task.done{background:#f0fbf4;border-color:#4eb879}.task.done span{background:#15934b;color:#fff}
 .allBtn,.validBtn,.histBtn{width:100%;border:0;border-radius:13px;cursor:pointer;font-weight:900}.allBtn{margin-top:13px;padding:12px;background:#e4f1fb;color:#0757a0;text-align:left}.allBtn small{display:block;margin:4px 0 0 22px;color:#527a9a}.validBtn{margin-top:11px;padding:14px;background:#15934b;color:#fff}.histBtn{margin-top:9px;padding:13px;background:#075ba9;color:#fff;font-size:11px}
 .success{display:none;margin-top:12px;padding:12px;border-radius:12px;background:#e5f8eb;color:#08753b;text-align:center;font-weight:900}.success.show{display:block}
 .historyBox{display:none;position:fixed;z-index:100;left:50%;top:50%;transform:translate(-50%,-50%);width:min(90%,470px);max-height:70vh;overflow:auto;background:#fff;border-radius:18px;padding:18px;box-shadow:0 20px 55px #00305b70}.historyBox.show{display:block}.closeHist{float:right;border:0;border-radius:50%;width:30px;height:30px;background:#075ba9;color:#fff}
@@ -1622,21 +1627,21 @@ function escapeHtml(v){return String(v==null?'':v).replace(/[&<>'"]/g,c=>({'&':'
 
 function isFriday(){return new Date().getDay()===5}
 const CHECKLIST_STANDARD=[
- {id:'contacts',label:'Points de contact',icon:'📍'},
- {id:'windows',label:'Lavage des vitrages',icon:'🪟'},
- {id:'vacuum',label:'Aspirateur / Balayette',icon:'🧹'},
- {id:'fuel',label:'Plein carburant',icon:'⛽'},
- {id:'outside',label:'Lavage extérieur <em>VENDREDI</em>',icon:'🧽',outside:true}
+ {id:'contacts',label:'<span class="taskIcon" aria-hidden="true">⌖</span><span class="taskLabel">Points de contact</span>'},
+ {id:'windows',label:'<span class="taskIcon" aria-hidden="true">▱</span><span class="taskLabel">Lavage des vitrages</span>'},
+ {id:'vacuum',label:'<span class="taskIcon" aria-hidden="true">◒</span><span class="taskLabel">Aspirateur / Balayette</span>'},
+ {id:'fuel',label:'<span class="taskIcon" aria-hidden="true">⛽</span><span class="taskLabel">Plein carburant</span>'},
+ {id:'outside',label:'<span class="taskIcon" aria-hidden="true">✦</span><span class="taskLabel">Lavage extérieur <em>VENDREDI</em></span>',outside:true}
 ];
 const CHECKLIST_AMBULANCE=[
- {id:'cabine',label:'Poste de conduite',icon:'🚑'},
- {id:'windows',label:'Vitrages',icon:'🪟'},
- {id:'vacuum',label:'Aspirateur / Balayette',icon:'🧹'},
- {id:'cellule',label:'Cellule sanitaire',icon:'🧼'},
- {id:'brancard',label:'Brancard',icon:'🛏️'},
- {id:'materielSoins',label:'Matériel de soins',icon:'🩺'},
- {id:'serpilliereCellule',label:'Lavage extérieur',icon:'🧽'},
- {id:'fuel',label:'Plein de carburant',icon:'⛽'}
+ {id:'cabine',label:'<span class="taskIcon" aria-hidden="true">⌂</span><span class="taskLabel">Poste de conduite</span>'},
+ {id:'windows',label:'<span class="taskIcon" aria-hidden="true">▱</span><span class="taskLabel">Vitrages</span>'},
+ {id:'vacuum',label:'<span class="taskIcon" aria-hidden="true">◒</span><span class="taskLabel">Aspirateur / Balayette</span>'},
+ {id:'cellule',label:'<span class="taskIcon" aria-hidden="true">▣</span><span class="taskLabel">Cellule sanitaire</span>'},
+ {id:'brancard',label:'<span class="taskIcon" aria-hidden="true">▭</span><span class="taskLabel">Brancard</span>'},
+ {id:'materielSoins',label:'<span class="taskIcon" aria-hidden="true">✚</span><span class="taskLabel">Matériel de soins</span>'},
+ {id:'serpilliereCellule',label:'<span class="taskIcon" aria-hidden="true">✦</span><span class="taskLabel">Lavage extérieur</span>'},
+ {id:'fuel',label:'<span class="taskIcon" aria-hidden="true">⛽</span><span class="taskLabel">Plein de carburant</span>'}
 ];
 function isAmbulanceVehicle(nom){
  const v=String(nom||'').toUpperCase();
@@ -1650,7 +1655,7 @@ function adapterChecklistVehicule(){
  const wrap=$('disinfectionTasks'); if(!wrap) return;
  const list=currentChecklist();
  wrap.innerHTML=list.map(function(t,i){
-   return '<button class="task" onclick="toggleTask(\''+t.id+'\',this)"><i title="Étape '+(i+1)+'">'+(t.icon||(''+(i+1)))+'</i><b><span class="taskIcon">'+(t.icon||'')+'</span>'+t.label+'</b><span>✓ Fait</span><input id="'+t.id+'" type="checkbox"></button>';
+   return '<button class="task" onclick="toggleTask(\\''+t.id+'\\',this)"><i class="taskNumber">'+(i+1)+'</i><b class="taskName">'+t.label+'</b><span>✓ Fait</span><input id="'+t.id+'" type="checkbox"></button>';
  }).join('');
  const help=$('allBtnHelp');
  if(help) help.textContent=isAmbulanceVehicle($('vehicle').value)?'Valide automatiquement les 8 étapes Ambulance':'Valide automatiquement les étapes principales';
