@@ -650,6 +650,30 @@ body{display:block}
 </style>
 
 <style>
+/* ===== ANIMATIONS DES 4 BOUTONS — VERSION RENFORCÉE ===== */
+.homeButton4{will-change:transform,box-shadow;isolation:isolate}
+.homeButton4 .homeButtonIcon{will-change:transform;transform-origin:center}
+.homeButton4.animating{animation:saniButtonPulse .68s cubic-bezier(.2,.8,.2,1)!important}
+@keyframes saniButtonPulse{0%{transform:scale(1);box-shadow:0 7px 18px rgba(0,0,0,.28)}35%{transform:scale(.92);box-shadow:0 0 0 8px rgba(255,255,255,.18),0 10px 28px rgba(0,0,0,.38)}65%{transform:scale(1.045);box-shadow:0 0 0 4px rgba(255,255,255,.12),0 12px 30px rgba(0,0,0,.40)}100%{transform:scale(1);box-shadow:0 7px 18px rgba(0,0,0,.28)}}
+.homeButton4.anim-disinfection .homeButtonIcon{animation:saniDropIcon .72s ease-in-out!important}
+@keyframes saniDropIcon{0%,100%{transform:translateY(0) rotate(0) scale(1)}25%{transform:translateY(-5px) rotate(-10deg) scale(1.18)}50%{transform:translateY(4px) rotate(10deg) scale(1.1)}75%{transform:translateY(-2px) rotate(-5deg) scale(1.06)}}
+.homeButton4.anim-stock .homeButtonIcon{animation:saniBoxIcon .68s ease-in-out!important}
+@keyframes saniBoxIcon{0%,100%{transform:translateY(0) rotate(0) scale(1)}30%{transform:translateY(5px) scale(1.16) rotate(-3deg)}55%{transform:translateY(-6px) scale(1.24) rotate(3deg)}78%{transform:translateY(2px) scale(1.08)}}
+.homeButton4.anim-medication .homeButtonIcon{animation:saniCapsuleIcon .68s ease-in-out!important}
+@keyframes saniCapsuleIcon{0%,100%{transform:rotate(0) scale(1)}25%{transform:rotate(-22deg) scale(1.16)}50%{transform:rotate(22deg) scale(1.16)}75%{transform:rotate(-10deg) scale(1.08)}}
+.homeButton4.anim-settings .homeButtonIcon{animation:saniGearIcon .68s ease-in-out!important}
+@keyframes saniGearIcon{0%,100%{transform:rotate(0) scale(1)}30%{transform:rotate(45deg) scale(1.15)}60%{transform:rotate(-25deg) scale(1.12)}80%{transform:rotate(12deg) scale(1.05)}}
+.homeButton4.anim-disinfection .homeButtonFx:before{content:'💧';position:absolute;left:50%;top:38%;font-size:23px;opacity:0;animation:saniDrop .72s ease-out!important}
+.homeButton4.anim-disinfection .homeButtonFx:after{content:'✨';position:absolute;left:50%;top:22%;font-size:22px;opacity:0;animation:saniSpark .72s ease-out .08s!important}
+.homeButton4.anim-stock .homeButtonFx:after{content:'↑';position:absolute;left:50%;top:10%;font-size:25px;font-weight:900;opacity:0;animation:saniArrow .68s ease-out!important}
+.homeButton4.anim-medication .homeButtonFx:after{content:'✦';position:absolute;left:50%;top:18%;font-size:22px;opacity:0;animation:saniSpark .68s ease-out!important}
+.homeButton4.anim-settings .homeButtonFx:after{content:'✦';position:absolute;right:22%;top:18%;font-size:20px;opacity:0;animation:saniSpark .68s ease-out!important}
+@keyframes saniDrop{0%{opacity:0;transform:translate(-50%,-4px) scale(.45)}25%{opacity:1}100%{opacity:0;transform:translate(-50%,32px) scale(1.2)}}
+@keyframes saniSpark{0%{opacity:0;transform:translate(-50%,10px) scale(.45)}35%{opacity:1}100%{opacity:0;transform:translate(-50%,-16px) scale(1.2)}}
+@keyframes saniArrow{0%{opacity:0;transform:translate(-50%,12px)}35%{opacity:1}100%{opacity:0;transform:translate(-50%,-12px)}}
+</style>
+
+<style>
 #homeLogoutBtn{
   position:fixed;top:max(8px,env(safe-area-inset-top));left:8px;z-index:25000;
   display:none;align-items:center;gap:4px;padding:5px 8px;border:0;border-radius:13px;
@@ -1421,22 +1445,22 @@ function saveStockMovement(){
 }
 
 function animateHomeButton(button, kind, action){
-  if(!button) { if(typeof action==='function') action(); return; }
-
-  // Empêche un double clic de lancer plusieurs animations en même temps.
+  if(!button){ if(typeof action==='function') action(); return; }
   if(button.dataset.animBusy==='1') return;
   button.dataset.animBusy='1';
 
-  button.classList.remove('animating','anim-stock','anim-disinfection','anim-medication','anim-settings');
+  const classes=['animating','anim-stock','anim-disinfection','anim-medication','anim-settings'];
+  classes.forEach(c=>button.classList.remove(c));
   void button.offsetWidth;
   button.classList.add('animating','anim-'+kind);
 
-  // Laisse l'animation être visible avant d'ouvrir la page.
+  // Animation volontairement visible mais très courte.
+  const duration = kind==='disinfection' ? 720 : 680;
   setTimeout(function(){
     button.classList.remove('animating','anim-'+kind);
     button.dataset.animBusy='0';
     if(typeof action==='function') action();
-  }, kind==='disinfection' ? 620 : 700);
+  }, duration);
 }
 
 function detectVehicleType(nom){
