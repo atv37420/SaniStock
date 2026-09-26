@@ -1,4 +1,4 @@
-<!-- SaniStock version 1.0.53 : admin exempté des alertes + actualisation automatique -->
+<!-- SaniStock version 1.0.54 : animation Mémo médicaments alignée sur les rubriques principales -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -1220,7 +1220,7 @@ body{display:block}
     <button type="button" class="homeButton4 medication4" onclick="animateHomeButton(this,'medication',function(){showPage('medicationPage')})" aria-label="Mémo médicaments"><span class="homeButtonIcon">💊</span><span class="homeButtonTitle">MÉMO MÉDICAMENTS</span><span class="homeButtonDesc">Infos sur les médicaments</span><span class="homeButtonFx" aria-hidden="true"></span></button>
     <button type="button" class="homeButton4 settings4" onclick="animateHomeButton(this,'settings',function(){ouvrirParametres()})" aria-label="Paramètres"><span class="homeButtonIcon">⚙️</span><span class="homeButtonTitle">PARAMÈTRES</span><span class="homeButtonDesc">Gérer l’application</span><span class="homeButtonFx" aria-hidden="true"></span></button>
   </div>
-  <div class="saniVersion" aria-label="Version de SaniStock">Version 1.0.53</div>
+  <div class="saniVersion" aria-label="Version de SaniStock">Version 1.0.54</div>
   <div id="homeInformation" class="homeInfo" aria-live="polite"></div>
 <div id="homeInformationModal" class="homeInfoModal" aria-hidden="true">
   <div class="homeInfoModalCard" role="dialog" aria-modal="true" aria-labelledby="homeInfoModalTitle">
@@ -1563,8 +1563,10 @@ function animateHomeButton(button, kind, action){
         fx.innerHTML='<span style="position:absolute;left:50%;top:28%;font-size:26px;transform:translate(-50%,-50%);animation:saniDropFx .8s ease-out forwards">💧</span><span style="position:absolute;left:50%;top:18%;font-size:20px;transform:translateX(-50%);animation:saniSparkFx .8s ease-out forwards">✨ ✨</span>';
       }
     }else if(kind==='medication'){
-      rot = Math.sin(p*Math.PI*2)*22;
-      scale=1+0.08*Math.sin(p*Math.PI);
+      // Même animation d'ouverture que la rubrique Stock : ouverture/élévation légère.
+      scale = p<0.5 ? 1+0.16*e : 1.16-0.16*((p-0.5)*2);
+      y = p<0.5 ? -3*e : -3*(1-e);
+      rot = p<0.5 ? 3*e : 3*(1-e);
     }else if(kind==='settings'){
       rot=p*360;
       scale=1+0.10*Math.sin(p*Math.PI);
@@ -2852,7 +2854,7 @@ function fermerDetailsDashboard(){
 </script>
 
 <script>
-/* ===== MÉMO MÉDICAMENTS — VERSION 1.0.53 =====
+/* ===== MÉMO MÉDICAMENTS — VERSION 1.0.54 =====
    Liste informative, sans posologie ni protocole.
    La dotation et l'utilisation restent soumises aux protocoles en vigueur.
 */
