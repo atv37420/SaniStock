@@ -1218,34 +1218,42 @@ let stockData=[];
 let stockFilter='Tous';
 let stockMovementType='entree';
 
-/* LISTE DES SALARIÉS DEPUIS GOOGLE SHEETS */
+/* LISTE DES SALARIÉS DEPUIS GOOGLE SHEETS + MÉMO HORS LIGNE */
+function afficherListeSalaries(noms){
+  noms=Array.isArray(noms)?noms.filter(Boolean):[];
+  if(noms.length){
+    try{localStorage.setItem('sanistock_salaries_cache',JSON.stringify(noms));}catch(e){}
+  }
+  ['stockEmployee','employee'].forEach(function(id){
+    const select=$(id);
+    if(!select) return;
+    const valeurActuelle=select.value;
+    select.innerHTML='<option value="">Sélectionner votre nom</option>'+
+      noms.map(function(nom){
+        return '<option value="'+escapeHtml(nom)+'">'+escapeHtml(nom)+'</option>';
+      }).join('');
+    const salarieConnecte=localStorage.getItem('sanistock_employee_name')||'';
+    if(salarieConnecte && noms.includes(salarieConnecte)){
+      select.value=salarieConnecte;
+      /* Le salarié connecté est imposé automatiquement dans Stock et Désinfection. */
+      select.disabled=true;
+    }else if(noms.includes(valeurActuelle)){
+      select.value=valeurActuelle;
+    }
+  });
+}
 function chargerSalaries(){
- if(!(window.google&&google.script&&google.script.run)) return;
- google.script.run
-  .withSuccessHandler(function(noms){
-    noms=Array.isArray(noms)?noms:[];
-    ['stockEmployee','employee'].forEach(function(id){
-      const select=$(id);
-      if(!select) return;
-      const valeurActuelle=select.value;
-      select.innerHTML='<option value="">Sélectionner votre nom</option>'+
-        noms.map(function(nom){
-          return '<option value="'+escapeHtml(nom)+'">'+escapeHtml(nom)+'</option>';
-        }).join('');
-      const salarieConnecte=localStorage.getItem('sanistock_employee_name')||'';
-      if(salarieConnecte && noms.includes(salarieConnecte)){
-        select.value=salarieConnecte;
-        /* Le salarié connecté est imposé automatiquement dans Stock et Désinfection. */
-        select.disabled=true;
-      }else if(noms.includes(valeurActuelle)){
-        select.value=valeurActuelle;
-      }
-    });
-  })
-  .withFailureHandler(function(err){
-    console.error('Impossible de charger les salariés :',err);
-  })
-  .getSalaries();
+  let cache=[];
+  try{cache=JSON.parse(localStorage.getItem('sanistock_salaries_cache')||'[]');}catch(e){cache=[];}
+  if(cache.length) afficherListeSalaries(cache);
+  if(!(window.google&&google.script&&google.script.run)) return;
+  google.script.run
+    .withSuccessHandler(function(noms){afficherListeSalaries(noms);})
+    .withFailureHandler(function(err){
+      console.error('Impossible de charger les salariés :',err);
+      if(cache.length) afficherListeSalaries(cache);
+    })
+    .getSalaries();
 }
 
 /* LISTE DES VÉHICULES DEPUIS GOOGLE SHEETS */
@@ -1271,9 +1279,31 @@ function chargerVehicules(){
 function stockStatusClass(status){return status==='Rupture'?'status-rupture':status==='Stock min'?'status-min':'status-ok'}
 function chargerStock(){
  const list=$('stockList');
- list.innerHTML='<div class="stockEmpty">Chargement du stock...</div>';
- if(!(window.google&&google.script&&google.script.run)){list.innerHTML='<div class="stockEmpty">Le stock se charge dans la version Google Apps Script.</div>';return}
- google.script.run.withSuccessHandler(function(rows){stockData=rows||[];populateStockProducts();renderStock()}).withFailureHandler(function(err){list.innerHTML='<div class="stockEmpty">Erreur : '+escapeHtml(err&&err.message?err.message:err)+'</div>'}).getStockData();
+ let cache=[];
+ try{cache=JSON.parse(localStorage.getItem('sanistock_stock_cache')||'[]');}catch(e){cache=[];}
+ if(cache.length){
+   stockData=cache;
+   populateStockProducts();
+   renderStock();
+ }else{
+   list.innerHTML='<div class="stockEmpty">Chargement du stock...</div>';
+ }
+ if(!(window.google&&google.script&&google.script.run)){
+   if(!cache.length) list.innerHTML='<div class="stockEmpty">Aucune donnée stock disponible hors connexion.</div>';
+   return;
+ }
+ google.script.run
+   .withSuccessHandler(function(rows){
+     stockData=Array.isArray(rows)?rows:[];
+     try{localStorage.setItem('sanistock_stock_cache',JSON.stringify(stockData));}catch(e){}
+     populateStockProducts();
+     renderStock();
+   })
+   .withFailureHandler(function(err){
+     if(!cache.length) list.innerHTML='<div class="stockEmpty">Données stock indisponibles hors connexion.</div>';
+     else {stockData=cache;populateStockProducts();renderStock();}
+   })
+   .getStockData();
 }
 function stockOptions(selected){
  return '<option value="">Sélectionner un produit</option>'+stockData.map(r=>'<option value="'+escapeHtml(r.produit)+'" '+(r.produit===selected?'selected':'')+'>'+escapeHtml(r.produit)+'</option>').join('');
@@ -1793,21 +1823,34 @@ function chargerDatesAnniversaires(){
   const list=document.getElementById('datesSettingsList');
   if(!list) return;
   list.innerHTML='<div class="settingsMsg">Chargement des dates…</div>';
+  if(!gsDisponible()){
+    list.innerHTML='<div class="settingsMsg">📵 Les dates se gèrent avec une connexion SaniStock.</div>';
+    return;
+  }
   google.script.run.withSuccessHandler(function(rows){
     rows=Array.isArray(rows)?rows:[];
+    try{ localStorage.setItem('sanistock_birthday_cache',JSON.stringify(rows)); }catch(e){}
     list.innerHTML=rows.length?rows.map(function(r){
       const nom=JSON.stringify(String(r.salarie||'')).replace(/"/g,'&quot;');
       const date=r.dateAnniversaire||'';
       const actif=String(r.statut||'Actif').toLowerCase()!=='inactif';
       return '<div class="datesCard"><div class="datesRow">'+
-        '<strong>👤 '+escapeHtml(r.salarie||'')+'</strong>'+\
-        '<input type="date" id="dateAnniv_'+Number(r.index||0)+'" value="'+escapeHtml(date)+'" '+(actif?'':'disabled')+'>'+\
-        '<button class="datesBtn" onclick="enregistrerDateAnniversaireUI('+Number(r.index||0)+','+nom+')">💾</button>'+\
-        '<button class="datesBtn secondary" onclick="changerStatutAnniversaireUI('+Number(r.index||0)+','+nom+','+(!actif)+')">'+(actif?'⛔':'✅')+'</button>'+\
+        '<strong>👤 '+escapeHtml(r.salarie||'')+'</strong>'+
+        '<input type="date" id="dateAnniv_'+Number(r.index||0)+'" value="'+escapeHtml(date)+'" '+(actif?'':'disabled')+'>'+ 
+        '<button class="datesBtn" onclick="enregistrerDateAnniversaireUI('+Number(r.index||0)+','+nom+')">💾</button>'+ 
+        '<button class="datesBtn secondary" onclick="changerStatutAnniversaireUI('+Number(r.index||0)+','+nom+','+(!actif)+')">'+(actif?'⛔':'✅')+'</button>'+ 
         '</div><div style="font-size:9px;color:#71879a;margin-top:5px">'+(actif?'Anniversaire activé':'Anniversaire désactivé')+'</div></div>';
     }).join(''):'<div class="settingsMsg">Aucun salarié trouvé.</div>';
   }).withFailureHandler(function(e){
-    list.innerHTML='<div class="settingsMsg">❌ '+escapeHtml(e&&e.message?e.message:e)+'</div>';
+    let cache=[];
+    try{cache=JSON.parse(localStorage.getItem('sanistock_birthday_cache')||'[]');}catch(x){cache=[];}
+    if(Array.isArray(cache)&&cache.length){
+      list.innerHTML=cache.map(function(r){
+        return '<div class="datesCard"><div class="datesRow"><strong>👤 '+escapeHtml(r.salarie||'')+'</strong><span>'+escapeHtml(r.dateAnniversaire||'Non renseignée')+'</span></div></div>';
+      }).join('');
+    }else{
+      list.innerHTML='<div class="settingsMsg">❌ '+escapeHtml(e&&e.message?e.message:e)+'</div>';
+    }
   }).getAnniversaires(donneesAccesGestion());
 }
 
@@ -1833,13 +1876,39 @@ function changerStatutAnniversaireUI(index,nom,activer){
 
 function verifierAnniversaireConnecte(){
   const nom=String(localStorage.getItem('sanistock_employee_name')||'').trim();
-  if(!nom || !navigator.onLine || !(window.google&&google.script&&google.script.run)) return;
+  if(!nom) return;
+  const aujourdHui=new Date();
+  const mois=String(aujourdHui.getMonth()+1).padStart(2,'0');
+  const jour=String(aujourdHui.getDate()).padStart(2,'0');
+  const dateCle=aujourdHui.getFullYear()+'-'+mois+'-'+jour;
+  const cleVu='sanistock_birthday_seen_'+nom.toLowerCase().replace(/\s+/g,'_')+'_'+dateCle;
+  if(localStorage.getItem(cleVu)==='1') return;
+
+  function afficherSiDate(row){
+    if(!row || row.anniversaire!==true) return;
+    localStorage.setItem(cleVu,'1');
+    afficherMessageAnniversaire(row.prenom||nom.split(/\s+/)[0]);
+  }
+
+  /* Le jour J doit aussi fonctionner sans Internet grâce au dernier cache connu. */
+  try{
+    const cache=JSON.parse(localStorage.getItem('sanistock_birthday_cache')||'[]');
+    if(Array.isArray(cache)){
+      const r=cache.find(x=>String(x.salarie||'').trim().toLowerCase()===nom.toLowerCase());
+      if(r && String(r.statut||'Actif').toLowerCase()!=='inactif' && r.dateAnniversaire){
+        const d=String(r.dateAnniversaire).slice(0,10);
+        if(d.slice(5)===(mois+'-'+jour)){
+          afficherSiDate({anniversaire:true,prenom:String(r.salarie||nom).split(/\s+/)[0]});
+          return;
+        }
+      }
+    }
+  }catch(e){}
+
+  if(!navigator.onLine || !gsDisponible()) return;
   google.script.run.withSuccessHandler(function(r){
-    if(!r || r.anniversaire!==true) return;
-    const cle='sanistock_birthday_seen_'+nom.toLowerCase().replace(/\s+/g,'_')+'_'+new Date().toISOString().slice(0,10);
-    if(localStorage.getItem(cle)==='1') return;
-    localStorage.setItem(cle,'1');
-    afficherMessageAnniversaire(r.prenom||nom.split(/\s+/)[0]);
+    if(r && r.cache) try{localStorage.setItem('sanistock_birthday_cache',JSON.stringify(r.cache));}catch(e){}
+    afficherSiDate(r);
   }).withFailureHandler(function(){}).getMonAnniversaire({salarie:nom});
 }
 
