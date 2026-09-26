@@ -1469,7 +1469,11 @@ function saveStockMovement(){
  const noms=mouvements.map(m=>m.produit); if(new Set(noms).size!==noms.length){alert('Un même produit est présent plusieurs fois. Regroupez sa quantité sur une seule ligne.');return}
  const btn=$('stockSaveBtn'); btn.disabled=true; btn.textContent='Enregistrement...';
  const fn=stockMovementType==='entree'?'enregistrerEntreesStock':'enregistrerSortiesStock';
- const payload={mouvements:mouvements,salarie:salarie};
+ const payload={
+   mouvements:mouvements,
+   salarie:salarie,
+   requestId:'stock_'+Date.now()+'_'+Math.random().toString(36).slice(2,10)
+ };
  if(stockMovementType==='entree'){
    payload.codeAcces=codeEntreeStockValide;
    if(appareilProprietaire()){
