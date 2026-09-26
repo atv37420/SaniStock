@@ -22,6 +22,7 @@
 (function(){
   const API_URL = 'https://script.google.com/macros/s/AKfycbxz5dZkT7FyFx8ohxWmg2Pt23Yqx0LQDMqqJg8LM8bkfN3ulkb37VqUO8m8WvjyuGBqrg/exec';
   let n = 0;
+  let synchronisationEnCours = false;
 
   const OFFLINE_DB = 'SaniStockOfflineDB';
   const OFFLINE_VERSION = 2;
@@ -111,11 +112,32 @@
   }
 
   async function queueWrite(action,data){
-    await dbPut('pending',{
-      action:action,
-      data:data||null,
-      createdAt:new Date().toISOString()
+    const payload = Object.assign({}, data || {});
+
+    // Chaque opération hors ligne reçoit un identifiant stable.
+    // Cela permet d'éviter qu'une même entrée/sortie soit ajoutée deux fois
+    // dans la file ou envoyée deux fois lors de la synchronisation.
+    if(!payload.requestId){
+      payload.requestId = 'offline_' + Date.now() + '_' + Math.random().toString(36).slice(2,10);
+    }
+
+    const pending = await dbAll('pending');
+    const dejaEnFile = pending.some(function(item){
+      return item &&
+        item.action === action &&
+        item.data &&
+        item.data.requestId &&
+        item.data.requestId === payload.requestId;
     });
+
+    if(!dejaEnFile){
+      await dbPut('pending',{
+        action:action,
+        data:payload,
+        createdAt:new Date().toISOString()
+      });
+    }
+
     window.dispatchEvent(new CustomEvent('sanistock-offline-queued'));
   }
 
@@ -171,27 +193,50 @@
 
   async function synchroniser(){
     if(!navigator.onLine) return;
-    let pending=[];
-    try{ pending=await dbAll('pending'); }catch(e){ return; }
-    if(!pending.length){
-      updateOfflineStatus();
-      return;
-    }
 
-    for(const item of pending){
-      if(!navigator.onLine) break;
-      await new Promise(resolve=>{
-        sendJsonp(item.action,item.data,async function(){
-          await dbDelete('pending',item.id);
-          resolve();
-        },function(){
-          resolve();
+    // Une seule synchronisation à la fois.
+    // Sans ce verrou, l'événement "online" et le démarrage de l'application
+    // pouvaient lire la même file avant la suppression de l'opération,
+    // provoquant une double entrée ou une double sortie.
+    if(synchronisationEnCours) return;
+    synchronisationEnCours = true;
+
+    try{
+      let pending=[];
+      try{ pending=await dbAll('pending'); }catch(e){ return; }
+
+      if(!pending.length){
+        updateOfflineStatus();
+        return;
+      }
+
+      for(const item of pending){
+        if(!navigator.onLine) break;
+
+        // Les anciennes opérations déjà présentes dans IndexedDB peuvent ne
+        // pas avoir de requestId. On leur en attribue un avant l'envoi.
+        if(item && item.data && !item.data.requestId){
+          item.data.requestId = 'offline_' + item.id + '_' + Date.now();
+          try{ await dbPut('pending',item); }catch(e){}
+        }
+
+        await new Promise(resolve=>{
+          sendJsonp(item.action,item.data,async function(){
+            // Suppression uniquement après confirmation du serveur.
+            await dbDelete('pending',item.id);
+            resolve();
+          },function(){
+            // En cas d'échec, on garde l'opération dans la file.
+            resolve();
+          });
         });
-      });
-    }
+      }
 
-    updateOfflineStatus();
-    window.dispatchEvent(new CustomEvent('sanistock-sync-complete'));
+      updateOfflineStatus();
+      window.dispatchEvent(new CustomEvent('sanistock-sync-complete'));
+    } finally {
+      synchronisationEnCours = false;
+    }
   }
 
   async function pendingCount(){
