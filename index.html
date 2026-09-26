@@ -311,7 +311,7 @@ body{display:block}
   position:absolute;
   left:6%;
   right:6%;
-  bottom:10%;
+  bottom:13%;
   z-index:20;
   padding:6px 10px 7px;
   border-radius:12px;
@@ -343,7 +343,7 @@ body{display:block}
   overflow:hidden;
 }
 @media(max-width:600px){
-  .penseBeteAccueil{left:5%;right:5%;bottom:10%;padding:5px 8px 6px;border-radius:10px}
+  .penseBeteAccueil{left:5%;right:5%;bottom:13%;padding:5px 8px 6px;border-radius:10px}
   .penseBeteAccueil .penseTitre{font-size:9px}
   .penseBeteAccueil .penseTexte{font-size:9.5px}
   .homeInfo{left:5%;right:5%;bottom:23%;padding:7px 8px}.homeInfoTitle{font-size:10px}.homeInfoText{font-size:9px}
@@ -1592,7 +1592,7 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
   }
 
   function verifierConnexionSaniStock(){
-    etat('loading','Connexion...','Vérification SaniStock');
+    etat(navigator.onLine ? 'loading' : 'error', navigator.onLine ? 'En ligne' : 'Hors ligne', navigator.onLine ? 'Vérification de la connexion' : 'Pas de connexion internet');
 
     if(typeof google==='undefined' || !google.script || !google.script.run){
       etat('error','SaniStock hors ligne','Connexion indisponible');
@@ -1602,10 +1602,10 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
     // Test léger : on appelle la fonction stock déjà utilisée par l'application.
     google.script.run
       .withSuccessHandler(function(){
-        etat('ok','SaniStock connecté','Données à jour');
+        etat('ok','En ligne','Internet disponible');
       })
       .withFailureHandler(function(){
-        etat('error','Connexion impossible','Touchez pour réessayer');
+        etat(navigator.onLine ? 'ok' : 'error', navigator.onLine ? 'En ligne' : 'Hors ligne', navigator.onLine ? 'Serveur indisponible' : 'Pas de connexion internet');
       })
       .getStockData();
   }
@@ -1620,7 +1620,7 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
 
   window.addEventListener('online',verifierConnexionSaniStock);
   window.addEventListener('offline',function(){
-    etat('error','SaniStock hors ligne','Pas de connexion internet');
+    etat('error','Hors ligne','Pas de connexion internet');
   });
 })();
 </script>
