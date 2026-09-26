@@ -1,4 +1,4 @@
-<!-- SaniStock version 1.0.52 : admin exempté des alertes + actualisation automatique -->
+<!-- SaniStock version 1.0.53 : admin exempté des alertes + actualisation automatique -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -1220,7 +1220,7 @@ body{display:block}
     <button type="button" class="homeButton4 medication4" onclick="animateHomeButton(this,'medication',function(){showPage('medicationPage')})" aria-label="Mémo médicaments"><span class="homeButtonIcon">💊</span><span class="homeButtonTitle">MÉMO MÉDICAMENTS</span><span class="homeButtonDesc">Infos sur les médicaments</span><span class="homeButtonFx" aria-hidden="true"></span></button>
     <button type="button" class="homeButton4 settings4" onclick="animateHomeButton(this,'settings',function(){ouvrirParametres()})" aria-label="Paramètres"><span class="homeButtonIcon">⚙️</span><span class="homeButtonTitle">PARAMÈTRES</span><span class="homeButtonDesc">Gérer l’application</span><span class="homeButtonFx" aria-hidden="true"></span></button>
   </div>
-  <div class="saniVersion" aria-label="Version de SaniStock">Version 1.0.52</div>
+  <div class="saniVersion" aria-label="Version de SaniStock">Version 1.0.53</div>
   <div id="homeInformation" class="homeInfo" aria-live="polite"></div>
 <div id="homeInformationModal" class="homeInfoModal" aria-hidden="true">
   <div class="homeInfoModalCard" role="dialog" aria-modal="true" aria-labelledby="homeInfoModalTitle">
@@ -1659,8 +1659,12 @@ function adapterChecklistVehicule(){
 function requiredTasks(){
  return currentChecklist().filter(t=>!t.outside||isFriday()).map(t=>$(t.id)).filter(Boolean);
 }
+function estExcluDuPourcentage(t){
+ const ambulance=isAmbulanceVehicle($('vehicle')?$('vehicle').value:'');
+ return !!t.outside || (ambulance && t.id==='serpilliereCellule');
+}
 function updateDis(){
- const principales=currentChecklist().filter(t=>!t.outside).map(t=>$(t.id)).filter(Boolean);
+ const principales=currentChecklist().filter(t=>!estExcluDuPourcentage(t)).map(t=>$(t.id)).filter(Boolean);
  const done=principales.filter(x=>x.checked).length;
  const p=principales.length?Math.round(done/principales.length*100):0;
  $('pct').textContent=p+'%';
@@ -1668,7 +1672,7 @@ function updateDis(){
  document.querySelectorAll('#disinfectionTasks .task').forEach(row=>row.classList.toggle('done',row.querySelector('input').checked));
 }
 function toggleTask(id,row){const el=$(id);if(el){el.checked=!el.checked;updateDis()}}
-function checkAll(){currentChecklist().filter(t=>!t.outside).forEach(t=>{const el=$(t.id);if(el)el.checked=true});updateDis()}
+function checkAll(){currentChecklist().filter(t=>!estExcluDuPourcentage(t)).forEach(t=>{const el=$(t.id);if(el)el.checked=true});updateDis()}
 function taskChecked(id){const el=$(id);return !!(el&&el.checked)}
 function validateForm(){
  const salarie=$('employee').value, vehicule=$('vehicle').value;
@@ -1679,7 +1683,7 @@ function validateForm(){
  const data={
    salarie:salarie,
    vehicule:vehicule,
-   pourcentage:(function(){const a=currentChecklist().filter(t=>!t.outside);return Math.round(a.filter(t=>taskChecked(t.id)).length/a.length*100)})(),
+   pourcentage:(function(){const a=currentChecklist().filter(t=>!estExcluDuPourcentage(t));return a.length?Math.round(a.filter(t=>taskChecked(t.id)).length/a.length*100):0})(),
    typeVehicule:isAmbulanceVehicle(vehicule)?'Ambulance':detectVehicleType(vehicule),
    posteConduite:taskChecked('cabine'),
    pointsContact:taskChecked('contacts'),
@@ -2848,7 +2852,7 @@ function fermerDetailsDashboard(){
 </script>
 
 <script>
-/* ===== MÉMO MÉDICAMENTS — VERSION 1.0.52 =====
+/* ===== MÉMO MÉDICAMENTS — VERSION 1.0.53 =====
    Liste informative, sans posologie ni protocole.
    La dotation et l'utilisation restent soumises aux protocoles en vigueur.
 */
