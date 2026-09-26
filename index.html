@@ -1,4 +1,4 @@
-<!-- SaniStock version 1.0.54 : animation Mémo médicaments alignée sur les rubriques principales -->
+<!-- SaniStock version 1.0.55 : animation Mémo médicaments alignée sur les rubriques principales -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -984,6 +984,22 @@ body{display:block}
 
 <style>
 /* ===== CONNEXION SALARIÉ PERSISTANTE ===== */
+/* ===== ANIMATION CONNEXION AMBULANCE — VERSION 1.0.55 ===== */
+.loginAmbulanceAnim{display:none;position:relative;height:92px;margin:2px 0 12px;overflow:hidden;border-radius:16px;background:linear-gradient(180deg,#eef8ff,#d9efff);border:1px solid #c8e4f7}
+.loginAmbulanceAnim.show{display:block}
+.loginAmbulanceRoad{position:absolute;left:0;right:0;bottom:17px;height:2px;background:#a8c9dc}
+.loginAmbulance{position:absolute;left:-95px;bottom:25px;font-size:56px;line-height:1;filter:drop-shadow(0 5px 4px rgba(0,60,110,.18));animation:loginAmbulanceDrive 1.65s linear infinite}
+.loginAmbulance::before{content:' ';position:absolute;left:28px;top:-2px;width:8px;height:6px;border-radius:5px;background:#21a9ff;box-shadow:0 0 8px #21a9ff,0 0 13px #21a9ff;animation:loginAmbulanceLight .42s ease-in-out infinite alternate}
+.loginAmbulance::after{content:'💨';position:absolute;left:-22px;bottom:0;font-size:18px;opacity:.65;animation:loginAmbulanceSmoke .55s ease-out infinite}
+.loginSpeed{position:absolute;left:9%;top:27px;width:48px;height:3px;border-radius:99px;background:#8fd2f7;box-shadow:0 10px 0 #b7e2fa,0 20px 0 #d0ebf9;animation:loginSpeedMove .65s linear infinite}
+.loginAmbulanceText{position:absolute;right:12px;top:9px;font-size:10px;font-weight:900;color:#0757a0;letter-spacing:.2px}
+.loginAmbulanceStatus{position:absolute;left:0;right:0;bottom:3px;text-align:center;font-size:10px;font-weight:800;color:#60778c}
+@keyframes loginAmbulanceDrive{0%{left:-95px;transform:translateX(0) scale(.92)}100%{left:calc(100% + 95px);transform:translateX(0) scale(.92)}}
+@keyframes loginAmbulanceLight{0%{background:#21a9ff;box-shadow:0 0 6px #21a9ff}100%{background:#fff;box-shadow:0 0 11px #fff}}
+@keyframes loginAmbulanceSmoke{0%{opacity:0;transform:translateX(0) scale(.7)}45%{opacity:.7}100%{opacity:0;transform:translateX(-18px) scale(1.15)}}
+@keyframes loginSpeedMove{0%{transform:translateX(0);opacity:.15}100%{transform:translateX(95px);opacity:.8}}
+.loginVerifying .employeeLoginCard{animation:loginCardPulse .55s ease-in-out infinite alternate}
+@keyframes loginCardPulse{from{box-shadow:0 20px 60px rgba(0,0,0,.35)}to{box-shadow:0 20px 70px rgba(20,160,255,.25)}}
 #employeeLoginOverlay{display:flex;position:fixed;inset:0;z-index:30000;background:linear-gradient(180deg,#0757a0 0%,#032f61 100%);padding:22px;align-items:center;justify-content:center;color:#173f68}
 #employeeLoginOverlay.hidden{display:none}
 .employeeLoginCard{width:min(100%,390px);background:#fff;border-radius:24px;padding:24px 20px;box-shadow:0 20px 60px rgba(0,0,0,.35);text-align:center}
@@ -1059,6 +1075,13 @@ body{display:block}
     <div class="employeeLoginLogo">🔐</div>
     <h2>Connexion SaniStock</h2>
     <p>Identifiez-vous une seule fois sur ce téléphone.</p>
+    <div id="loginAmbulanceAnim" class="loginAmbulanceAnim" aria-hidden="true">
+      <div class="loginAmbulanceText">🚨 Vérification en cours…</div>
+      <div class="loginSpeed"></div>
+      <div class="loginAmbulance">🚑</div>
+      <div class="loginAmbulanceRoad"></div>
+      <div class="loginAmbulanceStatus">SaniStock vérifie vos identifiants</div>
+    </div>
     <select id="employeeLoginName"><option value="">Chargement des salariés…</option></select>
     <input id="employeeLoginCode" type="password" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="Votre code personnel">
     <button id="employeeLoginBtn" type="button">Se connecter</button>
@@ -1220,7 +1243,7 @@ body{display:block}
     <button type="button" class="homeButton4 medication4" onclick="animateHomeButton(this,'medication',function(){showPage('medicationPage')})" aria-label="Mémo médicaments"><span class="homeButtonIcon">💊</span><span class="homeButtonTitle">MÉMO MÉDICAMENTS</span><span class="homeButtonDesc">Infos sur les médicaments</span><span class="homeButtonFx" aria-hidden="true"></span></button>
     <button type="button" class="homeButton4 settings4" onclick="animateHomeButton(this,'settings',function(){ouvrirParametres()})" aria-label="Paramètres"><span class="homeButtonIcon">⚙️</span><span class="homeButtonTitle">PARAMÈTRES</span><span class="homeButtonDesc">Gérer l’application</span><span class="homeButtonFx" aria-hidden="true"></span></button>
   </div>
-  <div class="saniVersion" aria-label="Version de SaniStock">Version 1.0.54</div>
+  <div class="saniVersion" aria-label="Version de SaniStock">Version 1.0.55</div>
   <div id="homeInformation" class="homeInfo" aria-live="polite"></div>
 <div id="homeInformationModal" class="homeInfoModal" aria-hidden="true">
   <div class="homeInfoModalCard" role="dialog" aria-modal="true" aria-labelledby="homeInfoModalTitle">
@@ -2471,6 +2494,18 @@ function changerCodeAdminUI(){
   const codeInput=document.getElementById('employeeLoginCode');
   const btn=document.getElementById('employeeLoginBtn');
   const err=document.getElementById('employeeLoginError');
+  const loginAnim=document.getElementById('loginAmbulanceAnim');
+
+  function setLoginAnimation(show){
+    if(!loginAnim) return;
+    if(show){
+      loginAnim.classList.add('show');
+      overlay.classList.add('loginVerifying');
+    }else{
+      loginAnim.classList.remove('show');
+      overlay.classList.remove('loginVerifying');
+    }
+  }
 
   function showError(t){err.textContent=t||''}
   function activerAccesProprietaire(name,code){
@@ -2532,6 +2567,7 @@ function changerCodeAdminUI(){
   function verify(name,code,remember){
     if(!name||!code){showError('Sélectionnez votre nom et entrez votre code.');return}
     btn.disabled=true; btn.textContent='Vérification…'; showError('');
+    setLoginAnimation(true);
 
     /* ===== CONNEXION SALARIÉ HORS LIGNE ===== */
     if(!navigator.onLine){
@@ -2540,22 +2576,26 @@ function changerCodeAdminUI(){
       if(name===savedName && String(code)===String(savedCode) && savedName && savedCode){
         btn.disabled=false; btn.textContent='Se connecter';
         activerAccesProprietaire(name,code);
+        setLoginAnimation(false);
         unlock(name);
         showError('');
         return;
       }
       btn.disabled=false; btn.textContent='Se connecter';
+      setLoginAnimation(false);
       showError('Hors ligne : utilisez le nom et le code déjà enregistrés sur cet appareil.');
       return;
     }
 
     google.script.run.withSuccessHandler(function(result){
       btn.disabled=false; btn.textContent='Se connecter';
+      setLoginAnimation(false);
       if(!result || result.valide !== true){
         localStorage.removeItem(KEY_NAME); localStorage.removeItem(KEY_CODE);
         showError('Nom ou code incorrect, ou accès désactivé.'); codeInput.value=''; codeInput.focus(); return;
       }
       if(result.premiereConnexion===true){
+        setLoginAnimation(false);
         codeInput.value='';
         demanderNouveauCode(name,remember);
         return;
@@ -2565,6 +2605,7 @@ function changerCodeAdminUI(){
       unlock(name);
     }).withFailureHandler(function(){
       btn.disabled=false; btn.textContent='Se connecter';
+      setLoginAnimation(false);
       showError('Connexion SaniStock impossible. Vérifiez Internet.');
     }).verifierCodeSalarie({salarie:name,code:String(code)});
   }
