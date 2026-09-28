@@ -1089,7 +1089,7 @@ body{display:block}
 </style>
 
 <style id="sanistock-login-same-startup-animation">
-/* Pendant la connexion : exactement le même logo/animation que le démarrage */
+/* Pendant la connexion : même logo SaniStock officiel que l'application (0.png) */
 #loginAmbulanceAnim{
   position:relative !important;
   width:180px !important;
@@ -1108,20 +1108,13 @@ body{display:block}
   height:112px !important;
   transform:translate(-50%,-50%) !important;
   filter:drop-shadow(0 0 18px rgba(37,174,255,.55)) !important;
+  animation:loginSaniLogoPulse 1.15s ease-in-out infinite alternate !important;
 }
 #loginAmbulanceAnim .loginSaniLogoExact{
   width:112px !important;
   height:112px !important;
   display:block !important;
-  overflow:visible !important;
-}
-#loginAmbulanceAnim .loginSaniCross{
-  transform:none !important;
-}
-#loginAmbulanceAnim .loginSaniV{
-  transform-box:view-box !important;
-  transform-origin:50% 50% !important;
-  animation:saniVOrbit 1.35s linear infinite !important;
+  object-fit:contain !important;
 }
 #loginAmbulanceAnim .loginSaniStartupTitle{
   position:absolute !important;
@@ -1161,14 +1154,7 @@ body{display:block}
     <p>Identifiez-vous une seule fois sur ce téléphone.</p>
     <div id="loginAmbulanceAnim" class="loginAmbulanceAnim" aria-hidden="true">
       <div class="loginSaniStartupLogo" aria-label="Logo SaniStock">
-        <svg class="loginSaniLogoExact" viewBox="0 0 512 512" role="img" aria-label="SaniStock">
-          <g class="loginSaniCross">
-            <path fill="#073b82" d="M176 28h160v124h124v160H336v172H176V312H52V152h124z"/>
-          </g>
-          <g class="loginSaniV">
-            <path fill="#ef1717" stroke="#fff" stroke-width="10" stroke-linejoin="round" d="M151 183l62 86 45-57c72-91 137-139 206-167-49 65-91 126-147 193l-78 95h-76l-91-128z"/>
-          </g>
-        </svg>
+        <img class="loginSaniLogoExact" src="https://raw.githubusercontent.com/atv37420/SaniStock/main/0.png" alt="Logo SaniStock">
       </div>
       <div class="loginSaniStartupTitle"><span>Sani</span><b>Stock</b></div>
       <div class="loginHeartStatus">Connexion SaniStock…</div>
