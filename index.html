@@ -506,7 +506,7 @@ body{display:block}
   color:#fff;
   animation:saniSplashIn .7s cubic-bezier(.2,.8,.2,1) both;
 }
-#saniSplash .splashLogoBase{
+#saniSplash .splashLogo{
   width:112px;
   height:112px;
   object-fit:contain;
@@ -1008,24 +1008,27 @@ body{display:block}
 
 
 
-
 <style id="sanistock-logo-v-animation">
 #saniSplash .splashLogoAnimated{
-  position:relative;width:112px;height:112px;margin:0 auto;display:block;
+  width:112px;height:112px;margin:0 auto;display:block;
   filter:drop-shadow(0 0 18px rgba(37,174,255,.55));
 }
-#saniSplash .splashLogoBaseLayer,
-#saniSplash .splashLogoVLayer{
-  position:absolute;inset:0;width:112px;height:112px;
-  pointer-events:none;
+#saniSplash .saniLogoExact{
+  width:112px;height:112px;display:block;overflow:visible;
 }
-#saniSplash .splashLogoVLayer{
+#saniSplash .saniV{
+  transform-box:fill-box;
   transform-origin:50% 54%;
-  animation:saniVSpin 1.35s linear infinite;
+  animation:saniVSpin 1.15s linear infinite;
 }
-@keyframes saniVSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes saniVSpin{
+  from{transform:rotate(0deg)}
+  to{transform:rotate(360deg)}
+}
+@media (prefers-reduced-motion:reduce){
+  #saniSplash .saniV{animation:none}
+}
 </style>
-
 </head>
 <body>
 
@@ -1175,8 +1178,15 @@ body{display:block}
   <div class="splashShade"></div>
   <div class="splashContent">
     <div class="splashLogoAnimated" aria-label="Logo SaniStock">
-  <canvas id="saniLogoBaseLayer" class="splashLogoBaseLayer" aria-hidden="true"></canvas>
-  <canvas id="saniLogoVLayer" class="splashLogoVLayer" aria-hidden="true"></canvas>
+  <svg class="saniLogoExact" viewBox="0 0 512 512" role="img" aria-label="SaniStock">
+    <g class="saniCross">
+      <path fill="#073b82" d="M176 28h160v124l124 0v160H336v172H176V312H52V152h124z"/>
+    </g>
+    <g class="saniV">
+      <path fill="#ef1717" stroke="#fff" stroke-width="10" stroke-linejoin="round"
+        d="M151 183l62 86 45-57c72-91 137-139 206-167-49 65-91 126-147 193l-78 95h-76l-91-128z"/>
+    </g>
+  </svg>
 </div>
     <div class="splashTitle"><span style="color:#0757a0 !important;">Sani</span><span style="color:#e32636 !important;">Stock</span></div>
     <div class="splashSub">Gestion simple, suivi efficace.</div>
@@ -7963,63 +7973,5 @@ if ("serviceWorker" in navigator) {
 </script>
 
 <div id="sanistock-version-bottom">SaniStock - version 1.0.68</div>
-
-<script id="sanistock-logo-v-script">
-(function(){
-  const SRC="https://raw.githubusercontent.com/atv37420/SaniStock/main/0.png";
-  const base=document.getElementById("saniLogoBaseLayer");
-  const v=document.getElementById("saniLogoVLayer");
-  if(!base||!v)return;
-  const img=new Image();
-  img.crossOrigin="anonymous";
-  img.onload=function(){
-    try{
-      const size=512;
-      base.width=base.height=v.width=v.height=size;
-      const source=document.createElement("canvas");
-      source.width=source.height=size;
-      const sc=source.getContext("2d",{willReadFrequently:true});
-      sc.drawImage(img,0,0,size,size);
-      const src=sc.getImageData(0,0,size,size).data;
-
-      const bc=base.getContext("2d");
-      const vc=v.getContext("2d");
-      const bp=bc.createImageData(size,size);
-      const vp=vc.createImageData(size,size);
-
-      for(let y=0;y<size;y++){
-        for(let x=0;x<size;x++){
-          const i=(y*size+x)*4;
-          const r=src[i],g=src[i+1],b=src[i+2];
-
-          // Only the upper logo symbol: exclude the SaniStock wordmark.
-          if(y>395) continue;
-
-          const blue = b>90 && b>r*1.35 && b>g*1.05;
-          const red  = r>150 && r>g*1.35 && r>b*1.35;
-
-          if(blue){
-            bp[i]=r;bp[i+1]=g;bp[i+2]=b;bp[i+3]=255;
-          }
-          if(red){
-            vp[i]=r;vp[i+1]=g;vp[i+2]=b;vp[i+3]=255;
-          }
-        }
-      }
-      bc.putImageData(bp,0,0);
-      vc.putImageData(vp,0,0);
-    }catch(e){
-      base.style.display="none";
-      v.style.display="none";
-    }
-  };
-  img.onerror=function(){
-    base.style.display="none";
-    v.style.display="none";
-  };
-  img.src=SRC;
-})();
-</script>
-
 </body>
 </html>
