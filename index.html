@@ -423,8 +423,6 @@ body{display:block}
 .selectors{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px;margin-bottom:14px}
 .selectors label{display:block;font-size:11px;font-weight:900;color:#0757a0;margin-bottom:6px}
 .selectors select{width:100%;padding:11px 8px;border:1px solid #c7d9e6;border-radius:9px;background:#fff;color:#244968}
-.addAmbulanceColleague{width:100%;margin-top:7px;padding:8px 10px;border:1px solid #c7d9e6;border-radius:9px;background:#eef5fa;color:#0757a0;font-size:10px;font-weight:900;cursor:pointer}
-.ambulanceColleagueSelect{margin-top:7px}
 .disCard{padding:16px}
 .progressHead{display:flex;justify-content:space-between;align-items:center;color:#0757a0;font-size:10px}.progressHead strong{font-size:19px}
 .progress{height:9px;background:#dce7ef;border-radius:20px;overflow:hidden;margin:9px 0 14px}.progress span{display:block;width:0;height:100%;background:#0875c9;transition:.2s}
@@ -1238,8 +1236,8 @@ body{display:block}
     <h1>DÉSINFECTION</h1>
 
     <div class="selectors">
-      <div><label>SALARIÉ</label><select id="employee"><option value="">Sélectionner votre nom</option></select><button type="button" id="addAmbulanceColleagueBtn" class="addAmbulanceColleague" onclick="toggleAmbulanceColleague()" style="display:none">＋ Ajouter un collègue</button><select id="ambulanceColleague" class="ambulanceColleagueSelect" style="display:none"><option value="">Sélectionner le collègue</option></select></div>
-      <div><label>VÉHICULE</label><select id="vehicle" onchange="adapterChecklistVehicule()"><option value="">Sélectionner un véhicule</option><option>HA-219-PS – AMBU TRAFIC</option><option>PEUGEOT BOXER</option><option>AUDI A6 TAXI</option><option>HK-887-SD – FORD TOURNEO</option><option>FH-061-DT – CADDY TAXI</option><option>IONIQ 5 HYUNDAI</option><option>GH-575-RH – CADDY VSL</option><option>DR-607-TE – CADDY BLANC</option><option>FC-295-XP – SKODA SUPERB</option><option>FF-458-QT – SKODA BREAK VSL</option><option>EW-353-WR – SKODA BREAK VSL</option><option>FF-334-SL – SKODA KODIAQ VSL</option><option>EN-114-BK – SKODA SUPERB VSL</option></select></div>
+      <div><label>SALARIÉ</label><select id="employee"><option value="">Sélectionner votre nom</option></select></div>
+      <div><label>VÉHICULE</label><select id="vehicle" onchange="adapterChecklistVehicule()"><option value="">Sélectionner un véhicule</option><option>HA-219-PS – AMBU TRAFIC</option><option>PEUGEOT BOXER</option><option>AUDI A6 TAXI</option><option>HK-887-SD – FORD TOURNEO</option><option>FH-061-DT – CADDY TAXI</option><option>GH805GV – IONIQ 5 TAXI</option><option>GH-575-RH – CADDY VSL</option><option>DR-607-TE – CADDY BLANC</option><option>FC-295-XP – SKODA SUPERB</option><option>FF-458-QT – SKODA BREAK VSL</option><option>EW-353-WR – SKODA BREAK VSL</option><option>FF-334-SL – SKODA KODIAQ VSL</option><option>EN-114-BK – SKODA SUPERB VSL</option></select></div>
     </div>
 
     <div class="disCard">
@@ -1326,17 +1324,6 @@ function afficherListeSalaries(noms){
       select.value=valeurActuelle;
     }
   });
-  const collegueSelect=$('ambulanceColleague');
-  if(collegueSelect){
-    const actuel=collegueSelect.value;
-    const salarieConnecte=localStorage.getItem('sanistock_employee_name')||$('employee')?.value||'';
-    const choix=noms.filter(function(nom){ return nom!==salarieConnecte; });
-    collegueSelect.innerHTML='<option value="">Sélectionner le collègue</option>'+
-      choix.map(function(nom){
-        return '<option value="'+escapeHtml(nom)+'">'+escapeHtml(nom)+'</option>';
-      }).join('');
-    if(choix.includes(actuel)) collegueSelect.value=actuel;
-  }
 }
 function chargerSalaries(){
   let cache=[];
@@ -1537,6 +1524,13 @@ const CHECKLIST_AMBULANCE=[
  {id:'serpilliereCellule',label:'<span class="taskIcon"><svg class="taskSvg" viewBox="0 0 24 24"><path d="M5 19h14"></path><path d="M8 17l2-9"></path><path d="M10 8h5"></path><path d="M15 8l4 8"></path><path d="M5 19h6"></path></svg></span><span class="taskLabel">Lavage extérieur</span>'},
  {id:'fuel',label:'<span class="taskIcon"><svg class="taskSvg" viewBox="0 0 24 24"><path d="M6 21V4h9v17"></path><path d="M6 8h9"></path><path d="M15 7h2l3 3v7a2 2 0 0 1-2 2h-1"></path><path d="M9 12h3"></path></svg></span><span class="taskLabel">Plein de carburant</span>'}
 ];
+function isElectricVehicle(nom){
+ const v=String(nom||'').toUpperCase().replace(/[–—-]/g,' ');
+ return v.includes('GH805GV')||v.includes('IONIQ 5');
+}
+function electricFuelLabel(){
+ return '<span class=\"taskIcon\"><svg class=\"taskSvg\" viewBox=\"0 0 24 24\"><path d=\"M7 3h8v18H7z\"></path><path d=\"M9 6h4v4H9z\"></path><path d=\"M15 8h3v4h2v4\"></path><path d=\"M4 21h16\"></path></svg></span><span class=\"taskLabel\">Brancher le véhicule</span>';
+}
 function isAmbulanceVehicle(nom){
  const v=String(nom||'').toUpperCase();
  return v.includes('AMBU')||v.includes('AMBULANCE')||v.includes('BOXER');
@@ -1549,30 +1543,12 @@ function adapterChecklistVehicule(){
  const wrap=$('disinfectionTasks'); if(!wrap) return;
  const list=currentChecklist();
  wrap.innerHTML=list.map(function(t,i){
-   return '<button class="task" onclick="toggleTask(\''+t.id+'\',this)"><b>'+t.label+'</b><span class="taskStatus">✓ Fait</span><input id="'+t.id+'" type="checkbox"></button>';
+   const label=(t.id==='fuel' && isElectricVehicle($('vehicle').value))?electricFuelLabel():t.label;
+   return '<button class="task" onclick="toggleTask(\''+t.id+'\',this)"><b>'+label+'</b><span class="taskStatus">✓ Fait</span><input id="'+t.id+'" type="checkbox"></button>';
  }).join('');
  const help=$('allBtnHelp');
  if(help) help.textContent=isAmbulanceVehicle($('vehicle').value)?'Valide automatiquement les 8 étapes Ambulance':'Valide automatiquement les étapes principales';
- toggleAmbulanceColleague(true);
  updateDis();
-}
-function toggleAmbulanceColleague(forceRefresh){
- const ambulance=isAmbulanceVehicle($('vehicle')?$('vehicle').value:'');
- const btn=$('addAmbulanceColleagueBtn');
- const select=$('ambulanceColleague');
- if(!btn||!select) return;
- if(!ambulance){
-   btn.style.display='none';
-   select.style.display='none';
-   select.value='';
-   return;
- }
- btn.style.display='block';
- if(forceRefresh===true){
-   if(!select.value) select.style.display='none';
-   return;
- }
- select.style.display=select.style.display==='none'?'block':'none';
 }
 function requiredTasks(){
  return currentChecklist().filter(t=>!t.outside||isFriday()).map(t=>$(t.id)).filter(Boolean);
@@ -1594,18 +1570,12 @@ function checkAll(){currentChecklist().filter(t=>!estExcluDuPourcentage(t)).forE
 function taskChecked(id){const el=$(id);return !!(el&&el.checked)}
 function validateForm(){
  const salarie=$('employee').value, vehicule=$('vehicle').value;
- const collegue=isAmbulanceVehicle(vehicule)?$('ambulanceColleague').value:'';
  if(!salarie||!vehicule){alert('Le salarié et le véhicule doivent être sélectionnés.');return}
- if(isAmbulanceVehicle(vehicule) && $('ambulanceColleague').style.display!=='none' && !collegue){
-   alert('Veuillez sélectionner le collègue ou refermer le bouton « Ajouter un collègue ».');
-   return;
- }
- const salarieEnregistre=collegue?salarie+' + '+collegue:salarie;
  const btn=$('validateBtn');
  btn.disabled=true;
  btn.textContent='Enregistrement...';
  const data={
-   salarie:salarieEnregistre,
+   salarie:salarie,
    vehicule:vehicule,
    pourcentage:(function(){const a=currentChecklist().filter(t=>!estExcluDuPourcentage(t));return a.length?Math.round(a.filter(t=>taskChecked(t.id)).length/a.length*100):0})(),
    typeVehicule:isAmbulanceVehicle(vehicule)?'Ambulance':detectVehicleType(vehicule),
@@ -1631,7 +1601,7 @@ function validateForm(){
  .withSuccessHandler(function(){
    showSaniAnimation('disinfection',vehicule);
    updateDis();
-   document.querySelectorAll('#disinfectionPage select,#disinfectionPage .task,#disinfectionPage .allBtn,#disinfectionPage .validBtn,#addAmbulanceColleagueBtn').forEach(x=>x.disabled=true);
+   document.querySelectorAll('#disinfectionPage select,#disinfectionPage .task,#disinfectionPage .allBtn,#disinfectionPage .validBtn').forEach(x=>x.disabled=true);
    $('success').classList.add('show');
    btn.textContent='✓ DÉSINFECTION VALIDÉE';
    launchConfetti();
@@ -1696,12 +1666,12 @@ function chargerHistorique(){
        details += histLine('Brancard',boolHist(r,['brancard','Brancard'],9));
        details += histLine('Matériel de soins',boolHist(r,['materielSoins','MaterielSoins','materiel_soins'],10));
        details += histLine('Lavage extérieur',boolHist(r,['serpilliereCellule','SerpilliereCellule','serpilliere_cellule'],11));
-       details += histLine('Plein de carburant',boolHist(r,['carburant','Carburant'],12));
+       details += histLine(isElectricVehicle(veh)?'Branchement électrique':'Plein de carburant',boolHist(r,['carburant','Carburant'],12));
      }else{
        details += histLine('Points de contact',boolHist(r,['pointsContact','PointsContact','points_contact'],4));
        details += histLine('Lavage des vitrages',boolHist(r,['vitrages','Vitrages'],5));
        details += histLine('Aspirateur',boolHist(r,['aspirateur','Aspirateur'],6));
-       details += histLine('Plein de carburant',boolHist(r,['carburant','Carburant'],7));
+       details += histLine(isElectricVehicle(veh)?'Branchement électrique':'Plein de carburant',boolHist(r,['carburant','Carburant'],7));
      }
      return '<div class="histRow"><b>'+escapeHtml(sal)+'</b><span>'+escapeHtml(veh)+'</span><small>'+escapeHtml(dat)+' · '+escapeHtml(p)+'%</small>'+(details?'<div class="histDetails">'+details+'</div>':'')+'</div>';
    }).join('');
