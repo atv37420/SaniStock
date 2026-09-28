@@ -1,4 +1,4 @@
-<!-- SaniStock version 1.0.64 : boutons colorés sans animation -->
+<!-- SaniStock version 1.0.67 : boutons colorés sans animation -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -299,8 +299,10 @@
             if(typeof success==='function') success(result);
             synchroniser();
           },function(err){
-            /* On ne met en attente qu'en cas de perte réelle de réseau. */
-            if(WRITE_ACTIONS.has(String(prop)) && !navigator.onLine){
+            /* Si le réseau ou Apps Script ne répond pas, on met les écritures en file.
+               Ainsi aucune entrée/sortie/désinfection n'est perdue, même si navigator.onLine
+               indique encore que le téléphone est connecté. */
+            if(WRITE_ACTIONS.has(String(prop))){
               queueWrite(String(prop),data)
                 .then(()=>{if(typeof success==='function') success({message:offlineMessage(String(prop)),offline:true})})
                 .catch(()=>{if(typeof failure==='function') failure(err)});
@@ -1007,7 +1009,7 @@ body{display:block}
     <input id="employeeLoginCode" type="password" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="Votre code personnel">
     <button id="employeeLoginBtn" type="button">Se connecter</button>
     <div id="employeeLoginError"></div>
-    <div class="employeeLoginRemember">Votre téléphone vous reconnaîtra automatiquement aux prochaines ouvertures.</div>
+    <div class="employeeLoginRemember">Votre téléphone vous reconnaîtra automatiquement aux prochaines ouvertures, même si Internet est momentanément indisponible.</div>
   </div>
 </div>
 
@@ -2506,12 +2508,31 @@ function changerCodeAdminUI(){
     btn.disabled=true; btn.textContent='Vérification…'; showError('');
     setLoginAnimation(true,'Vérification en cours…','❤️ Vérification sécurisée…');
 
-    if(!navigator.onLine){
-      const saved=savedCredentials();
-      if(name===saved.name && String(code)===String(saved.code) && saved.name && saved.code){
-        btn.disabled=false; btn.textContent='Se connecter';
-        activerAccesProprietaire(name,code); setLoginAnimation(false); unlock(name); showError(''); return;
+    const saved=savedCredentials();
+
+    // Un salarié déjà validé sur ce PDA peut se connecter localement.
+    // Cela évite de bloquer la connexion lorsque le Wi-Fi/4G du bureau
+    // est faible ou que Google Apps Script met trop de temps à répondre.
+    if(saved.name && saved.code && name===saved.name && String(code)===String(saved.code)){
+      btn.disabled=false; btn.textContent='Se connecter';
+      activerAccesProprietaire(name,code);
+      setLoginAnimation(false);
+      unlock(name);
+      if(navigator.onLine){
+        // Vérification serveur en arrière-plan, sans bloquer l'ouverture.
+        setTimeout(function(){
+          try{
+            google.script.run
+              .withSuccessHandler(function(){})
+              .withFailureHandler(function(){})
+              .verifierCodeSalarie({salarie:name,code:String(code)});
+          }catch(e){}
+        },300);
       }
+      return;
+    }
+
+    if(!navigator.onLine){
       btn.disabled=false; btn.textContent='Se connecter'; setLoginAnimation(false);
       showError('Hors ligne : utilisez le mot de passe déjà enregistré sur cet appareil.');
       return;
@@ -2547,22 +2568,62 @@ function changerCodeAdminUI(){
     }).verifierCodeSalarie({salarie:name,code:String(code)});
   }
   function autoConnect(savedName,savedCode){
-    afficherModeAutomatique(savedName);
-    google.script.run.withSuccessHandler(function(result){
-      if(result && result.valide===true && result.premiereConnexion!==true){
-        activerAccesProprietaire(savedName,savedCode);
-        setLoginAnimation(false);
-        unlock(savedName);
-        return;
-      }
-      /* Si l’auto n’est plus valide, on garde le nom et on demande uniquement le mot de passe. */
-      afficherModeCodeSeul(savedName,'Connexion automatique impossible. Entrez votre mot de passe.');
-    }).withFailureHandler(function(){
-      afficherModeCodeSeul(savedName,'Connexion automatique impossible. Entrez votre mot de passe.');
-    }).verifierCodeSalarie({salarie:savedName,code:String(savedCode)});
+    // Le compte a déjà été validé sur cet appareil : ouverture immédiate.
+    // Le serveur est consulté ensuite sans bloquer l'utilisateur.
+    if(savedName && savedCode){
+      activerAccesProprietaire(savedName,savedCode);
+      setLoginAnimation(false);
+      unlock(savedName);
+      setTimeout(function(){
+        if(!navigator.onLine) return;
+        try{
+          google.script.run
+            .withSuccessHandler(function(result){
+              // Si le compte n'est plus valide côté serveur, on ne déconnecte
+              // pas brutalement le PDA : l'administrateur pourra intervenir
+              // lorsque la connexion sera stable.
+              if(!(result && result.valide===true)){
+                console.warn('Validation serveur du compte non confirmée.');
+              }
+            })
+            .withFailureHandler(function(){
+              console.warn('Validation serveur indisponible : mode local conservé.');
+            })
+            .verifierCodeSalarie({salarie:savedName,code:String(savedCode)});
+        }catch(e){}
+      },300);
+      return;
+    }
+    afficherModeCodeSeul(savedName,'Entrez votre mot de passe.');
   }
   function loadNames(){
     setLoginAnimation(true,'Préparation de votre connexion','❤️ SaniStock se prépare…');
+
+    // Hors ligne : on construit immédiatement l'écran de connexion depuis
+    // les données déjà enregistrées sur le PDA. Aucun appel réseau n'est requis.
+    const saved=savedCredentials();
+    let cachedNames=[];
+    try{cachedNames=JSON.parse(localStorage.getItem('sanistock_cached_employee_names')||'[]')}catch(e){cachedNames=[]}
+    cachedNames=Array.isArray(cachedNames)?cachedNames:[];
+
+    if(!navigator.onLine){
+      if(saved.name && saved.code){
+        afficherModeCodeSeul(saved.name,'📵 Hors ligne : utilisez votre mot de passe enregistré sur cet appareil.');
+        // Le code est déjà mémorisé sur cet appareil : l'utilisateur peut
+        // entrer son code et être déverrouillé sans Google Apps Script.
+        return;
+      }
+      if(cachedNames.length){
+        nameSel.innerHTML='<option value="">Sélectionner votre nom</option>'+cachedNames.map(function(n){return '<option value="'+escapeHtml(n)+'">'+escapeHtml(n)+'</option>'}).join('');
+        afficherModePremiereConnexion();
+        showError('📵 Hors ligne : choisissez votre nom et utilisez un mot de passe déjà enregistré sur cet appareil.');
+        return;
+      }
+      afficherModePremiereConnexion();
+      showError('📵 Première connexion nécessaire avec Internet pour charger les salariés.');
+      return;
+    }
+
     google.script.run.withSuccessHandler(function(noms){
       noms=Array.isArray(noms)?noms:[];
       try{localStorage.setItem('sanistock_cached_employee_names',JSON.stringify(noms));}catch(e){}
