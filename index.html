@@ -1171,6 +1171,17 @@ body{display:block}
 #loginAmbulanceAnim .loginExactV { z-index:2 !important; transform-origin:44.8% 58% !important; animation:loginTrueVOrbit 1.35s linear infinite !important; }
 @keyframes loginTrueVOrbit { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
 </style>
+
+<style id="sanistock-welcome-name-style">
+#sanistockWelcomeName{position:fixed;inset:0;z-index:29999;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .35s ease,visibility .35s ease;}
+#sanistockWelcomeName.show{opacity:1;visibility:visible;}
+#sanistockWelcomeName .welcomeNameCard{min-width:min(82vw,360px);max-width:90vw;padding:22px 28px;border-radius:22px;background:rgba(255,255,255,.96);border:1px solid rgba(7,87,160,.16);box-shadow:0 18px 55px rgba(0,40,90,.28);text-align:center;transform:translateY(16px) scale(.96);}
+#sanistockWelcomeName.show .welcomeNameCard{animation:saniWelcomePop .55s cubic-bezier(.2,.8,.2,1) both;}
+#sanistockWelcomeName .welcomeEmoji{font-size:30px;line-height:1;margin-bottom:8px;}
+#sanistockWelcomeName .welcomeText{font-size:24px;font-weight:900;color:#0757a0;line-height:1.15;}
+#sanistockWelcomeName .welcomeSub{margin-top:6px;font-size:12px;font-weight:700;color:#60778c;}
+@keyframes saniWelcomePop{from{opacity:0;transform:translateY(16px) scale(.94)}to{opacity:1;transform:translateY(0) scale(1)}}
+</style>
 </head>
 <body>
 
@@ -1195,6 +1206,14 @@ body{display:block}
     <button id="employeeLoginBtn" type="button">Se connecter</button>
     <div id="employeeLoginError"></div>
     <div class="employeeLoginRemember">Votre téléphone vous reconnaîtra automatiquement aux prochaines ouvertures, même si Internet est momentanément indisponible.</div>
+  </div>
+</div>
+
+<div id="sanistockWelcomeName" aria-live="polite" aria-hidden="true">
+  <div class="welcomeNameCard">
+    <div class="welcomeEmoji">👋</div>
+    <div class="welcomeText" id="sanistockWelcomeText">Bienvenue !</div>
+    <div class="welcomeSub">Bienvenue sur SaniStock</div>
   </div>
 </div>
 
@@ -2651,8 +2670,26 @@ function changerCodeAdminUI(){
     localStorage.setItem('sanistock_employee_name',String(name).trim());
     localStorage.setItem('sanistock_employee_code',c);
   }
+  function afficherBienvenue(name){
+    const box=document.getElementById('sanistockWelcomeName');
+    const text=document.getElementById('sanistockWelcomeText');
+    if(!box||!text) return;
+    const nom=String(name||'').trim().replace(/\s+/g,' ');
+    const prenom=nom ? nom.split(' ')[0] : '';
+    text.textContent=prenom ? 'Bienvenue '+prenom+' !' : 'Bienvenue !';
+    box.classList.remove('show');
+    box.setAttribute('aria-hidden','false');
+    void box.offsetWidth;
+    box.classList.add('show');
+    clearTimeout(window.__sanistockWelcomeTimer);
+    window.__sanistockWelcomeTimer=setTimeout(function(){
+      box.classList.remove('show');
+      box.setAttribute('aria-hidden','true');
+    },1800);
+  }
   function unlock(name){
     overlay.classList.add('hidden');
+    setTimeout(function(){afficherBienvenue(name)},120);
     const logoutBtn=document.getElementById('homeLogoutBtn');
     if(logoutBtn) logoutBtn.style.display='flex';
     setTimeout(chargerInformationAccueil,120);
