@@ -1,4 +1,4 @@
-<!-- SaniStock version 1.0.63 : boutons colorés sans animation -->
+<!-- SaniStock version 1.0.64 : boutons colorés sans animation -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -420,7 +420,7 @@ body{display:block}
 .disBack{box-shadow:0 5px 15px #164d7530}
 .disWrap h1{text-align:center;color:#0757a0;font-size:29px;margin:24px 0}
 .selectors,.disCard{background:rgba(255,255,255,.96);border-radius:20px;box-shadow:0 10px 28px rgba(10,59,96,.14)}
-.selectors{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px;margin-bottom:14px}
+.addColleagueBtn{margin-top:7px;border:0;border-radius:10px;padding:8px 11px;background:#e53935;color:#fff;font-weight:800;cursor:pointer}.addColleagueBtn:hover{filter:brightness(.96)}.secondColleagueWrap{margin-top:8px}.secondColleagueWrap[hidden],.addColleagueBtn[hidden]{display:none!important}.selectors{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px;margin-bottom:14px}
 .selectors label{display:block;font-size:11px;font-weight:900;color:#0757a0;margin-bottom:6px}
 .selectors select{width:100%;padding:11px 8px;border:1px solid #c7d9e6;border-radius:9px;background:#fff;color:#244968}
 .disCard{padding:16px}
@@ -1236,7 +1236,7 @@ body{display:block}
     <h1>DÉSINFECTION</h1>
 
     <div class="selectors">
-      <div><label>SALARIÉ</label><select id="employee"><option value="">Sélectionner votre nom</option></select></div>
+      <div><label>SALARIÉ</label><select id="employee"><option value="">Sélectionner votre nom</option></select><button type="button" id="addColleagueBtn" class="addColleagueBtn" onclick="toggleSecondColleague()" hidden>＋ Ajouter un collègue</button><div id="secondColleagueWrap" class="secondColleagueWrap" hidden><label>2ᵉ COLLÈGUE</label><select id="employee2"><option value="">Sélectionner le collègue</option></select></div></div>
       <div><label>VÉHICULE</label><select id="vehicle" onchange="adapterChecklistVehicule()"><option value="">Sélectionner un véhicule</option><option>HA-219-PS – AMBU TRAFIC</option><option>PEUGEOT BOXER</option><option>AUDI A6 TAXI</option><option>HK-887-SD – FORD TOURNEO</option><option>FH-061-DT – CADDY TAXI</option><option>GH805GV – IONIQ 5 TAXI</option><option>GH-575-RH – CADDY VSL</option><option>DR-607-TE – CADDY BLANC</option><option>FC-295-XP – SKODA SUPERB</option><option>FF-458-QT – SKODA BREAK VSL</option><option>EW-353-WR – SKODA BREAK VSL</option><option>FF-334-SL – SKODA KODIAQ VSL</option><option>EN-114-BK – SKODA SUPERB VSL</option></select></div>
     </div>
 
@@ -1307,16 +1307,16 @@ function afficherListeSalaries(noms){
   if(noms.length){
     try{localStorage.setItem('sanistock_salaries_cache',JSON.stringify(noms));}catch(e){}
   }
-  ['stockEmployee','employee'].forEach(function(id){
+  ['stockEmployee','employee','employee2'].forEach(function(id){
     const select=$(id);
     if(!select) return;
     const valeurActuelle=select.value;
-    select.innerHTML='<option value="">Sélectionner votre nom</option>'+
+    select.innerHTML='<option value="">'+(id==='employee2'?'Sélectionner le collègue':'Sélectionner votre nom')+'</option>'+
       noms.map(function(nom){
         return '<option value="'+escapeHtml(nom)+'">'+escapeHtml(nom)+'</option>';
       }).join('');
     const salarieConnecte=localStorage.getItem('sanistock_employee_name')||'';
-    if(salarieConnecte && noms.includes(salarieConnecte)){
+    if(id==='employee' && salarieConnecte && noms.includes(salarieConnecte)){
       select.value=salarieConnecte;
       /* Le salarié connecté est imposé automatiquement dans Stock et Désinfection. */
       select.disabled=true;
@@ -1539,7 +1539,24 @@ function currentChecklist(){
  const veh=$('vehicle')?$('vehicle').value:'';
  return isAmbulanceVehicle(veh)?CHECKLIST_AMBULANCE:CHECKLIST_STANDARD;
 }
+function toggleSecondColleague(){
+ const wrap=$('secondColleagueWrap'), btn=$('addColleagueBtn'), select=$('employee2');
+ if(!wrap||!btn) return;
+ const show=wrap.hidden;
+ wrap.hidden=!show;
+ btn.textContent=show?'− Retirer le collègue':'＋ Ajouter un collègue';
+ if(!show&&select) select.value='';
+}
+function adapterSecondColleagueUI(){
+ const veh=$('vehicle')?$('vehicle').value:'';
+ const isAmb=isAmbulanceVehicle(veh);
+ const btn=$('addColleagueBtn'), wrap=$('secondColleagueWrap'), select=$('employee2');
+ if(!btn||!wrap) return;
+ btn.hidden=!isAmb;
+ if(!isAmb){wrap.hidden=true;if(select)select.value='';btn.textContent='＋ Ajouter un collègue';}
+}
 function adapterChecklistVehicule(){
+ adapterSecondColleagueUI();
  const wrap=$('disinfectionTasks'); if(!wrap) return;
  const list=currentChecklist();
  wrap.innerHTML=list.map(function(t,i){
@@ -1569,13 +1586,16 @@ function toggleTask(id,row){const el=$(id);if(el){el.checked=!el.checked;updateD
 function checkAll(){currentChecklist().filter(t=>!estExcluDuPourcentage(t)).forEach(t=>{const el=$(t.id);if(el)el.checked=true});updateDis()}
 function taskChecked(id){const el=$(id);return !!(el&&el.checked)}
 function validateForm(){
- const salarie=$('employee').value, vehicule=$('vehicle').value;
+ const salarie=$('employee').value, salarie2=($('employee2')&&isAmbulanceVehicle($('vehicle').value))?$('employee2').value:'', vehicule=$('vehicle').value;
  if(!salarie||!vehicule){alert('Le salarié et le véhicule doivent être sélectionnés.');return}
+ if(isAmbulanceVehicle(vehicule)&&$('secondColleagueWrap')&&!$('secondColleagueWrap').hidden&&!salarie2){alert('Sélectionnez le 2ᵉ collègue ou retirez-le avant de valider.');return}
  const btn=$('validateBtn');
  btn.disabled=true;
  btn.textContent='Enregistrement...';
  const data={
    salarie:salarie,
+   salarie2:salarie2,
+   collegue:salarie2,
    vehicule:vehicule,
    pourcentage:(function(){const a=currentChecklist().filter(t=>!estExcluDuPourcentage(t));return a.length?Math.round(a.filter(t=>taskChecked(t.id)).length/a.length*100):0})(),
    typeVehicule:isAmbulanceVehicle(vehicule)?'Ambulance':detectVehicleType(vehicule),
@@ -1603,6 +1623,9 @@ function validateForm(){
    updateDis();
    document.querySelectorAll('#disinfectionPage select,#disinfectionPage .task,#disinfectionPage .allBtn,#disinfectionPage .validBtn').forEach(x=>x.disabled=true);
    $('success').classList.add('show');
+   if($('secondColleagueWrap')) $('secondColleagueWrap').hidden=true;
+   if($('addColleagueBtn')) $('addColleagueBtn').textContent='＋ Ajouter un collègue';
+   if($('employee2')) $('employee2').value='';
    btn.textContent='✓ DÉSINFECTION VALIDÉE';
    launchConfetti();
    chargerHistorique();
