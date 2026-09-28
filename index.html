@@ -1173,13 +1173,11 @@ body{display:block}
 </style>
 
 <style id="sanistock-welcome-name-style">
-#sanistockWelcomeName{position:fixed;inset:0;z-index:29999;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .35s ease,visibility .35s ease;}
+#sanistockWelcomeName{position:fixed;inset:0;z-index:29999;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;visibility:hidden;background:#0757a0;transition:opacity .35s ease,visibility .35s ease;}
 #sanistockWelcomeName.show{opacity:1;visibility:visible;}
-#sanistockWelcomeName .welcomeNameCard{min-width:min(82vw,360px);max-width:90vw;padding:22px 28px;border-radius:22px;background:rgba(255,255,255,.96);border:1px solid rgba(7,87,160,.16);box-shadow:0 18px 55px rgba(0,40,90,.28);text-align:center;transform:translateY(16px) scale(.96);}
+#sanistockWelcomeName .welcomeNameCard{width:100%;max-width:none;padding:0 24px;background:transparent;text-align:center;transform:translateY(16px) scale(.96);}
 #sanistockWelcomeName.show .welcomeNameCard{animation:saniWelcomePop .55s cubic-bezier(.2,.8,.2,1) both;}
-#sanistockWelcomeName .welcomeEmoji{font-size:30px;line-height:1;margin-bottom:8px;}
-#sanistockWelcomeName .welcomeText{font-size:24px;font-weight:900;color:#0757a0;line-height:1.15;}
-#sanistockWelcomeName .welcomeSub{margin-top:6px;font-size:12px;font-weight:700;color:#60778c;}
+#sanistockWelcomeName .welcomeText{font-size:32px;font-weight:900;color:#fff;line-height:1.15;text-shadow:0 3px 18px rgba(0,0,0,.25);}
 @keyframes saniWelcomePop{from{opacity:0;transform:translateY(16px) scale(.94)}to{opacity:1;transform:translateY(0) scale(1)}}
 </style>
 </head>
@@ -1211,9 +1209,7 @@ body{display:block}
 
 <div id="sanistockWelcomeName" aria-live="polite" aria-hidden="true">
   <div class="welcomeNameCard">
-    <div class="welcomeEmoji">👋</div>
     <div class="welcomeText" id="sanistockWelcomeText">Bienvenue !</div>
-    <div class="welcomeSub">Bienvenue sur SaniStock</div>
   </div>
 </div>
 
