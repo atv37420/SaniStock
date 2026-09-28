@@ -1017,16 +1017,13 @@ body{display:block}
   width:112px;height:112px;display:block;overflow:visible;
 }
 #saniSplash .saniV{
-  transform-box:fill-box;
-  transform-origin:50% 54%;
-  animation:saniVSpin 1.15s linear infinite;
+  transform-box:view-box;
+  transform-origin:50% 50%;
+  animation:saniVOrbit 1.35s linear infinite;
 }
-@keyframes saniVSpin{
+@keyframes saniVOrbit{
   from{transform:rotate(0deg)}
   to{transform:rotate(360deg)}
-}
-@media (prefers-reduced-motion:reduce){
-  #saniSplash .saniV{animation:none}
 }
 </style>
 </head>
