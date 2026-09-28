@@ -1,4 +1,4 @@
-<!-- SaniStock version 1.0.67 : boutons colorés sans animation -->
+<!-- SaniStock version 1.0.68 : boutons colorés sans animation -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -905,7 +905,7 @@ body{display:block}
 
 <style>
 /* ===== CONNEXION SALARIÉ PERSISTANTE ===== */
-/* ===== ANIMATION CONNEXION COEUR + ECG — VERSION 1.0.58 ===== */
+/* ===== ANIMATION CONNEXION COEUR + ECG — version 1.0.68 ===== */
 .loginAmbulanceAnim{display:none;position:relative;height:126px;margin:2px 0 12px;overflow:hidden;border-radius:18px;background:linear-gradient(180deg,#f4fbff,#e4f4ff);border:1px solid #c8e4f7}
 .loginAmbulanceAnim.show{display:block}
 .loginHeartCircle{position:absolute;left:50%;top:50%;width:82px;height:82px;transform:translate(-50%,-52%);border:4px solid rgba(22,168,255,.18);border-top-color:#16a8ff;border-right-color:#0b7bd4;border-radius:50%;animation:loginHeartSpin 1.15s linear infinite}
@@ -985,6 +985,21 @@ body{display:block}
   transform:translate(-50%,-50%) !important;
   margin:0 !important;
   text-align:center !important;
+}
+</style>
+
+
+<style id="sanistock-version-bottom-style">
+#sanistock-version-bottom{
+  position:fixed;
+  left:0;
+  right:0;
+  bottom:8px;
+  text-align:center;
+  font-size:12px;
+  opacity:.65;
+  z-index:9999;
+  pointer-events:none;
 }
 </style>
 
@@ -1166,7 +1181,7 @@ body{display:block}
     <button type="button" class="homeButton4 medication4" onclick="showPage('medicationPage')" aria-label="Mémo médicaments"><span class="homeButtonIcon">💊</span><span class="homeButtonTitle">MÉMO MÉDICAMENTS</span><span class="homeButtonDesc">Infos sur les médicaments</span></button>
     <button type="button" class="homeButton4 settings4" onclick="ouvrirParametres()" aria-label="Paramètres"><span class="homeButtonIcon">⚙️</span><span class="homeButtonTitle">PARAMÈTRES</span><span class="homeButtonDesc">Gérer l’application</span></button>
   </div>
-  <div class="saniVersion" aria-label="Version de SaniStock">Version 1.0.62</div>
+  <div class="saniVersion" aria-label="Version de SaniStock">version 1.0.68</div>
   <div id="homeInformation" class="homeInfo" aria-live="polite"></div>
 <div id="homeInformationModal" class="homeInfoModal" aria-hidden="true">
   <div class="homeInfoModalCard" role="dialog" aria-modal="true" aria-labelledby="homeInfoModalTitle">
@@ -2647,7 +2662,14 @@ function changerCodeAdminUI(){
       }
     }).getSalaries();
   }
-  btn.addEventListener('click',function(){verify(nameSel.value,(codeInput.value||'').trim(),true)});
+  btn.addEventListener('click',function(){
+    // En mode code seul (hors ligne), la liste des salariés est masquée :
+    // le nom doit donc être récupéré depuis les identifiants enregistrés.
+    const saved=savedCredentials();
+    const nom=(nameSel.value||saved.name||'').trim();
+    const code=(codeInput.value||'').trim();
+    verify(nom,code,true);
+  });
   codeInput.addEventListener('keydown',function(e){if(e.key==='Enter')btn.click()});
   window.deconnecterSaniStock=function(){
     localStorage.removeItem(KEY_NAME); localStorage.removeItem(KEY_CODE); localStorage.removeItem(OWNER_DEVICE_KEY); localStorage.removeItem(OWNER_ADMIN_CODE_KEY); localStorage.removeItem(OWNER_STOCK_CODE_KEY); location.reload();
@@ -2875,7 +2897,7 @@ function fermerDetailsDashboard(){
 </script>
 
 <script>
-/* ===== MÉMO MÉDICAMENTS — VERSION 1.0.54 =====
+/* ===== MÉMO MÉDICAMENTS — version 1.0.68 =====
    Liste informative, sans posologie ni protocole.
    La dotation et l'utilisation restent soumises aux protocoles en vigueur.
 */
@@ -7916,5 +7938,6 @@ if ("serviceWorker" in navigator) {
 </script>
 
 
+<div id="sanistock-version-bottom">SaniStock — version 1.0.68</div>
 </body>
 </html>
