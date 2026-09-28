@@ -918,6 +918,36 @@ body{display:block}
 @keyframes loginHeartSpin{to{transform:translate(-50%,-52%) rotate(360deg)}}
 @keyframes loginHeartBeat{0%,100%{transform:translate(-50%,-57%) scale(.94)}35%{transform:translate(-50%,-57%) scale(1.08)}55%{transform:translate(-50%,-57%) scale(.98)}70%{transform:translate(-50%,-57%) scale(1.04)}}
 @keyframes loginECGMove{from{stroke-dashoffset:500}to{stroke-dashoffset:0}}
+/* ===== LOGO SANISTOCK PENDANT LA CONNEXION ===== */
+.loginSaniLogo{
+  position:absolute;
+  left:50%;
+  top:46%;
+  width:68px;
+  height:68px;
+  object-fit:contain;
+  transform:translate(-50%,-50%);
+  filter:drop-shadow(0 4px 10px rgba(7,87,160,.25));
+  animation:loginSaniLogoPulse 1.15s ease-in-out infinite;
+}
+.loginSaniTitle{
+  position:absolute;
+  left:0;
+  right:0;
+  top:7px;
+  text-align:center;
+  font-size:11px;
+  font-weight:900;
+  color:#0757a0;
+}
+.loginAmbulanceAnim .loginHeartStatus{
+  bottom:9px;
+  font-size:10px;
+}
+@keyframes loginSaniLogoPulse{
+  0%,100%{transform:translate(-50%,-50%) scale(.96)}
+  50%{transform:translate(-50%,-50%) scale(1.06)}
+}
 .employeeLoginSavedUser{margin:0 0 10px;padding:11px 14px;border-radius:12px;background:#eef7ff;border:1px solid #c9e4f8;color:#0757a0;font-weight:800;text-align:center;font-size:14px}
 .employeeLoginAuto .employeeLoginCard{animation:loginCardPulse .55s ease-in-out infinite alternate}
 .loginVerifying .employeeLoginCard{animation:loginCardPulse .55s ease-in-out infinite alternate}
@@ -1049,11 +1079,9 @@ body{display:block}
     <h2>Connexion SaniStock</h2>
     <p>Identifiez-vous une seule fois sur ce téléphone.</p>
     <div id="loginAmbulanceAnim" class="loginAmbulanceAnim" aria-hidden="true">
-      <div class="loginHeartText">❤️ Vérification sécurisée…</div>
-      <div class="loginHeartCircle"></div>
-      <div class="loginHeart">❤️</div>
-      <div class="loginECG" aria-hidden="true"><svg viewBox="0 0 420 42" preserveAspectRatio="none"><path d="M0 22 H62 L72 22 L80 10 L89 34 L98 22 H145 L155 22 L164 17 L172 27 L180 22 H222 L232 22 L241 4 L251 38 L261 22 H308 L318 22 L327 15 L336 29 L345 22 H420"></path></svg></div>
-      <div class="loginHeartStatus">SaniStock vérifie vos identifiants</div>
+      <img class="loginSaniLogo" src="https://raw.githubusercontent.com/atv37420/SaniStock/main/0.png" alt="SaniStock">
+      <div class="loginSaniTitle">SaniStock</div>
+      <div class="loginHeartStatus">Connexion en cours…</div>
     </div>
     <div id="employeeLoginSavedUser" class="employeeLoginSavedUser" style="display:none"></div>
     <select id="employeeLoginName"><option value="">Chargement des salariés…</option></select>
@@ -2458,8 +2486,8 @@ function changerCodeAdminUI(){
     if(show){
       loginAnim.classList.add('show');
       overlay.classList.add('loginVerifying');
-      if(txt) txt.textContent=title||'❤️ Vérification sécurisée…';
-      if(st) st.textContent=status||'SaniStock vérifie vos identifiants';
+      if(txt) txt.textContent=title||'Vérification sécurisée…';
+      if(st) st.textContent=status||'Connexion en cours…';
     }else{
       loginAnim.classList.remove('show');
       overlay.classList.remove('loginVerifying');
@@ -2510,7 +2538,7 @@ function changerCodeAdminUI(){
     codeInput.style.display='none';
     btn.style.display='none';
     showError('');
-    setLoginAnimation(true,'Connexion automatique…','❤️ Connexion automatique…');
+    setLoginAnimation(true,'Connexion automatique…','Connexion SaniStock…');
   }
 
   function activerAccesProprietaire(name,code){
@@ -2566,7 +2594,7 @@ function changerCodeAdminUI(){
   function verify(name,code,remember){
     if(!name||!code){showError('Sélectionnez votre nom et entrez votre mot de passe.');return}
     btn.disabled=true; btn.textContent='Vérification…'; showError('');
-    setLoginAnimation(true,'Vérification en cours…','❤️ Vérification sécurisée…');
+    setLoginAnimation(true,'Vérification en cours…','Connexion SaniStock…');
 
     const saved=savedCredentials();
 
@@ -2657,7 +2685,7 @@ function changerCodeAdminUI(){
     afficherModeCodeSeul(savedName,'Entrez votre mot de passe.');
   }
   function loadNames(){
-    setLoginAnimation(true,'Préparation de votre connexion','❤️ SaniStock se prépare…');
+    setLoginAnimation(true,'Préparation de votre connexion','Connexion SaniStock…');
 
     // Hors ligne : on construit immédiatement l'écran de connexion depuis
     // les données déjà enregistrées sur le PDA. Aucun appel réseau n'est requis.
