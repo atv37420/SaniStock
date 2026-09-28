@@ -1145,51 +1145,17 @@ body{display:block}
 
 
 <style id="sanistock-login-exact-animation">
-/* Connexion : exactement le même logo que le démarrage, avec le V animé */
-#loginAmbulanceAnim{
-  position:relative !important;
-  width:180px !important;
-  height:145px !important;
-  margin:10px auto 12px !important;
-}
-#loginAmbulanceAnim .loginSaniStartupLogo{
-  position:absolute !important;
-  left:50% !important;
-  top:48% !important;
-  width:112px !important;
-  height:112px !important;
-  transform:translate(-50%,-50%) !important;
-  filter:drop-shadow(0 0 18px rgba(37,174,255,.55)) !important;
-}
-#loginAmbulanceAnim .loginSaniLogoExact{
-  width:112px !important;
-  height:112px !important;
-  display:block !important;
-  overflow:visible !important;
-}
-#loginAmbulanceAnim .loginSaniCross{
-  transform:none !important;
-}
-#loginAmbulanceAnim .loginSaniV{
-  transform-box:view-box !important;
-  transform-origin:50% 50% !important;
-  animation:loginSaniVOrbit 1.35s linear infinite !important;
-}
-@keyframes loginSaniVOrbit{
-  from{transform:rotate(0deg)}
-  to{transform:rotate(360deg)}
-}
-#loginAmbulanceAnim .loginHeartStatus{
-  position:absolute !important;
-  left:0 !important;
-  right:0 !important;
-  bottom:0 !important;
-  margin:0 !important;
-  color:#0757a0 !important;
-  font-size:11px !important;
-  font-weight:800 !important;
-  text-align:center !important;
-}
+/* Connexion : croix issue directement du logo SaniStock officiel + V rouge animé */
+#loginAmbulanceAnim{position:relative!important;width:180px!important;height:150px!important;margin:10px auto 12px!important;display:none!important;overflow:visible!important;background:transparent!important;}
+#loginAmbulanceAnim.show{display:block!important;}
+#loginAmbulanceAnim .loginSaniStartupLogo{position:absolute!important;left:50%!important;top:46%!important;width:112px!important;height:92px!important;transform:translate(-50%,-50%)!important;overflow:visible!important;filter:drop-shadow(0 0 18px rgba(37,174,255,.55))!important;}
+#loginAmbulanceAnim .loginExactCross{position:absolute!important;inset:0!important;width:112px!important;height:92px!important;overflow:hidden!important;border-radius:0!important;background:#fff url("https://raw.githubusercontent.com/atv37420/SaniStock/main/0.png") center top / 112px 112px no-repeat!important;}
+/* Masque blanc : enlève uniquement le V fixe du logo, la croix reste exactement celle de 0.png */
+#loginAmbulanceAnim .loginExactCross:after{content:"";position:absolute!important;inset:0!important;background:#fff!important;clip-path:polygon(30% 24%,44% 42%,57% 29%,100% 4%,82% 30%,65% 53%,53% 72%,42% 72%,28% 43%)!important;}
+#loginAmbulanceAnim .loginExactV{position:absolute!important;left:0!important;top:0!important;width:112px!important;height:92px!important;background:url("https://raw.githubusercontent.com/atv37420/SaniStock/main/0.png") center top / 112px 112px no-repeat!important;clip-path:polygon(29% 23%,43% 42%,56% 29%,100% 3%,82% 30%,65% 53%,53% 72%,42% 72%,28% 43%)!important;transform-origin:50% 50%!important;animation:loginSaniVOrbit 1.35s linear infinite!important;z-index:2!important;}
+#loginAmbulanceAnim .loginSaniLogoExact{display:none!important;}
+#loginAmbulanceAnim .loginHeartStatus{position:absolute!important;left:0!important;right:0!important;bottom:0!important;margin:0!important;color:#0757a0!important;font-size:11px!important;font-weight:800!important;text-align:center!important;}
+@keyframes loginSaniVOrbit{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
@@ -1202,15 +1168,8 @@ body{display:block}
     <p>Identifiez-vous une seule fois sur ce téléphone.</p>
     <div id="loginAmbulanceAnim" class="loginAmbulanceAnim" aria-hidden="true">
       <div class="loginSaniStartupLogo" aria-label="Logo SaniStock">
-        <svg class="loginSaniLogoExact" viewBox="0 0 512 512" role="img" aria-label="SaniStock">
-          <g class="loginSaniCross">
-            <path fill="#073b82" d="M176 28h160v124h124v160H336v172H176V312H52V152h124z"/>
-          </g>
-          <g class="loginSaniV">
-            <path fill="#ef1717" stroke="#fff" stroke-width="10" stroke-linejoin="round"
-              d="M151 183l62 86 45-57c72-91 137-139 206-167-49 65-91 126-147 193l-78 95h-76l-91-128z"/>
-          </g>
-        </svg>
+        <div class="loginExactCross" aria-hidden="true"></div>
+        <div class="loginExactV" aria-hidden="true"></div>
       </div>
       <div class="loginHeartStatus">Connexion SaniStock…</div>
     </div>
