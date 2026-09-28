@@ -922,9 +922,9 @@ body{display:block}
 .loginSaniLogo{
   position:absolute;
   left:50%;
-  top:46%;
-  width:68px;
-  height:68px;
+  top:48%;
+  width:92px;
+  height:92px;
   object-fit:contain;
   transform:translate(-50%,-50%);
   filter:drop-shadow(0 4px 10px rgba(7,87,160,.25));
@@ -1069,6 +1069,87 @@ body{display:block}
 #saniSplash .splashSub,#saniSplash .splashBar,#saniSplash .splashStatus{display:block !important;}
 @keyframes saniVOrbit{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 </style>
+
+<style id="sanistock-login-exact-logo">
+/* Connexion : utiliser exactement le logo SaniStock officiel (0.png) */
+#loginAmbulanceAnim .loginSaniLogo{
+  width:92px !important;
+  height:92px !important;
+  left:50% !important;
+  top:48% !important;
+  object-fit:contain !important;
+  transform:translate(-50%,-50%) !important;
+  animation:loginSaniLogoPulse 1.15s ease-in-out infinite !important;
+}
+#loginAmbulanceAnim .loginHeartStatus{
+  bottom:8px !important;
+  z-index:3 !important;
+}
+#loginAmbulanceAnim .loginSaniTitle{display:none !important;}
+</style>
+
+<style id="sanistock-login-same-startup-animation">
+/* Pendant la connexion : exactement le même logo/animation que le démarrage */
+#loginAmbulanceAnim{
+  position:relative !important;
+  width:180px !important;
+  height:190px !important;
+  margin:8px auto 12px !important;
+  display:none !important;
+  overflow:visible !important;
+  background:transparent !important;
+}
+#loginAmbulanceAnim.show{display:block !important;}
+#loginAmbulanceAnim .loginSaniStartupLogo{
+  position:absolute !important;
+  left:50% !important;
+  top:45% !important;
+  width:112px !important;
+  height:112px !important;
+  transform:translate(-50%,-50%) !important;
+  filter:drop-shadow(0 0 18px rgba(37,174,255,.55)) !important;
+}
+#loginAmbulanceAnim .loginSaniLogoExact{
+  width:112px !important;
+  height:112px !important;
+  display:block !important;
+  overflow:visible !important;
+}
+#loginAmbulanceAnim .loginSaniCross{
+  transform:none !important;
+}
+#loginAmbulanceAnim .loginSaniV{
+  transform-box:view-box !important;
+  transform-origin:50% 50% !important;
+  animation:saniVOrbit 1.35s linear infinite !important;
+}
+#loginAmbulanceAnim .loginSaniStartupTitle{
+  position:absolute !important;
+  left:0 !important;
+  right:0 !important;
+  top:117px !important;
+  text-align:center !important;
+  font-size:25px !important;
+  line-height:1 !important;
+  font-weight:900 !important;
+  letter-spacing:-.7px !important;
+  text-shadow:none !important;
+}
+#loginAmbulanceAnim .loginSaniStartupTitle span{color:#0757a0 !important;}
+#loginAmbulanceAnim .loginSaniStartupTitle b{color:#e32636 !important;}
+#loginAmbulanceAnim .loginHeartStatus{
+  position:absolute !important;
+  left:0 !important;
+  right:0 !important;
+  bottom:0 !important;
+  margin:0 !important;
+  color:#0757a0 !important;
+  font-size:11px !important;
+  font-weight:800 !important;
+  text-align:center !important;
+}
+</style>
+
 </head>
 <body>
 
@@ -1079,9 +1160,18 @@ body{display:block}
     <h2>Connexion SaniStock</h2>
     <p>Identifiez-vous une seule fois sur ce téléphone.</p>
     <div id="loginAmbulanceAnim" class="loginAmbulanceAnim" aria-hidden="true">
-      <img class="loginSaniLogo" src="https://raw.githubusercontent.com/atv37420/SaniStock/main/0.png" alt="SaniStock">
-      <div class="loginSaniTitle">SaniStock</div>
-      <div class="loginHeartStatus">Connexion en cours…</div>
+      <div class="loginSaniStartupLogo" aria-label="Logo SaniStock">
+        <svg class="loginSaniLogoExact" viewBox="0 0 512 512" role="img" aria-label="SaniStock">
+          <g class="loginSaniCross">
+            <path fill="#073b82" d="M176 28h160v124h124v160H336v172H176V312H52V152h124z"/>
+          </g>
+          <g class="loginSaniV">
+            <path fill="#ef1717" stroke="#fff" stroke-width="10" stroke-linejoin="round" d="M151 183l62 86 45-57c72-91 137-139 206-167-49 65-91 126-147 193l-78 95h-76l-91-128z"/>
+          </g>
+        </svg>
+      </div>
+      <div class="loginSaniStartupTitle"><span>Sani</span><b>Stock</b></div>
+      <div class="loginHeartStatus">Connexion SaniStock…</div>
     </div>
     <div id="employeeLoginSavedUser" class="employeeLoginSavedUser" style="display:none"></div>
     <select id="employeeLoginName"><option value="">Chargement des salariés…</option></select>
