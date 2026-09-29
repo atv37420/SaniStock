@@ -2612,7 +2612,29 @@ function changerCodeAdminUI(){
 
   function showError(t){err.textContent=t||''}
   function savedCredentials(){
-    return {name:localStorage.getItem(KEY_NAME)||'',code:localStorage.getItem(KEY_CODE)||''};
+    let name = localStorage.getItem(KEY_NAME) || '';
+    let code = localStorage.getItem(KEY_CODE) || '';
+
+    /* Récupération de secours pour les anciens comptes déjà enregistrés. */
+    if(!name){
+      name = localStorage.getItem('sanistock_employee_name') || '';
+    }
+    if(!code){
+      code = localStorage.getItem('sanistock_employee_code') || '';
+    }
+
+    name = String(name || '').trim();
+    code = String(code || '').trim();
+
+    /* Remet les identifiants dans les clés principales. */
+    if(name && code){
+      try{
+        localStorage.setItem(KEY_NAME,name);
+        localStorage.setItem(KEY_CODE,code);
+      }catch(e){}
+    }
+
+    return {name:name,code:code};
   }
   function afficherModePremiereConnexion(){
     if(savedUser) savedUser.style.display='none';
@@ -2821,30 +2843,47 @@ function changerCodeAdminUI(){
   function loadNames(){
     setLoginAnimation(true,'Préparation de votre connexion','Connexion SaniStock…');
 
-    // Hors ligne : on construit immédiatement l'écran de connexion depuis
-    // les données déjà enregistrées sur le PDA. Aucun appel réseau n'est requis.
     const saved=savedCredentials();
     let cachedNames=[];
     try{cachedNames=JSON.parse(localStorage.getItem('sanistock_cached_employee_names')||'[]')}catch(e){cachedNames=[]}
     cachedNames=Array.isArray(cachedNames)?cachedNames:[];
 
+    /* ==============================
+       MODE HORS CONNEXION
+       ============================== */
     if(!navigator.onLine){
+
+      /* Compte déjà enregistré sur ce PDA. */
       if(saved.name && saved.code){
-        afficherModeCodeSeul(saved.name,'📵 Hors ligne : utilisez votre mot de passe enregistré sur cet appareil.');
-        // Le code est déjà mémorisé sur cet appareil : l'utilisateur peut
-        // entrer son code et être déverrouillé sans Google Apps Script.
+        afficherModeCodeSeul(
+          saved.name,
+          '📵 Hors ligne : entrez votre mot de passe.'
+        );
         return;
       }
+
+      /* Nom déjà connu mais code absent : on demande le code. */
+      if(saved.name){
+        afficherModeCodeSeul(
+          saved.name,
+          '📵 Hors ligne : entrez votre mot de passe.'
+        );
+        return;
+      }
+
+      /* Liste des salariés déjà récupérée auparavant. */
       if(cachedNames.length){
         nameSel.innerHTML='<option value="">Sélectionner votre nom</option>'+cachedNames.map(function(n){return '<option value="'+escapeHtml(n)+'">'+escapeHtml(n)+'</option>'}).join('');
         afficherModePremiereConnexion();
-        showError('📵 Hors ligne : choisissez votre nom et utilisez un mot de passe déjà enregistré sur cet appareil.');
+        showError('📵 Hors ligne : utilisez votre mot de passe déjà enregistré sur cet appareil.');
         return;
       }
+
       afficherModePremiereConnexion();
-      showError('📵 Première connexion nécessaire avec Internet pour charger les salariés.');
+      showError('📵 Connectez-vous une fois avec Internet pour activer le mode hors connexion.');
       return;
     }
+
 
     google.script.run.withSuccessHandler(function(noms){
       noms=Array.isArray(noms)?noms:[];
