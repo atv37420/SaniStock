@@ -1,4 +1,4 @@
-const CACHE_NAME = "sanistock-v3";
+const CACHE_NAME = "sanistock-v4";
 
 const FILES_TO_CACHE = [
   "./",
@@ -11,13 +11,31 @@ const FILES_TO_CACHE = [
 ================================ */
 
 self.addEventListener("install", event => {
+
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(FILES_TO_CACHE);
+
+    caches.open(CACHE_NAME).then(async cache => {
+
+      for (const file of FILES_TO_CACHE) {
+
+        try {
+          await cache.add(file);
+        } catch (error) {
+          console.warn(
+            "SaniStock : impossible de mettre en cache",
+            file,
+            error
+          );
+        }
+
+      }
+
     })
+
   );
 
   self.skipWaiting();
+
 });
 
 
@@ -26,17 +44,27 @@ self.addEventListener("install", event => {
 ================================ */
 
 self.addEventListener("activate", event => {
+
   event.waitUntil(
+
     caches.keys().then(keys => {
+
       return Promise.all(
+
         keys
           .filter(key => key !== CACHE_NAME)
           .map(key => caches.delete(key))
+
       );
+
     }).then(() => {
+
       return self.clients.claim();
+
     })
+
   );
+
 });
 
 
@@ -56,17 +84,23 @@ self.addEventListener("fetch", event => {
 
 
   /* ==============================
-     INDEX.HTML
+     PAGES SaniStock
      
-     Toujours chercher la dernière
-     version en ligne.
+     EN LIGNE :
+     → dernière version GitHub
+
+     HORS LIGNE :
+     → version enregistrée
   ============================== */
 
   if (
-    url.origin === self.location.origin &&
+    request.mode === "navigate" ||
     (
-      url.pathname.endsWith("/") ||
-      url.pathname.endsWith("/index.html")
+      url.origin === self.location.origin &&
+      (
+        url.pathname.endsWith("/") ||
+        url.pathname.endsWith("/index.html")
+      )
     )
   ) {
 
@@ -83,7 +117,9 @@ self.addEventListener("fetch", event => {
           const copy = response.clone();
 
           caches.open(CACHE_NAME).then(cache => {
+
             cache.put("./index.html", copy);
+
           });
 
         }
@@ -131,7 +167,9 @@ self.addEventListener("fetch", event => {
               const copy = response.clone();
 
               caches.open(CACHE_NAME).then(cache => {
+
                 cache.put(request, copy);
+
               });
 
             }
@@ -141,6 +179,11 @@ self.addEventListener("fetch", event => {
           })
 
           .catch(() => {
+
+            /*
+              Si le fichier n'est pas disponible
+              hors connexion, on renvoie SaniStock
+            */
 
             return caches.match("./index.html");
 
