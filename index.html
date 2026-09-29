@@ -1870,6 +1870,50 @@ function histLine(label,value){
  if(value===null) return '';
  return '<div class="histDetail '+(value?'ok':'no')+'">'+(value?'✅':'❌')+' '+escapeHtml(label)+'</div>';
 }
+/* Convertit les formats de date utilisés par SaniStock en date JavaScript. */
+function dateHistoriqueSaniStock(value){
+ const s=String(value??'').trim();
+ if(!s) return null;
+
+ /* Date déjà exploitable par JavaScript. */
+ let d=new Date(value);
+ if(!isNaN(d.getTime())) return d;
+
+ /* Formats français : JJ/MM/AAAA HH:MM[:SS] */
+ let m=s.match(/^(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
+ if(m){
+   return new Date(
+     Number(m[3]), Number(m[2])-1, Number(m[1]),
+     Number(m[4]||0), Number(m[5]||0), Number(m[6]||0)
+   );
+ }
+
+ /* Formats ISO sans séparateur entre date et heure. */
+ m=s.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T\s](\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
+ if(m){
+   return new Date(
+     Number(m[1]), Number(m[2])-1, Number(m[3]),
+     Number(m[4]||0), Number(m[5]||0), Number(m[6]||0)
+   );
+ }
+
+ return null;
+}
+
+function historiqueDernieres24h(rows){
+ const maintenant=Date.now();
+ const limite=maintenant-(24*60*60*1000);
+
+ return (Array.isArray(rows)?rows:[]).filter(function(r){
+   const valeur=r && typeof r==='object'
+     ? (r.date||r.Date||r.dateHeure||r.DateHeure||r[0]||'')
+     : r;
+
+   const date=dateHistoriqueSaniStock(valeur);
+   return date && date.getTime()>=limite && date.getTime()<=maintenant;
+ });
+}
+
 function chargerHistorique(){
  const list=$('historyList');
  list.innerHTML='<div style="padding:10px">Chargement...</div>';
@@ -1879,8 +1923,14 @@ function chargerHistorique(){
  }
  google.script.run
  .withSuccessHandler(function(rows){
-   if(!rows||!rows.length){list.innerHTML='<div style="padding:10px">Aucune désinfection enregistrée.</div>';return}
-   list.innerHTML=rows.slice(0,10).map(function(r){
+   const recentes=historiqueDernieres24h(rows);
+
+   if(!recentes.length){
+     list.innerHTML='<div style="padding:10px">Aucune désinfection dans les dernières 24 heures.</div>';
+     return;
+   }
+
+   list.innerHTML=recentes.slice(0,100).map(function(r){
      const sal=r.salarie||r.Salarie||r.salarii||r[1]||'—';
      const veh=r.vehicule||r.Vehicule||r[2]||'—';
      const dat=r.date||r.Date||r.dateHeure||r[0]||'';
@@ -1906,7 +1956,7 @@ function chargerHistorique(){
    }).join('');
  })
  .withFailureHandler(function(){list.innerHTML='<div style="padding:10px">Impossible de charger l’historique.</div>'})
- .getHistoriqueDesinfections(10);
+ .getHistoriqueDesinfections(100);
 }
 function launchConfetti(){
  const colors=['#075ba9','#d71920'];
@@ -1945,23 +1995,77 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
 
 <script>
 (function(){
-  var splash = document.getElementById("saniSplash");
-  var status = document.getElementById("saniSplashStatus");
-  if(!splash) return;
+  /*
+   * DÉMARRAGE SaniStock — sécurité anti-blocage
+   *
+   * Le splash est uniquement visuel.
+   * Il ne doit JAMAIS empêcher l'affichage de la connexion,
+   * même si Google Apps Script, IndexedDB ou le réseau ne répond pas.
+   */
+  function fermerSplashSaniStock(){
+    try{
+      var splash = document.getElementById("saniSplash");
+      if(!splash) return;
 
-  // Démarrage accéléré : on conserve le splash et son animation,
-  // mais on ne bloque plus l'accès à SaniStock pendant près de 2 secondes.
-  window.setTimeout(function(){
-    if(status) status.textContent = "Bienvenue !";
-  }, 150);
+      splash.classList.add("hide");
+      splash.style.opacity = "0";
+      splash.style.visibility = "hidden";
+      splash.style.pointerEvents = "none";
 
-  window.setTimeout(function(){
-    splash.classList.add("hide");
-  }, 350);
+      /*
+       * On retire le splash après la transition.
+       * La suppression est volontairement sécurisée.
+       */
+      window.setTimeout(function(){
+        try{
+          if(splash && splash.parentNode){
+            splash.parentNode.removeChild(splash);
+          }
+        }catch(e){}
+      }, 600);
 
-  window.setTimeout(function(){
-    if(splash && splash.parentNode) splash.parentNode.removeChild(splash);
-  }, 750);
+    }catch(e){}
+  }
+
+  function lancerSplash(){
+    var splash = document.getElementById("saniSplash");
+    var status = document.getElementById("saniSplashStatus");
+
+    if(!splash) return;
+
+    if(status){
+      status.textContent = navigator.onLine
+        ? "Bienvenue !"
+        : "Mode hors connexion";
+    }
+
+    /*
+     * Fermeture normale très rapide.
+     */
+    window.setTimeout(fermerSplashSaniStock, 700);
+
+    /*
+     * FILET DE SÉCURITÉ :
+     * même si une autre partie de l'application rencontre
+     * une erreur, le splash ne peut pas rester affiché.
+     */
+    window.setTimeout(fermerSplashSaniStock, 1500);
+  }
+
+  /*
+   * Exécution immédiate si le DOM est déjà disponible.
+   */
+  if(document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded", lancerSplash, {once:true});
+  }else{
+    lancerSplash();
+  }
+
+  /*
+   * Dernier filet de sécurité.
+   */
+  window.setTimeout(fermerSplashSaniStock, 2500);
+
 })();
 </script>
 
@@ -2615,10 +2719,14 @@ function changerCodeAdminUI(){
     let name = localStorage.getItem(KEY_NAME) || '';
     let code = localStorage.getItem(KEY_CODE) || '';
 
-    /* Récupération de secours pour les anciens comptes déjà enregistrés. */
+    /*
+     * Compatibilité avec les anciennes connexions SaniStock.
+     * Certains PDA possèdent déjà ces informations sous ces clés.
+     */
     if(!name){
       name = localStorage.getItem('sanistock_employee_name') || '';
     }
+
     if(!code){
       code = localStorage.getItem('sanistock_employee_code') || '';
     }
@@ -2626,7 +2734,10 @@ function changerCodeAdminUI(){
     name = String(name || '').trim();
     code = String(code || '').trim();
 
-    /* Remet les identifiants dans les clés principales. */
+    /*
+     * On remet les informations dans les clés principales
+     * afin que la connexion hors ligne fonctionne ensuite.
+     */
     if(name && code){
       try{
         localStorage.setItem(KEY_NAME,name);
@@ -2843,47 +2954,30 @@ function changerCodeAdminUI(){
   function loadNames(){
     setLoginAnimation(true,'Préparation de votre connexion','Connexion SaniStock…');
 
+    // Hors ligne : on construit immédiatement l'écran de connexion depuis
+    // les données déjà enregistrées sur le PDA. Aucun appel réseau n'est requis.
     const saved=savedCredentials();
     let cachedNames=[];
     try{cachedNames=JSON.parse(localStorage.getItem('sanistock_cached_employee_names')||'[]')}catch(e){cachedNames=[]}
     cachedNames=Array.isArray(cachedNames)?cachedNames:[];
 
-    /* ==============================
-       MODE HORS CONNEXION
-       ============================== */
     if(!navigator.onLine){
-
-      /* Compte déjà enregistré sur ce PDA. */
       if(saved.name && saved.code){
-        afficherModeCodeSeul(
-          saved.name,
-          '📵 Hors ligne : entrez votre mot de passe.'
-        );
+        afficherModeCodeSeul(saved.name,'📵 Hors ligne : utilisez votre mot de passe enregistré sur cet appareil.');
+        // Le code est déjà mémorisé sur cet appareil : l'utilisateur peut
+        // entrer son code et être déverrouillé sans Google Apps Script.
         return;
       }
-
-      /* Nom déjà connu mais code absent : on demande le code. */
-      if(saved.name){
-        afficherModeCodeSeul(
-          saved.name,
-          '📵 Hors ligne : entrez votre mot de passe.'
-        );
-        return;
-      }
-
-      /* Liste des salariés déjà récupérée auparavant. */
       if(cachedNames.length){
         nameSel.innerHTML='<option value="">Sélectionner votre nom</option>'+cachedNames.map(function(n){return '<option value="'+escapeHtml(n)+'">'+escapeHtml(n)+'</option>'}).join('');
         afficherModePremiereConnexion();
-        showError('📵 Hors ligne : utilisez votre mot de passe déjà enregistré sur cet appareil.');
+        showError('📵 Hors ligne : choisissez votre nom et utilisez un mot de passe déjà enregistré sur cet appareil.');
         return;
       }
-
       afficherModePremiereConnexion();
-      showError('📵 Connectez-vous une fois avec Internet pour activer le mode hors connexion.');
+      showError('📵 Première connexion nécessaire avec Internet pour charger les salariés.');
       return;
     }
-
 
     google.script.run.withSuccessHandler(function(noms){
       noms=Array.isArray(noms)?noms:[];
