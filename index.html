@@ -1799,9 +1799,7 @@ function validateForm(){
  btn.disabled=true;
  btn.textContent='Enregistrement...';
  const data={
-   /* Pour une ambulance, les 2 collègues sont enregistrés ensemble
-      dans la colonne Salarié, sans modifier la structure de Google Sheets. */
-   salarie:salarie2 ? (salarie+' + '+salarie2) : salarie,
+   salarie:salarie,
    salarie2:salarie2,
    collegue:salarie2,
    vehicule:vehicule,
@@ -1883,7 +1881,9 @@ function chargerHistorique(){
  .withSuccessHandler(function(rows){
    if(!rows||!rows.length){list.innerHTML='<div style="padding:10px">Aucune désinfection enregistrée.</div>';return}
    list.innerHTML=rows.slice(0,10).map(function(r){
-     const sal=r.salarie||r.Salarie||r.salarii||r[1]||'—';
+     const sal1=r.salarie||r.Salarie||r.salarii||r[1]||'—';
+     const sal2=r.salarie2||r.Salarie2||r.collegue||r.Collegue||r[2]||'';
+     const sal=(sal2 && sal2!==sal1)?(sal1+' + '+sal2):sal1;
      const veh=r.vehicule||r.Vehicule||r[2]||'—';
      const dat=r.date||r.Date||r.dateHeure||r[0]||'';
      const p=(r.pourcentage??r.Pourcentage??r[3]??100);
