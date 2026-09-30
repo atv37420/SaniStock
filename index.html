@@ -2276,7 +2276,7 @@ function chargerDatesAnniversaires(){
       const actif=String(r.statut||'Actif').toLowerCase()!=='inactif';
       return '<div class="datesCard"><div class="datesRow">'+
         '<strong>👤 '+escapeHtml(r.salarie||'')+'</strong>'+
-        '<input type="date" id="dateAnniv_'+index+'" value="'+escapeHtml(date)+'" '+(actif?'':'disabled')+'>'+ 
+        '<input type="date" id="dateAnniv_'+index+'" value="'+escapeHtml(date)+'">'+ 
         '<button class="datesBtn" onclick="enregistrerDateAnniversaireUI('+index+','+nom+')">💾</button>'+ 
         '<button class="datesBtn secondary" onclick="changerStatutAnniversaireUI('+index+','+nom+','+(!actif)+')">'+(actif?'⛔':'✅')+'</button>'+ 
         '</div><div style="font-size:9px;color:#71879a;margin-top:5px">'+(actif?'Anniversaire activé':'Anniversaire désactivé')+'</div></div>';
@@ -2286,7 +2286,16 @@ function chargerDatesAnniversaires(){
     try{cache=JSON.parse(localStorage.getItem('sanistock_birthday_cache')||'[]');}catch(x){cache=[];}
     if(Array.isArray(cache)&&cache.length){
       list.innerHTML=cache.map(function(r){
-        return '<div class="datesCard"><div class="datesRow"><strong>👤 '+escapeHtml(r.salarie||'')+'</strong><span>'+escapeHtml(r.dateAnniversaire||'Non renseignée')+'</span></div></div>';
+        const index=cache.indexOf(r);
+        const nom=JSON.stringify(String(r.salarie||'')).replace(/"/g,'&quot;');
+        const date=String(r.dateAnniversaire||'');
+        const actif=String(r.statut||'Actif').toLowerCase()!=='inactif';
+        return '<div class="datesCard"><div class="datesRow">'+
+          '<strong>👤 '+escapeHtml(r.salarie||'')+'</strong>'+
+          '<input type="date" id="dateAnniv_'+index+'" value="'+escapeHtml(date)+'">'+
+          '<button class="datesBtn" onclick="enregistrerDateAnniversaireUI('+index+','+nom+')">💾</button>'+
+          '<button class="datesBtn secondary" onclick="changerStatutAnniversaireUI('+index+','+nom+','+(!actif)+')">'+(actif?'⛔':'✅')+'</button>'+
+          '</div><div style="font-size:9px;color:#71879a;margin-top:5px">'+(actif?'Anniversaire activé':'Anniversaire désactivé')+'</div></div>';
       }).join('');
     }else{
       list.innerHTML='<div class="settingsMsg">❌ '+escapeHtml(e&&e.message?e.message:e)+'</div>';
