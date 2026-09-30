@@ -353,6 +353,42 @@ body{display:block}
 .stockZone{left:5.5%;top:52.8%;width:29%;height:16.5%}
 .disZone{left:35.5%;top:52.8%;width:29%;height:16.5%}
 .settingsZone{left:66%;top:52.8%;width:29%;height:16.5%}
+/* ===== OCTOBRE ROSE — RUBAN CLASSIQUE SUR CHAQUE CARRÉ ===== */
+.stockZone,
+.disZone,
+.settingsZone{
+  overflow:visible;
+}
+
+/* Ruban rose satiné, placé discrètement en haut à droite de chaque carré */
+.stockZone::after,
+.disZone::after,
+.settingsZone::after{
+  content:"";
+  position:absolute;
+  top:7%;
+  right:5%;
+  width:58px;
+  height:72px;
+  z-index:30;
+  pointer-events:none;
+  background-repeat:no-repeat;
+  background-position:center;
+  background-size:contain;
+  filter:drop-shadow(0 2px 2px rgba(0,0,0,.20));
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 120'%3E%3Cdefs%3E%3ClinearGradient id='p' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23ffd0e1'/%3E%3Cstop offset='.28' stop-color='%23f58ab5'/%3E%3Cstop offset='.62' stop-color='%23e84b8d'/%3E%3Cstop offset='1' stop-color='%23ffb6d2'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M50 55 C25 50 10 36 13 18 C16 3 34 3 46 13 C53 19 57 28 57 38 C57 47 53 53 50 55Z' fill='none' stroke='%23d93c7e' stroke-width='16' stroke-linecap='round'/%3E%3Cpath d='M50 55 C75 50 90 36 87 18 C84 3 66 3 54 13 C47 19 43 28 43 38 C43 47 47 53 50 55Z' fill='none' stroke='url(%23p)' stroke-width='16' stroke-linecap='round'/%3E%3Cpath d='M50 54 L36 112' fill='none' stroke='url(%23p)' stroke-width='16' stroke-linecap='round'/%3E%3Cpath d='M50 54 L67 112' fill='none' stroke='%23d93c7e' stroke-width='16' stroke-linecap='round'/%3E%3Cpath d='M50 54 L36 112' fill='none' stroke='%23ffd0e1' stroke-opacity='.45' stroke-width='3'/%3E%3Cpath d='M50 54 L67 112' fill='none' stroke='%23ffb6d2' stroke-opacity='.45' stroke-width='3'/%3E%3C/svg%3E");
+}
+
+@media(max-width:600px){
+  .stockZone::after,
+  .disZone::after,
+  .settingsZone::after{
+    width:44px;
+    height:56px;
+    top:6%;
+    right:4%;
+  }
+}
 /* ===== PENSE-BÊTE URGENCE — ACCUEIL ===== */
 .penseBeteAccueil{
   position:absolute;
