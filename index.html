@@ -2540,14 +2540,24 @@ function chargerGestionSalaries(){
 function ajouterSalarieUI(){
   const nom=prompt('Nom et prénom du nouveau salarié :');
   if(nom===null||!nom.trim())return;
-  const nomPropre=nom.trim().replace(/\s+/g,' ');
-  google.script.run.withSuccessHandler(function(){
-    messageParametres('✅ '+nomPropre+' ajouté. Code provisoire : 1234. Il devra choisir son code personnel à sa première connexion.');
-    chargerGestionSalaries(); chargerSalaries();
-  }).withFailureHandler(function(e){
-    messageParametres('❌ '+(e&&e.message?e.message:e),false);
-  }).ajouterSalarie({salarie:nomPropre});
+  const nomSalarie=nom.trim();
+  const codeProvisoire='1234';
+
+  // Création directe dans la base avec le code provisoire 1234.
+  // Aucun code personnel n'est demandé à l'administrateur.
+  // Le salarié changera ensuite 1234 pour son code personnel à sa première connexion.
+  google.script.run
+    .withSuccessHandler(function(){
+      messageParametres('✅ Salarié ajouté avec le code provisoire 1234. Il pourra le changer à sa première connexion.');
+      chargerGestionSalaries();
+      chargerSalaries();
+    })
+    .withFailureHandler(function(e){
+      messageParametres('❌ '+(e&&e.message?e.message:e),false);
+    })
+    .ajouterSalarie(Object.assign({salarie:nomSalarie,code:codeProvisoire},donneesAccesGestion()));
 }
+
 
 function modifierCodeSalarieUI(nom){
   const code=prompt('Nouveau code pour '+nom+' (4 chiffres).\\nLaissez vide pour supprimer son code :');
