@@ -1945,77 +1945,23 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
 
 <script>
 (function(){
-  /*
-   * DÉMARRAGE SaniStock — sécurité anti-blocage
-   *
-   * Le splash est uniquement visuel.
-   * Il ne doit JAMAIS empêcher l'affichage de la connexion,
-   * même si Google Apps Script, IndexedDB ou le réseau ne répond pas.
-   */
-  function fermerSplashSaniStock(){
-    try{
-      var splash = document.getElementById("saniSplash");
-      if(!splash) return;
+  var splash = document.getElementById("saniSplash");
+  var status = document.getElementById("saniSplashStatus");
+  if(!splash) return;
 
-      splash.classList.add("hide");
-      splash.style.opacity = "0";
-      splash.style.visibility = "hidden";
-      splash.style.pointerEvents = "none";
+  // Démarrage accéléré : on conserve le splash et son animation,
+  // mais on ne bloque plus l'accès à SaniStock pendant près de 2 secondes.
+  window.setTimeout(function(){
+    if(status) status.textContent = "Bienvenue !";
+  }, 150);
 
-      /*
-       * On retire le splash après la transition.
-       * La suppression est volontairement sécurisée.
-       */
-      window.setTimeout(function(){
-        try{
-          if(splash && splash.parentNode){
-            splash.parentNode.removeChild(splash);
-          }
-        }catch(e){}
-      }, 600);
+  window.setTimeout(function(){
+    splash.classList.add("hide");
+  }, 350);
 
-    }catch(e){}
-  }
-
-  function lancerSplash(){
-    var splash = document.getElementById("saniSplash");
-    var status = document.getElementById("saniSplashStatus");
-
-    if(!splash) return;
-
-    if(status){
-      status.textContent = navigator.onLine
-        ? "Bienvenue !"
-        : "Mode hors connexion";
-    }
-
-    /*
-     * Fermeture normale très rapide.
-     */
-    window.setTimeout(fermerSplashSaniStock, 700);
-
-    /*
-     * FILET DE SÉCURITÉ :
-     * même si une autre partie de l'application rencontre
-     * une erreur, le splash ne peut pas rester affiché.
-     */
-    window.setTimeout(fermerSplashSaniStock, 1500);
-  }
-
-  /*
-   * Exécution immédiate si le DOM est déjà disponible.
-   */
-  if(document.readyState === "loading"){
-    document.addEventListener("DOMContentLoaded", lancerSplash, {once:true});
-  }else{
-    lancerSplash();
-  }
-
-  /*
-   * Dernier filet de sécurité.
-   */
-  window.setTimeout(fermerSplashSaniStock, 2500);
-
+  window.setTimeout(function(){
+    if(splash && splash.parentNode) splash.parentNode.removeChild(splash);
+  }, 750);
 })();
 </script>
 
@@ -2540,24 +2486,13 @@ function chargerGestionSalaries(){
 function ajouterSalarieUI(){
   const nom=prompt('Nom et prénom du nouveau salarié :');
   if(nom===null||!nom.trim())return;
-  const nomSalarie=nom.trim();
-  const codeProvisoire='1234';
-
-  // Création directe dans la base avec le code provisoire 1234.
-  // Aucun code personnel n'est demandé à l'administrateur.
-  // Le salarié changera ensuite 1234 pour son code personnel à sa première connexion.
-  google.script.run
-    .withSuccessHandler(function(){
-      messageParametres('✅ Salarié ajouté avec le code provisoire 1234. Il pourra le changer à sa première connexion.');
-      chargerGestionSalaries();
-      chargerSalaries();
-    })
-    .withFailureHandler(function(e){
-      messageParametres('❌ '+(e&&e.message?e.message:e),false);
-    })
-    .ajouterSalarie(Object.assign({salarie:nomSalarie,code:codeProvisoire},donneesAccesGestion()));
+  google.script.run.withSuccessHandler(function(){
+    messageParametres('✅ Salarié ajouté avec le code provisoire 1234. Il devra choisir son code personnel à sa première connexion.');
+    chargerGestionSalaries(); chargerSalaries();
+  }).withFailureHandler(function(e){
+    messageParametres('❌ '+(e&&e.message?e.message:e),false);
+  }).ajouterSalarie(Object.assign({salarie:nom.trim(),code:'1234'},donneesAccesGestion()));
 }
-
 
 function modifierCodeSalarieUI(nom){
   const code=prompt('Nouveau code pour '+nom+' (4 chiffres).\\nLaissez vide pour supprimer son code :');
@@ -2677,36 +2612,7 @@ function changerCodeAdminUI(){
 
   function showError(t){err.textContent=t||''}
   function savedCredentials(){
-    let name = localStorage.getItem(KEY_NAME) || '';
-    let code = localStorage.getItem(KEY_CODE) || '';
-
-    /*
-     * Compatibilité avec les anciennes connexions SaniStock.
-     * Certains PDA possèdent déjà ces informations sous ces clés.
-     */
-    if(!name){
-      name = localStorage.getItem('sanistock_employee_name') || '';
-    }
-
-    if(!code){
-      code = localStorage.getItem('sanistock_employee_code') || '';
-    }
-
-    name = String(name || '').trim();
-    code = String(code || '').trim();
-
-    /*
-     * On remet les informations dans les clés principales
-     * afin que la connexion hors ligne fonctionne ensuite.
-     */
-    if(name && code){
-      try{
-        localStorage.setItem(KEY_NAME,name);
-        localStorage.setItem(KEY_CODE,code);
-      }catch(e){}
-    }
-
-    return {name:name,code:code};
+    return {name:localStorage.getItem(KEY_NAME)||'',code:localStorage.getItem(KEY_CODE)||''};
   }
   function afficherModePremiereConnexion(){
     if(savedUser) savedUser.style.display='none';
