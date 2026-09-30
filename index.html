@@ -1799,7 +1799,9 @@ function validateForm(){
  btn.disabled=true;
  btn.textContent='Enregistrement...';
  const data={
-   salarie:salarie,
+   /* Pour une ambulance, les 2 collègues sont enregistrés ensemble
+      dans la colonne Salarié, sans modifier la structure de Google Sheets. */
+   salarie:salarie2 ? (salarie+' + '+salarie2) : salarie,
    salarie2:salarie2,
    collegue:salarie2,
    vehicule:vehicule,
