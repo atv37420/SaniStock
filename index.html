@@ -2540,26 +2540,14 @@ function chargerGestionSalaries(){
 function ajouterSalarieUI(){
   const nom=prompt('Nom et prénom du nouveau salarié :');
   if(nom===null||!nom.trim())return;
-  const nomSalarie=nom.trim();
-  const codeProvisoire='1234';
-
-  // Le nouveau salarié est créé automatiquement avec le code provisoire 1234.
-  // Il pourra ensuite le remplacer depuis son accès avec un code personnel de 4 chiffres.
+  const nomPropre=nom.trim().replace(/\s+/g,' ');
   google.script.run.withSuccessHandler(function(){
-    google.script.run.withSuccessHandler(function(){
-      messageParametres('✅ Salarié ajouté avec le code provisoire 1234. Il pourra le changer à sa première connexion.');
-      chargerGestionSalaries();
-      chargerSalaries();
-    }).withFailureHandler(function(e){
-      messageParametres('❌ Salarié ajouté, mais impossible de définir le code provisoire : '+(e&&e.message?e.message:e),false);
-      chargerGestionSalaries();
-      chargerSalaries();
-    }).enregistrerCodeSalarie(Object.assign({salarie:nomSalarie,code:codeProvisoire,statut:'Actif'},donneesAccesGestion()));
+    messageParametres('✅ '+nomPropre+' ajouté. Code provisoire : 1234. Il devra choisir son code personnel à sa première connexion.');
+    chargerGestionSalaries(); chargerSalaries();
   }).withFailureHandler(function(e){
     messageParametres('❌ '+(e&&e.message?e.message:e),false);
-  }).ajouterSalarie(Object.assign({salarie:nomSalarie},donneesAccesGestion()));
+  }).ajouterSalarie({salarie:nomPropre});
 }
-
 
 function modifierCodeSalarieUI(nom){
   const code=prompt('Nouveau code pour '+nom+' (4 chiffres).\\nLaissez vide pour supprimer son code :');
