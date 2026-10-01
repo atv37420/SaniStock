@@ -657,7 +657,7 @@ body{display:block}
 .homeButton4{position:relative;overflow:hidden;border:0;border-radius:16px;padding:12px 10px;min-height:96px;color:#fff;font-weight:900;box-shadow:0 7px 18px rgba(0,0,0,.28);cursor:pointer;touch-action:manipulation;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;transform-origin:center}
 .homeButton4 .homeButtonTitle{font-size:clamp(12px,1.25vw,18px);line-height:1.1}.homeButton4 .homeButtonDesc{font-size:clamp(8px,.78vw,11px);font-weight:600;line-height:1.2;opacity:.95;max-width:100%}
 .homeButton4.stock4{background:#1479e8}.homeButton4.disinfection4{background:#e53935}.homeButton4.medication4{background:#2eaf5d}.homeButton4.settings4{background:#6b7280}
-.homeButton4.documents4{background:#8b5cf6;grid-column:2;max-width:none;width:auto;justify-self:stretch;}
+.homeButton4.documents4{background:#7ec8f5;grid-column:2;max-width:none;width:auto;justify-self:stretch;}
 @media(max-width:700px){.homeButton4.documents4{grid-column:2;max-width:none;width:auto;}}
 
 .documentsWrap{max-width:900px;margin:0 auto;padding:20px;}
@@ -863,7 +863,7 @@ body{display:block}
 .settingsHead h2{margin:0;color:#073f91}
 .settingsClose{border:0;background:#dce7ef;border-radius:10px;width:36px;height:36px;font-size:20px;cursor:pointer}
 .settingsIntro{font-size:11px;margin:8px 0 15px}
-.settingsTabs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:0 0 14px}
+.settingsTabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 14px}
 .settingsTab{border:0;border-radius:12px;padding:12px 8px;background:#dce7ef;color:#173f68;font-weight:900;cursor:pointer}
 .settingsTab.active{background:#0758a5;color:#fff}
 .settingsPane[hidden]{display:none !important}
@@ -1364,6 +1364,7 @@ body{display:block}
       <button id="settingsTabVehicules" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('vehicules')">🚑 Véhicules</button>
       <button id="settingsTabDashboard" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('dashboard')">📊 Tableau de bord</button>
       <button id="settingsTabInformations" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('informations')">📢 Informations</button>
+      <button id="settingsTabDocuments" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('documents')">📄 Documents</button>
     </div>
 
     <div id="settingsMsg" class="settingsMsg"></div>
@@ -1419,6 +1420,20 @@ body{display:block}
         <button class="settingsAction secondary" type="button" onclick="reinitialiserLectureInformationAdmin()">🔄 Réafficher le message sur mon appareil</button>
       </div>
       <div id="informationSettingsList"></div>
+    </section>
+
+    <section id="settingsPaneDocuments" class="settingsPane" role="tabpanel" hidden>
+      <div class="settingsPaneHead">
+        <div><strong>📄 Documents partagés</strong><span>Ajout réservé au responsable. Les salariés peuvent uniquement lire les documents.</span></div>
+        <button class="settingsAction" type="button" onclick="chargerDocuments()">↻ Actualiser</button>
+      </div>
+      <div class="documentsAdmin">
+        <h3>🔐 Ajouter un document</h3>
+        <input id="documentFileInput" type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.webp,.txt">
+        <button type="button" onclick="ajouterDocumentUI()">➕ Ajouter le document</button>
+        <div id="documentsMsg" class="documentsMsg" aria-live="polite"></div>
+      </div>
+      <div id="documentsSettingsList" class="documentsList">Chargement des documents…</div>
     </section>
 
     <div class="settingsAdminBlock">
@@ -1526,12 +1541,6 @@ body{display:block}
         <h1 style="margin:0">📄 Documents partagés</h1>
         <p style="margin:5px 0 0;color:#64748b">Les documents déposés ici sont consultables par toute l’équipe.</p>
       </div>
-    </div>
-    <div id="documentsAdmin" class="documentsAdmin" hidden>
-      <h3>🔐 Ajouter un document</h3>
-      <input id="documentFileInput" type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.webp,.txt">
-      <button type="button" onclick="ajouterDocumentUI()">➕ Ajouter le document</button>
-      <div id="documentsMsg" class="documentsMsg" aria-live="polite"></div>
     </div>
     <div id="documentsList" class="documentsList">Chargement des documents…</div>
   </div>
@@ -2190,57 +2199,59 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
 function ouvrirDocuments(){
   showPage('documentsPage');
   chargerDocuments();
-  afficherGestionDocuments();
 }
 
-function afficherGestionDocuments(){
-  const box=document.getElementById('documentsAdmin');
-  if(!box) return;
-  box.hidden=!(appareilProprietaire() || !!codeAdminSession || !!localStorage.getItem(OWNER_ADMIN_CODE_KEY));
-}
 
 function chargerDocuments(){
   const list=document.getElementById('documentsList');
-  if(!list) return;
-  list.innerHTML='Chargement des documents…';
+  const settingsList=document.getElementById('documentsSettingsList');
+  if(!list && !settingsList) return;
+  if(list) list.innerHTML='Chargement des documents…';
+  if(settingsList) settingsList.innerHTML='Chargement des documents…';
   if(!(window.google&&google.script&&google.script.run)){
-    list.innerHTML='<div class="card">❌ Connexion SaniStock indisponible.</div>';
+    const err='<div class="card">❌ Connexion SaniStock indisponible.</div>'; if(list) list.innerHTML=err; if(settingsList) settingsList.innerHTML=err;
     return;
   }
   google.script.run.withSuccessHandler(function(result){
     const docs=Array.isArray(result)?result:((result&&Array.isArray(result.documents))?result.documents:[]);
     if(!docs.length){
-      list.innerHTML='<div class="card" style="text-align:center;color:#64748b">Aucun document partagé pour le moment.</div>';
+      const empty='<div class="card" style="text-align:center;color:#64748b">Aucun document partagé pour le moment.</div>'; if(list) list.innerHTML=empty; if(settingsList) settingsList.innerHTML=empty;
       return;
     }
-    list.innerHTML='';
+    if(list) list.innerHTML='';
+    if(settingsList) settingsList.innerHTML='';
     docs.forEach(function(doc){
-      const card=document.createElement('div');
-      card.className='documentCard';
-      const icon=document.createElement('div');
-      icon.className='documentIcon';
-      icon.textContent=/pdf/i.test(doc.mimeType||'')?'📕':/image/i.test(doc.mimeType||'')?'🖼️':'📄';
-      const info=document.createElement('div');
-      info.className='documentInfo';
-      const name=document.createElement('div');
-      name.className='documentName';
-      name.textContent=doc.name||'Document';
-      const meta=document.createElement('div');
-      meta.className='documentMeta';
-      meta.textContent=doc.created||'';
-      info.appendChild(name); info.appendChild(meta);
-      const open=document.createElement('button');
-      open.type='button'; open.className='documentOpen'; open.textContent='👁️ Lire';
-      open.onclick=function(){ if(doc.url) window.open(doc.url,'_blank','noopener'); };
-      card.appendChild(icon); card.appendChild(info); card.appendChild(open);
-      list.appendChild(card);
+      function creerCarte(){
+        const card=document.createElement('div');
+        card.className='documentCard';
+        const icon=document.createElement('div');
+        icon.className='documentIcon';
+        icon.textContent=/pdf/i.test(doc.mimeType||'')?'📕':/image/i.test(doc.mimeType||'')?'🖼️':'📄';
+        const info=document.createElement('div');
+        info.className='documentInfo';
+        const name=document.createElement('div');
+        name.className='documentName';
+        name.textContent=doc.name||'Document';
+        const meta=document.createElement('div');
+        meta.className='documentMeta';
+        meta.textContent=doc.created||'';
+        info.appendChild(name); info.appendChild(meta);
+        const open=document.createElement('button');
+        open.type='button'; open.className='documentOpen'; open.textContent='👁️ Lire';
+        open.onclick=function(){ if(doc.url) window.open(doc.url,'_blank','noopener'); };
+        card.appendChild(icon); card.appendChild(info); card.appendChild(open);
+        return card;
+      }
+      if(list) list.appendChild(creerCarte());
+      if(settingsList) settingsList.appendChild(creerCarte());
     });
   }).withFailureHandler(function(e){
-    list.innerHTML='<div class="card">❌ '+(e&&e.message?e.message:'Impossible de charger les documents.')+'</div>';
+    const err='<div class="card">❌ '+(e&&e.message?e.message:'Impossible de charger les documents.')+'</div>'; if(list) list.innerHTML=err; if(settingsList) settingsList.innerHTML=err;
   }).listerDocumentsPartages();
 }
 
 function ajouterDocumentUI(){
+  if(!appareilProprietaire()){ alert('Accès responsable uniquement.'); return; }
   const input=document.getElementById('documentFileInput');
   const msg=document.getElementById('documentsMsg');
   if(!input||!input.files||!input.files[0]){ if(msg) msg.textContent='⚠️ Choisissez un document.'; return; }
@@ -2364,6 +2375,7 @@ function ouvrirOngletParametres(onglet){
   const tv=document.getElementById('settingsTabVehicules');
   const td=document.getElementById('settingsTabDashboard');
   const ti=document.getElementById('settingsTabInformations');
+  const tdoc=document.getElementById('settingsTabDocuments');
   const tdate=document.getElementById('settingsTabDates');
   const paneDate=document.getElementById('settingsPaneDates');
 
@@ -2372,30 +2384,35 @@ function ouvrirOngletParametres(onglet){
   const isVeh=onglet==='vehicules';
   const isDash=onglet==='dashboard';
   const isInfo=onglet==='informations';
+  const isDocs=onglet==='documents';
 
   sal.hidden=!isSal;
   paneDate.hidden=!isDates;
   veh.hidden=!isVeh;
   dash.hidden=!isDash;
   document.getElementById('settingsPaneInformations').hidden=!isInfo;
+  document.getElementById('settingsPaneDocuments').hidden=!isDocs;
 
   ts.classList.toggle('active',isSal);
   tdate.classList.toggle('active',isDates);
   tv.classList.toggle('active',isVeh);
   td.classList.toggle('active',isDash);
   ti.classList.toggle('active',isInfo);
+  tdoc.classList.toggle('active',isDocs);
 
   ts.setAttribute('aria-selected',String(isSal));
   tdate.setAttribute('aria-selected',String(isDates));
   tv.setAttribute('aria-selected',String(isVeh));
   td.setAttribute('aria-selected',String(isDash));
   ti.setAttribute('aria-selected',String(isInfo));
+  tdoc.setAttribute('aria-selected',String(isDocs));
 
   if(isSal) chargerGestionSalaries();
   else if(isDates) chargerDatesAnniversaires();
   else if(isVeh) chargerGestionVehicules();
   else if(isDash) chargerTableauBord();
   else if(isInfo) chargerInformationsUI();
+  else if(isDocs) chargerDocuments();
 }
 
 function chargerDatesAnniversaires(){
