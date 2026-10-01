@@ -2195,12 +2195,107 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
 
 
 <script>
-/* ===== DOCUMENTS PARTAGÉS ===== */
+/* ===== DOCUMENTS PARTAGÉS — MODE HORS CONNEXION ===== */
+const SANISTOCK_DOC_DB='sanistock_documents_v1';
+const SANISTOCK_DOC_STORE='documents';
+
 function ouvrirDocuments(){
   showPage('documentsPage');
   chargerDocuments();
 }
 
+function ouvrirBaseDocuments_(){
+  return new Promise(function(resolve,reject){
+    if(!window.indexedDB){ reject(new Error('Stockage hors connexion indisponible.')); return; }
+    const req=indexedDB.open(SANISTOCK_DOC_DB,1);
+    req.onupgradeneeded=function(){
+      const db=req.result;
+      if(!db.objectStoreNames.contains(SANISTOCK_DOC_STORE)){
+        db.createObjectStore(SANISTOCK_DOC_STORE,{keyPath:'id'});
+      }
+    };
+    req.onsuccess=function(){resolve(req.result)};
+    req.onerror=function(){reject(req.error||new Error('Impossible d’ouvrir le stockage hors connexion.'))};
+  });
+}
+
+function enregistrerDocumentHorsLigne_(doc){
+  return ouvrirBaseDocuments_().then(function(db){
+    return new Promise(function(resolve,reject){
+      const tx=db.transaction(SANISTOCK_DOC_STORE,'readwrite');
+      tx.objectStore(SANISTOCK_DOC_STORE).put(doc);
+      tx.oncomplete=function(){db.close();resolve()};
+      tx.onerror=function(){db.close();reject(tx.error||new Error('Impossible d’enregistrer le document.'))};
+    });
+  });
+}
+
+function lireDocumentsHorsLigne_(){
+  return ouvrirBaseDocuments_().then(function(db){
+    return new Promise(function(resolve,reject){
+      const tx=db.transaction(SANISTOCK_DOC_STORE,'readonly');
+      const req=tx.objectStore(SANISTOCK_DOC_STORE).getAll();
+      req.onsuccess=function(){
+        const rows=Array.isArray(req.result)?req.result:[];
+        db.close();
+        rows.sort(function(a,b){return String(b.date||'').localeCompare(String(a.date||''))});
+        resolve(rows);
+      };
+      req.onerror=function(){db.close();reject(req.error||new Error('Lecture hors connexion impossible.'))};
+    });
+  });
+}
+
+function convertirDoc_(doc){
+  doc=doc||{};
+  return {
+    id:String(doc.id||''),
+    name:String(doc.name||doc.nom||'Document'),
+    mimeType:String(doc.mimeType||'application/octet-stream'),
+    date:String(doc.date||doc.created||''),
+    taille:Number(doc.taille||doc.size||0),
+    url:String(doc.url||''),
+    contenuBase64:doc.contenuBase64||''
+  };
+}
+
+function rendreDocuments_(docs,list,settingsList){
+  docs=(Array.isArray(docs)?docs:[]).map(convertirDoc_).filter(function(d){return d.id});
+  if(!docs.length){
+    const empty='<div class="card" style="text-align:center;color:#64748b">Aucun document partagé pour le moment.</div>';
+    if(list) list.innerHTML=empty;
+    if(settingsList) settingsList.innerHTML=empty;
+    return;
+  }
+  if(list) list.innerHTML='';
+  if(settingsList) settingsList.innerHTML='';
+
+  docs.forEach(function(doc){
+    function creerCarte(){
+      const card=document.createElement('div');
+      card.className='documentCard';
+      const icon=document.createElement('div');
+      icon.className='documentIcon';
+      icon.textContent=/pdf/i.test(doc.mimeType)?'📕':/image/i.test(doc.mimeType)?'🖼️':/text/i.test(doc.mimeType)?'📝':'📄';
+      const info=document.createElement('div');
+      info.className='documentInfo';
+      const name=document.createElement('div');
+      name.className='documentName';
+      name.textContent=doc.name;
+      const meta=document.createElement('div');
+      meta.className='documentMeta';
+      meta.textContent=doc.date?new Date(doc.date).toLocaleDateString('fr-FR'):'';
+      info.appendChild(name); info.appendChild(meta);
+      const open=document.createElement('button');
+      open.type='button'; open.className='documentOpen'; open.textContent='👁️ Lire';
+      open.onclick=function(){ouvrirDocumentPartage_(doc)};
+      card.appendChild(icon); card.appendChild(info); card.appendChild(open);
+      return card;
+    }
+    if(list) list.appendChild(creerCarte());
+    if(settingsList) settingsList.appendChild(creerCarte());
+  });
+}
 
 function chargerDocuments(){
   const list=document.getElementById('documentsList');
@@ -2208,46 +2303,133 @@ function chargerDocuments(){
   if(!list && !settingsList) return;
   if(list) list.innerHTML='Chargement des documents…';
   if(settingsList) settingsList.innerHTML='Chargement des documents…';
-  if(!(window.google&&google.script&&google.script.run)){
-    const err='<div class="card">❌ Connexion SaniStock indisponible.</div>'; if(list) list.innerHTML=err; if(settingsList) settingsList.innerHTML=err;
+
+  const afficherCache=function(){
+    lireDocumentsHorsLigne_().then(function(cached){
+      if(cached.length){
+        rendreDocuments_(cached,list,settingsList);
+      }else{
+        const err='<div class="card">📴 Aucun document enregistré sur cet appareil.</div>';
+        if(list) list.innerHTML=err;
+        if(settingsList) settingsList.innerHTML=err;
+      }
+    }).catch(function(){
+      const err='<div class="card">📴 Documents hors connexion indisponibles.</div>';
+      if(list) list.innerHTML=err;
+      if(settingsList) settingsList.innerHTML=err;
+    });
+  };
+
+  if(!navigator.onLine || !(window.google&&google.script&&google.script.run)){
+    afficherCache();
     return;
   }
+
   google.script.run.withSuccessHandler(function(result){
-    const docs=Array.isArray(result)?result:((result&&Array.isArray(result.documents))?result.documents:[]);
-    if(!docs.length){
-      const empty='<div class="card" style="text-align:center;color:#64748b">Aucun document partagé pour le moment.</div>'; if(list) list.innerHTML=empty; if(settingsList) settingsList.innerHTML=empty;
+    const raw=Array.isArray(result)?result:((result&&Array.isArray(result.documents))?result.documents:[]);
+    const docs=raw.map(convertirDoc_);
+    rendreDocuments_(docs,list,settingsList);
+    // Téléchargement automatique des documents pour une lecture ultérieure hors connexion.
+    synchroniserDocumentsHorsLigne_(docs);
+  }).withFailureHandler(function(){
+    afficherCache();
+  }).listerDocumentsPartages();
+}
+
+function synchroniserDocumentsHorsLigne_(docs){
+  docs=(Array.isArray(docs)?docs:[]).slice();
+  if(!navigator.onLine || !gsDisponible()) return;
+  let index=0;
+  function suivant(){
+    if(!navigator.onLine || index>=docs.length) return;
+    const doc=docs[index++];
+    google.script.run.withSuccessHandler(function(result){
+      const d=convertirDoc_(result&&result.document?result.document:result);
+      if(d.id && d.contenuBase64){
+        enregistrerDocumentHorsLigne_(d).catch(function(){}).finally(suivant);
+      }else{
+        suivant();
+      }
+    }).withFailureHandler(function(){
+      suivant();
+    }).getDocumentPartage({id:doc.id});
+  }
+  suivant();
+}
+
+function ouvrirDocumentPartage_(doc){
+  // On ouvre immédiatement une fenêtre pour éviter le blocage des navigateurs après un appel asynchrone.
+  let fenetre=null;
+  try{fenetre=window.open('about:blank','_blank');}catch(e){}
+
+  function afficherDepuisBase64(d){
+    try{
+      const binary=atob(d.contenuBase64||'');
+      const bytes=new Uint8Array(binary.length);
+      for(let i=0;i<binary.length;i++) bytes[i]=binary.charCodeAt(i);
+      const blob=new Blob([bytes],{type:d.mimeType||'application/octet-stream'});
+      const url=URL.createObjectURL(blob);
+      if(fenetre && !fenetre.closed){
+        fenetre.location.href=url;
+      }else{
+        window.open(url,'_blank');
+      }
+      setTimeout(function(){URL.revokeObjectURL(url)},60000);
+    }catch(e){
+      if(fenetre && !fenetre.closed) fenetre.close();
+      alert('❌ Impossible d’ouvrir ce document.');
+    }
+  }
+
+  // 1. Si le document est déjà en cache, on l'ouvre immédiatement.
+  lireDocumentsHorsLigne_().then(function(rows){
+    const trouve=rows.find(function(r){return String(r.id)===String(doc.id) && r.contenuBase64;});
+    if(trouve){
+      afficherDepuisBase64(trouve);
+      // Si Internet est disponible, on actualise silencieusement la copie.
+      if(navigator.onLine && gsDisponible()){
+        google.script.run.withSuccessHandler(function(result){
+          const d=convertirDoc_(result&&result.document?result.document:result);
+          if(d.id && d.contenuBase64) enregistrerDocumentHorsLigne_(d).catch(function(){});
+        }).withFailureHandler(function(){}).getDocumentPartage({id:doc.id});
+      }
       return;
     }
-    if(list) list.innerHTML='';
-    if(settingsList) settingsList.innerHTML='';
-    docs.forEach(function(doc){
-      function creerCarte(){
-        const card=document.createElement('div');
-        card.className='documentCard';
-        const icon=document.createElement('div');
-        icon.className='documentIcon';
-        icon.textContent=/pdf/i.test(doc.mimeType||'')?'📕':/image/i.test(doc.mimeType||'')?'🖼️':'📄';
-        const info=document.createElement('div');
-        info.className='documentInfo';
-        const name=document.createElement('div');
-        name.className='documentName';
-        name.textContent=doc.name||'Document';
-        const meta=document.createElement('div');
-        meta.className='documentMeta';
-        meta.textContent=doc.created||'';
-        info.appendChild(name); info.appendChild(meta);
-        const open=document.createElement('button');
-        open.type='button'; open.className='documentOpen'; open.textContent='👁️ Lire';
-        open.onclick=function(){ if(doc.url) window.open(doc.url,'_blank','noopener'); };
-        card.appendChild(icon); card.appendChild(info); card.appendChild(open);
-        return card;
+
+    // 2. Pas encore en cache : téléchargement depuis Apps Script si Internet est disponible.
+    if(!navigator.onLine || !gsDisponible()){
+      if(fenetre && !fenetre.closed) fenetre.close();
+      alert('📴 Ce document n’a pas encore été téléchargé sur cet appareil. Ouvrez-le une première fois avec Internet.');
+      return;
+    }
+
+    google.script.run.withSuccessHandler(function(result){
+      const d=convertirDoc_(result&&result.document?result.document:result);
+      if(!d.id || !d.contenuBase64){
+        if(fenetre && !fenetre.closed) fenetre.close();
+        alert('❌ Document vide ou indisponible.');
+        return;
       }
-      if(list) list.appendChild(creerCarte());
-      if(settingsList) settingsList.appendChild(creerCarte());
-    });
-  }).withFailureHandler(function(e){
-    const err='<div class="card">❌ '+(e&&e.message?e.message:'Impossible de charger les documents.')+'</div>'; if(list) list.innerHTML=err; if(settingsList) settingsList.innerHTML=err;
-  }).listerDocumentsPartages();
+      enregistrerDocumentHorsLigne_(d).then(function(){
+        afficherDepuisBase64(d);
+      }).catch(function(){
+        afficherDepuisBase64(d);
+      });
+    }).withFailureHandler(function(e){
+      if(fenetre && !fenetre.closed) fenetre.close();
+      alert('❌ '+(e&&e.message?e.message:'Impossible de récupérer le document.'));
+    }).getDocumentPartage({id:doc.id});
+  }).catch(function(){
+    if(!navigator.onLine || !gsDisponible()){
+      if(fenetre && !fenetre.closed) fenetre.close();
+      alert('📴 Document indisponible hors connexion.');
+      return;
+    }
+    google.script.run.withSuccessHandler(function(result){
+      const d=convertirDoc_(result&&result.document?result.document:result);
+      enregistrerDocumentHorsLigne_(d).then(function(){afficherDepuisBase64(d)});
+    }).getDocumentPartage({id:doc.id});
+  });
 }
 
 function ajouterDocumentUI(){
@@ -2262,8 +2444,8 @@ function ajouterDocumentUI(){
   reader.onload=function(){
     const dataUrl=String(reader.result||'');
     const base64=dataUrl.indexOf(',')>=0?dataUrl.split(',')[1]:dataUrl;
-    google.script.run.withSuccessHandler(function(){
-      if(msg) msg.textContent='✅ Document ajouté.';
+    google.script.run.withSuccessHandler(function(result){
+      if(msg) msg.textContent='✅ Document ajouté et prêt pour le mode hors connexion.';
       input.value='';
       chargerDocuments();
     }).withFailureHandler(function(e){
