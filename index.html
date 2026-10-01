@@ -2386,10 +2386,12 @@ function chargerDocuments(){
   }
 
   google.script.run.withSuccessHandler(function(result){
-    const raw=Array.isArray(result)?result:((result&&Array.isArray(result.documents))?result.documents:[]);
-    const docs=raw.map(convertirDoc_);
+    // Le backend renvoie {success:true,data:{success:true,documents:[...]}}
+    // ou directement {documents:[...]}. On accepte toutes les formes utilisées par SaniStock.
+    let payload=result&&result.data?result.data:result;
+    const raw=Array.isArray(payload)?payload:((payload&&Array.isArray(payload.documents))?payload.documents:[]);
+    const docs=raw.map(convertirDoc_).filter(function(d){return d.id});
     rendreDocuments_(docs,list,settingsList);
-    // Téléchargement automatique des documents pour une lecture ultérieure hors connexion.
     synchroniserDocumentsHorsLigne_(docs);
   }).withFailureHandler(function(){
     afficherCache();
