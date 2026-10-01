@@ -2287,6 +2287,11 @@ function supprimerDocumentPartage(doc){
 
   if(!confirm('Supprimer le document « '+String(doc.name||doc.nom||'Document')+' » ?')) return;
 
+  if(!window.google || !google.script || !google.script.run){
+    alert('📴 Connexion indisponible.');
+    return;
+  }
+
   google.script.run
     .withSuccessHandler(function(){
       supprimerDocumentHorsLigne_(id)
@@ -2300,6 +2305,9 @@ function supprimerDocumentPartage(doc){
     })
     .supprimerDocumentPartage(Object.assign({id:id},donneesAccesGestion()));
 }
+
+// Alias global pour les anciennes cartes éventuellement conservées en cache.
+window.supprimerDocumentPartage = supprimerDocumentPartage;
 
 function rendreDocuments_(docs,list,settingsList){
   docs=(Array.isArray(docs)?docs:[]).map(convertirDoc_).filter(function(d){return d.id});
