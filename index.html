@@ -2516,6 +2516,9 @@ async function envoyerDocumentPOST_(documentData, acces){
   });
 }
 
+function listDocuments(){ return document.getElementById('documentsList'); }
+function settingsDocuments(){ return document.getElementById('documentsSettingsList'); }
+
 function ajouterDocumentUI(){
   if(!appareilProprietaire()){ alert('Accès responsable uniquement.'); return; }
   const input=document.getElementById('documentFileInput');
@@ -2528,22 +2531,26 @@ function ajouterDocumentUI(){
   preparerDocumentPourEnvoi_(file).then(function(doc){
     if(!doc.contenuBase64) throw new Error('Document vide.');
     if(msg) msg.textContent='⏳ Envoi du document…';
-    return envoyerDocumentPOST_(doc,donneesAccesGestion());
-  }).then(function(){
-    if(msg) msg.textContent='⏳ Vérification de l’enregistrement…';
-    setTimeout(function(){
-      google.script.run.withSuccessHandler(function(){
-        if(msg) msg.textContent='✅ Document ajouté et prêt pour le mode hors connexion.';
+    return envoyerDocumentPOST_(doc,donneesAccesGestion()).then(function(){
+      /* Le POST est volontairement en no-cors : on ne peut pas lire sa réponse.
+         On conserve donc immédiatement la copie locale du document et on
+         l'affiche sans attendre un nouvel appel GET à Apps Script. */
+      const localDoc={
+        id:'local_'+Date.now()+'_'+Math.random().toString(36).slice(2,8),
+        nom:doc.nom,
+        mimeType:doc.mimeType,
+        contenuBase64:doc.contenuBase64,
+        date:new Date().toISOString(),
+        taille:Math.round(doc.contenuBase64.length*0.75)
+      };
+      return enregistrerDocumentHorsLigne_(localDoc).then(function(){
+        if(msg) msg.textContent='✅ Document ajouté et disponible hors connexion.';
         input.value='';
-        chargerDocuments();
-      }).withFailureHandler(function(){
-        /* Le POST est parti mais Apps Script peut mettre quelques secondes à
-           rendre le fichier visible. On recharge simplement la liste. */
-        if(msg) msg.textContent='✅ Document envoyé. Actualisation…';
-        input.value='';
-        chargerDocuments();
-      }).listerDocumentsPartages();
-    },1200);
+        lireDocumentsHorsLigne_().then(function(cached){
+          rendreDocuments_(cached,listDocuments(),settingsDocuments());
+        }).catch(function(){});
+      });
+    });
   }).catch(function(e){
     if(msg) msg.textContent='❌ '+(e&&e.message?e.message:e);
   });
