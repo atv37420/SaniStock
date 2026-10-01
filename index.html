@@ -1,4 +1,4 @@
-<!-- SaniStock version 1.0.68 : boutons colorés sans animation -->
+<!-- SaniStock version 1.0.69 : boutons colorés sans animation -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -16,7 +16,7 @@
 <meta name="apple-mobile-web-app-title" content="SaniStock">
 <meta name="theme-color" content="#0757a0">
 
- 
+
 <script>
 /* ===== PONT GITHUB -> GOOGLE APPS SCRIPT + MODE HORS LIGNE ===== */
 (function(){
@@ -996,7 +996,7 @@ body{display:block}
 
 <style>
 /* ===== CONNEXION SALARIÉ PERSISTANTE ===== */
-/* ===== ANIMATION CONNEXION COEUR + ECG — version 1.0.68 ===== */
+/* ===== ANIMATION CONNEXION COEUR + ECG — version 1.0.69 ===== */
 .loginAmbulanceAnim{display:none;position:relative;height:126px;margin:2px 0 12px;overflow:hidden;border-radius:18px;background:linear-gradient(180deg,#f4fbff,#e4f4ff);border:1px solid #c8e4f7}
 .loginAmbulanceAnim.show{display:block}
 .loginHeartCircle{position:absolute;left:50%;top:50%;width:82px;height:82px;transform:translate(-50%,-52%);border:4px solid rgba(22,168,255,.18);border-top-color:#16a8ff;border-right-color:#0b7bd4;border-radius:50%;animation:loginHeartSpin 1.15s linear infinite}
@@ -2280,7 +2280,7 @@ function supprimerDocumentHorsLigne_(id){
   });
 }
 
-function supprimerDocumentPartage(doc){
+function supprimerDocumentPartageUI(doc){
   doc=doc||{};
   const id=String(doc.id||'').trim();
   if(!id){ alert('❌ Document introuvable.'); return; }
@@ -2307,7 +2307,8 @@ function supprimerDocumentPartage(doc){
 }
 
 // Alias global pour les anciennes cartes éventuellement conservées en cache.
-window.supprimerDocumentPartage = supprimerDocumentPartage;
+window.supprimerDocumentPartageUI = supprimerDocumentPartageUI;
+window.supprimerDocumentPartage = supprimerDocumentPartageUI;
 
 function rendreDocuments_(docs,list,settingsList){
   docs=(Array.isArray(docs)?docs:[]).map(convertirDoc_).filter(function(d){return d.id});
@@ -2346,7 +2347,7 @@ function rendreDocuments_(docs,list,settingsList){
         del.type='button';
         del.className='documentDelete';
         del.textContent='🗑️ Supprimer';
-        del.onclick=function(){supprimerDocumentPartage(doc)};
+        del.onclick=function(){supprimerDocumentPartageUI(doc)};
         card.appendChild(del);
       }
       return card;
@@ -3691,7 +3692,7 @@ function fermerDetailsDashboard(){
 </script>
 
 <script>
-/* ===== MÉMO MÉDICAMENTS — version 1.0.68 =====
+/* ===== MÉMO MÉDICAMENTS — version 1.0.69 =====
    Liste informative, sans posologie ni protocole.
    La dotation et l'utilisation restent soumises aux protocoles en vigueur.
 */
@@ -8731,6 +8732,6 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 
-<div id="sanistock-version-bottom">SaniStock - version 1.0.68</div>
+<div id="sanistock-version-bottom">SaniStock - version 1.0.69</div>
 </body>
 </html>
