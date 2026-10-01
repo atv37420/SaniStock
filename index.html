@@ -676,6 +676,8 @@ body{display:block}
 .documentName{font-weight:900;color:#173f68;word-break:break-word;}
 .documentMeta{font-size:12px;color:#6b7280;margin-top:3px;}
 .documentOpen{border:0;border-radius:10px;padding:10px 13px;background:#0758a5;color:#fff;font-weight:800;cursor:pointer;white-space:nowrap;}
+.documentDelete{border:0;border-radius:10px;padding:10px 12px;background:#d72638;color:#fff;font-weight:800;cursor:pointer;white-space:nowrap;}
+.documentDelete:active{transform:scale(.98)}
 .documentsAdmin{background:#f5f8fb;border:1px solid #d8e3ec;border-radius:16px;padding:16px;margin-bottom:18px;}
 .documentsAdmin h3{margin:0 0 10px;color:#173f68;}
 .documentsAdmin input[type=file]{width:100%;margin:8px 0 10px;}
@@ -2253,6 +2255,35 @@ function lireDocumentsHorsLigne_(){
   });
 }
 
+function supprimerDocumentHorsLigne_(id){
+  return ouvrirBaseDocuments_().then(function(db){
+    return new Promise(function(resolve,reject){
+      const tx=db.transaction(SANISTOCK_DOC_STORE,'readwrite');
+      tx.objectStore(SANISTOCK_DOC_STORE).delete(String(id));
+      tx.oncomplete=function(){db.close();resolve()};
+      tx.onerror=function(){db.close();reject(tx.error||new Error('Impossible de supprimer le document localement.'))};
+    });
+  });
+}
+
+function supprimerDocumentUI(doc){
+  if(!doc || !doc.id) return;
+  if(!confirm('Supprimer le document « '+doc.name+' » ?')) return;
+
+  const settingsList=document.getElementById('documentsSettingsList');
+  if(settingsList) settingsList.style.pointerEvents='none';
+
+  google.script.run.withSuccessHandler(function(){
+    supprimerDocumentHorsLigne_(doc.id).catch(function(){}).finally(function(){
+      if(settingsList) settingsList.style.pointerEvents='';
+      chargerDocuments();
+    });
+  }).withFailureHandler(function(e){
+    if(settingsList) settingsList.style.pointerEvents='';
+    alert('❌ '+(e&&e.message?e.message:'Impossible de supprimer le document.'));
+  }).supprimerDocumentPartage(Object.assign({id:doc.id},donneesAccesGestion()));
+}
+
 function convertirDoc_(doc){
   doc=doc||{};
   return {
@@ -2278,7 +2309,7 @@ function rendreDocuments_(docs,list,settingsList){
   if(settingsList) settingsList.innerHTML='';
 
   docs.forEach(function(doc){
-    function creerCarte(){
+    function creerCarte(avecSuppression){
       const card=document.createElement('div');
       card.className='documentCard';
       const icon=document.createElement('div');
@@ -2297,10 +2328,20 @@ function rendreDocuments_(docs,list,settingsList){
       open.type='button'; open.className='documentOpen'; open.textContent='👁️ Lire';
       open.onclick=function(){ouvrirDocumentPartage_(doc)};
       card.appendChild(icon); card.appendChild(info); card.appendChild(open);
+
+      if(avecSuppression){
+        const del=document.createElement('button');
+        del.type='button';
+        del.className='documentDelete';
+        del.textContent='🗑️ Supprimer';
+        del.onclick=function(){supprimerDocumentUI(doc)};
+        card.appendChild(del);
+      }
+
       return card;
     }
-    if(list) list.appendChild(creerCarte());
-    if(settingsList) settingsList.appendChild(creerCarte());
+    if(list) list.appendChild(creerCarte(false));
+    if(settingsList) settingsList.appendChild(creerCarte(true));
   });
 }
 
