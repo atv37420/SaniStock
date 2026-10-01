@@ -676,13 +676,14 @@ body{display:block}
 .documentName{font-weight:900;color:#173f68;word-break:break-word;}
 .documentMeta{font-size:12px;color:#6b7280;margin-top:3px;}
 .documentOpen{border:0;border-radius:10px;padding:10px 13px;background:#0758a5;color:#fff;font-weight:800;cursor:pointer;white-space:nowrap;}
-.documentDelete{border:0;border-radius:10px;padding:10px 12px;background:#d72638;color:#fff;font-weight:800;cursor:pointer;white-space:nowrap;}
-.documentDelete:active{transform:scale(.98)}
 .documentsAdmin{background:#f5f8fb;border:1px solid #d8e3ec;border-radius:16px;padding:16px;margin-bottom:18px;}
 .documentsAdmin h3{margin:0 0 10px;color:#173f68;}
 .documentsAdmin input[type=file]{width:100%;margin:8px 0 10px;}
 .documentsAdmin button{border:0;border-radius:10px;padding:10px 14px;background:#2eaf5d;color:#fff;font-weight:900;cursor:pointer;}
 .documentsMsg{margin-top:9px;font-size:13px;font-weight:700;}
+
+.documentDelete{border:0;border-radius:10px;padding:10px 12px;background:#c62828;color:#fff;font-weight:900;cursor:pointer;white-space:nowrap;}
+@media(max-width:600px){.documentDelete{padding:9px 10px;font-size:12px}}
 @media(max-width:600px){.documentCard{align-items:flex-start}.documentOpen{padding:9px 10px;font-size:12px}}
 
 /* ===== OCTOBRE ROSE — RUBAN BAS ÉPAIS ===== */
@@ -2255,35 +2256,6 @@ function lireDocumentsHorsLigne_(){
   });
 }
 
-function supprimerDocumentHorsLigne_(id){
-  return ouvrirBaseDocuments_().then(function(db){
-    return new Promise(function(resolve,reject){
-      const tx=db.transaction(SANISTOCK_DOC_STORE,'readwrite');
-      tx.objectStore(SANISTOCK_DOC_STORE).delete(String(id));
-      tx.oncomplete=function(){db.close();resolve()};
-      tx.onerror=function(){db.close();reject(tx.error||new Error('Impossible de supprimer le document localement.'))};
-    });
-  });
-}
-
-function supprimerDocumentUI(doc){
-  if(!doc || !doc.id) return;
-  if(!confirm('Supprimer le document « '+doc.name+' » ?')) return;
-
-  const settingsList=document.getElementById('documentsSettingsList');
-  if(settingsList) settingsList.style.pointerEvents='none';
-
-  google.script.run.withSuccessHandler(function(){
-    supprimerDocumentHorsLigne_(doc.id).catch(function(){}).finally(function(){
-      if(settingsList) settingsList.style.pointerEvents='';
-      chargerDocuments();
-    });
-  }).withFailureHandler(function(e){
-    if(settingsList) settingsList.style.pointerEvents='';
-    alert('❌ '+(e&&e.message?e.message:'Impossible de supprimer le document.'));
-  }).supprimerDocumentPartage(Object.assign({id:doc.id},donneesAccesGestion()));
-}
-
 function convertirDoc_(doc){
   doc=doc||{};
   return {
@@ -2295,6 +2267,38 @@ function convertirDoc_(doc){
     url:String(doc.url||''),
     contenuBase64:doc.contenuBase64||''
   };
+}
+
+function supprimerDocumentHorsLigne_(id){
+  return ouvrirBaseDocuments_().then(function(db){
+    return new Promise(function(resolve,reject){
+      const tx=db.transaction(SANISTOCK_DOC_STORE,'readwrite');
+      tx.objectStore(SANISTOCK_DOC_STORE).delete(String(id));
+      tx.oncomplete=function(){db.close();resolve(true)};
+      tx.onerror=function(){db.close();reject(tx.error||new Error('Suppression hors ligne impossible.'))};
+    });
+  });
+}
+
+function supprimerDocumentPartage(doc){
+  doc=doc||{};
+  const id=String(doc.id||'').trim();
+  if(!id){ alert('❌ Document introuvable.'); return; }
+
+  if(!confirm('Supprimer le document « '+String(doc.name||doc.nom||'Document')+' » ?')) return;
+
+  google.script.run
+    .withSuccessHandler(function(){
+      supprimerDocumentHorsLigne_(id)
+        .catch(function(){})
+        .finally(function(){
+          chargerDocuments();
+        });
+    })
+    .withFailureHandler(function(e){
+      alert('❌ '+(e&&e.message?e.message:e||'Impossible de supprimer le document.'));
+    })
+    .supprimerDocumentPartage(Object.assign({id:id},donneesAccesGestion()));
 }
 
 function rendreDocuments_(docs,list,settingsList){
@@ -2309,7 +2313,7 @@ function rendreDocuments_(docs,list,settingsList){
   if(settingsList) settingsList.innerHTML='';
 
   docs.forEach(function(doc){
-    function creerCarte(avecSuppression){
+    function creerCarte(admin){
       const card=document.createElement('div');
       card.className='documentCard';
       const icon=document.createElement('div');
@@ -2329,15 +2333,14 @@ function rendreDocuments_(docs,list,settingsList){
       open.onclick=function(){ouvrirDocumentPartage_(doc)};
       card.appendChild(icon); card.appendChild(info); card.appendChild(open);
 
-      if(avecSuppression){
+      if(admin && appareilProprietaire()){
         const del=document.createElement('button');
         del.type='button';
         del.className='documentDelete';
         del.textContent='🗑️ Supprimer';
-        del.onclick=function(){supprimerDocumentUI(doc)};
+        del.onclick=function(){supprimerDocumentPartage(doc)};
         card.appendChild(del);
       }
-
       return card;
     }
     if(list) list.appendChild(creerCarte(false));
