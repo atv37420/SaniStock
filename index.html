@@ -180,15 +180,22 @@
       callback:cb,
       data:JSON.stringify(data==null?null:data)
     });
+    // Anti-cache : chaque appel reçoit un identifiant unique.
+    // Cela évite qu'un ancien résultat Apps Script/service-worker soit réutilisé
+    // sur les téléphones après une nouvelle mise en ligne.
+    q.set('_', Date.now().toString() + '_' + (++n));
     script.src=API_URL+'?'+q.toString();
+    script.async=true;
     document.head.appendChild(script);
 
+    // Sur mobile, l'ouverture d'une photo/caméra peut suspendre brièvement
+    // le navigateur. On laisse davantage de temps à Apps Script pour répondre.
     setTimeout(function(){
       if(!done){
         cleanup();
         if(typeof onFailure==='function') onFailure({message:'Délai de connexion dépassé'});
       }
-    },15000);
+    },30000);
   }
 
   async function synchroniser(){
