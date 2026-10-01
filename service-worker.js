@@ -1,4 +1,4 @@
-const CACHE_NAME = "sanistock-v3";
+const CACHE_NAME = "sanistock-v4";
 
 const FILES_TO_CACHE = [
   "./",
@@ -31,33 +31,29 @@ self.addEventListener("activate", event => {
 self.addEventListener("fetch", event => {
   const request = event.request;
 
-  // Ne jamais mettre Google Apps Script en cache.
+  // Ne jamais mettre Apps Script en cache
   if (
     request.url.includes("script.google.com") ||
     request.url.includes("googleusercontent.com")
   ) {
     event.respondWith(
-      fetch(request, {
-        cache: "no-store"
-      })
+      fetch(request, { cache: "no-store" })
     );
     return;
   }
 
-  // Pour index.html : toujours chercher la version réseau.
+  // Toujours essayer de récupérer la nouvelle version de SaniStock
   if (
     request.mode === "navigate" ||
     request.url.endsWith("/index.html")
   ) {
     event.respondWith(
-      fetch(request, {
-        cache: "no-store"
-      })
+      fetch(request, { cache: "no-store" })
         .then(response => {
-          const copy = response.clone();
+          const copie = response.clone();
 
           caches.open(CACHE_NAME).then(cache => {
-            cache.put("./index.html", copy);
+            cache.put("./index.html", copie);
           });
 
           return response;
@@ -70,15 +66,20 @@ self.addEventListener("fetch", event => {
     return;
   }
 
-  // Pour les autres fichiers : cache puis réseau.
   event.respondWith(
     caches.match(request).then(cached => {
-      return cached || fetch(request).then(response => {
-        const copy = response.clone();
+      if (cached) {
+        return cached;
+      }
 
-        caches.open(CACHE_NAME).then(cache => {
-          cache.put(request, copy);
-        });
+      return fetch(request).then(response => {
+        if (response && response.ok) {
+          const copie = response.clone();
+
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(request, copie);
+          });
+        }
 
         return response;
       });
