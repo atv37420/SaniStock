@@ -2259,20 +2259,23 @@ function lireDocumentsHorsLigne_(){
 function convertirDoc_(doc){
   doc=doc||{};
 
+  // L'ID Google Drive est l'identifiant principal du document.
+  // On conserve aussi driveId/localId pour éviter toute confusion
+  // entre l'ID Drive et la copie locale IndexedDB.
   const driveId=String(
-    doc.driveId || doc.googleDriveId ||
-    (String(doc.id||'').indexOf('local_')===0 ? '' : (doc.id||''))
-  ).trim();
-
-  const localId=String(
-    doc.localId ||
-    (String(doc.id||'').indexOf('local_')===0 ? doc.id : (driveId ? 'local_'+driveId : ''))
+    doc.driveId ||
+    doc.googleDriveId ||
+    doc.id ||
+    ''
   ).trim();
 
   return {
-    id:driveId || localId,
+    id:driveId,
     driveId:driveId,
-    localId:localId,
+    localId:String(
+      doc.localId ||
+      (driveId ? 'local_'+driveId : '')
+    ),
     name:String(doc.name||doc.nom||'Document'),
     mimeType:String(doc.mimeType||'application/octet-stream'),
     date:String(doc.date||doc.created||''),
@@ -2282,42 +2285,168 @@ function convertirDoc_(doc){
   };
 }
 
-function supprimerDocumentHorsLigne_(id){
+function supprimerDocumentHorsLigne_(doc){
+  const driveId=String(
+    typeof doc==='string'
+      ? doc
+      : (doc&&(
+          doc.driveId ||
+          doc.googleDriveId ||
+          doc.id
+        )||'')
+  ).trim();
+
+  const localId=String(
+    typeof doc==='object' && doc && doc.localId
+      ? doc.localId
+      : (driveId ? 'local_'+driveId : '')
+  ).trim();
+
+  const ids=[];
+  if(driveId) ids.push(driveId);
+  if(localId && ids.indexOf(localId)<0) ids.push(localId);
+
+  if(!ids.length) return Promise.resolve(false);
+
   return ouvrirBaseDocuments_().then(function(db){
     return new Promise(function(resolve,reject){
       const tx=db.transaction(SANISTOCK_DOC_STORE,'readwrite');
-      tx.objectStore(SANISTOCK_DOC_STORE).delete(String(id));
-      tx.oncomplete=function(){db.close();resolve(true)};
-      tx.onerror=function(){db.close();reject(tx.error||new Error('Suppression hors ligne impossible.'))};
+      const store=tx.objectStore(SANISTOCK_DOC_STORE);
+
+      ids.forEach(function(id){
+        try{ store.delete(String(id)); }catch(e){}
+      });
+
+      tx.oncomplete=function(){
+        db.close();
+        resolve(true);
+      };
+
+      tx.onerror=function(){
+        db.close();
+        reject(tx.error||new Error('Suppression hors ligne impossible.'));
+      };
     });
   });
 }
 
 function supprimerDocumentPartageUI(doc){
-  doc=convertirDoc_(doc||{});
-  const id=String(doc.driveId||doc.id||'').trim();
-  if(!id || id.indexOf('local_')===0){
-    alert('❌ Ce document n’a pas encore été synchronisé avec Google Drive.');
-    return;
-  }
+  doc=doc||{};
 
-  if(!confirm('Supprimer le document « '+String(doc.name||'Document')+' » ?')) return;
+  // On essaie d'abord de récupérer le vrai ID Google Drive.
+  let driveId=String(
+    doc.driveId ||
+    doc.googleDriveId ||
+    (String(doc.id||'').indexOf('local_')===0 ? '' : doc.id) ||
+    ''
+  ).trim();
 
-  if(!gsDisponible()){
+  const localId=String(
+    doc.localId ||
+    (String(doc.id||'').indexOf('local_')===0 ? doc.id : (driveId ? 'local_'+driveId : ''))
+  ).trim();
+
+  if(!confirm(
+    'Supprimer le document « '+
+    String(doc.name||doc.nom||'Document')+
+    ' » ?'
+  )) return;
+
+  if(!window.google || !google.script || !google.script.run){
     alert('📴 Connexion indisponible.');
     return;
   }
 
+  const bouton=document.activeElement;
+  if(bouton && bouton.classList && bouton.classList.contains('documentDelete')){
+    bouton.disabled=true;
+    bouton.textContent='⏳ Recherche…';
+  }
+
+  // Si la carte vient encore de l'ancien cache local et ne possède pas
+  // d'ID Drive, on retrouve le document dans Drive par son nom.
+  function supprimerAvecIdDrive_(idDrive){
+    idDrive=String(idDrive||'').trim();
+    if(!idDrive){
+      throw new Error('ID Google Drive introuvable.');
+    }
+
+    if(bouton && bouton.classList && bouton.classList.contains('documentDelete')){
+      bouton.textContent='⏳ Suppression…';
+    }
+
+    google.script.run
+      .withSuccessHandler(function(){
+        Promise.resolve()
+          .then(function(){
+            return supprimerDocumentHorsLigne_({
+              id:idDrive,
+              driveId:idDrive,
+              localId:localId
+            });
+          })
+          .catch(function(){})
+          .finally(function(){
+            chargerDocuments();
+            alert('✅ Document supprimé.');
+          });
+      })
+      .withFailureHandler(function(e){
+        if(bouton && bouton.classList && bouton.classList.contains('documentDelete')){
+          bouton.disabled=false;
+          bouton.textContent='🗑️ Supprimer';
+        }
+        const message=e&&e.message ? e.message : String(e||'Impossible de supprimer le document.');
+        alert('❌ '+message);
+      })
+      .supprimerDocumentPartage(Object.assign({
+        id:idDrive,
+        driveId:idDrive,
+        googleDriveId:idDrive
+      },donneesAccesGestion()));
+  }
+
+  if(driveId){
+    supprimerAvecIdDrive_(driveId);
+    return;
+  }
+
+  // Ancienne copie locale : on demande la liste Drive et on cherche le nom.
   google.script.run
-    .withSuccessHandler(function(){
-      supprimerDocumentHorsLigne_(doc.id).catch(function(){});
-      if(doc.localId) supprimerDocumentHorsLigne_(doc.localId).catch(function(){});
-      setTimeout(chargerDocuments,300);
+    .withSuccessHandler(function(result){
+      let payload=result&&result.data ? result.data : result;
+      const raw=Array.isArray(payload)
+        ? payload
+        : ((payload&&Array.isArray(payload.documents)) ? payload.documents : []);
+
+      const nomRecherche=String(doc.name||doc.nom||'').trim();
+      const candidats=raw.map(convertirDoc_).filter(function(d){
+        return d.driveId && String(d.name||'').trim()===nomRecherche;
+      });
+
+      candidats.sort(function(a,b){
+        return String(b.date||'').localeCompare(String(a.date||''));
+      });
+
+      if(!candidats.length){
+        if(bouton && bouton.classList && bouton.classList.contains('documentDelete')){
+          bouton.disabled=false;
+          bouton.textContent='🗑️ Supprimer';
+        }
+        alert('❌ Ce document n’a pas été retrouvé dans Google Drive. Actualisez la liste puis réessayez.');
+        return;
+      }
+
+      supprimerAvecIdDrive_(candidats[0].driveId);
     })
     .withFailureHandler(function(e){
-      alert('❌ '+(e&&e.message?e.message:e||'Impossible de supprimer le document.'));
+      if(bouton && bouton.classList && bouton.classList.contains('documentDelete')){
+        bouton.disabled=false;
+        bouton.textContent='🗑️ Supprimer';
+      }
+      alert('❌ Impossible de vérifier Google Drive : '+(e&&e.message?e.message:e||'erreur inconnue.'));
     })
-    .supprimerDocumentPartage(Object.assign({id:id},donneesAccesGestion()));
+    .listerDocumentsPartages();
 }
 
 // Alias global pour les anciennes cartes éventuellement conservées en cache.
@@ -2375,15 +2504,13 @@ function chargerDocuments(){
   const list=document.getElementById('documentsList');
   const settingsList=document.getElementById('documentsSettingsList');
   if(!list && !settingsList) return;
+  if(list) list.innerHTML='Chargement des documents…';
+  if(settingsList) settingsList.innerHTML='Chargement des documents…';
 
-  if(list) list.innerHTML='⏳ Chargement des documents…';
-  if(settingsList) settingsList.innerHTML='⏳ Chargement des documents…';
-
-  function afficherCache(){
+  const afficherCache=function(){
     lireDocumentsHorsLigne_().then(function(cached){
-      const docs=(Array.isArray(cached)?cached:[]).map(convertirDoc_).filter(function(d){return d.id;});
-      if(docs.length){
-        rendreDocuments_(docs,list,settingsList);
+      if(cached.length){
+        rendreDocuments_(cached,list,settingsList);
       }else{
         const err='<div class="card">📴 Aucun document enregistré sur cet appareil.</div>';
         if(list) list.innerHTML=err;
@@ -2394,88 +2521,43 @@ function chargerDocuments(){
       if(list) list.innerHTML=err;
       if(settingsList) settingsList.innerHTML=err;
     });
-  }
+  };
 
-  if(!navigator.onLine || !gsDisponible()){
+  if(!navigator.onLine || !(window.google&&google.script&&google.script.run)){
     afficherCache();
     return;
   }
 
-  google.script.run
-    .withSuccessHandler(function(result){
-      let payload=result&&result.data!==undefined ? result.data : result;
-      let raw=[];
-
-      if(Array.isArray(payload)){
-        raw=payload;
-      }else if(payload && Array.isArray(payload.documents)){
-        raw=payload.documents;
-      }else if(payload && payload.success && Array.isArray(payload.documents)){
-        raw=payload.documents;
-      }
-
-      const serveur=raw.map(convertirDoc_).filter(function(d){return d.id;});
-
-      // On affiche toujours la liste serveur dans les deux emplacements :
-      // page Documents + Paramètres > Documents.
-      rendreDocuments_(serveur,list,settingsList);
-
-      // On garde aussi les documents locaux qui viennent juste d'être ajoutés
-      // et dont Apps Script n'a pas encore renvoyé l'identifiant Drive.
-      lireDocumentsHorsLigne_().then(function(cached){
-        const locaux=(Array.isArray(cached)?cached:[]).map(convertirDoc_).filter(function(d){
-          return d.id && !d.driveId;
-        });
-
-        if(locaux.length){
-          const tous=serveur.slice();
-          locaux.forEach(function(localDoc){
-            const deja=tous.some(function(serverDoc){
-              return String(serverDoc.name).trim()===String(localDoc.name).trim() &&
-                     Number(serverDoc.taille||0)===Number(localDoc.taille||0);
-            });
-            if(!deja) tous.push(localDoc);
-          });
-          tous.sort(function(a,b){return String(b.date||'').localeCompare(String(a.date||''));});
-          rendreDocuments_(tous,list,settingsList);
-        }
-      }).catch(function(){});
-
-      synchroniserDocumentsHorsLigne_(serveur);
-    })
-    .withFailureHandler(function(){
-      afficherCache();
-    })
-    .listerDocumentsPartages();
+  google.script.run.withSuccessHandler(function(result){
+    // Le backend renvoie {success:true,data:{success:true,documents:[...]}}
+    // ou directement {documents:[...]}. On accepte toutes les formes utilisées par SaniStock.
+    let payload=result&&result.data?result.data:result;
+    const raw=Array.isArray(payload)?payload:((payload&&Array.isArray(payload.documents))?payload.documents:[]);
+    const docs=raw.map(convertirDoc_).filter(function(d){return d.id});
+    rendreDocuments_(docs,list,settingsList);
+    synchroniserDocumentsHorsLigne_(docs);
+  }).withFailureHandler(function(){
+    afficherCache();
+  }).listerDocumentsPartages();
 }
 
 function synchroniserDocumentsHorsLigne_(docs){
-  docs=(Array.isArray(docs)?docs:[]).map(convertirDoc_).filter(function(d){return d.driveId;}).slice();
-  if(!navigator.onLine || !gsDisponible() || !docs.length) return;
-
+  docs=(Array.isArray(docs)?docs:[]).slice();
+  if(!navigator.onLine || !gsDisponible()) return;
   let index=0;
   function suivant(){
     if(!navigator.onLine || index>=docs.length) return;
     const doc=docs[index++];
-    const id=String(doc.driveId||doc.id||'').trim();
-    if(!id || id.indexOf('local_')===0){
-      suivant();
-      return;
-    }
-
-    google.script.run
-      .withSuccessHandler(function(result){
-        const d=convertirDoc_(result&&result.document?result.document:result);
-        if(d.id && d.contenuBase64){
-          enregistrerDocumentHorsLigne_(d).catch(function(){}).finally(suivant);
-        }else{
-          suivant();
-        }
-      })
-      .withFailureHandler(function(){
+    google.script.run.withSuccessHandler(function(result){
+      const d=convertirDoc_(result&&result.document?result.document:result);
+      if(d.id && d.contenuBase64){
+        enregistrerDocumentHorsLigne_(d).catch(function(){}).finally(suivant);
+      }else{
         suivant();
-      })
-      .getDocumentPartage({id:id});
+      }
+    }).withFailureHandler(function(){
+      suivant();
+    }).getDocumentPartage({id:doc.id});
   }
   suivant();
 }
