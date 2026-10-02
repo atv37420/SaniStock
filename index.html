@@ -1,4 +1,4 @@
-<!-- SaniStock version 1.0.79 : boutons colorés sans animation -->
+<!-- SaniStock version 1.0.80 : boutons colorés sans animation -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -996,7 +996,7 @@ body{display:block}
 
 <style>
 /* ===== CONNEXION SALARIÉ PERSISTANTE ===== */
-/* ===== ANIMATION CONNEXION COEUR + ECG — version 1.0.79 ===== */
+/* ===== ANIMATION CONNEXION COEUR + ECG — version 1.0.80 ===== */
 .loginAmbulanceAnim{display:none;position:relative;height:126px;margin:2px 0 12px;overflow:hidden;border-radius:18px;background:linear-gradient(180deg,#f4fbff,#e4f4ff);border:1px solid #c8e4f7}
 .loginAmbulanceAnim.show{display:block}
 .loginHeartCircle{position:absolute;left:50%;top:50%;width:82px;height:82px;transform:translate(-50%,-52%);border:4px solid rgba(22,168,255,.18);border-top-color:#16a8ff;border-right-color:#0b7bd4;border-radius:50%;animation:loginHeartSpin 1.15s linear infinite}
@@ -1540,12 +1540,12 @@ body{display:block}
     <div class="memoChoices">
       <button type="button" class="memoChoice" onclick="showPage('medicationPage')">
         <span class="memoChoiceIcon">💊</span>
-        <span class="memoChoiceTitle">MÉMO MÉDICAMENTS</span>
+        <span class="memoChoiceTitle">MÉDICAMENTS</span>
         <span class="memoChoiceDesc">Recherche parmi les 5 000 médicaments déjà intégrés</span>
       </button>
       <button type="button" class="memoChoice" onclick="ouvrirDocuments()">
         <span class="memoChoiceIcon">📄</span>
-        <span class="memoChoiceTitle">MÉMO DOCUMENTS</span>
+        <span class="memoChoiceTitle">DOCUMENTS</span>
         <span class="memoChoiceDesc">Documents partagés de l’équipe</span>
       </button>
     </div>
@@ -1618,7 +1618,7 @@ body{display:block}
   <div style="max-width:900px;margin:20px auto;padding:0 20px">
     <h1 style="margin:10px 0 6px">🚑 VÉHICULE</h1>
     <p style="margin:0 0 22px;color:#64748b">Gestion des véhicules de l’équipe</p>
-    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px">
+    <div class="memoChoices">
       <button type="button" class="memoChoice" onclick="showPage('disinfectionPage')">
         <span class="memoChoiceIcon">🧴</span>
         <span class="memoChoiceTitle">DÉSINFECTION</span>
@@ -3894,7 +3894,7 @@ function fermerDetailsDashboard(){
 </script>
 
 <script>
-/* ===== MÉMO MÉDICAMENTS — version 1.0.79 =====
+/* ===== MÉMO MÉDICAMENTS — version 1.0.80 =====
    Liste informative, sans posologie ni protocole.
    La dotation et l'utilisation restent soumises aux protocoles en vigueur.
 */
@@ -8934,6 +8934,6 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 
-<div id="sanistock-version-bottom">SaniStock - version 1.0.79</div>
+<div id="sanistock-version-bottom">SaniStock - version 1.0.80</div>
 </body>
 </html>
