@@ -2258,30 +2258,15 @@ function lireDocumentsHorsLigne_(){
 
 function convertirDoc_(doc){
   doc=doc||{};
-
-  // L'ID Google Drive est l'identifiant principal du document.
-  // On conserve aussi driveId/localId pour éviter toute confusion
-  // entre l'ID Drive et la copie locale IndexedDB.
-  const driveId=String(
-    doc.driveId ||
-    doc.googleDriveId ||
-    doc.id ||
-    ''
-  ).trim();
-
+  const rawId=String(doc.id||'').trim();
+  const driveId=String(doc.driveId||doc.googleDriveId||(rawId && rawId.indexOf('local_')!==0 ? rawId : '')).trim();
+  const localId=String(doc.localId||(rawId && rawId.indexOf('local_')===0 ? rawId : ')||').trim();
   return {
-    id:driveId,
-    driveId:driveId,
-    localId:String(
-      doc.localId ||
-      (driveId ? 'local_'+driveId : '')
-    ),
+    id:driveId||localId, driveId:driveId, googleDriveId:driveId, localId:localId,
     name:String(doc.name||doc.nom||'Document'),
     mimeType:String(doc.mimeType||'application/octet-stream'),
-    date:String(doc.date||doc.created||''),
-    taille:Number(doc.taille||doc.size||0),
-    url:String(doc.url||''),
-    contenuBase64:doc.contenuBase64||''
+    date:String(doc.date||doc.created||''), taille:Number(doc.taille||doc.size||0),
+    url:String(doc.url||''), contenuBase64:doc.contenuBase64||''
   };
 }
 
@@ -2507,38 +2492,42 @@ function chargerDocuments(){
   if(list) list.innerHTML='Chargement des documents…';
   if(settingsList) settingsList.innerHTML='Chargement des documents…';
 
-  const afficherCache=function(){
-    lireDocumentsHorsLigne_().then(function(cached){
-      if(cached.length){
-        rendreDocuments_(cached,list,settingsList);
-      }else{
-        const err='<div class="card">📴 Aucun document enregistré sur cet appareil.</div>';
-        if(list) list.innerHTML=err;
-        if(settingsList) settingsList.innerHTML=err;
-      }
-    }).catch(function(){
+  lireDocumentsHorsLigne_().then(function(cached){
+    const cacheDocs=(Array.isArray(cached)?cached:[]).map(convertirDoc_);
+    function afficher(docs){
+      const fusion=[]; const parCle={};
+      (Array.isArray(docs)?docs:[]).map(convertirDoc_).filter(function(d){return d.id||d.name;}).forEach(function(d){
+        const cle=d.driveId || ('nom:'+String(d.name||'').trim().toLowerCase());
+        if(parCle[cle]===undefined){parCle[cle]=fusion.length; fusion.push(d);}
+        else { const i=parCle[cle]; if(!fusion[i].driveId&&d.driveId) fusion[i]=d; else if(!fusion[i].contenuBase64&&d.contenuBase64) fusion[i]=d; }
+      });
+      fusion.sort(function(a,b){return String(b.date||'').localeCompare(String(a.date||''));});
+      rendreDocuments_(fusion,list,settingsList);
+    }
+    afficher(cacheDocs);
+    if(!navigator.onLine || !(window.google&&google.script&&google.script.run)) return;
+    google.script.run.withSuccessHandler(function(result){
+      let payload=result&&result.data?result.data:result;
+      const raw=Array.isArray(payload)?payload:((payload&&Array.isArray(payload.documents))?payload.documents:[]);
+      const driveDocs=raw.map(convertirDoc_).filter(function(d){return d.driveId;});
+      afficher(cacheDocs.concat(driveDocs));
+      synchroniserDocumentsHorsLigne_(driveDocs);
+    }).withFailureHandler(function(){afficher(cacheDocs);}).listerDocumentsPartages();
+  }).catch(function(){
+    if(!navigator.onLine){
       const err='<div class="card">📴 Documents hors connexion indisponibles.</div>';
-      if(list) list.innerHTML=err;
-      if(settingsList) settingsList.innerHTML=err;
-    });
-  };
-
-  if(!navigator.onLine || !(window.google&&google.script&&google.script.run)){
-    afficherCache();
-    return;
-  }
-
-  google.script.run.withSuccessHandler(function(result){
-    // Le backend renvoie {success:true,data:{success:true,documents:[...]}}
-    // ou directement {documents:[...]}. On accepte toutes les formes utilisées par SaniStock.
-    let payload=result&&result.data?result.data:result;
-    const raw=Array.isArray(payload)?payload:((payload&&Array.isArray(payload.documents))?payload.documents:[]);
-    const docs=raw.map(convertirDoc_).filter(function(d){return d.id});
-    rendreDocuments_(docs,list,settingsList);
-    synchroniserDocumentsHorsLigne_(docs);
-  }).withFailureHandler(function(){
-    afficherCache();
-  }).listerDocumentsPartages();
+      if(list) list.innerHTML=err; if(settingsList) settingsList.innerHTML=err; return;
+    }
+    google.script.run.withSuccessHandler(function(result){
+      let payload=result&&result.data?result.data:result;
+      const raw=Array.isArray(payload)?payload:((payload&&Array.isArray(payload.documents))?payload.documents:[]);
+      const docs=raw.map(convertirDoc_).filter(function(d){return d.driveId;});
+      rendreDocuments_(docs,list,settingsList); synchroniserDocumentsHorsLigne_(docs);
+    }).withFailureHandler(function(){
+      const err='<div class="card">❌ Impossible de charger les documents.</div>';
+      if(list) list.innerHTML=err; if(settingsList) settingsList.innerHTML=err;
+    }).listerDocumentsPartages();
+  });
 }
 
 function synchroniserDocumentsHorsLigne_(docs){
