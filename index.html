@@ -1,4 +1,4 @@
-<!-- SaniStock version 1.0.78 : boutons colorés sans animation -->
+<!-- SaniStock version 1.0.79 : boutons colorés sans animation -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -996,7 +996,7 @@ body{display:block}
 
 <style>
 /* ===== CONNEXION SALARIÉ PERSISTANTE ===== */
-/* ===== ANIMATION CONNEXION COEUR + ECG — version 1.0.78 ===== */
+/* ===== ANIMATION CONNEXION COEUR + ECG — version 1.0.79 ===== */
 .loginAmbulanceAnim{display:none;position:relative;height:126px;margin:2px 0 12px;overflow:hidden;border-radius:18px;background:linear-gradient(180deg,#f4fbff,#e4f4ff);border:1px solid #c8e4f7}
 .loginAmbulanceAnim.show{display:block}
 .loginHeartCircle{position:absolute;left:50%;top:50%;width:82px;height:82px;transform:translate(-50%,-52%);border:4px solid rgba(22,168,255,.18);border-top-color:#16a8ff;border-right-color:#0b7bd4;border-radius:50%;animation:loginHeartSpin 1.15s linear infinite}
@@ -1619,11 +1619,15 @@ body{display:block}
     <h1 style="margin:10px 0 6px">🚑 VÉHICULE</h1>
     <p style="margin:0 0 22px;color:#64748b">Gestion des véhicules de l’équipe</p>
     <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px">
-      <button type="button" onclick="showPage('disinfectionPage')" style="border:0;border-radius:18px;padding:24px 18px;background:#e53935;color:#fff;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.12);text-align:left">
-        <div style="font-size:32px">🧴</div><div style="font-size:20px;font-weight:900;margin-top:8px">DÉSINFECTION</div><div style="font-size:13px;margin-top:5px;opacity:.92">Accéder à la désinfection actuelle des véhicules</div>
+      <button type="button" class="memoChoice" onclick="showPage('disinfectionPage')">
+        <span class="memoChoiceIcon">🧴</span>
+        <span class="memoChoiceTitle">DÉSINFECTION</span>
+        <span class="memoChoiceDesc">Accéder à la désinfection actuelle des véhicules</span>
       </button>
-      <button type="button" disabled style="border:1px solid #d8e3ec;border-radius:18px;padding:24px 18px;background:#f1f5f9;color:#64748b;cursor:not-allowed;text-align:left;opacity:.9">
-        <div style="font-size:32px">✅</div><div style="font-size:20px;font-weight:900;margin-top:8px">CHECK-LIST</div><div style="font-size:13px;margin-top:5px">Bientôt disponible</div>
+      <button type="button" class="memoChoice" disabled style="cursor:not-allowed;opacity:.9">
+        <span class="memoChoiceIcon">✅</span>
+        <span class="memoChoiceTitle">CHECK-LIST</span>
+        <span class="memoChoiceDesc">Bientôt disponible</span>
       </button>
     </div>
   </div>
@@ -3890,7 +3894,7 @@ function fermerDetailsDashboard(){
 </script>
 
 <script>
-/* ===== MÉMO MÉDICAMENTS — version 1.0.78 =====
+/* ===== MÉMO MÉDICAMENTS — version 1.0.79 =====
    Liste informative, sans posologie ni protocole.
    La dotation et l'utilisation restent soumises aux protocoles en vigueur.
 */
@@ -8930,6 +8934,6 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 
-<div id="sanistock-version-bottom">SaniStock - version 1.0.78</div>
+<div id="sanistock-version-bottom">SaniStock - version 1.0.79</div>
 </body>
 </html>
