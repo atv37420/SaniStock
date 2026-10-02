@@ -2510,8 +2510,12 @@ function chargerDocuments(){
       let payload=result&&result.data?result.data:result;
       const raw=Array.isArray(payload)?payload:((payload&&Array.isArray(payload.documents))?payload.documents:[]);
       const driveDocs=raw.map(convertirDoc_).filter(function(d){return d.driveId;});
-      afficher(cacheDocs.concat(driveDocs));
-      synchroniserDocumentsHorsLigne_(driveDocs);
+      // En ligne : Google Drive est la source officielle.
+      // On n'affiche donc jamais un ancien document présent uniquement dans le cache local.
+      afficher(driveDocs);
+      nettoyerDocumentsHorsLigne_(driveDocs).then(function(){
+        synchroniserDocumentsHorsLigne_(driveDocs);
+      });
     }).withFailureHandler(function(){afficher(cacheDocs);}).listerDocumentsPartages();
   }).catch(function(){
     if(!navigator.onLine){
@@ -2528,6 +2532,41 @@ function chargerDocuments(){
       if(list) list.innerHTML=err; if(settingsList) settingsList.innerHTML=err;
     }).listerDocumentsPartages();
   });
+}
+
+function nettoyerDocumentsHorsLigne_(docs){
+  docs=Array.isArray(docs)?docs:[];
+  const ids={};
+  docs.forEach(function(doc){
+    const d=convertirDoc_(doc);
+    if(d.driveId) ids[d.driveId]=true;
+  });
+
+  return ouvrirBaseDocuments_().then(function(db){
+    return new Promise(function(resolve,reject){
+      const tx=db.transaction(SANISTOCK_DOC_STORE,'readwrite');
+      const store=tx.objectStore(SANISTOCK_DOC_STORE);
+      const req=store.getAll();
+
+      req.onsuccess=function(){
+        const rows=Array.isArray(req.result)?req.result:[];
+        rows.forEach(function(row){
+          const d=convertirDoc_(row);
+          // Si le document n'existe plus dans Google Drive, on retire aussi
+          // sa copie locale. Si Drive est vide, tout le cache documentaire est nettoyé.
+          if(!d.driveId || !ids[d.driveId]){
+            try{store.delete(row.id);}catch(e){}
+            if(d.localId && d.localId!==row.id){
+              try{store.delete(d.localId);}catch(e){}
+            }
+          }
+        });
+      };
+
+      tx.oncomplete=function(){db.close();resolve(true)};
+      tx.onerror=function(){db.close();reject(tx.error||new Error('Nettoyage du cache documentaire impossible.'))};
+    });
+  }).catch(function(){ return false; });
 }
 
 function synchroniserDocumentsHorsLigne_(docs){
