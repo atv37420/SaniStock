@@ -2229,63 +2229,12 @@ function ouvrirBaseDocuments_(){
   });
 }
 
-/*
- * Un document possède maintenant 2 identifiants :
- * - driveId : vrai ID Google Drive, utilisé par Apps Script
- * - localId : clé IndexedDB, utilisée pour la copie hors connexion
- * Le champ id reste l'ID Drive pour conserver la compatibilité avec le reste de SaniStock.
- */
-function convertirDoc_(doc){
-  doc=doc||{};
-
-  const driveId=String(
-    doc.driveId ||
-    doc.googleDriveId ||
-    doc.id ||
-    ''
-  ).trim();
-
-  const localId=String(
-    doc.localId ||
-    (driveId ? 'local_'+driveId : '')
-  ).trim();
-
-  return {
-    id:driveId,
-    driveId:driveId,
-    localId:localId,
-    name:String(doc.name||doc.nom||'Document'),
-    nom:String(doc.nom||doc.name||'Document'),
-    mimeType:String(doc.mimeType||'application/octet-stream'),
-    date:String(doc.date||doc.created||''),
-    taille:Number(doc.taille||doc.size||0),
-    url:String(doc.url||''),
-    contenuBase64:doc.contenuBase64||''
-  };
-}
-
 function enregistrerDocumentHorsLigne_(doc){
-  const d=convertirDoc_(doc);
-
-  /* Si l'ID Drive est connu, on fabrique une clé locale stable. */
-  const localId=String(
-    d.localId ||
-    (d.driveId ? 'local_'+d.driveId : 'local_'+Date.now()+'_'+Math.random().toString(36).slice(2,8))
-  );
-
-  const row=Object.assign({},d,{
-    id:localId,
-    localId:localId,
-    driveId:d.driveId||'',
-    name:d.name,
-    nom:d.nom
-  });
-
   return ouvrirBaseDocuments_().then(function(db){
     return new Promise(function(resolve,reject){
       const tx=db.transaction(SANISTOCK_DOC_STORE,'readwrite');
-      tx.objectStore(SANISTOCK_DOC_STORE).put(row);
-      tx.oncomplete=function(){db.close();resolve(row)};
+      tx.objectStore(SANISTOCK_DOC_STORE).put(doc);
+      tx.oncomplete=function(){db.close();resolve()};
       tx.onerror=function(){db.close();reject(tx.error||new Error('Impossible d’enregistrer le document.'))};
     });
   });
@@ -2307,72 +2256,68 @@ function lireDocumentsHorsLigne_(){
   });
 }
 
-function supprimerDocumentHorsLigne_(doc){
+function convertirDoc_(doc){
   doc=doc||{};
 
-  const localId=String(
-    typeof doc==='string'
-      ? doc
-      : (doc.localId || ('local_'+(doc.driveId||doc.id||'')))
+  const driveId=String(
+    doc.driveId || doc.googleDriveId ||
+    (String(doc.id||'').indexOf('local_')===0 ? '' : (doc.id||''))
   ).trim();
 
-  if(!localId) return Promise.resolve(false);
+  const localId=String(
+    doc.localId ||
+    (String(doc.id||'').indexOf('local_')===0 ? doc.id : (driveId ? 'local_'+driveId : ''))
+  ).trim();
 
+  return {
+    id:driveId || localId,
+    driveId:driveId,
+    localId:localId,
+    name:String(doc.name||doc.nom||'Document'),
+    mimeType:String(doc.mimeType||'application/octet-stream'),
+    date:String(doc.date||doc.created||''),
+    taille:Number(doc.taille||doc.size||0),
+    url:String(doc.url||''),
+    contenuBase64:doc.contenuBase64||''
+  };
+}
+
+function supprimerDocumentHorsLigne_(id){
   return ouvrirBaseDocuments_().then(function(db){
     return new Promise(function(resolve,reject){
       const tx=db.transaction(SANISTOCK_DOC_STORE,'readwrite');
-      tx.objectStore(SANISTOCK_DOC_STORE).delete(localId);
+      tx.objectStore(SANISTOCK_DOC_STORE).delete(String(id));
       tx.oncomplete=function(){db.close();resolve(true)};
-      tx.onerror=function(){db.close();reject(tx.error||new Error('Suppression hors connexion impossible.'))};
+      tx.onerror=function(){db.close();reject(tx.error||new Error('Suppression hors ligne impossible.'))};
     });
   });
 }
 
 function supprimerDocumentPartageUI(doc){
-  doc=doc||{};
-
-  const driveId=String(
-    doc.driveId ||
-    doc.googleDriveId ||
-    doc.id ||
-    ''
-  ).trim();
-
-  const localId=String(
-    doc.localId ||
-    (driveId ? 'local_'+driveId : '')
-  ).trim();
-
-  if(!driveId){
-    alert('❌ ID Google Drive du document introuvable.');
+  doc=convertirDoc_(doc||{});
+  const id=String(doc.driveId||doc.id||'').trim();
+  if(!id || id.indexOf('local_')===0){
+    alert('❌ Ce document n’a pas encore été synchronisé avec Google Drive.');
     return;
   }
 
-  if(!confirm('Supprimer le document « '+String(doc.name||doc.nom||'Document')+' » ?')) return;
+  if(!confirm('Supprimer le document « '+String(doc.name||'Document')+' » ?')) return;
 
-  if(!window.google || !google.script || !google.script.run){
+  if(!gsDisponible()){
     alert('📴 Connexion indisponible.');
     return;
   }
 
   google.script.run
     .withSuccessHandler(function(){
-      supprimerDocumentHorsLigne_({
-        driveId:driveId,
-        localId:localId
-      })
-      .catch(function(){})
-      .finally(function(){
-        chargerDocuments();
-      });
+      supprimerDocumentHorsLigne_(doc.id).catch(function(){});
+      if(doc.localId) supprimerDocumentHorsLigne_(doc.localId).catch(function(){});
+      setTimeout(chargerDocuments,300);
     })
     .withFailureHandler(function(e){
       alert('❌ '+(e&&e.message?e.message:e||'Impossible de supprimer le document.'));
     })
-    .supprimerDocumentPartage(Object.assign({
-      id:driveId,
-      driveId:driveId
-    },donneesAccesGestion()));
+    .supprimerDocumentPartage(Object.assign({id:id},donneesAccesGestion()));
 }
 
 // Alias global pour les anciennes cartes éventuellement conservées en cache.
@@ -2380,7 +2325,7 @@ window.supprimerDocumentPartageUI = supprimerDocumentPartageUI;
 window.supprimerDocumentPartage = supprimerDocumentPartageUI;
 
 function rendreDocuments_(docs,list,settingsList){
-  docs=(Array.isArray(docs)?docs:[]).map(convertirDoc_).filter(function(d){return d.id || d.localId});
+  docs=(Array.isArray(docs)?docs:[]).map(convertirDoc_).filter(function(d){return d.id});
   if(!docs.length){
     const empty='<div class="card" style="text-align:center;color:#64748b">Aucun document partagé pour le moment.</div>';
     if(list) list.innerHTML=empty;
@@ -2430,13 +2375,15 @@ function chargerDocuments(){
   const list=document.getElementById('documentsList');
   const settingsList=document.getElementById('documentsSettingsList');
   if(!list && !settingsList) return;
-  if(list) list.innerHTML='Chargement des documents…';
-  if(settingsList) settingsList.innerHTML='Chargement des documents…';
 
-  const afficherCache=function(){
+  if(list) list.innerHTML='⏳ Chargement des documents…';
+  if(settingsList) settingsList.innerHTML='⏳ Chargement des documents…';
+
+  function afficherCache(){
     lireDocumentsHorsLigne_().then(function(cached){
-      if(cached.length){
-        rendreDocuments_(cached,list,settingsList);
+      const docs=(Array.isArray(cached)?cached:[]).map(convertirDoc_).filter(function(d){return d.id;});
+      if(docs.length){
+        rendreDocuments_(docs,list,settingsList);
       }else{
         const err='<div class="card">📴 Aucun document enregistré sur cet appareil.</div>';
         if(list) list.innerHTML=err;
@@ -2447,37 +2394,79 @@ function chargerDocuments(){
       if(list) list.innerHTML=err;
       if(settingsList) settingsList.innerHTML=err;
     });
-  };
+  }
 
-  if(!navigator.onLine || !(window.google&&google.script&&google.script.run)){
+  if(!navigator.onLine || !gsDisponible()){
     afficherCache();
     return;
   }
 
-  google.script.run.withSuccessHandler(function(result){
-    let payload=result&&result.data?result.data:result;
-    const raw=Array.isArray(payload)?payload:((payload&&Array.isArray(payload.documents))?payload.documents:[]);
-    const docs=raw.map(convertirDoc_).filter(function(d){return d.id});
-    rendreDocuments_(docs,list,settingsList);
-    synchroniserDocumentsHorsLigne_(docs);
-  }).withFailureHandler(function(){
-    afficherCache();
-  }).listerDocumentsPartages();
+  google.script.run
+    .withSuccessHandler(function(result){
+      let payload=result&&result.data!==undefined ? result.data : result;
+      let raw=[];
+
+      if(Array.isArray(payload)){
+        raw=payload;
+      }else if(payload && Array.isArray(payload.documents)){
+        raw=payload.documents;
+      }else if(payload && payload.success && Array.isArray(payload.documents)){
+        raw=payload.documents;
+      }
+
+      const serveur=raw.map(convertirDoc_).filter(function(d){return d.id;});
+
+      // On affiche toujours la liste serveur dans les deux emplacements :
+      // page Documents + Paramètres > Documents.
+      rendreDocuments_(serveur,list,settingsList);
+
+      // On garde aussi les documents locaux qui viennent juste d'être ajoutés
+      // et dont Apps Script n'a pas encore renvoyé l'identifiant Drive.
+      lireDocumentsHorsLigne_().then(function(cached){
+        const locaux=(Array.isArray(cached)?cached:[]).map(convertirDoc_).filter(function(d){
+          return d.id && !d.driveId;
+        });
+
+        if(locaux.length){
+          const tous=serveur.slice();
+          locaux.forEach(function(localDoc){
+            const deja=tous.some(function(serverDoc){
+              return String(serverDoc.name).trim()===String(localDoc.name).trim() &&
+                     Number(serverDoc.taille||0)===Number(localDoc.taille||0);
+            });
+            if(!deja) tous.push(localDoc);
+          });
+          tous.sort(function(a,b){return String(b.date||'').localeCompare(String(a.date||''));});
+          rendreDocuments_(tous,list,settingsList);
+        }
+      }).catch(function(){});
+
+      synchroniserDocumentsHorsLigne_(serveur);
+    })
+    .withFailureHandler(function(){
+      afficherCache();
+    })
+    .listerDocumentsPartages();
 }
 
 function synchroniserDocumentsHorsLigne_(docs){
-  docs=(Array.isArray(docs)?docs:[]).map(convertirDoc_).filter(function(d){return d.driveId});
-  if(!navigator.onLine || !gsDisponible()) return;
-  let index=0;
+  docs=(Array.isArray(docs)?docs:[]).map(convertirDoc_).filter(function(d){return d.driveId;}).slice();
+  if(!navigator.onLine || !gsDisponible() || !docs.length) return;
 
+  let index=0;
   function suivant(){
     if(!navigator.onLine || index>=docs.length) return;
     const doc=docs[index++];
+    const id=String(doc.driveId||doc.id||'').trim();
+    if(!id || id.indexOf('local_')===0){
+      suivant();
+      return;
+    }
 
     google.script.run
       .withSuccessHandler(function(result){
         const d=convertirDoc_(result&&result.document?result.document:result);
-        if(d.driveId && d.contenuBase64){
+        if(d.id && d.contenuBase64){
           enregistrerDocumentHorsLigne_(d).catch(function(){}).finally(suivant);
         }else{
           suivant();
@@ -2486,20 +2475,13 @@ function synchroniserDocumentsHorsLigne_(docs){
       .withFailureHandler(function(){
         suivant();
       })
-      .getDocumentPartage({id:doc.driveId});
+      .getDocumentPartage({id:id});
   }
-
   suivant();
 }
 
 function ouvrirDocumentPartage_(doc){
-  doc=convertirDoc_(doc);
-
-  if(!doc.driveId){
-    alert('❌ ID Google Drive du document introuvable.');
-    return;
-  }
-
+  // On ouvre immédiatement une fenêtre pour éviter le blocage des navigateurs après un appel asynchrone.
   let fenetre=null;
   try{fenetre=window.open('about:blank','_blank');}catch(e){}
 
@@ -2522,72 +2504,54 @@ function ouvrirDocumentPartage_(doc){
     }
   }
 
+  // 1. Si le document est déjà en cache, on l'ouvre immédiatement.
   lireDocumentsHorsLigne_().then(function(rows){
-    const trouve=rows.find(function(r){
-      return String(r.driveId||'')===String(doc.driveId) && r.contenuBase64;
-    });
-
+    const trouve=rows.find(function(r){return String(r.id)===String(doc.id) && r.contenuBase64;});
     if(trouve){
-      afficherDepuisBase64(convertirDoc_(trouve));
-
+      afficherDepuisBase64(trouve);
+      // Si Internet est disponible, on actualise silencieusement la copie.
       if(navigator.onLine && gsDisponible()){
-        google.script.run
-          .withSuccessHandler(function(result){
-            const d=convertirDoc_(result&&result.document?result.document:result);
-            if(d.driveId && d.contenuBase64) enregistrerDocumentHorsLigne_(d).catch(function(){});
-          })
-          .withFailureHandler(function(){})
-          .getDocumentPartage({id:doc.driveId});
+        google.script.run.withSuccessHandler(function(result){
+          const d=convertirDoc_(result&&result.document?result.document:result);
+          if(d.id && d.contenuBase64) enregistrerDocumentHorsLigne_(d).catch(function(){});
+        }).withFailureHandler(function(){}).getDocumentPartage({id:doc.id});
       }
       return;
     }
 
+    // 2. Pas encore en cache : téléchargement depuis Apps Script si Internet est disponible.
     if(!navigator.onLine || !gsDisponible()){
       if(fenetre && !fenetre.closed) fenetre.close();
       alert('📴 Ce document n’a pas encore été téléchargé sur cet appareil. Ouvrez-le une première fois avec Internet.');
       return;
     }
 
-    google.script.run
-      .withSuccessHandler(function(result){
-        const d=convertirDoc_(result&&result.document?result.document:result);
-        if(!d.driveId || !d.contenuBase64){
-          if(fenetre && !fenetre.closed) fenetre.close();
-          alert('❌ Document vide ou indisponible.');
-          return;
-        }
-        enregistrerDocumentHorsLigne_(d).then(function(){
-          afficherDepuisBase64(d);
-        }).catch(function(){
-          afficherDepuisBase64(d);
-        });
-      })
-      .withFailureHandler(function(e){
+    google.script.run.withSuccessHandler(function(result){
+      const d=convertirDoc_(result&&result.document?result.document:result);
+      if(!d.id || !d.contenuBase64){
         if(fenetre && !fenetre.closed) fenetre.close();
-        alert('❌ '+(e&&e.message?e.message:'Impossible de récupérer le document.'));
-      })
-      .getDocumentPartage({id:doc.driveId});
+        alert('❌ Document vide ou indisponible.');
+        return;
+      }
+      enregistrerDocumentHorsLigne_(d).then(function(){
+        afficherDepuisBase64(d);
+      }).catch(function(){
+        afficherDepuisBase64(d);
+      });
+    }).withFailureHandler(function(e){
+      if(fenetre && !fenetre.closed) fenetre.close();
+      alert('❌ '+(e&&e.message?e.message:'Impossible de récupérer le document.'));
+    }).getDocumentPartage({id:doc.id});
   }).catch(function(){
     if(!navigator.onLine || !gsDisponible()){
       if(fenetre && !fenetre.closed) fenetre.close();
       alert('📴 Document indisponible hors connexion.');
       return;
     }
-
-    google.script.run
-      .withSuccessHandler(function(result){
-        const d=convertirDoc_(result&&result.document?result.document:result);
-        if(d.driveId && d.contenuBase64){
-          enregistrerDocumentHorsLigne_(d).then(function(){afficherDepuisBase64(d)});
-        }else if(fenetre && !fenetre.closed){
-          fenetre.close();
-        }
-      })
-      .withFailureHandler(function(e){
-        if(fenetre && !fenetre.closed) fenetre.close();
-        alert('❌ '+(e&&e.message?e.message:'Impossible de récupérer le document.'));
-      })
-      .getDocumentPartage({id:doc.driveId});
+    google.script.run.withSuccessHandler(function(result){
+      const d=convertirDoc_(result&&result.document?result.document:result);
+      enregistrerDocumentHorsLigne_(d).then(function(){afficherDepuisBase64(d)});
+    }).getDocumentPartage({id:doc.id});
   });
 }
 
@@ -2595,6 +2559,8 @@ function preparerDocumentPourEnvoi_(file){
   return new Promise(function(resolve,reject){
     if(!file) return reject(new Error('Aucun document sélectionné.'));
 
+    /* Les photos de téléphone peuvent être très lourdes. On les réduit
+       uniquement pour l'envoi vers Apps Script afin d'éviter les limites GET. */
     if(!String(file.type||'').startsWith('image/')){
       const reader=new FileReader();
       reader.onload=function(){
@@ -2625,6 +2591,7 @@ function preparerDocumentPourEnvoi_(file){
         if(!ctx) return reject(new Error('Préparation de la photo impossible.'));
         ctx.drawImage(img,0,0,w,h);
         let dataUrl=canvas.toDataURL('image/jpeg',0.72);
+        /* Si nécessaire, on réduit encore pour rester confortable en POST. */
         let qual=0.62;
         while(dataUrl.length>1200000 && qual>=0.45){
           dataUrl=canvas.toDataURL('image/jpeg',qual);
@@ -2652,6 +2619,9 @@ async function envoyerDocumentPOST_(documentData, acces){
     data:JSON.stringify(payload)
   });
 
+  /* no-cors est volontaire : Apps Script ne fournit pas les en-têtes CORS
+     nécessaires à une lecture fetch classique depuis GitHub Pages. Le serveur
+     reçoit bien le POST ; on vérifie ensuite la présence du document par JSONP. */
   await fetch('https://script.google.com/macros/s/AKfycbxz5dZkT7FyFx8ohxWmg2Pt23Yqx0LQDMqqJg8LM8bkfN3ulkb37VqUO8m8WvjyuGBqrg/exec',{
     method:'POST',
     mode:'no-cors',
@@ -2665,66 +2635,6 @@ async function envoyerDocumentPOST_(documentData, acces){
 function listDocuments(){ return document.getElementById('documentsList'); }
 function settingsDocuments(){ return document.getElementById('documentsSettingsList'); }
 
-/*
- * Après le POST no-cors, le navigateur ne peut pas lire la réponse Apps Script.
- * On relit donc la liste Drive et on retrouve le fichier par son nom, puis on
- * récupère son vrai ID Drive et sa copie base64. Ainsi la copie locale et Drive
- * restent liées entre elles.
- */
-function recupererDocumentDriveApresEnvoi_(doc, tentative){
-  tentative=tentative||0;
-
-  if(!gsDisponible()) return Promise.reject(new Error('Connexion SaniStock indisponible.'));
-
-  return new Promise(function(resolve,reject){
-    google.script.run
-      .withSuccessHandler(function(result){
-        let payload=result&&result.data?result.data:result;
-        const raw=Array.isArray(payload)?payload:((payload&&Array.isArray(payload.documents))?payload.documents:[]);
-        const docs=raw.map(convertirDoc_).filter(function(d){return d.driveId});
-
-        const candidats=docs.filter(function(d){
-          return String(d.name)===String(doc.nom) || String(d.nom)===String(doc.nom);
-        });
-
-        candidats.sort(function(a,b){
-          return String(b.date||'').localeCompare(String(a.date||''));
-        });
-
-        const trouve=candidats[0];
-
-        if(!trouve){
-          if(tentative<4){
-            setTimeout(function(){
-              recupererDocumentDriveApresEnvoi_(doc,tentative+1).then(resolve).catch(reject);
-            },1000);
-            return;
-          }
-          reject(new Error('Le document a été envoyé, mais son ID Drive n’est pas encore disponible. Cliquez sur Actualiser dans quelques secondes.'));
-          return;
-        }
-
-        google.script.run
-          .withSuccessHandler(function(resultDoc){
-            const d=convertirDoc_(resultDoc&&resultDoc.document?resultDoc.document:resultDoc);
-            if(!d.driveId){
-              reject(new Error('ID Google Drive introuvable.'));
-              return;
-            }
-            resolve(d);
-          })
-          .withFailureHandler(function(e){
-            reject(e||new Error('Impossible de récupérer le document Drive.'));
-          })
-          .getDocumentPartage({id:trouve.driveId});
-      })
-      .withFailureHandler(function(e){
-        reject(e||new Error('Impossible de récupérer la liste des documents.'));
-      })
-      .listerDocumentsPartages();
-  });
-}
-
 function ajouterDocumentUI(){
   if(!appareilProprietaire()){ alert('Accès responsable uniquement.'); return; }
   const input=document.getElementById('documentFileInput');
@@ -2737,16 +2647,24 @@ function ajouterDocumentUI(){
   preparerDocumentPourEnvoi_(file).then(function(doc){
     if(!doc.contenuBase64) throw new Error('Document vide.');
     if(msg) msg.textContent='⏳ Envoi du document…';
-
     return envoyerDocumentPOST_(doc,donneesAccesGestion()).then(function(){
-      if(msg) msg.textContent='⏳ Récupération de l’ID Google Drive…';
-
-      return recupererDocumentDriveApresEnvoi_(doc).then(function(driveDoc){
-        return enregistrerDocumentHorsLigne_(driveDoc).then(function(){
-          if(msg) msg.textContent='✅ Document ajouté : copie locale + Google Drive liées.';
-          input.value='';
-          chargerDocuments();
-        });
+      /* Le POST est volontairement en no-cors : on ne peut pas lire sa réponse.
+         On conserve donc immédiatement la copie locale du document et on
+         l'affiche sans attendre un nouvel appel GET à Apps Script. */
+      const localDoc={
+        id:'local_'+Date.now()+'_'+Math.random().toString(36).slice(2,8),
+        nom:doc.nom,
+        mimeType:doc.mimeType,
+        contenuBase64:doc.contenuBase64,
+        date:new Date().toISOString(),
+        taille:Math.round(doc.contenuBase64.length*0.75)
+      };
+      return enregistrerDocumentHorsLigne_(localDoc).then(function(){
+        if(msg) msg.textContent='✅ Document ajouté et disponible hors connexion.';
+        input.value='';
+        lireDocumentsHorsLigne_().then(function(cached){
+          rendreDocuments_(cached,listDocuments(),settingsDocuments());
+        }).catch(function(){});
       });
     });
   }).catch(function(e){
