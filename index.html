@@ -2260,7 +2260,7 @@ function convertirDoc_(doc){
   doc=doc||{};
   const rawId=String(doc.id||'').trim();
   const driveId=String(doc.driveId||doc.googleDriveId||(rawId && rawId.indexOf('local_')!==0 ? rawId : '')).trim();
-  const localId=String(doc.localId||(rawId && rawId.indexOf('local_')===0 ? rawId : ')||').trim();
+  const localId=String(doc.localId || (rawId && rawId.indexOf('local_')===0 ? rawId : '') || (driveId ? 'local_'+driveId : '')).trim();
   return {
     id:driveId||localId, driveId:driveId, googleDriveId:driveId, localId:localId,
     name:String(doc.name||doc.nom||'Document'),
