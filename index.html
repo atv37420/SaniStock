@@ -2112,7 +2112,7 @@ button.settingsAction.secondary:hover,
 </div>
 
 <section id="memoPage" class="screen page">
-  <button type="button" class="back" onclick="showPage('homePage')">← Retour accueil</button>
+  <button type="button" class="back" onclick="goBackSaniStock()">← Retour</button>
   <div class="documentsWrap">
     <div class="documentsHeader">
       <div>
@@ -2136,7 +2136,7 @@ button.settingsAction.secondary:hover,
 </section>
 
 <section id="documentsPage" class="screen page">
-  <button type="button" class="back" onclick="showPage('homePage')">← Retour accueil</button>
+  <button type="button" class="back" onclick="goBackSaniStock()">← Retour</button>
   <div class="documentsWrap">
     <div class="documentsHeader">
       <div>
@@ -2149,7 +2149,7 @@ button.settingsAction.secondary:hover,
 </section>
 
 <section id="medicationPage" class="screen page">
-  <button type="button" class="back" onclick="showPage('homePage')">← Retour accueil</button>
+  <button type="button" class="back" onclick="goBackSaniStock()">← Retour</button>
   <h1>💊 Mémo médicaments</h1>
   <div class="card" style="max-width:900px;margin:20px auto;text-align:left">
     <input id="medicationSearch" type="search" placeholder="Rechercher un médicament…" style="width:100%;padding:14px;border:1px solid #cbd8e3;border-radius:12px;font-size:16px">
@@ -2159,7 +2159,7 @@ button.settingsAction.secondary:hover,
 
 <section id="stockPage" class="screen stockPage">
   <div class="stockWrap">
-    <button class="back" onclick="showPage('homePage')">← Retour accueil</button>
+    <button class="back" onclick="goBackSaniStock()">← Retour</button>
     <h1 class="stockTitle">📦 STOCK</h1>
     <p class="stockSub">Suivi en temps réel de la réserve</p>
     <input id="stockSearch" class="stockSearch" type="search" placeholder="🔎 Rechercher un produit..." oninput="renderStock()">
@@ -2197,7 +2197,7 @@ button.settingsAction.secondary:hover,
 
 
 <section id="vehiclePage" class="screen page">
-  <button type="button" class="back" onclick="showPage('homePage')">← Retour accueil</button>
+  <button type="button" class="back" onclick="goBackSaniStock()">← Retour</button>
   <div style="max-width:900px;margin:20px auto;padding:0 20px">
     <h1 style="margin:10px 0 6px">🚑 VÉHICULE</h1>
     <p style="margin:0 0 22px;color:#64748b">Désinfection et suivi des véhicules</p>
@@ -2219,7 +2219,7 @@ button.settingsAction.secondary:hover,
 
 <section id="checklistPage" class="screen page">
   <div class="checklistCleanWrap">
-    <button type="button" class="back" onclick="showPage('vehiclePage')">← Retour</button>
+    <button type="button" class="back" onclick="goBackSaniStock()">← Retour</button>
     <h1>✅ CHECK-LIST</h1>
     <p id="checklistSubtitle">Choisissez une catégorie de véhicule</p>
     <div id="checklistContent"></div>
@@ -2229,7 +2229,7 @@ button.settingsAction.secondary:hover,
 <section id="disinfectionPage" class="screen disPage">
   <div class="disShade"></div>
   <div class="disWrap">
-    <button class="back disBack" onclick="showPage('homePage')">← Retour accueil</button>
+    <button class="back disBack" onclick="goBackSaniStock()">← Retour</button>
     <h1>DÉSINFECTION</h1>
 
     <div class="selectors">
@@ -2344,11 +2344,26 @@ function afficherResultatsRecherche_(box,results,q){
 }
 document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerRechercheSaniStock();});
 
+/* Navigation SaniStock : mémorise la page précédente pour les boutons Retour */
+window.saniPageHistory = window.saniPageHistory || [];
+window.saniNavigatingBack = false;
+function goBackSaniStock(){
+  var prev = window.saniPageHistory.length ? window.saniPageHistory.pop() : 'homePage';
+  window.saniNavigatingBack = true;
+  showPage(prev);
+  setTimeout(function(){ window.saniNavigatingBack = false; }, 0);
+}
+
 function showPage(id){
  var actuelle=document.querySelector('.screen.active');
  var suivante=document.getElementById(id);
 
  if(!suivante || actuelle===suivante) return;
+
+ // Toute navigation normale mémorise la page actuelle. Un retour ne l'ajoute pas à l'historique.
+ if(actuelle && !window.saniNavigatingBack){
+   window.saniPageHistory.push(actuelle.id);
+ }
 
  var conn=document.getElementById('saniConnection');
  /* Le bouton de connexion reste caché pendant quelques secondes après un retour à l'accueil,
