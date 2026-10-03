@@ -1,4 +1,4 @@
-<!-- SaniStock version 1.1.30 : catégories véhicules pour futures check-lists -->
+<!-- SaniStock version 1.1.29 : boutons colorés sans animation -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -1739,44 +1739,38 @@ body{display:block}
   100%{width:100%;background:#e32636;}
 }
 </style>
-<style>
-.checklistCategories{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-.checklistCategory{border:0;border-radius:16px;padding:22px 12px;background:#0758a5;color:#fff;font-weight:900;cursor:pointer;box-shadow:0 7px 18px rgba(0,45,90,.15);font-size:16px}
-.checklistCategory:active{transform:scale(.98)}
-.checklistVehicles{margin-top:18px;display:grid;gap:9px}
-.checklistVehiclesHead{background:#fff;border-radius:14px;padding:12px;font-weight:900;color:#042349}
-.checklistVehicle{border:0;border-radius:13px;padding:13px;background:#fff;color:#042349;text-align:left;font-weight:800;cursor:pointer;box-shadow:0 4px 12px rgba(0,45,90,.08)}
-.checklistVehicle:hover{background:#f1f7fb}
-.checklistBack{border:0;border-radius:10px;padding:8px 11px;background:#dce9f2;color:#042349;font-weight:900;cursor:pointer;margin-bottom:4px}
-@media(max-width:650px){.checklistCategories{grid-template-columns:1fr}.checklistCategory{padding:16px}}
-</style>
 
-<style id="checklist-clean-layout">
-/* CHECK-LIST : plein écran sans bande noire */
+<style id="checklist-fixed-style">
 #checklistPage{
+  position:fixed !important;
+  inset:0 !important;
+  z-index:100 !important;
   min-height:100vh !important;
   min-height:100dvh !important;
   margin:0 !important;
-  padding:10px 20px 30px !important;
+  padding:0 !important;
   background:#edf5fa !important;
   color:#042349 !important;
   overflow-y:auto !important;
+  box-sizing:border-box !important;
 }
-#checklistPage > div{
-  margin-top:10px !important;
+#checklistPage .checklistCleanWrap{
+  max-width:900px;
+  margin:0 auto;
+  padding:18px 18px 40px;
+  box-sizing:border-box;
 }
-#checklistPage .back{
-  display:inline-flex;
-  margin:0 0 4px 0;
-}
-#checklistPage h1{margin:10px 0 6px !important;}
-#checklistPage .checklistCategories{margin-top:14px;}
-@media(max-width:650px){
-  #checklistPage{padding:8px 12px 25px !important;}
-  #checklistPage > div{padding:0 4px !important;}
-}
+#checklistPage .back{margin:0 0 14px !important;}
+#checklistPage h1{margin:4px 0 4px !important;font-size:28px;}
+#checklistPage #checklistSubtitle{margin:0 0 18px;color:#64748b;}
+.checklistGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}
+.checklistCard{width:100%;border:0;border-radius:18px;background:#fff;box-shadow:0 8px 24px rgba(4,35,73,.12);padding:20px;text-align:left;cursor:pointer;color:#042349;}
+.checklistCardTitle{font-size:19px;font-weight:800;display:block;}
+.checklistCardDesc{font-size:13px;color:#64748b;display:block;margin-top:5px;}
+.checklistVehicle{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;border:0;border-radius:15px;background:#fff;box-shadow:0 5px 18px rgba(4,35,73,.10);padding:16px;margin:0 0 10px;text-align:left;color:#042349;cursor:pointer;font-weight:700;}
+.checklistVehicle span:last-child{font-size:22px;color:#2f80ed;}
+@media(max-width:650px){.checklistGrid{grid-template-columns:1fr;}#checklistPage .checklistCleanWrap{padding:12px 12px 30px;}}
 </style>
-
 </head>
 <body>
 
@@ -1986,8 +1980,30 @@ body{display:block}
 .memoChoiceTitle{display:block;font-weight:800;font-size:19px;color:#042349}
 .memoChoiceDesc{display:block;margin-top:6px;color:#64748b;font-size:14px}
 @media(max-width:600px){.memoChoices{grid-template-columns:1fr;gap:14px}.memoChoice{padding:22px 16px}}
+/* ===== RECHERCHE GLOBALE SANISTOCK ===== */
+.saniGlobalSearchBtn{
+  position:absolute;z-index:30;top:42%;left:5%;right:5%;width:auto;border:0;border-radius:14px;
+  background:rgba(4,35,73,.82);color:#fff;font-weight:900;font-size:14px;
+  padding:10px 14px;box-shadow:0 5px 16px rgba(4,35,73,.28);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:7px;backdrop-filter:blur(4px)
+}
+.saniGlobalSearchBtn:active{transform:scale(.97)}
+.saniSearchOverlay{position:fixed;inset:0;z-index:9999;background:rgba(7,32,57,.58);display:none;align-items:flex-start;justify-content:center;padding:7vh 16px 24px}
+.saniSearchOverlay.open{display:flex}
+.saniSearchCard{width:min(760px,100%);max-height:82vh;overflow:hidden;background:#fff;border-radius:22px;box-shadow:0 22px 60px rgba(0,0,0,.3);display:flex;flex-direction:column}
+.saniSearchHead{display:flex;align-items:center;gap:10px;padding:16px 16px 12px;border-bottom:1px solid #e4ebf1}
+.saniSearchInput{flex:1;border:1px solid #cbd8e3;border-radius:14px;padding:13px 15px;font-size:17px;outline:none;color:#042349}
+.saniSearchInput:focus{border-color:#2f80ed;box-shadow:0 0 0 3px rgba(47,128,237,.12)}
+.saniSearchClose{border:0;background:#eef3f7;color:#536779;width:42px;height:42px;border-radius:12px;font-size:20px;cursor:pointer}
+.saniSearchHint{padding:10px 18px;color:#718096;font-size:12px;background:#f7fafc}
+.saniSearchResults{overflow:auto;padding:12px 16px 18px}
+.saniSearchResult{width:100%;border:1px solid #dbe5ec;background:#fff;border-radius:14px;padding:12px 14px;margin-bottom:9px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px}
+.saniSearchResult:active{transform:scale(.99)}
+.saniSearchIcon{font-size:25px;flex:0 0 30px;text-align:center}
+.saniSearchText{min-width:0;flex:1}.saniSearchTitle{font-weight:900;color:#042349;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.saniSearchMeta{font-size:11px;color:#718096;margin-top:3px}
+.saniSearchEmpty{text-align:center;padding:28px 12px;color:#718096}.saniSearchEmpty strong{display:block;color:#042349;font-size:15px;margin-bottom:5px}
+@media(max-width:600px){.saniGlobalSearchBtn{top:42%;left:5%;right:5%;padding:9px 11px;font-size:12px}.saniSearchOverlay{padding:4vh 10px 12px}.saniSearchCard{border-radius:18px;max-height:88vh}}
 
-/* ===== CHECK-LIST : CATEGORIES VEHICULES ===== */
 </style>
 
 
@@ -2089,74 +2105,6 @@ body{display:block}
 </section>
 
 
-<script>
-const CHECKLIST_VEHICLES={
-  'AMBULANCES':[
-    'FZ-349-AT – AMBULANCE PEUGEOT BOXER',
-    'HA-219-PS – AMBULANCE RENAULT TRAFIC'
-  ],
-  'TAXIS':[
-    'DR-951-FG – AUDI A6 TAXI',
-    'FH-061-DT – CADDY TAXI',
-    'GH-805-GV – IONIQ 5 TAXI',
-    'HK-887-SD – FORD TOURNEO TAXI',
-    'DR-607-TE – CADDY TAXI'
-  ],
-  'VSL':[
-    'GH-575-RH – CADDY VSL',
-    'FF-458-QT – SKODA BREAK VSL',
-    'FF-334-SL – SKODA KODIAQ VSL',
-    'EN-114-BK – SKODA SUPERB VSL',
-    'FC-295-XP – SKODA SUPERB VSL'
-  ]
-};
-function ouvrirCategoriesChecklist(){
-  const box=document.getElementById('checklistCategories');
-  const veh=document.getElementById('checklistVehicles');
-  if(!box) return;
-  box.innerHTML=Object.keys(CHECKLIST_VEHICLES).map(function(cat){
-    return '<button type="button" class="checklistCategory" onclick="ouvrirVehiculesChecklist(\''+cat+'\')">'+(cat==='AMBULANCES'?'🚑 ':cat==='TAXIS'?'🚕 ':'🚐 ')+cat+'</button>';
-  }).join('');
-  if(veh){veh.hidden=true;veh.innerHTML='';}
-}
-function ouvrirVehiculesChecklist(categorie){
-  const veh=document.getElementById('checklistVehicles');
-  if(!veh) return;
-  const rows=CHECKLIST_VEHICLES[categorie]||[];
-  veh.hidden=false;
-  veh.innerHTML='<button type="button" class="checklistBack" onclick="ouvrirCategoriesChecklist()">← Changer de catégorie</button>'+
-    '<div class="checklistVehiclesHead">'+(categorie==='AMBULANCES'?'🚑 ':categorie==='TAXIS'?'🚕 ':'🚐 ')+categorie+'</div>'+
-    rows.map(function(nom){return '<button type="button" class="checklistVehicle" onclick="ouvrirChecklistVehicule(\''+nom.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\')">'+escapeHtml(nom)+'</button>';}).join('');
-}
-function ouvrirChecklistVehicule(nom){
-  alert('Check-list de « '+nom+' » : la liste des contrôles sera ajoutée ici.');
-}
-
-/* ===== RECHERCHE GLOBALE SANISTOCK ===== */
-.saniGlobalSearchBtn{
-  position:absolute;z-index:30;top:42%;left:5%;right:5%;width:auto;border:0;border-radius:14px;
-  background:rgba(4,35,73,.82);color:#fff;font-weight:900;font-size:14px;
-  padding:10px 14px;box-shadow:0 5px 16px rgba(4,35,73,.28);cursor:pointer;
-  display:flex;align-items:center;justify-content:center;gap:7px;backdrop-filter:blur(4px)
-}
-.saniGlobalSearchBtn:active{transform:scale(.97)}
-.saniSearchOverlay{position:fixed;inset:0;z-index:9999;background:rgba(7,32,57,.58);display:none;align-items:flex-start;justify-content:center;padding:7vh 16px 24px}
-.saniSearchOverlay.open{display:flex}
-.saniSearchCard{width:min(760px,100%);max-height:82vh;overflow:hidden;background:#fff;border-radius:22px;box-shadow:0 22px 60px rgba(0,0,0,.3);display:flex;flex-direction:column}
-.saniSearchHead{display:flex;align-items:center;gap:10px;padding:16px 16px 12px;border-bottom:1px solid #e4ebf1}
-.saniSearchInput{flex:1;border:1px solid #cbd8e3;border-radius:14px;padding:13px 15px;font-size:17px;outline:none;color:#042349}
-.saniSearchInput:focus{border-color:#2f80ed;box-shadow:0 0 0 3px rgba(47,128,237,.12)}
-.saniSearchClose{border:0;background:#eef3f7;color:#536779;width:42px;height:42px;border-radius:12px;font-size:20px;cursor:pointer}
-.saniSearchHint{padding:10px 18px;color:#718096;font-size:12px;background:#f7fafc}
-.saniSearchResults{overflow:auto;padding:12px 16px 18px}
-.saniSearchResult{width:100%;border:1px solid #dbe5ec;background:#fff;border-radius:14px;padding:12px 14px;margin-bottom:9px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px}
-.saniSearchResult:active{transform:scale(.99)}
-.saniSearchIcon{font-size:25px;flex:0 0 30px;text-align:center}
-.saniSearchText{min-width:0;flex:1}.saniSearchTitle{font-weight:900;color:#042349;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.saniSearchMeta{font-size:11px;color:#718096;margin-top:3px}
-.saniSearchEmpty{text-align:center;padding:28px 12px;color:#718096}.saniSearchEmpty strong{display:block;color:#042349;font-size:15px;margin-bottom:5px}
-@media(max-width:600px){.saniGlobalSearchBtn{top:42%;left:5%;right:5%;padding:9px 11px;font-size:12px}.saniSearchOverlay{padding:4vh 10px 12px}.saniSearchCard{border-radius:18px;max-height:88vh}}
-</script>
-
 <section id="vehiclePage" class="screen page">
   <button type="button" class="back" onclick="showPage('homePage')">← Retour accueil</button>
   <div style="max-width:900px;margin:20px auto;padding:0 20px">
@@ -2168,22 +2116,22 @@ function ouvrirChecklistVehicule(nom){
         <span class="memoChoiceTitle">DÉSINFECTION</span>
         <span class="memoChoiceDesc">Accéder à la désinfection journalière des véhicules</span>
       </button>
-      <button type="button" class="memoChoice" onclick="showPage('checklistPage'); ouvrirCategoriesChecklist()">
+      <button type="button" class="memoChoice" onclick="ouvrirChecklistCategories()">
         <span class="memoChoiceIcon">✅</span>
         <span class="memoChoiceTitle">CHECK-LIST</span>
-        <span class="memoChoiceDesc">Choisir une catégorie et un véhicule</span>
+        <span class="memoChoiceDesc">Contrôles des véhicules</span>
       </button>
     </div>
   </div>
 </section>
 
+
 <section id="checklistPage" class="screen page">
-  <button type="button" class="back" onclick="showPage('vehiclePage')">← Retour véhicules</button>
-  <div style="max-width:900px;margin:20px auto;padding:0 20px">
-    <h1 style="margin:10px 0 6px">✅ CHECK-LIST</h1>
-    <p style="margin:0 0 22px;color:#64748b">Choisissez une catégorie puis le véhicule concerné</p>
-    <div id="checklistCategories" class="checklistCategories"></div>
-    <div id="checklistVehicles" class="checklistVehicles" hidden></div>
+  <div class="checklistCleanWrap">
+    <button type="button" class="back" onclick="showPage('vehiclePage')">← Retour</button>
+    <h1>✅ CHECK-LIST</h1>
+    <p id="checklistSubtitle">Choisissez une catégorie de véhicule</p>
+    <div id="checklistContent"></div>
   </div>
 </section>
 
@@ -2195,7 +2143,7 @@ function ouvrirChecklistVehicule(nom){
 
     <div class="selectors">
       <div><label>SALARIÉ</label><select id="employee"><option value="">Sélectionner votre nom</option></select><button type="button" id="addColleagueBtn" class="addColleagueBtn" onclick="toggleSecondColleague()" hidden>＋ Ajouter un collègue</button><div id="secondColleagueWrap" class="secondColleagueWrap" hidden><label>2ᵉ COLLÈGUE</label><select id="employee2"><option value="">Sélectionner le collègue</option></select></div></div>
-      <div><label>VÉHICULE</label><select id="vehicle" onchange="adapterChecklistVehicule()"><option value="">Sélectionner un véhicule</option><optgroup label="🚑 AMBULANCES"><option>FZ-349-AT – AMBULANCE PEUGEOT BOXER</option><option>HA-219-PS – AMBULANCE RENAULT TRAFIC</option></optgroup><optgroup label="🚕 TAXIS"><option>DR-951-FG – AUDI A6 TAXI</option><option>FH-061-DT – CADDY TAXI</option><option>GH-805-GV – IONIQ 5 TAXI</option><option>HK-887-SD – FORD TOURNEO TAXI</option><option>DR-607-TE – CADDY TAXI</option></optgroup><optgroup label="🚐 VSL"><option>GH-575-RH – CADDY VSL</option><option>FF-458-QT – SKODA BREAK VSL</option><option>FF-334-SL – SKODA KODIAQ VSL</option><option>EN-114-BK – SKODA SUPERB VSL</option><option>FC-295-XP – SKODA SUPERB VSL</option></optgroup></select></div>
+      <div><label>VÉHICULE</label><select id="vehicle" onchange="adapterChecklistVehicule()"><option value="">Sélectionner un véhicule</option><option>HA-219-PS – AMBU TRAFIC</option><option>PEUGEOT BOXER</option><option>AUDI A6 TAXI</option><option>HK-887-SD – FORD TOURNEO</option><option>FH-061-DT – CADDY TAXI</option><option>GH805GV – IONIQ 5 TAXI</option><option>GH-575-RH – CADDY VSL</option><option>DR-607-TE – CADDY BLANC</option><option>FC-295-XP – SKODA SUPERB</option><option>FF-458-QT – SKODA BREAK VSL</option><option>EW-353-WR – SKODA BREAK VSL</option><option>FF-334-SL – SKODA KODIAQ VSL</option><option>EN-114-BK – SKODA SUPERB VSL</option></select></div>
     </div>
 
     <div class="disCard">
@@ -2402,9 +2350,23 @@ function chargerSalaries(){
 
 /* LISTE DES VÉHICULES DEPUIS GOOGLE SHEETS */
 function chargerVehicules(){
-  // Les véhicules de la désinfection sont préparés directement dans le HTML.
-  // On ne remplace pas cette liste par celle de Google Sheets.
-  return;
+ if(!(window.google&&google.script&&google.script.run)) return;
+ google.script.run
+  .withSuccessHandler(function(vehicules){
+    if(!Array.isArray(vehicules)||!vehicules.length) return;
+    const select=$('vehicle');
+    if(!select) return;
+    const valeurActuelle=select.value;
+    select.innerHTML='<option value="">Sélectionner un véhicule</option>'+
+      vehicules.map(function(vehicule){
+        return '<option value="'+escapeHtml(vehicule)+'">'+escapeHtml(vehicule)+'</option>';
+      }).join('');
+    if(vehicules.includes(valeurActuelle)) select.value=valeurActuelle;
+  })
+  .withFailureHandler(function(err){
+    console.error('Impossible de charger les véhicules :',err);
+  })
+  .getVehicules();
 }
 function stockStatusClass(status){return status==='Rupture'?'status-rupture':status==='Stock min'?'status-min':'status-ok'}
 function chargerStock(){
@@ -9626,7 +9588,7 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 
-<div id="sanistock-version-bottom">SaniStock - version 1.1.33</div>
+<div id="sanistock-version-bottom">SaniStock - version 1.1.29</div>
 
 <style id="sanistock-annonce-modal-css">
 #homeInformationModal{
@@ -9707,7 +9669,7 @@ if ("serviceWorker" in navigator) {
   </div>
 </div>
 
-<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.33</div>
+<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.29</div>
 
 <style id="sanistock-connexion-accueil-uniquement">
 #saniConnection.saniConnHomeOnlyHidden{display:none !important;}
@@ -9729,6 +9691,38 @@ if ("serviceWorker" in navigator) {
   });
   window.addEventListener("hashchange",majConnexionAccueil);
 })();
+</script>
+
+<script id="checklist-fixed-js">
+const CHECKLIST_VEHICLES_FIXED={
+  'AMBULANCES':['HA-219-PS – AMBU TRAFIC','PEUGEOT BOXER'],
+  'TAXIS':['AUDI A6 TAXI','FH-061-DT – CADDY TAXI','GH805GV – IONIQ 5 TAXI'],
+  'VSL':['GH-575-RH – CADDY VSL','FF-458-QT – SKODA BREAK VSL','EW-353-WR – SKODA BREAK VSL','FF-334-SL – SKODA KODIAQ VSL','EN-114-BK – SKODA SUPERB VSL'],
+  'AUTRES':['HK-887-SD – FORD TOURNEO','DR-607-TE – CADDY BLANC','FC-295-XP – SKODA SUPERB']
+};
+function ouvrirChecklistCategories(){
+  const box=document.getElementById('checklistContent');
+  const sub=document.getElementById('checklistSubtitle');
+  if(!box) return;
+  if(sub) sub.textContent='Choisissez une catégorie de véhicule';
+  box.innerHTML='<div class="checklistGrid">'+Object.keys(CHECKLIST_VEHICLES_FIXED).map(function(cat){
+    return '<button type="button" class="checklistCard" onclick="ouvrirChecklistVehicules(\''+cat+'\')"><span class="checklistCardTitle">'+cat+'</span><span class="checklistCardDesc">'+CHECKLIST_VEHICLES_FIXED[cat].length+' véhicule'+(CHECKLIST_VEHICLES_FIXED[cat].length>1?'s':'')+'</span></button>';
+  }).join('')+'</div>';
+  showPage('checklistPage');
+}
+function ouvrirChecklistVehicules(categorie){
+  const box=document.getElementById('checklistContent');
+  const sub=document.getElementById('checklistSubtitle');
+  const liste=CHECKLIST_VEHICLES_FIXED[categorie]||[];
+  if(sub) sub.textContent=categorie+' — choisissez un véhicule';
+  if(!box) return;
+  box.innerHTML='<button type="button" class="back" style="margin-bottom:12px!important" onclick="ouvrirChecklistCategories()">← Catégories</button>'+liste.map(function(v){
+    return '<button type="button" class="checklistVehicle" onclick="ouvrirChecklistVehiculeFixe(\''+v.replace(/'/g,"\\'")+'\')"><span>🚑 '+escapeHtml(v)+'</span><span>›</span></button>';
+  }).join('');
+}
+function ouvrirChecklistVehiculeFixe(vehicule){
+  alert('Véhicule sélectionné : '+vehicule+'\n\nLa check-list détaillée de ce véhicule sera affichée ici.');
+}
 </script>
 </body>
 </html>
