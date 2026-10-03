@@ -1739,6 +1739,17 @@ body{display:block}
   100%{width:100%;background:#e32636;}
 }
 </style>
+<style>
+.checklistCategories{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.checklistCategory{border:0;border-radius:16px;padding:22px 12px;background:#0758a5;color:#fff;font-weight:900;cursor:pointer;box-shadow:0 7px 18px rgba(0,45,90,.15);font-size:16px}
+.checklistCategory:active{transform:scale(.98)}
+.checklistVehicles{margin-top:18px;display:grid;gap:9px}
+.checklistVehiclesHead{background:#fff;border-radius:14px;padding:12px;font-weight:900;color:#042349}
+.checklistVehicle{border:0;border-radius:13px;padding:13px;background:#fff;color:#042349;text-align:left;font-weight:800;cursor:pointer;box-shadow:0 4px 12px rgba(0,45,90,.08)}
+.checklistVehicle:hover{background:#f1f7fb}
+.checklistBack{border:0;border-radius:10px;padding:8px 11px;background:#dce9f2;color:#042349;font-weight:900;cursor:pointer;margin-bottom:4px}
+@media(max-width:650px){.checklistCategories{grid-template-columns:1fr}.checklistCategory{padding:16px}}
+</style>
 </head>
 <body>
 
@@ -1948,6 +1959,50 @@ body{display:block}
 .memoChoiceTitle{display:block;font-weight:800;font-size:19px;color:#042349}
 .memoChoiceDesc{display:block;margin-top:6px;color:#64748b;font-size:14px}
 @media(max-width:600px){.memoChoices{grid-template-columns:1fr;gap:14px}.memoChoice{padding:22px 16px}}
+
+/* ===== CHECK-LIST : CATEGORIES VEHICULES ===== */
+const CHECKLIST_VEHICLES={
+  'AMBULANCES':[
+    'FZ-349-AT – AMBULANCE PEUGEOT BOXER',
+    'HA-219-PS – AMBULANCE RENAULT TRAFIC'
+  ],
+  'TAXIS':[
+    'DR-951-FG – AUDI A6 TAXI',
+    'FH-061-DT – CADDY TAXI',
+    'GH-805-GV – IONIQ 5 TAXI',
+    'HK-887-SD – FORD TOURNEO TAXI',
+    'DR-607-TE – CADDY TAXI'
+  ],
+  'VSL':[
+    'GH-575-RH – CADDY VSL',
+    'FF-458-QT – SKODA BREAK VSL',
+    'FF-334-SL – SKODA KODIAQ VSL',
+    'EN-114-BK – SKODA SUPERB VSL',
+    'FC-295-XP – SKODA SUPERB VSL'
+  ]
+};
+function ouvrirCategoriesChecklist(){
+  const box=document.getElementById('checklistCategories');
+  const veh=document.getElementById('checklistVehicles');
+  if(!box) return;
+  box.innerHTML=Object.keys(CHECKLIST_VEHICLES).map(function(cat){
+    return '<button type="button" class="checklistCategory" onclick="ouvrirVehiculesChecklist(\''+cat+'\')">'+(cat==='AMBULANCES'?'🚑 ':cat==='TAXIS'?'🚕 ':'🚐 ')+cat+'</button>';
+  }).join('');
+  if(veh){veh.hidden=true;veh.innerHTML='';}
+}
+function ouvrirVehiculesChecklist(categorie){
+  const veh=document.getElementById('checklistVehicles');
+  if(!veh) return;
+  const rows=CHECKLIST_VEHICLES[categorie]||[];
+  veh.hidden=false;
+  veh.innerHTML='<button type="button" class="checklistBack" onclick="ouvrirCategoriesChecklist()">← Changer de catégorie</button>'+
+    '<div class="checklistVehiclesHead">'+(categorie==='AMBULANCES'?'🚑 ':categorie==='TAXIS'?'🚕 ':'🚐 ')+categorie+'</div>'+
+    rows.map(function(nom){return '<button type="button" class="checklistVehicle" onclick="ouvrirChecklistVehicule(\''+nom.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\')">'+escapeHtml(nom)+'</button>';}).join('');
+}
+function ouvrirChecklistVehicule(nom){
+  alert('Check-list de « '+nom+' » : la liste des contrôles sera ajoutée ici.');
+}
+
 /* ===== RECHERCHE GLOBALE SANISTOCK ===== */
 .saniGlobalSearchBtn{
   position:absolute;z-index:30;top:42%;left:5%;right:5%;width:auto;border:0;border-radius:14px;
@@ -2084,12 +2139,22 @@ body{display:block}
         <span class="memoChoiceTitle">DÉSINFECTION</span>
         <span class="memoChoiceDesc">Accéder à la désinfection journalière des véhicules</span>
       </button>
-      <button type="button" class="memoChoice" disabled style="cursor:not-allowed;opacity:.9">
+      <button type="button" class="memoChoice" onclick="showPage('checklistPage'); ouvrirCategoriesChecklist()">
         <span class="memoChoiceIcon">✅</span>
         <span class="memoChoiceTitle">CHECK-LIST</span>
-        <span class="memoChoiceDesc">Bientôt disponible</span>
+        <span class="memoChoiceDesc">Choisir une catégorie et un véhicule</span>
       </button>
     </div>
+  </div>
+</section>
+
+<section id="checklistPage" class="screen page">
+  <button type="button" class="back" onclick="showPage('vehiclePage')">← Retour véhicules</button>
+  <div style="max-width:900px;margin:20px auto;padding:0 20px">
+    <h1 style="margin:10px 0 6px">✅ CHECK-LIST</h1>
+    <p style="margin:0 0 22px;color:#64748b">Choisissez une catégorie puis le véhicule concerné</p>
+    <div id="checklistCategories" class="checklistCategories"></div>
+    <div id="checklistVehicles" class="checklistVehicles" hidden></div>
   </div>
 </section>
 
