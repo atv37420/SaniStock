@@ -1,4 +1,4 @@
-<!-- SaniStock version 1.1.28 : boutons colorés sans animation -->
+<!-- SaniStock version 1.1.29 : boutons colorés sans animation -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -996,7 +996,7 @@ body{display:block}
 
 <style>
 /* ===== CONNEXION SALARIÉ PERSISTANTE ===== */
-/* ===== ANIMATION CONNEXION COEUR + ECG — version 1.1.28 ===== */
+/* ===== ANIMATION CONNEXION COEUR + ECG — version 1.1.29 ===== */
 .loginAmbulanceAnim{display:none;position:relative;height:126px;margin:2px 0 12px;overflow:hidden;border-radius:18px;background:linear-gradient(180deg,#f4fbff,#e4f4ff);border:1px solid #c8e4f7}
 .loginAmbulanceAnim.show{display:block}
 .loginHeartCircle{position:absolute;left:50%;top:50%;width:82px;height:82px;transform:translate(-50%,-52%);border:4px solid rgba(22,168,255,.18);border-top-color:#042349;border-right-color:#0b7bd4;border-radius:50%;animation:loginHeartSpin 1.15s linear infinite}
@@ -1721,6 +1721,11 @@ body{display:block}
 #saniSplash .splashLogo{filter:none !important;}
 </style>
 
+<style id="sanistock-loading-blue-red-129">
+/* 1.1.29 — barre de chargement visible */
+#saniSplash .splashProgress{display:block !important;visibility:visible !important;opacity:1 !important;height:9px !important;min-height:9px !important;background:#0758a5 !important;position:relative !important;overflow:hidden !important;animation:saniLoadingBlueRed129 1.55s ease forwards .15s !important;}
+@keyframes saniLoadingBlueRed129{0%{width:0;background:#0758a5;}35%{width:35%;background:#0758a5;}70%{width:72%;background:#e32636;}100%{width:100%;background:#e32636;}}
+</style>
 <style id="sanistock-loading-blue-red-128">
 /* 1.1.28 — barre de chargement bleu vers rouge */
 #saniSplash .splashProgress{
@@ -4501,7 +4506,7 @@ function fermerDetailsDashboard(){
 </script>
 
 <script>
-/* ===== MÉMO MÉDICAMENTS — version 1.1.28 =====
+/* ===== MÉMO MÉDICAMENTS — version 1.1.29 =====
    Liste informative, sans posologie ni protocole.
    La dotation et l'utilisation restent soumises aux protocoles en vigueur.
 */
@@ -9541,7 +9546,7 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 
-<div id="sanistock-version-bottom">SaniStock - version 1.1.28</div>
+<div id="sanistock-version-bottom">SaniStock - version 1.1.29</div>
 
 <style id="sanistock-annonce-modal-css">
 #homeInformationModal{
@@ -9622,7 +9627,7 @@ if ("serviceWorker" in navigator) {
   </div>
 </div>
 
-<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.28</div>
+<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.29</div>
 
 <style id="sanistock-connexion-accueil-uniquement">
 #saniConnection.saniConnHomeOnlyHidden{display:none !important;}
