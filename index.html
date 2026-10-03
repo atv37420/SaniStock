@@ -9515,5 +9515,82 @@ if ("serviceWorker" in navigator) {
 </script>
 
 <div id="sanistock-version-bottom">SaniStock - version 1.1.10</div>
+
+<style id="sanistock-annonce-modal-css">
+#homeInformationModal{
+  position:fixed !important;
+  inset:0 !important;
+  z-index:999999 !important;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  background:rgba(0,0,0,.72);
+}
+#homeInformationModal.show{display:flex !important}
+#homeInformationModal .sanistockInfoCard{
+  width:min(92vw,460px);
+  max-height:82vh;
+  overflow:auto;
+  background:#fff;
+  color:#173f68;
+  border-radius:22px;
+  padding:22px;
+  box-shadow:0 12px 45px rgba(0,0,0,.38);
+  text-align:left;
+  border:3px solid #0757a0;
+}
+#homeInformationModalBadge{
+  display:inline-block;
+  padding:7px 11px;
+  border-radius:999px;
+  background:#eaf3fb;
+  color:#0757a0;
+  font-weight:900;
+  font-size:12px;
+}
+#homeInformationModalTitle{
+  margin:15px 0 10px;
+  font-size:22px;
+  line-height:1.15;
+  font-weight:900;
+}
+#homeInformationModalText{
+  white-space:pre-wrap;
+  font-size:15px;
+  line-height:1.45;
+  color:#263b50;
+}
+#homeInformationModalMeta{
+  margin-top:13px;
+  font-size:11px;
+  color:#71879a;
+}
+#homeInfoModalReadBtn{
+  width:100%;
+  margin-top:18px;
+  border:0;
+  border-radius:13px;
+  padding:13px 16px;
+  background:#0757a0;
+  color:#fff;
+  font-size:15px;
+  font-weight:900;
+  cursor:pointer;
+  touch-action:manipulation;
+}
+</style>
+
+
+<div id="homeInformationModal" aria-hidden="true">
+  <div class="sanistockInfoCard" role="dialog" aria-modal="true" aria-labelledby="homeInfoModalTitle">
+    <div id="homeInfoModalBadge">📢 INFORMATION</div>
+    <div id="homeInfoModalTitle">Information SaniStock</div>
+    <div id="homeInfoModalText"></div>
+    <div id="homeInfoModalMeta"></div>
+    <button id="homeInfoModalReadBtn" type="button">✓ J’AI LU</button>
+  </div>
+</div>
+
 </body>
 </html>
