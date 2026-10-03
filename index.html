@@ -1804,6 +1804,45 @@ body{display:block}
 .checklistAdminEmpty{padding:15px;border-radius:12px;background:#f3f7fa;color:#61758a;margin-bottom:12px}
 @media(max-width:700px){.checklistAdminForm{grid-template-columns:1fr}.checklistAdminRow{grid-template-columns:1fr}.checklistAdminRow button{width:100%}}
 </style>
+
+<style id="checklist-back-color-fix">
+/* Boutons RETOUR de la CHECK-LIST : même bleu que les autres boutons */
+#checklistPage .back,
+#checklistPage #checklistBackCat {
+  background:#0758a5 !important;
+  color:#fff !important;
+  border:0 !important;
+  box-shadow:0 4px 12px rgba(7,88,165,.22) !important;
+}
+#checklistPage .back:active,
+#checklistPage #checklistBackCat:active {
+  transform:scale(.97);
+}
+</style>
+
+<style id="sanistock-blue-buttons-final">
+/* SaniStock : bleu officiel des boutons */
+button.settingsAction,
+button.settingsAction.secondary,
+#checklistPage .back,
+#checklistPage button,
+#checklistPage .checklistCategory,
+#checklistPage .checklistVehicle,
+#checklistPage .checklistBtn {
+  background:#0758a5 !important;
+  color:#fff !important;
+  border-color:#0758a5 !important;
+}
+button.settingsAction:hover,
+button.settingsAction.secondary:hover,
+#checklistPage button:hover,
+#checklistPage .checklistCategory:hover,
+#checklistPage .checklistVehicle:hover,
+#checklistPage .checklistBtn:hover {
+  background:#0758a5 !important;
+  color:#fff !important;
+}
+</style>
 </head>
 <body>
 
