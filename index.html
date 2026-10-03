@@ -9604,6 +9604,28 @@ if ("serviceWorker" in navigator) {
   </div>
 </div>
 
-<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.24</div>
+<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.25</div>
+
+<style id="sanistock-connexion-accueil-uniquement">
+#saniConnection.saniConnHomeOnlyHidden{display:none !important;}
+</style>
+<script>
+(function(){
+  function majConnexionAccueil(){
+    var c=document.getElementById("saniConnection");
+    var h=document.getElementById("homePage");
+    if(!c) return;
+    var accueil=!!(h && h.classList.contains("active"));
+    c.classList.toggle("saniConnHomeOnlyHidden",!accueil);
+  }
+  document.addEventListener("DOMContentLoaded",function(){
+    majConnexionAccueil();
+    setTimeout(majConnexionAccueil,100);
+    setTimeout(majConnexionAccueil,1000);
+    setTimeout(majConnexionAccueil,3000);
+  });
+  window.addEventListener("hashchange",majConnexionAccueil);
+})();
+</script>
 </body>
 </html>
