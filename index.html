@@ -1,4 +1,4 @@
-<!-- SaniStock version 1.1.10 : boutons colorés sans animation -->
+<!-- SaniStock version 1.1.13 : boutons colorés sans animation -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -3718,6 +3718,50 @@ function chargerInformationAccueil(){
   }).withFailureHandler(function(err){
     /* Ne bloque jamais l’application si les informations ne sont pas disponibles. */
   }).getInformations(null,false);
+}
+
+/* ===== SYNCHRONISATION AUTOMATIQUE DES INFORMATIONS =====
+   Une annonce publiée par l'administrateur dans Google Sheets doit
+   pouvoir apparaître sur les comptes déjà connectés, sans devoir
+   se déconnecter/reconnecter. */
+let sanistockInformationTimer=null;
+
+function demarrerSurveillanceInformations(){
+  if(sanistockInformationTimer) return;
+
+  /* Vérification immédiate. */
+  setTimeout(function(){
+    try{
+      const home=document.getElementById('homePage');
+      if(home && home.classList.contains('active')){
+        chargerInformationAccueil();
+      }
+    }catch(e){}
+  },1200);
+
+  /* Vérifie régulièrement les nouvelles annonces. */
+  sanistockInformationTimer=setInterval(function(){
+    try{
+      if(document.hidden) return;
+      const home=document.getElementById('homePage');
+      if(home && home.classList.contains('active')){
+        chargerInformationAccueil();
+      }
+    }catch(e){}
+  },15000);
+
+  document.addEventListener('visibilitychange',function(){
+    if(!document.hidden){
+      setTimeout(function(){
+        try{
+          const home=document.getElementById('homePage');
+          if(home && home.classList.contains('active')){
+            chargerInformationAccueil();
+          }
+        }catch(e){}
+      },300);
+    }
+  });
 }
 
 function fermerInformationAccueilSilencieux(){
@@ -9474,5 +9518,15 @@ if ("serviceWorker" in navigator) {
 </script>
 
 <div id="sanistock-version-bottom">SaniStock - version 1.1.10</div>
+<script>
+(function(){
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',demarrerSurveillanceInformations);
+  }else{
+    demarrerSurveillanceInformations();
+  }
+})();
+</script>
+
 </body>
 </html>
