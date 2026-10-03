@@ -1,4 +1,4 @@
-<!-- SaniStock version 1.1.29 : boutons colorés sans animation -->
+<!-- SaniStock version 1.1.30 : catégories véhicules préparées pour futures check-lists -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -2101,7 +2101,7 @@ body{display:block}
 
     <div class="selectors">
       <div><label>SALARIÉ</label><select id="employee"><option value="">Sélectionner votre nom</option></select><button type="button" id="addColleagueBtn" class="addColleagueBtn" onclick="toggleSecondColleague()" hidden>＋ Ajouter un collègue</button><div id="secondColleagueWrap" class="secondColleagueWrap" hidden><label>2ᵉ COLLÈGUE</label><select id="employee2"><option value="">Sélectionner le collègue</option></select></div></div>
-      <div><label>VÉHICULE</label><select id="vehicle" onchange="adapterChecklistVehicule()"><option value="">Sélectionner un véhicule</option><option>HA-219-PS – AMBU TRAFIC</option><option>PEUGEOT BOXER</option><option>AUDI A6 TAXI</option><option>HK-887-SD – FORD TOURNEO</option><option>FH-061-DT – CADDY TAXI</option><option>GH805GV – IONIQ 5 TAXI</option><option>GH-575-RH – CADDY VSL</option><option>DR-607-TE – CADDY BLANC</option><option>FC-295-XP – SKODA SUPERB</option><option>FF-458-QT – SKODA BREAK VSL</option><option>EW-353-WR – SKODA BREAK VSL</option><option>FF-334-SL – SKODA KODIAQ VSL</option><option>EN-114-BK – SKODA SUPERB VSL</option></select></div>
+      <div><label>VÉHICULE</label><select id="vehicle" onchange="adapterChecklistVehicule()"><option value="">Sélectionner un véhicule</option><optgroup label="🚑 AMBULANCES"><option>FZ-349-AT – AMBULANCE PEUGEOT BOXER</option><option>HA-219-PS – AMBULANCE RENAULT TRAFIC</option></optgroup><optgroup label="🚕 TAXIS"><option>DR-951-FG – AUDI A6 TAXI</option><option>FH-061-DT – CADDY TAXI</option><option>GH-805-GV – IONIQ 5 TAXI</option><option>HK-887-SD – FORD TOURNEO TAXI</option><option>DR-607-TE – CADDY TAXI</option></optgroup><optgroup label="🚐 VSL"><option>GH-575-RH – CADDY VSL</option><option>FF-458-QT – SKODA BREAK VSL</option><option>FF-334-SL – SKODA KODIAQ VSL</option><option>EN-114-BK – SKODA SUPERB VSL</option><option>FC-295-XP – SKODA SUPERB VSL</option></optgroup></select></div>
     </div>
 
     <div class="disCard">
@@ -2493,7 +2493,7 @@ const CHECKLIST_AMBULANCE=[
 ];
 function isElectricVehicle(nom){
  const v=String(nom||'').toUpperCase().replace(/[–—-]/g,' ');
- return v.includes('GH805GV')||v.includes('IONIQ 5');
+ return v.includes('GH805GV')||v.includes('GH 805 GV')||v.includes('IONIQ 5');
 }
 function electricFuelLabel(){
  return '<span class=\"taskIcon\"><svg class=\"taskSvg\" viewBox=\"0 0 24 24\"><path d=\"M7 3h8v18H7z\"></path><path d=\"M9 6h4v4H9z\"></path><path d=\"M15 8h3v4h2v4\"></path><path d=\"M4 21h16\"></path></svg></span><span class=\"taskLabel\">Brancher le véhicule</span>';
