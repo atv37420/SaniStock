@@ -531,7 +531,7 @@ body{display:block}
 #saniSplash .splashTitle .saniBlue{color:#042349 !important}
 #saniSplash .splashTitle .stockRed{color:#e32636 !important}
 #saniSplash .splashSub{
-  margin-top:24px;
+  margin-top:10px;
   font-size:15px;
   font-weight:600;
   opacity:.96;
@@ -933,7 +933,7 @@ body{display:block}
 .dashboardLoading,.dashboardError{background:#fff;border-radius:14px;padding:18px;text-align:center;color:#60778c;font-weight:800}
 .dashboardGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .dashboardKpi{background:#fff;border-radius:15px;padding:12px;border:1px solid #dbe7ef;box-shadow:0 4px 12px rgba(18,55,82,.06);min-height:70px}
-.dashboardKpi .kpiIcon{font-size:30px;float:left;margin-right:9px}
+.dashboardKpi .kpiIcon{font-size:22px;float:left;margin-right:9px}
 .dashboardKpi .kpiValue{font-size:23px;font-weight:900;color:#042349;line-height:1}
 .dashboardKpi .kpiLabel{font-size:11px;font-weight:800;color:#60778c;margin-top:5px}
 .dashboardKpi.danger .kpiValue{color:#d72638}
@@ -3702,13 +3702,6 @@ function chargerInformationAccueil(){
     const p=String(r.priorite||'info');
     const icon=p==='urgent'?'🔴':p==='important'?'🟠':'📢';
 
-    /* L'admin peut publier et voir l'annonce dans ses paramètres,
-       mais la fenêtre d'annonce est destinée aux autres comptes. */
-    if(appareilProprietaire()){
-      if(modal){ modal.classList.remove('show'); modal.setAttribute('aria-hidden','true'); }
-      return;
-    }
-
     if(modal){
       modal.style.display='flex';
 
@@ -3721,7 +3714,7 @@ function chargerInformationAccueil(){
       if(badge) badge.textContent=icon+' '+(p==='urgent'?'URGENT':p==='important'?'IMPORTANT':'INFORMATION');
       if(title) title.textContent=String(r.titre||'');
       if(text) text.textContent=String(r.message||'');
-      if(meta) meta.textContent=r.expiration?'Jusqu’au '+String(r.expiration):'Information publiée par SaniStock';
+      if(meta) meta.textContent='Information publiée par SaniStock';
 
       if(b){
         b.disabled=false;
