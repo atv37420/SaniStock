@@ -1710,6 +1710,7 @@ body{display:block}
 }
 </style>
 
+<!-- SaniStock 1.1.17 : annonce affichée une seule fois après lecture -->
 </head>
 <body>
 
@@ -3685,6 +3686,18 @@ function chargerInformationAccueil(){
 
     const idInfo=String(r.id||'');
     if(!idInfo) return;
+
+    // Si cette annonce a déjà été lue sur cet appareil par ce salarié,
+    // elle ne doit plus jamais réapparaître, même après reconnexion.
+    const nomSalarie=localStorage.getItem('sanistock_employee_name')||'visiteur';
+    const cleLecture='sanistock_information_lue_'+nomSalarie.toLowerCase().replace(/\s+/g,'_');
+    let informationsLues=[];
+    try{ informationsLues=JSON.parse(localStorage.getItem(cleLecture)||'[]'); }catch(e){ informationsLues=[]; }
+    if(informationsLues.map(String).indexOf(idInfo)>=0){
+      if(modal){ modal.classList.remove('show'); modal.style.display='none'; modal.setAttribute('aria-hidden','true'); }
+      if(box){ box.classList.remove('show'); box.style.display='none'; box.innerHTML=''; }
+      return;
+    }
 
     const p=String(r.priorite||'info');
     const icon=p==='urgent'?'🔴':p==='important'?'🟠':'📢';
