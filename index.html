@@ -1771,6 +1771,16 @@ body{display:block}
 .checklistVehicle span:last-child{font-size:22px;color:#2f80ed;}
 @media(max-width:650px){.checklistGrid{grid-template-columns:1fr;}#checklistPage .checklistCleanWrap{padding:12px 12px 30px;}}
 </style>
+<style id="checklist-final-fix">
+#checklistPage{position:fixed !important;inset:0 !important;z-index:200 !important;display:none !important;min-height:100vh !important;min-height:100dvh !important;margin:0 !important;padding:0 !important;background:#edf5fa !important;overflow-y:auto !important;box-sizing:border-box !important;}
+#checklistPage.active{display:block !important;z-index:200 !important;}
+#checklistPage.pageFadeIn{display:block !important;z-index:200 !important;}
+#checklistPage .checklistCleanWrap{position:relative !important;z-index:201 !important;max-width:900px;margin:0 auto;padding:18px 18px 40px !important;box-sizing:border-box;}
+#checklistPage .back{margin:0 0 14px !important;}
+#checklistPage h1{margin:4px 0 !important;}
+#checklistPage #checklistSubtitle{margin:0 0 18px !important;}
+@media(max-width:650px){#checklistPage .checklistCleanWrap{padding:12px 12px 30px !important;}}
+</style>
 </head>
 <body>
 
@@ -9694,35 +9704,32 @@ if ("serviceWorker" in navigator) {
 </script>
 
 <script id="checklist-fixed-js">
-const CHECKLIST_VEHICLES_FIXED={
-  'AMBULANCES':['HA-219-PS – AMBU TRAFIC','PEUGEOT BOXER'],
-  'TAXIS':['AUDI A6 TAXI','FH-061-DT – CADDY TAXI','GH805GV – IONIQ 5 TAXI'],
-  'VSL':['GH-575-RH – CADDY VSL','FF-458-QT – SKODA BREAK VSL','EW-353-WR – SKODA BREAK VSL','FF-334-SL – SKODA KODIAQ VSL','EN-114-BK – SKODA SUPERB VSL'],
-  'AUTRES':['HK-887-SD – FORD TOURNEO','DR-607-TE – CADDY BLANC','FC-295-XP – SKODA SUPERB']
-};
-function ouvrirChecklistCategories(){
-  const box=document.getElementById('checklistContent');
-  const sub=document.getElementById('checklistSubtitle');
-  if(!box) return;
-  if(sub) sub.textContent='Choisissez une catégorie de véhicule';
-  box.innerHTML='<div class="checklistGrid">'+Object.keys(CHECKLIST_VEHICLES_FIXED).map(function(cat){
-    return '<button type="button" class="checklistCard" onclick="ouvrirChecklistVehicules(\''+cat+'\')"><span class="checklistCardTitle">'+cat+'</span><span class="checklistCardDesc">'+CHECKLIST_VEHICLES_FIXED[cat].length+' véhicule'+(CHECKLIST_VEHICLES_FIXED[cat].length>1?'s':'')+'</span></button>';
-  }).join('')+'</div>';
-  showPage('checklistPage');
-}
-function ouvrirChecklistVehicules(categorie){
-  const box=document.getElementById('checklistContent');
-  const sub=document.getElementById('checklistSubtitle');
-  const liste=CHECKLIST_VEHICLES_FIXED[categorie]||[];
-  if(sub) sub.textContent=categorie+' — choisissez un véhicule';
-  if(!box) return;
-  box.innerHTML='<button type="button" class="back" style="margin-bottom:12px!important" onclick="ouvrirChecklistCategories()">← Catégories</button>'+liste.map(function(v){
-    return '<button type="button" class="checklistVehicle" onclick="ouvrirChecklistVehiculeFixe(\''+v.replace(/'/g,"\\'")+'\')"><span>🚑 '+escapeHtml(v)+'</span><span>›</span></button>';
-  }).join('');
-}
-function ouvrirChecklistVehiculeFixe(vehicule){
-  alert('Véhicule sélectionné : '+vehicule+'\n\nLa check-list détaillée de ce véhicule sera affichée ici.');
-}
+(function(){
+  const V={
+    'AMBULANCES':['FZ-349-AT – AMBULANCE PEUGEOT BOXER','HA-219-PS – AMBULANCE RENAULT TRAFIC'],
+    'TAXIS':['DR-951-FG – AUDI A6 TAXI','FH-061-DT – CADDY TAXI','GH-805-GV – IONIQ 5 TAXI','HK-887-SD – FORD TOURNEO TAXI','DR-607-TE – CADDY TAXI'],
+    'VSL':['GH-575-RH – CADDY VSL','FF-458-QT – SKODA BREAK VSL','FF-334-SL – SKODA KODIAQ VSL','EN-114-BK – SKODA SUPERB VSL','FC-295-XP – SKODA SUPERB VSL']
+  };
+  window.CHECKLIST_VEHICLES_FIXED=V;
+  function esc(x){return String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+  window.ouvrirChecklistCategories=function(){
+    var box=document.getElementById('checklistContent'), sub=document.getElementById('checklistSubtitle'); if(!box)return;
+    if(sub)sub.textContent='Choisissez une catégorie de véhicule';
+    box.innerHTML=Object.keys(V).map(function(c){return '<button type="button" class="checklistCard" data-check-cat="'+esc(c)+'"><span class="checklistCardTitle">'+esc(c)+'</span><span class="checklistCardDesc">'+V[c].length+' véhicule'+(V[c].length>1?'s':'')+'</span></button>';}).join('');
+    if(typeof showPage==='function')showPage('checklistPage');
+  };
+  window.ouvrirChecklistVehicules=function(c){
+    var box=document.getElementById('checklistContent'), sub=document.getElementById('checklistSubtitle'); if(!box)return;
+    if(sub)sub.textContent=c+' — choisissez un véhicule';
+    box.innerHTML='<button type="button" class="back" id="checklistBackCat">← Catégories</button>'+V[c].map(function(v){return '<button type="button" class="checklistVehicle" data-check-veh="'+esc(v)+'"><span>🚑 '+esc(v)+'</span><span>›</span></button>';}).join('');
+  };
+  window.ouvrirChecklistVehiculeFixe=function(v){alert('Véhicule sélectionné : '+v+'\n\nLa check-list détaillée de ce véhicule sera ajoutée ici.');};
+  document.addEventListener('click',function(e){
+    var cat=e.target.closest && e.target.closest('[data-check-cat]'); if(cat){window.ouvrirChecklistVehicules(cat.getAttribute('data-check-cat'));return;}
+    var veh=e.target.closest && e.target.closest('[data-check-veh]'); if(veh){window.ouvrirChecklistVehiculeFixe(veh.getAttribute('data-check-veh'));return;}
+    if(e.target.closest && e.target.closest('#checklistBackCat')){window.ouvrirChecklistCategories();return;}
+  });
+})();
 </script>
 </body>
 </html>
