@@ -1,4 +1,4 @@
-<!-- SaniStock version 1.0.91 : boutons colorés sans animation -->
+<!-- SaniStock version 1.0.92 : boutons colorés sans animation -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -996,7 +996,7 @@ body{display:block}
 
 <style>
 /* ===== CONNEXION SALARIÉ PERSISTANTE ===== */
-/* ===== ANIMATION CONNEXION COEUR + ECG — version 1.0.91 ===== */
+/* ===== ANIMATION CONNEXION COEUR + ECG — version 1.0.92 ===== */
 .loginAmbulanceAnim{display:none;position:relative;height:126px;margin:2px 0 12px;overflow:hidden;border-radius:18px;background:linear-gradient(180deg,#f4fbff,#e4f4ff);border:1px solid #c8e4f7}
 .loginAmbulanceAnim.show{display:block}
 .loginHeartCircle{position:absolute;left:50%;top:50%;width:82px;height:82px;transform:translate(-50%,-52%);border:4px solid rgba(22,168,255,.18);border-top-color:#16a8ff;border-right-color:#0b7bd4;border-radius:50%;animation:loginHeartSpin 1.15s linear infinite}
@@ -1320,7 +1320,7 @@ body{display:block}
 </style>
 
 <style>
-/* ===== SaniStock 1.0.91 : boutons retour + position des boutons du haut ===== */
+/* ===== SaniStock 1.0.92 : boutons retour + position des boutons du haut ===== */
 .back, .disBack {
   background:#0758a5 !important;
   color:#fff !important;
@@ -1328,6 +1328,8 @@ body{display:block}
   box-shadow:0 4px 12px rgba(7,88,165,.22) !important;
 }
 .back:active, .disBack:active { transform:scale(.97); }
+/* Indicateur de connexion visible uniquement sur l'accueil */
+#saniConnection.saniConnHomeOnlyHidden { display:none !important; }
 
 /* Connexion à gauche / Déconnexion à droite */
 #saniConnection {
@@ -1345,7 +1347,7 @@ body{display:block}
 </style>
 
 <style>
-/* ===== SaniStock 1.0.91 : même bleu que l'indicateur Connecté à SaniStock ===== */
+/* ===== SaniStock 1.0.92 : même bleu que l'indicateur Connecté à SaniStock ===== */
 .back, .disBack, #homeLogoutBtn {
   background:rgba(4,35,73,.82) !important;
   color:#fff !important;
@@ -1753,6 +1755,8 @@ function ouvrirRechercheSaniStock(){
   const overlay=document.getElementById('saniSearchOverlay');
   const input=document.getElementById('saniGlobalSearchInput');
   if(!overlay) return;
+  var conn=document.getElementById('saniConnection');
+  if(conn) conn.classList.add('saniConnHomeOnlyHidden');
   overlay.classList.add('open');
   overlay.setAttribute('aria-hidden','false');
   try{chargerStock();}catch(e){}
@@ -1764,6 +1768,9 @@ function fermerRechercheSaniStock(){
   if(!overlay) return;
   overlay.classList.remove('open');
   overlay.setAttribute('aria-hidden','true');
+  var conn=document.getElementById('saniConnection');
+  var home=document.getElementById('homePage');
+  if(conn) conn.classList.toggle('saniConnHomeOnlyHidden', !(home && home.classList.contains('active')));
 }
 function ouvrirResultatRecherche(type,value){
   fermerRechercheSaniStock();
@@ -1831,6 +1838,9 @@ function showPage(id){
  var suivante=document.getElementById(id);
 
  if(!suivante || actuelle===suivante) return;
+
+ var conn=document.getElementById('saniConnection');
+ if(conn) conn.classList.toggle('saniConnHomeOnlyHidden', id !== 'homePage');
 
  document.querySelectorAll('.screen').forEach(function(p){
    p.classList.remove('pageFadeIn','pageFadeOut');
@@ -4053,7 +4063,7 @@ function fermerDetailsDashboard(){
 </script>
 
 <script>
-/* ===== MÉMO MÉDICAMENTS — version 1.0.91 =====
+/* ===== MÉMO MÉDICAMENTS — version 1.0.92 =====
    Liste informative, sans posologie ni protocole.
    La dotation et l'utilisation restent soumises aux protocoles en vigueur.
 */
@@ -9093,6 +9103,6 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 
-<div id="sanistock-version-bottom">SaniStock - version 1.0.91</div>
+<div id="sanistock-version-bottom">SaniStock - version 1.0.92</div>
 </body>
 </html>
