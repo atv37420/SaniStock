@@ -1764,6 +1764,20 @@ body{display:block}
   color:#042349 !important;
 }
 </style>
+
+<style id="checklist-access-and-colors">
+#checklistPage .checklistContent{display:flex;flex-direction:column;gap:14px;}
+#checklistPage .checklistCard,#checklistPage .checklistVehicle{
+  width:100%;box-sizing:border-box;background:#FFFFFF !important;color:#042349 !important;
+  border:1px solid rgba(4,35,73,.14);border-radius:16px;padding:18px 20px;
+  box-shadow:0 5px 16px rgba(4,35,73,.08);cursor:pointer;text-align:left;
+}
+#checklistPage .checklistCard * ,#checklistPage .checklistVehicle *{color:#042349 !important;}
+#checklistPage .checklistCardTitle{display:block;font-weight:800;font-size:18px;}
+#checklistPage .checklistCardDesc{display:block;margin-top:5px;font-size:14px;opacity:.8;}
+#checklistPage .checklistVehicle{display:flex;justify-content:space-between;align-items:center;font-weight:700;}
+#checklistPage .checklistSectionTitle{margin:8px 0 0;color:#042349;font-size:16px;font-weight:800;}
+</style>
 </head>
 <body>
 
@@ -2109,12 +2123,21 @@ body{display:block}
         <span class="memoChoiceTitle">DÉSINFECTION</span>
         <span class="memoChoiceDesc">Accéder à la désinfection journalière des véhicules</span>
       </button>
-      <button type="button" class="memoChoice" disabled style="cursor:not-allowed;opacity:.9">
+      <button type="button" class="memoChoice" onclick="showPage('checklistPage');ouvrirChecklistCategories()">
         <span class="memoChoiceIcon">✅</span>
         <span class="memoChoiceTitle">CHECK-LIST</span>
-        <span class="memoChoiceDesc">Bientôt disponible</span>
+        <span class="memoChoiceDesc">Check-list des véhicules</span>
       </button>
     </div>
+  </div>
+</section>
+
+<section id="checklistPage" class="screen page">
+  <button type="button" class="back" onclick="showPage('vehiclePage')">← Retour</button>
+  <div style="max-width:900px;margin:20px auto;padding:0 20px">
+    <h1 style="margin:10px 0 6px">✅ CHECK-LIST</h1>
+    <p id="checklistSubtitle" style="margin:0 0 22px;color:#042349">Sélectionnez une catégorie</p>
+    <div id="checklistContent" class="checklistContent"></div>
   </div>
 </section>
 
@@ -9673,6 +9696,32 @@ if ("serviceWorker" in navigator) {
     setTimeout(majConnexionAccueil,3000);
   });
   window.addEventListener("hashchange",majConnexionAccueil);
+})();
+</script>
+
+<script id="checklist-navigation">
+(function(){
+  const V={
+    '🚑 AMBULANCES':['FZ-349-AT – AMBULANCE PEUGEOT BOXER','HA-219-PS – AMBULANCE RENAULT TRAFIC'],
+    '🚕 TAXIS':['DR-951-FG – AUDI A6 TAXI','FH-061-DT – CADDY TAXI','GH-805-GV – IONIQ 5 TAXI','HK-887-SD – FORD TOURNEO TAXI','DR-607-TE – CADDY TAXI'],
+    '🚐 VSL':['GH-575-RH – CADDY VSL','FF-458-QT – SKODA BREAK VSL','FF-334-SL – SKODA KODIAQ VSL','EN-114-BK – SKODA SUPERB VSL','FC-295-XP – SKODA SUPERB VSL']
+  };
+  function esc(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+  window.ouvrirChecklistCategories=function(){
+    const box=document.getElementById('checklistContent'); if(!box)return;
+    document.getElementById('checklistSubtitle').textContent='Sélectionnez une catégorie';
+    box.innerHTML=Object.keys(V).map(c=>'<button type="button" class="checklistCard" data-cat="'+esc(c)+'"><span class="checklistCardTitle">'+esc(c)+'</span><span class="checklistCardDesc">'+V[c].length+' véhicule'+(V[c].length>1?'s':'')+'</span></button>').join('');
+  };
+  function vehicules(c){
+    const box=document.getElementById('checklistContent');
+    document.getElementById('checklistSubtitle').textContent=c+' — choisissez un véhicule';
+    box.innerHTML='<button type="button" class="back" id="checklistBackCategories">← Catégories</button>'+V[c].map(v=>'<button type="button" class="checklistVehicle" data-veh="'+esc(v)+'"><span>🚑 '+esc(v)+'</span><span>›</span></button>').join('');
+  }
+  document.addEventListener('click',function(e){
+    const cat=e.target.closest&&e.target.closest('[data-cat]'); if(cat){vehicules(cat.getAttribute('data-cat'));return;}
+    const back=e.target.closest&&e.target.closest('#checklistBackCategories'); if(back){ouvrirChecklistCategories();return;}
+    const veh=e.target.closest&&e.target.closest('[data-veh]'); if(veh){alert('Véhicule sélectionné : '+veh.getAttribute('data-veh'));return;}
+  });
 })();
 </script>
 </body>
