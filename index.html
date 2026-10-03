@@ -1,4 +1,4 @@
-<!-- SaniStock version 1.0.90 : boutons colorés sans animation -->
+<!-- SaniStock version 1.0.91 : boutons colorés sans animation -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -996,7 +996,7 @@ body{display:block}
 
 <style>
 /* ===== CONNEXION SALARIÉ PERSISTANTE ===== */
-/* ===== ANIMATION CONNEXION COEUR + ECG — version 1.0.90 ===== */
+/* ===== ANIMATION CONNEXION COEUR + ECG — version 1.0.91 ===== */
 .loginAmbulanceAnim{display:none;position:relative;height:126px;margin:2px 0 12px;overflow:hidden;border-radius:18px;background:linear-gradient(180deg,#f4fbff,#e4f4ff);border:1px solid #c8e4f7}
 .loginAmbulanceAnim.show{display:block}
 .loginHeartCircle{position:absolute;left:50%;top:50%;width:82px;height:82px;transform:translate(-50%,-52%);border:4px solid rgba(22,168,255,.18);border-top-color:#16a8ff;border-right-color:#0b7bd4;border-radius:50%;animation:loginHeartSpin 1.15s linear infinite}
@@ -1320,7 +1320,7 @@ body{display:block}
 </style>
 
 <style>
-/* ===== SaniStock 1.0.90 : boutons retour + position des boutons du haut ===== */
+/* ===== SaniStock 1.0.91 : boutons retour + position des boutons du haut ===== */
 .back, .disBack {
   background:#0758a5 !important;
   color:#fff !important;
@@ -1340,6 +1340,22 @@ body{display:block}
   right:8px !important;
   top:max(8px, env(safe-area-inset-top)) !important;
   background:#0758a5 !important;
+  color:#fff !important;
+}
+</style>
+
+<style>
+/* ===== SaniStock 1.0.91 : même bleu que l'indicateur Connecté à SaniStock ===== */
+.back, .disBack, #homeLogoutBtn {
+  background:rgba(4,35,73,.82) !important;
+  color:#fff !important;
+  border:1px solid rgba(255,255,255,.40) !important;
+  box-shadow:0 5px 18px rgba(0,0,0,.22) !important;
+  backdrop-filter:blur(8px) !important;
+  -webkit-backdrop-filter:blur(8px) !important;
+}
+.back:hover, .disBack:hover, #homeLogoutBtn:hover {
+  background:rgba(4,35,73,.92) !important;
   color:#fff !important;
 }
 </style>
@@ -4037,7 +4053,7 @@ function fermerDetailsDashboard(){
 </script>
 
 <script>
-/* ===== MÉMO MÉDICAMENTS — version 1.0.90 =====
+/* ===== MÉMO MÉDICAMENTS — version 1.0.91 =====
    Liste informative, sans posologie ni protocole.
    La dotation et l'utilisation restent soumises aux protocoles en vigueur.
 */
@@ -9077,6 +9093,6 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 
-<div id="sanistock-version-bottom">SaniStock - version 1.0.90</div>
+<div id="sanistock-version-bottom">SaniStock - version 1.0.91</div>
 </body>
 </html>
