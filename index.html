@@ -1,4 +1,4 @@
-<!-- SaniStock version 1.1.13 : boutons colorés sans animation -->
+<!-- SaniStock version 1.1.10 : boutons colorés sans animation -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -3672,97 +3672,94 @@ function supprimerInformationUI(id){
 function chargerInformationAccueil(){
   const box=document.getElementById('homeInformation');
   const modal=document.getElementById('homeInformationModal');
-  /* Le propriétaire/admin ne reçoit jamais la fenêtre d'information qu'il vient de publier. */
-  if(appareilProprietaire()){
-    if(modal){ modal.classList.remove('show'); modal.setAttribute('aria-hidden','true'); }
-    if(box){ box.classList.remove('show'); box.innerHTML=''; }
-    return;
-  }
   if(!gsDisponible()) return;
+
   google.script.run.withSuccessHandler(function(r){
-    /* getInformations() renvoie une liste : on prend la première information. */
     if(Array.isArray(r)) r=r.length?r[0]:null;
+
     if(!r || !r.titre){
       if(modal){ modal.classList.remove('show'); modal.setAttribute('aria-hidden','true'); }
       if(box){ box.classList.remove('show'); box.innerHTML=''; }
       return;
     }
+
+    const idInfo=String(r.id||'');
+    if(!idInfo) return;
+
     const p=String(r.priorite||'info');
     const icon=p==='urgent'?'🔴':p==='important'?'🟠':'📢';
-    const nomSalarie=localStorage.getItem('sanistock_employee_name')||'';
-    if(!nomSalarie) return;
-    const cleLecture='sanistock_information_lue_'+nomSalarie.toLowerCase().replace(/\s+/g,'_');
-    let informationsLues=[];
-    try{ informationsLues=JSON.parse(localStorage.getItem(cleLecture)||'[]'); }catch(e){ informationsLues=[]; }
-    const idInfo=String(r.id||'');
-    if(!idInfo || informationsLues.indexOf(idInfo)>=0){
+
+    /* L'admin peut publier et voir l'annonce dans ses paramètres,
+       mais la fenêtre d'annonce est destinée aux autres comptes. */
+    if(appareilProprietaire()){
       if(modal){ modal.classList.remove('show'); modal.setAttribute('aria-hidden','true'); }
       return;
     }
+
     if(modal){
       modal.style.display='flex';
-      document.getElementById('homeInfoModalBadge').textContent=icon+' '+(p==='urgent'?'URGENT':p==='important'?'IMPORTANT':'INFORMATION');
-      document.getElementById('homeInfoModalTitle').textContent=String(r.titre||'');
-      document.getElementById('homeInfoModalText').textContent=String(r.message||'');
-      document.getElementById('homeInfoModalMeta').textContent=r.expiration?'Jusqu’au '+String(r.expiration):'Information publiée par SaniStock';
+
+      const badge=document.getElementById('homeInfoModalBadge');
+      const title=document.getElementById('homeInfoModalTitle');
+      const text=document.getElementById('homeInfoModalText');
+      const meta=document.getElementById('homeInfoModalMeta');
       const b=document.getElementById('homeInfoModalReadBtn');
-      b.disabled=false;
-      b.onclick=function(ev){ ev.preventDefault(); ev.stopPropagation(); marquerInformationLue(idInfo); };
-      b.ontouchend=function(ev){ ev.preventDefault(); ev.stopPropagation(); marquerInformationLue(idInfo); };
-      b.style.pointerEvents='auto';
-      b.style.position='relative';
-      b.style.zIndex='1000002';
+
+      if(badge) badge.textContent=icon+' '+(p==='urgent'?'URGENT':p==='important'?'IMPORTANT':'INFORMATION');
+      if(title) title.textContent=String(r.titre||'');
+      if(text) text.textContent=String(r.message||'');
+      if(meta) meta.textContent=r.expiration?'Jusqu’au '+String(r.expiration):'Information publiée par SaniStock';
+
+      if(b){
+        b.disabled=false;
+        b.onclick=function(ev){
+          ev.preventDefault();
+          ev.stopPropagation();
+          marquerInformationLue(idInfo);
+        };
+        b.ontouchend=function(ev){
+          ev.preventDefault();
+          ev.stopPropagation();
+          marquerInformationLue(idInfo);
+        };
+        b.style.pointerEvents='auto';
+        b.style.position='relative';
+        b.style.zIndex='1000002';
+      }
+
       modal.classList.add('show');
       modal.setAttribute('aria-hidden','false');
     }
   }).withFailureHandler(function(err){
-    /* Ne bloque jamais l’application si les informations ne sont pas disponibles. */
+    console.warn('Annonce SaniStock indisponible:', err);
   }).getInformations(null,false);
 }
 
-/* ===== SYNCHRONISATION AUTOMATIQUE DES INFORMATIONS =====
-   Une annonce publiée par l'administrateur dans Google Sheets doit
-   pouvoir apparaître sur les comptes déjà connectés, sans devoir
-   se déconnecter/reconnecter. */
-let sanistockInformationTimer=null;
+/* Vérification régulière des nouvelles annonces pour les comptes salariés. */
+(function(){
+  let timerAnnonceSaniStock=null;
 
-function demarrerSurveillanceInformations(){
-  if(sanistockInformationTimer) return;
-
-  /* Vérification immédiate. */
-  setTimeout(function(){
+  function verifierAnnonceSaniStock(){
     try{
-      const home=document.getElementById('homePage');
-      if(home && home.classList.contains('active')){
+      if(typeof chargerInformationAccueil==='function'){
         chargerInformationAccueil();
       }
     }catch(e){}
-  },1200);
+  }
 
-  /* Vérifie régulièrement les nouvelles annonces. */
-  sanistockInformationTimer=setInterval(function(){
-    try{
-      if(document.hidden) return;
-      const home=document.getElementById('homePage');
-      if(home && home.classList.contains('active')){
-        chargerInformationAccueil();
-      }
-    }catch(e){}
-  },15000);
+  window.addEventListener('load',function(){
+    setTimeout(verifierAnnonceSaniStock,1200);
+    timerAnnonceSaniStock=setInterval(verifierAnnonceSaniStock,15000);
+  });
 
   document.addEventListener('visibilitychange',function(){
-    if(!document.hidden){
-      setTimeout(function(){
-        try{
-          const home=document.getElementById('homePage');
-          if(home && home.classList.contains('active')){
-            chargerInformationAccueil();
-          }
-        }catch(e){}
-      },300);
-    }
+    if(!document.hidden) setTimeout(verifierAnnonceSaniStock,500);
   });
-}
+
+  window.addEventListener('focus',function(){
+    setTimeout(verifierAnnonceSaniStock,500);
+  });
+})();
 
 function fermerInformationAccueilSilencieux(){
   const box=document.getElementById('homeInformation');
@@ -9518,15 +9515,5 @@ if ("serviceWorker" in navigator) {
 </script>
 
 <div id="sanistock-version-bottom">SaniStock - version 1.1.10</div>
-<script>
-(function(){
-  if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded',demarrerSurveillanceInformations);
-  }else{
-    demarrerSurveillanceInformations();
-  }
-})();
-</script>
-
 </body>
 </html>
