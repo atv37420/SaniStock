@@ -2308,28 +2308,10 @@ function chargerSalaries(){
 
 /* LISTE DES VÉHICULES DEPUIS GOOGLE SHEETS */
 function chargerVehicules(){
- // La liste des véhicules de la désinfection est préparée ici pour les futures check-lists.
- // On ne la remplace pas par la liste générique renvoyée par Google Sheets.
- return;
- /*
- google.script.run
-  .withSuccessHandler(function(vehicules){
-    if(!Array.isArray(vehicules)||!vehicules.length) return;
-    const select=$('vehicle');
-    if(!select) return;
-    const valeurActuelle=select.value;
-    select.innerHTML='<option value="">Sélectionner un véhicule</option>'+
-      vehicules.map(function(vehicule){
-        return '<option value="'+escapeHtml(vehicule)+'">'+escapeHtml(vehicule)+'</option>';
-      }).join('');
-    if(vehicules.includes(valeurActuelle)) select.value=valeurActuelle;
-  })
-  .withFailureHandler(function(err){
-    console.error('Impossible de charger les véhicules :',err);
-  })
-  .getVehicules();
+  // Les véhicules de la désinfection sont préparés directement dans le HTML.
+  // On ne remplace pas cette liste par celle de Google Sheets.
+  return;
 }
-*/
 function stockStatusClass(status){return status==='Rupture'?'status-rupture':status==='Stock min'?'status-min':'status-ok'}
 function chargerStock(){
  const list=$('stockList');
