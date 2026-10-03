@@ -1,4 +1,4 @@
-<!-- SaniStock version 1.1.30 : catégories véhicules préparées pour futures check-lists -->
+<!-- SaniStock version 1.1.30 : catégories véhicules pour futures check-lists -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -2308,7 +2308,10 @@ function chargerSalaries(){
 
 /* LISTE DES VÉHICULES DEPUIS GOOGLE SHEETS */
 function chargerVehicules(){
- if(!(window.google&&google.script&&google.script.run)) return;
+ // La liste des véhicules de la désinfection est préparée ici pour les futures check-lists.
+ // On ne la remplace pas par la liste générique renvoyée par Google Sheets.
+ return;
+ /*
  google.script.run
   .withSuccessHandler(function(vehicules){
     if(!Array.isArray(vehicules)||!vehicules.length) return;
@@ -2326,6 +2329,7 @@ function chargerVehicules(){
   })
   .getVehicules();
 }
+*/
 function stockStatusClass(status){return status==='Rupture'?'status-rupture':status==='Stock min'?'status-min':'status-ok'}
 function chargerStock(){
  const list=$('stockList');
@@ -2493,7 +2497,7 @@ const CHECKLIST_AMBULANCE=[
 ];
 function isElectricVehicle(nom){
  const v=String(nom||'').toUpperCase().replace(/[–—-]/g,' ');
- return v.includes('GH805GV')||v.includes('GH 805 GV')||v.includes('IONIQ 5');
+ return v.includes('GH805GV')||v.includes('IONIQ 5');
 }
 function electricFuelLabel(){
  return '<span class=\"taskIcon\"><svg class=\"taskSvg\" viewBox=\"0 0 24 24\"><path d=\"M7 3h8v18H7z\"></path><path d=\"M9 6h4v4H9z\"></path><path d=\"M15 8h3v4h2v4\"></path><path d=\"M4 21h16\"></path></svg></span><span class=\"taskLabel\">Brancher le véhicule</span>';
