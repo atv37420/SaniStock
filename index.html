@@ -1,4 +1,4 @@
-<!-- SaniStock version 1.1.37 : boutons colorés sans animation -->
+<!-- SaniStock version 1.1.29 : boutons colorés sans animation -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -996,7 +996,7 @@ body{display:block}
 
 <style>
 /* ===== CONNEXION SALARIÉ PERSISTANTE ===== */
-/* ===== ANIMATION CONNEXION COEUR + ECG — version 1.1.37 ===== */
+/* ===== ANIMATION CONNEXION COEUR + ECG — version 1.1.29 ===== */
 .loginAmbulanceAnim{display:none;position:relative;height:126px;margin:2px 0 12px;overflow:hidden;border-radius:18px;background:linear-gradient(180deg,#f4fbff,#e4f4ff);border:1px solid #c8e4f7}
 .loginAmbulanceAnim.show{display:block}
 .loginHeartCircle{position:absolute;left:50%;top:50%;width:82px;height:82px;transform:translate(-50%,-52%);border:4px solid rgba(22,168,255,.18);border-top-color:#042349;border-right-color:#0b7bd4;border-radius:50%;animation:loginHeartSpin 1.15s linear infinite}
@@ -1322,7 +1322,7 @@ body{display:block}
 <style>
 /* ===== SaniStock 1.0.95 : boutons retour + position des boutons du haut ===== */
 .back, .disBack {
-  background:rgba(4,35,73,.82) !important;
+  background:#0758a5 !important;
   color:#fff !important;
   border:0 !important;
   box-shadow:0 4px 12px rgba(7,88,165,.22) !important;
@@ -1341,7 +1341,7 @@ body{display:block}
   left:auto !important;
   right:8px !important;
   top:max(8px, env(safe-area-inset-top)) !important;
-  background:rgba(4,35,73,.82) !important;
+  background:#0758a5 !important;
   color:#fff !important;
 }
 </style>
@@ -1381,7 +1381,7 @@ body{display:block}
 .disBack,
 .vehicleBack,
 .memoBack{
-  background:rgba(4,35,73,.82) !important;
+  background:#0758a5 !important;
   color:#fff !important;
 }
 
@@ -1408,19 +1408,19 @@ body{display:block}
 .datesBtn,
 .birthdayContinue,
 .stockSave{
-  background:rgba(4,35,73,.82) !important;
+  background:#0758a5 !important;
   color:#fff !important;
 }
 
 /* Les boutons Retour restent bleus */
 .back{
-  background:rgba(4,35,73,.82) !important;
+  background:#0758a5 !important;
   color:#fff !important;
 }
 
 /* Animation de démarrage : même bleu */
 #saniSplash .saniBlue{color:#042349 !important;}
-#saniSplash .splashProgress{background:rgba(4,35,73,.82) !important;}
+#saniSplash .splashProgress{background:#0758a5 !important;}
 </style>
 
 
@@ -1474,7 +1474,7 @@ body{display:block}
   color:#042349 !important;
 }
 #saniSplash .splashProgress{
-  background:rgba(4,35,73,.82) !important;
+  background:#0757a0 !important;
   box-shadow:0 0 12px rgba(7,87,160,.55) !important;
 }
 #saniSplash .splashLogo{
@@ -1545,7 +1545,7 @@ body{display:block}
 #medicamentsPage .medSearchBtn,
 #medicamentsPage .medCard button,
 #medicamentsPage .medAction{
-  background:rgba(4,35,73,.82) !important;
+  background:#0758a5 !important;
   color:#fff !important;
 }
 </style>
@@ -1723,7 +1723,7 @@ body{display:block}
 
 <style id="sanistock-loading-blue-red-129">
 /* 1.1.29 — barre de chargement visible */
-#saniSplash .splashProgress{display:block !important;visibility:visible !important;opacity:1 !important;height:9px !important;min-height:9px !important;background:rgba(4,35,73,.82) !important;position:relative !important;overflow:hidden !important;animation:saniLoadingBlueRed129 1.55s ease forwards .15s !important;}
+#saniSplash .splashProgress{display:block !important;visibility:visible !important;opacity:1 !important;height:9px !important;min-height:9px !important;background:#0758a5 !important;position:relative !important;overflow:hidden !important;animation:saniLoadingBlueRed129 1.55s ease forwards .15s !important;}
 @keyframes saniLoadingBlueRed129{0%{width:0;background:#0758a5;}35%{width:35%;background:#0758a5;}70%{width:72%;background:#e32636;}100%{width:100%;background:#e32636;}}
 </style>
 <style id="sanistock-loading-blue-red-128">
@@ -1740,107 +1740,28 @@ body{display:block}
 }
 </style>
 
-<style id="checklist-fixed-style">
-#checklistPage{
-  position:fixed !important;
-  inset:0 !important;
-  z-index:100 !important;
-  min-height:100vh !important;
-  min-height:100dvh !important;
-  margin:0 !important;
-  padding:0 !important;
-  background:#edf5fa !important;
-  color:#042349 !important;
-  overflow-y:auto !important;
-  box-sizing:border-box !important;
-}
-#checklistPage .checklistCleanWrap{
-  max-width:900px;
-  margin:0 auto;
-  padding:18px 18px 40px;
-  box-sizing:border-box;
-}
-#checklistPage .back{margin:0 0 14px !important;}
-#checklistPage h1{margin:4px 0 4px !important;font-size:28px;}
-#checklistPage #checklistSubtitle{margin:0 0 18px;color:#64748b;}
-.checklistGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}
-.checklistCard{width:100%;border:0;border-radius:18px;background:#fff;box-shadow:0 8px 24px rgba(4,35,73,.12);padding:20px;text-align:left;cursor:pointer;color:#042349;}
-.checklistCardTitle{font-size:19px;font-weight:800;display:block;}
-.checklistCardDesc{font-size:13px;color:#64748b;display:block;margin-top:5px;}
-.checklistVehicle{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;border:0;border-radius:15px;background:#fff;box-shadow:0 5px 18px rgba(4,35,73,.10);padding:16px;margin:0 0 10px;text-align:left;color:#042349;cursor:pointer;font-weight:700;}
-.checklistVehicle span:last-child{font-size:22px;color:#2f80ed;}
-@media(max-width:650px){.checklistGrid{grid-template-columns:1fr;}#checklistPage .checklistCleanWrap{padding:12px 12px 30px;}}
-</style>
-<style id="checklist-final-fix">
-#checklistPage{position:fixed !important;inset:0 !important;z-index:200 !important;display:none !important;min-height:100vh !important;min-height:100dvh !important;margin:0 !important;padding:0 !important;background:#edf5fa !important;overflow-y:auto !important;box-sizing:border-box !important;}
-#checklistPage.active{display:block !important;z-index:200 !important;}
-#checklistPage.pageFadeIn{display:block !important;z-index:200 !important;}
-#checklistPage .checklistCleanWrap{position:relative !important;z-index:201 !important;max-width:900px;margin:0 auto;padding:18px 18px 40px !important;box-sizing:border-box;}
-#checklistPage .back{margin:0 0 14px !important;}
-#checklistPage h1{margin:4px 0 !important;}
-#checklistPage #checklistSubtitle{margin:0 0 18px !important;}
-@media(max-width:650px){#checklistPage .checklistCleanWrap{padding:12px 12px 30px !important;}}
-
-/* Espacement des catégories comme sur les autres pages */
-#checklistPage #checklistContent{
-  display:flex !important;
-  flex-direction:column !important;
-  gap:18px !important;
-}
-#checklistPage #checklistContent .checklistCard{
-  display:block !important;
-  margin:0 !important;
-  min-height:88px !important;
-}
-@media(max-width:650px){
-  #checklistPage #checklistContent{gap:16px !important;}
-}
-</style>
-<style id="checklist-admin-style">
-.checklistAdminForm{display:grid;grid-template-columns:1fr 220px auto;gap:10px;margin:12px 0 16px}
-.checklistAdminForm input,.checklistAdminForm select,.checklistAdminRow select{min-height:42px;border:1px solid #cbd8e4;border-radius:12px;padding:8px 12px;font-size:14px;background:#fff;color:#042349}
-.checklistAdminRow{display:grid;grid-template-columns:1fr 180px auto auto;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid #e1e8ef}
-.checklistAdminRow strong{font-size:14px;color:#042349}
-.checklistAdminEmpty{padding:15px;border-radius:12px;background:#f3f7fa;color:#61758a;margin-bottom:12px}
-@media(max-width:700px){.checklistAdminForm{grid-template-columns:1fr}.checklistAdminRow{grid-template-columns:1fr}.checklistAdminRow button{width:100%}}
-</style>
-
-<style id="checklist-back-color-fix">
-/* Boutons RETOUR de la CHECK-LIST : même bleu que les autres boutons */
-#checklistPage .back,
-#checklistPage #checklistBackCat {
-  background:rgba(4,35,73,.82) !important;
-  color:#fff !important;
-  border:0 !important;
-  box-shadow:0 4px 12px rgba(7,88,165,.22) !important;
-}
-#checklistPage .back:active,
-#checklistPage #checklistBackCat:active {
-  transform:scale(.97);
-}
-</style>
-
-<style id="sanistock-blue-buttons-final">
-/* SaniStock : bleu officiel des boutons */
-button.settingsAction,
-button.settingsAction.secondary,
-#checklistPage .back,
-#checklistPage button,
-#checklistPage .checklistCategory,
+<style id="checklist-colors-final">
+/* CHECK-LIST uniquement : cartes blanches + texte bleu SaniStock. Bouton Retour inchangé. */
+#checklistPage .checklistCard,
 #checklistPage .checklistVehicle,
-#checklistPage .checklistBtn {
-  background:rgba(4,35,73,.82) !important;
-  color:#fff !important;
-  border-color:#0758a5 !important;
+#checklistPage .checklistItem,
+#checklistPage .checklistBox,
+#checklistPage .checklist-card,
+#checklistPage .checklist-vehicle,
+#checklistPage .checklist-item,
+#checklistPage .checklist-box {
+  background:#FFFFFF !important;
+  color:#042349 !important;
 }
-button.settingsAction:hover,
-button.settingsAction.secondary:hover,
-#checklistPage button:hover,
-#checklistPage .checklistCategory:hover,
-#checklistPage .checklistVehicle:hover,
-#checklistPage .checklistBtn:hover {
-  background:rgba(4,35,73,.82) !important;
-  color:#fff !important;
+#checklistPage .checklistCard *,
+#checklistPage .checklistVehicle *,
+#checklistPage .checklistItem *,
+#checklistPage .checklistBox *,
+#checklistPage .checklist-card *,
+#checklistPage .checklist-vehicle *,
+#checklistPage .checklist-item *,
+#checklistPage .checklist-box * {
+  color:#042349 !important;
 }
 </style>
 </head>
@@ -1897,7 +1818,6 @@ button.settingsAction.secondary:hover,
       <button id="settingsTabSalaries" class="settingsTab active" type="button" role="tab" aria-selected="true" onclick="ouvrirOngletParametres('salaries')">👥 Salariés</button>
       <button id="settingsTabDates" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('dates')">🎂 Dates</button>
       <button id="settingsTabVehicules" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('vehicules')">🚑 Véhicules</button>
-      <button id="settingsTabChecklist" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('checklist')">✅ CHECK-LIST</button>
       <button id="settingsTabDashboard" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('dashboard')">📊 Tableau de bord</button>
       <button id="settingsTabInformations" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('informations')">📢 Informations</button>
       <button id="settingsTabDocuments" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('documents')">📄 Documents</button>
@@ -1927,24 +1847,6 @@ button.settingsAction.secondary:hover,
         <button class="settingsAction" type="button" onclick="ajouterVehiculeUI()">＋ Ajouter</button>
       </div>
       <div id="vehicleSettingsList"></div>
-    </section>
-
-    <section id="settingsPaneChecklist" class="settingsPane" role="tabpanel" hidden>
-      <div class="settingsPaneHead">
-        <div><strong>✅ Gestion CHECK-LIST</strong><span>Ajoutez des véhicules et changez leur catégorie sans modifier le code.</span></div>
-        <button class="settingsAction" type="button" onclick="chargerGestionChecklist()">↻ Actualiser</button>
-      </div>
-      <div class="checklistAdminForm">
-        <input id="checklistAdminVehicle" type="text" maxlength="100" placeholder="Nom / immatriculation du véhicule">
-        <select id="checklistAdminCategory">
-          <option value="AMBULANCES">🚑 AMBULANCES</option>
-          <option value="TAXIS">🚕 TAXIS</option>
-          <option value="VSL">🚐 VSL</option>
-        </select>
-        <button class="settingsAction" type="button" onclick="ajouterVehiculeChecklistUI()">➕ Ajouter</button>
-      </div>
-      <div id="checklistAdminList"></div>
-      <button class="settingsAction secondary" type="button" onclick="reinitialiserChecklistVehiculesUI()">↩️ Restaurer la liste d’origine</button>
     </section>
 
     <section id="settingsPaneDashboard" class="settingsPane" role="tabpanel" hidden>
@@ -2207,22 +2109,12 @@ button.settingsAction.secondary:hover,
         <span class="memoChoiceTitle">DÉSINFECTION</span>
         <span class="memoChoiceDesc">Accéder à la désinfection journalière des véhicules</span>
       </button>
-      <button type="button" class="memoChoice" onclick="ouvrirChecklistCategories()">
+      <button type="button" class="memoChoice" disabled style="cursor:not-allowed;opacity:.9">
         <span class="memoChoiceIcon">✅</span>
         <span class="memoChoiceTitle">CHECK-LIST</span>
-        <span class="memoChoiceDesc">Contrôles des véhicules</span>
+        <span class="memoChoiceDesc">Bientôt disponible</span>
       </button>
     </div>
-  </div>
-</section>
-
-
-<section id="checklistPage" class="screen page">
-  <div class="checklistCleanWrap">
-    <button type="button" class="back" onclick="showPage('vehiclePage')">← Retour</button>
-    <h1>✅ CHECK-LIST</h1>
-    <p id="checklistSubtitle">Choisissez une catégorie de véhicule</p>
-    <div id="checklistContent"></div>
   </div>
 </section>
 
@@ -3603,7 +3495,6 @@ function ouvrirOngletParametres(onglet){
   const ts=document.getElementById('settingsTabSalaries');
   const tv=document.getElementById('settingsTabVehicules');
   const td=document.getElementById('settingsTabDashboard');
-  const tc=document.getElementById('settingsTabChecklist');
   const ti=document.getElementById('settingsTabInformations');
   const tdoc=document.getElementById('settingsTabDocuments');
   const tdate=document.getElementById('settingsTabDates');
@@ -3613,7 +3504,6 @@ function ouvrirOngletParametres(onglet){
   const isDates=onglet==='dates';
   const isVeh=onglet==='vehicules';
   const isDash=onglet==='dashboard';
-  const isChecklist=onglet==='checklist';
   const isInfo=onglet==='informations';
   const isDocs=onglet==='documents';
 
@@ -3621,7 +3511,6 @@ function ouvrirOngletParametres(onglet){
   paneDate.hidden=!isDates;
   veh.hidden=!isVeh;
   dash.hidden=!isDash;
-  document.getElementById('settingsPaneChecklist').hidden=!isChecklist;
   document.getElementById('settingsPaneInformations').hidden=!isInfo;
   document.getElementById('settingsPaneDocuments').hidden=!isDocs;
 
@@ -3629,7 +3518,6 @@ function ouvrirOngletParametres(onglet){
   tdate.classList.toggle('active',isDates);
   tv.classList.toggle('active',isVeh);
   td.classList.toggle('active',isDash);
-  tc.classList.toggle('active',isChecklist);
   ti.classList.toggle('active',isInfo);
   tdoc.classList.toggle('active',isDocs);
 
@@ -3637,7 +3525,6 @@ function ouvrirOngletParametres(onglet){
   tdate.setAttribute('aria-selected',String(isDates));
   tv.setAttribute('aria-selected',String(isVeh));
   td.setAttribute('aria-selected',String(isDash));
-  tc.setAttribute('aria-selected',String(isChecklist));
   ti.setAttribute('aria-selected',String(isInfo));
   tdoc.setAttribute('aria-selected',String(isDocs));
 
@@ -3645,7 +3532,6 @@ function ouvrirOngletParametres(onglet){
   else if(isDates) chargerDatesAnniversaires();
   else if(isVeh) chargerGestionVehicules();
   else if(isDash) chargerTableauBord();
-  else if(isChecklist) chargerGestionChecklist();
   else if(isInfo) chargerInformationsUI();
   else if(isDocs) chargerDocuments();
 }
@@ -4645,7 +4531,7 @@ function fermerDetailsDashboard(){
 </script>
 
 <script>
-/* ===== MÉMO MÉDICAMENTS — version 1.1.37 =====
+/* ===== MÉMO MÉDICAMENTS — version 1.1.29 =====
    Liste informative, sans posologie ni protocole.
    La dotation et l'utilisation restent soumises aux protocoles en vigueur.
 */
@@ -9685,7 +9571,7 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 
-<div id="sanistock-version-bottom">SaniStock - version 1.1.37</div>
+<div id="sanistock-version-bottom">SaniStock - version 1.1.29</div>
 
 <style id="sanistock-annonce-modal-css">
 #homeInformationModal{
@@ -9766,7 +9652,7 @@ if ("serviceWorker" in navigator) {
   </div>
 </div>
 
-<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.37</div>
+<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.29</div>
 
 <style id="sanistock-connexion-accueil-uniquement">
 #saniConnection.saniConnHomeOnlyHidden{display:none !important;}
@@ -9789,143 +9675,5 @@ if ("serviceWorker" in navigator) {
   window.addEventListener("hashchange",majConnexionAccueil);
 })();
 </script>
-
-<script id="checklist-admin-js">
-(function(){
-  const KEY='sanistock_checklist_vehicules_v1';
-  const DEFAULTS={
-    'AMBULANCES':['FZ-349-AT – AMBULANCE PEUGEOT BOXER','HA-219-PS – AMBULANCE RENAULT TRAFIC'],
-    'TAXIS':['DR-951-FG – AUDI A6 TAXI','FH-061-DT – CADDY TAXI','GH-805-GV – IONIQ 5 TAXI','HK-887-SD – FORD TOURNEO TAXI','DR-607-TE – CADDY TAXI'],
-    'VSL':['GH-575-RH – CADDY VSL','FF-458-QT – SKODA BREAK VSL','FF-334-SL – SKODA KODIAQ VSL','EN-114-BK – SKODA SUPERB VSL','FC-295-XP – SKODA SUPERB VSL']
-  };
-  function clone(o){return JSON.parse(JSON.stringify(o));}
-  function load(){try{var x=JSON.parse(localStorage.getItem(KEY)||'null');if(x&&x.AMBULANCES&&x.TAXIS&&x.VSL)return x;}catch(e){} return clone(DEFAULTS);}
-  function save(x){localStorage.setItem(KEY,JSON.stringify(x));window.CHECKLIST_VEHICLES_FIXED=x;}
-  function esc(x){return String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
-  window.getChecklistVehiculesData=function(){return load();};
-  window.chargerGestionChecklist=function(){
-    var list=document.getElementById('checklistAdminList'); if(!list)return;
-    var d=load(), cats=['AMBULANCES','TAXIS','VSL'];
-    var labels={AMBULANCES:'🚑 AMBULANCES',TAXIS:'🚕 TAXIS',VSL:'🚐 VSL'};
-    var html='';
-    cats.forEach(function(c){
-      html+='<div style="margin:16px 0 8px;font-weight:800;color:#0757a0">'+labels[c]+'</div>';
-      if(!d[c].length){html+='<div class="checklistAdminEmpty">Aucun véhicule dans cette catégorie.</div>';return;}
-      d[c].forEach(function(v,i){
-        html+='<div class="checklistAdminRow"><strong>'+esc(v)+'</strong><select id="checkCat_'+c+'_'+i+'">'+cats.map(function(x){return '<option value="'+x+'" '+(x===c?'selected':'')+'>'+labels[x]+'</option>';}).join('')+'</select><button class="settingsAction" type="button" onclick="modifierVehiculeChecklistUI(\''+c+'\','+i+')">💾</button><button class="settingsAction secondary" type="button" onclick="supprimerVehiculeChecklistUI(\''+c+'\','+i+')">🗑️</button></div>';
-      });
-    });
-    list.innerHTML=html;
-  };
-  window.ajouterVehiculeChecklistUI=function(){
-    var input=document.getElementById('checklistAdminVehicle'), sel=document.getElementById('checklistAdminCategory');
-    var v=String(input&&input.value||'').trim(), c=String(sel&&sel.value||'');
-    if(!v){alert('Saisissez le nom du véhicule.');return;}
-    var d=load();
-    if(Object.keys(d).some(function(k){return d[k].some(function(x){return x.toLowerCase()===v.toLowerCase();});})){alert('Ce véhicule existe déjà.');return;}
-    d[c].push(v);save(d);input.value='';chargerGestionChecklist();
-  };
-  window.modifierVehiculeChecklistUI=function(oldCat,index){
-    var d=load(), v=d[oldCat]&&d[oldCat][index]; if(!v)return;
-    var sel=document.getElementById('checkCat_'+oldCat+'_'+index), newCat=sel&&sel.value;
-    if(!newCat||newCat===oldCat)return;
-    d[oldCat].splice(index,1);d[newCat].push(v);save(d);chargerGestionChecklist();
-  };
-  window.supprimerVehiculeChecklistUI=function(cat,index){
-    var d=load(), v=d[cat]&&d[cat][index]; if(!v)return;
-    if(!confirm('Supprimer « '+v+' » de la CHECK-LIST ?'))return;
-    d[cat].splice(index,1);save(d);chargerGestionChecklist();
-  };
-  window.reinitialiserChecklistVehiculesUI=function(){
-    if(!confirm('Restaurer les 12 véhicules de la liste d’origine ?'))return;
-    save(clone(DEFAULTS));chargerGestionChecklist();
-  };
-  window.CHECKLIST_VEHICULES_DEFAULTS=DEFAULTS;
-})();
-</script>
-<script id="checklist-fixed-js">
-(function(){
-  const V=(window.getChecklistVehiculesData?window.getChecklistVehiculesData():window.CHECKLIST_VEHICLES_DEFAULTS);
-  window.CHECKLIST_VEHICLES_FIXED=V;
-  function esc(x){return String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-  window.ouvrirChecklistCategories=function(){
-    var box=document.getElementById('checklistContent'), sub=document.getElementById('checklistSubtitle'); if(!box)return;
-    if(sub)sub.textContent='Choisissez une catégorie de véhicule';
-    box.innerHTML=Object.keys(V).map(function(c){return '<button type="button" class="checklistCard" data-check-cat="'+esc(c)+'"><span class="checklistCardTitle">'+esc(c)+'</span><span class="checklistCardDesc">'+V[c].length+' véhicule'+(V[c].length>1?'s':'')+'</span></button>';}).join('');
-    if(typeof showPage==='function')showPage('checklistPage');
-  };
-  window.ouvrirChecklistVehicules=function(c){
-    var box=document.getElementById('checklistContent'), sub=document.getElementById('checklistSubtitle'); if(!box)return;
-    if(sub)sub.textContent=c+' — choisissez un véhicule';
-    box.innerHTML='<button type="button" class="back" id="checklistBackCat">← Catégories</button>'+V[c].map(function(v){return '<button type="button" class="checklistVehicle" data-check-veh="'+esc(v)+'"><span>🚑 '+esc(v)+'</span><span>›</span></button>';}).join('');
-  };
-  window.ouvrirChecklistVehiculeFixe=function(v){alert('Véhicule sélectionné : '+v+'\n\nLa check-list détaillée de ce véhicule sera ajoutée ici.');};
-  document.addEventListener('click',function(e){
-    var cat=e.target.closest && e.target.closest('[data-check-cat]'); if(cat){window.ouvrirChecklistVehicules(cat.getAttribute('data-check-cat'));return;}
-    var veh=e.target.closest && e.target.closest('[data-check-veh]'); if(veh){window.ouvrirChecklistVehiculeFixe(veh.getAttribute('data-check-veh'));return;}
-    if(e.target.closest && e.target.closest('#checklistBackCat')){window.ouvrirChecklistCategories();return;}
-  });
-})();
-</script>
-
-<style id="sanistock-retour-blue-final">
-/* Boutons RETOUR : même bleu SaniStock que les autres boutons */
-.back, .disBack, .vehicleBack, .memoBack, .checklistBack, .returnHomeBtn, #homeBackBtn {
-  background:rgba(4,35,73,.82) !important;
-  color:#fff !important;
-  border:0 !important;
-  box-shadow:0 4px 12px rgba(7,87,160,.22) !important;
-  text-shadow:none !important;
-}
-.back:hover, .disBack:hover, .vehicleBack:hover, .memoBack:hover, .checklistBack:hover, .returnHomeBtn:hover, #homeBackBtn:hover {
-  background:rgba(4,35,73,.82) !important;
-  color:#fff !important;
-}
-</style>
-
-<style id="sanistock-boutons-final-1-1-43">
-/* Couleurs finales SaniStock */
-:root{--sanistock-connecte:#042349 !important;}
-
-/* Rectangles / cartes de la CHECK-LIST : blancs, texte bleu SaniStock */
-#checklistPage .checklistCategory,
-#checklistPage .checklistCategories > *,
-#checklistPage .checklistVehicle,
-#checklistPage .vehicleCard,
-#checklistPage .checklistItem,
-#checklistPage .checklistBox{
-  background:#fff !important;
-  color:#042349 !important;
-}
-
-#checklistPage .checklistCategory *,
-#checklistPage .checklistCategories > * *,
-#checklistPage .checklistVehicle *,
-#checklistPage .vehicleCard *{
-  color:#042349 !important;
-}
-
-/* Boutons RETOUR ACCUEIL : bleu Connecté à SaniStock + texte blanc */
-.back, .disBack, .vehicleBack, .memoBack, .stockBack, .settingsBack, .documentsBack,
-#stockPage .back, #vehiclePage .back, #memoPage .back, #settingsOverlay .back, #documentsPage .back,
-#checklistPage .back, #checklistPage .checklistBack, #checklistPage .returnHomeBtn,
-#homeBackBtn, .back.homeBack{
-  background:#042349 !important;
-  color:#fff !important;
-  border:0 !important;
-  box-shadow:none !important;
-}
-
-/* Le texte des boutons Retour reste blanc */
-.back *, .disBack *, .vehicleBack *, .memoBack *, .stockBack *, .settingsBack *, .documentsBack *,
-#checklistPage .back *, #checklistPage .checklistBack *{color:#fff !important;}
-
-/* Les autres boutons SaniStock utilisent le même bleu */
-#checklistPage button:not(.back):not(.checklistBack),
-#checklistPage .checklistAction, #checklistPage .checklistVehicleBtn{
-  background:#042349 !important;
-  color:#fff !important;
-}
-</style>
 </body>
 </html>
