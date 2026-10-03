@@ -1750,6 +1750,33 @@ body{display:block}
 .checklistBack{border:0;border-radius:10px;padding:8px 11px;background:#dce9f2;color:#042349;font-weight:900;cursor:pointer;margin-bottom:4px}
 @media(max-width:650px){.checklistCategories{grid-template-columns:1fr}.checklistCategory{padding:16px}}
 </style>
+
+<style id="checklist-clean-layout">
+/* CHECK-LIST : plein écran sans bande noire */
+#checklistPage{
+  min-height:100vh !important;
+  min-height:100dvh !important;
+  margin:0 !important;
+  padding:10px 20px 30px !important;
+  background:#edf5fa !important;
+  color:#042349 !important;
+  overflow-y:auto !important;
+}
+#checklistPage > div{
+  margin-top:10px !important;
+}
+#checklistPage .back{
+  display:inline-flex;
+  margin:0 0 4px 0;
+}
+#checklistPage h1{margin:10px 0 6px !important;}
+#checklistPage .checklistCategories{margin-top:14px;}
+@media(max-width:650px){
+  #checklistPage{padding:8px 12px 25px !important;}
+  #checklistPage > div{padding:0 4px !important;}
+}
+</style>
+
 </head>
 <body>
 
@@ -1961,72 +1988,6 @@ body{display:block}
 @media(max-width:600px){.memoChoices{grid-template-columns:1fr;gap:14px}.memoChoice{padding:22px 16px}}
 
 /* ===== CHECK-LIST : CATEGORIES VEHICULES ===== */
-const CHECKLIST_VEHICLES={
-  'AMBULANCES':[
-    'FZ-349-AT – AMBULANCE PEUGEOT BOXER',
-    'HA-219-PS – AMBULANCE RENAULT TRAFIC'
-  ],
-  'TAXIS':[
-    'DR-951-FG – AUDI A6 TAXI',
-    'FH-061-DT – CADDY TAXI',
-    'GH-805-GV – IONIQ 5 TAXI',
-    'HK-887-SD – FORD TOURNEO TAXI',
-    'DR-607-TE – CADDY TAXI'
-  ],
-  'VSL':[
-    'GH-575-RH – CADDY VSL',
-    'FF-458-QT – SKODA BREAK VSL',
-    'FF-334-SL – SKODA KODIAQ VSL',
-    'EN-114-BK – SKODA SUPERB VSL',
-    'FC-295-XP – SKODA SUPERB VSL'
-  ]
-};
-function ouvrirCategoriesChecklist(){
-  const box=document.getElementById('checklistCategories');
-  const veh=document.getElementById('checklistVehicles');
-  if(!box) return;
-  box.innerHTML=Object.keys(CHECKLIST_VEHICLES).map(function(cat){
-    return '<button type="button" class="checklistCategory" onclick="ouvrirVehiculesChecklist(\''+cat+'\')">'+(cat==='AMBULANCES'?'🚑 ':cat==='TAXIS'?'🚕 ':'🚐 ')+cat+'</button>';
-  }).join('');
-  if(veh){veh.hidden=true;veh.innerHTML='';}
-}
-function ouvrirVehiculesChecklist(categorie){
-  const veh=document.getElementById('checklistVehicles');
-  if(!veh) return;
-  const rows=CHECKLIST_VEHICLES[categorie]||[];
-  veh.hidden=false;
-  veh.innerHTML='<button type="button" class="checklistBack" onclick="ouvrirCategoriesChecklist()">← Changer de catégorie</button>'+
-    '<div class="checklistVehiclesHead">'+(categorie==='AMBULANCES'?'🚑 ':categorie==='TAXIS'?'🚕 ':'🚐 ')+categorie+'</div>'+
-    rows.map(function(nom){return '<button type="button" class="checklistVehicle" onclick="ouvrirChecklistVehicule(\''+nom.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\')">'+escapeHtml(nom)+'</button>';}).join('');
-}
-function ouvrirChecklistVehicule(nom){
-  alert('Check-list de « '+nom+' » : la liste des contrôles sera ajoutée ici.');
-}
-
-/* ===== RECHERCHE GLOBALE SANISTOCK ===== */
-.saniGlobalSearchBtn{
-  position:absolute;z-index:30;top:42%;left:5%;right:5%;width:auto;border:0;border-radius:14px;
-  background:rgba(4,35,73,.82);color:#fff;font-weight:900;font-size:14px;
-  padding:10px 14px;box-shadow:0 5px 16px rgba(4,35,73,.28);cursor:pointer;
-  display:flex;align-items:center;justify-content:center;gap:7px;backdrop-filter:blur(4px)
-}
-.saniGlobalSearchBtn:active{transform:scale(.97)}
-.saniSearchOverlay{position:fixed;inset:0;z-index:9999;background:rgba(7,32,57,.58);display:none;align-items:flex-start;justify-content:center;padding:7vh 16px 24px}
-.saniSearchOverlay.open{display:flex}
-.saniSearchCard{width:min(760px,100%);max-height:82vh;overflow:hidden;background:#fff;border-radius:22px;box-shadow:0 22px 60px rgba(0,0,0,.3);display:flex;flex-direction:column}
-.saniSearchHead{display:flex;align-items:center;gap:10px;padding:16px 16px 12px;border-bottom:1px solid #e4ebf1}
-.saniSearchInput{flex:1;border:1px solid #cbd8e3;border-radius:14px;padding:13px 15px;font-size:17px;outline:none;color:#042349}
-.saniSearchInput:focus{border-color:#2f80ed;box-shadow:0 0 0 3px rgba(47,128,237,.12)}
-.saniSearchClose{border:0;background:#eef3f7;color:#536779;width:42px;height:42px;border-radius:12px;font-size:20px;cursor:pointer}
-.saniSearchHint{padding:10px 18px;color:#718096;font-size:12px;background:#f7fafc}
-.saniSearchResults{overflow:auto;padding:12px 16px 18px}
-.saniSearchResult{width:100%;border:1px solid #dbe5ec;background:#fff;border-radius:14px;padding:12px 14px;margin-bottom:9px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px}
-.saniSearchResult:active{transform:scale(.99)}
-.saniSearchIcon{font-size:25px;flex:0 0 30px;text-align:center}
-.saniSearchText{min-width:0;flex:1}.saniSearchTitle{font-weight:900;color:#042349;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.saniSearchMeta{font-size:11px;color:#718096;margin-top:3px}
-.saniSearchEmpty{text-align:center;padding:28px 12px;color:#718096}.saniSearchEmpty strong{display:block;color:#042349;font-size:15px;margin-bottom:5px}
-@media(max-width:600px){.saniGlobalSearchBtn{top:42%;left:5%;right:5%;padding:9px 11px;font-size:12px}.saniSearchOverlay{padding:4vh 10px 12px}.saniSearchCard{border-radius:18px;max-height:88vh}}
-
 </style>
 
 
@@ -2127,6 +2088,74 @@ function ouvrirChecklistVehicule(nom){
   </div>
 </section>
 
+
+<script>
+const CHECKLIST_VEHICLES={
+  'AMBULANCES':[
+    'FZ-349-AT – AMBULANCE PEUGEOT BOXER',
+    'HA-219-PS – AMBULANCE RENAULT TRAFIC'
+  ],
+  'TAXIS':[
+    'DR-951-FG – AUDI A6 TAXI',
+    'FH-061-DT – CADDY TAXI',
+    'GH-805-GV – IONIQ 5 TAXI',
+    'HK-887-SD – FORD TOURNEO TAXI',
+    'DR-607-TE – CADDY TAXI'
+  ],
+  'VSL':[
+    'GH-575-RH – CADDY VSL',
+    'FF-458-QT – SKODA BREAK VSL',
+    'FF-334-SL – SKODA KODIAQ VSL',
+    'EN-114-BK – SKODA SUPERB VSL',
+    'FC-295-XP – SKODA SUPERB VSL'
+  ]
+};
+function ouvrirCategoriesChecklist(){
+  const box=document.getElementById('checklistCategories');
+  const veh=document.getElementById('checklistVehicles');
+  if(!box) return;
+  box.innerHTML=Object.keys(CHECKLIST_VEHICLES).map(function(cat){
+    return '<button type="button" class="checklistCategory" onclick="ouvrirVehiculesChecklist(\''+cat+'\')">'+(cat==='AMBULANCES'?'🚑 ':cat==='TAXIS'?'🚕 ':'🚐 ')+cat+'</button>';
+  }).join('');
+  if(veh){veh.hidden=true;veh.innerHTML='';}
+}
+function ouvrirVehiculesChecklist(categorie){
+  const veh=document.getElementById('checklistVehicles');
+  if(!veh) return;
+  const rows=CHECKLIST_VEHICLES[categorie]||[];
+  veh.hidden=false;
+  veh.innerHTML='<button type="button" class="checklistBack" onclick="ouvrirCategoriesChecklist()">← Changer de catégorie</button>'+
+    '<div class="checklistVehiclesHead">'+(categorie==='AMBULANCES'?'🚑 ':categorie==='TAXIS'?'🚕 ':'🚐 ')+categorie+'</div>'+
+    rows.map(function(nom){return '<button type="button" class="checklistVehicle" onclick="ouvrirChecklistVehicule(\''+nom.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\')">'+escapeHtml(nom)+'</button>';}).join('');
+}
+function ouvrirChecklistVehicule(nom){
+  alert('Check-list de « '+nom+' » : la liste des contrôles sera ajoutée ici.');
+}
+
+/* ===== RECHERCHE GLOBALE SANISTOCK ===== */
+.saniGlobalSearchBtn{
+  position:absolute;z-index:30;top:42%;left:5%;right:5%;width:auto;border:0;border-radius:14px;
+  background:rgba(4,35,73,.82);color:#fff;font-weight:900;font-size:14px;
+  padding:10px 14px;box-shadow:0 5px 16px rgba(4,35,73,.28);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:7px;backdrop-filter:blur(4px)
+}
+.saniGlobalSearchBtn:active{transform:scale(.97)}
+.saniSearchOverlay{position:fixed;inset:0;z-index:9999;background:rgba(7,32,57,.58);display:none;align-items:flex-start;justify-content:center;padding:7vh 16px 24px}
+.saniSearchOverlay.open{display:flex}
+.saniSearchCard{width:min(760px,100%);max-height:82vh;overflow:hidden;background:#fff;border-radius:22px;box-shadow:0 22px 60px rgba(0,0,0,.3);display:flex;flex-direction:column}
+.saniSearchHead{display:flex;align-items:center;gap:10px;padding:16px 16px 12px;border-bottom:1px solid #e4ebf1}
+.saniSearchInput{flex:1;border:1px solid #cbd8e3;border-radius:14px;padding:13px 15px;font-size:17px;outline:none;color:#042349}
+.saniSearchInput:focus{border-color:#2f80ed;box-shadow:0 0 0 3px rgba(47,128,237,.12)}
+.saniSearchClose{border:0;background:#eef3f7;color:#536779;width:42px;height:42px;border-radius:12px;font-size:20px;cursor:pointer}
+.saniSearchHint{padding:10px 18px;color:#718096;font-size:12px;background:#f7fafc}
+.saniSearchResults{overflow:auto;padding:12px 16px 18px}
+.saniSearchResult{width:100%;border:1px solid #dbe5ec;background:#fff;border-radius:14px;padding:12px 14px;margin-bottom:9px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px}
+.saniSearchResult:active{transform:scale(.99)}
+.saniSearchIcon{font-size:25px;flex:0 0 30px;text-align:center}
+.saniSearchText{min-width:0;flex:1}.saniSearchTitle{font-weight:900;color:#042349;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.saniSearchMeta{font-size:11px;color:#718096;margin-top:3px}
+.saniSearchEmpty{text-align:center;padding:28px 12px;color:#718096}.saniSearchEmpty strong{display:block;color:#042349;font-size:15px;margin-bottom:5px}
+@media(max-width:600px){.saniGlobalSearchBtn{top:42%;left:5%;right:5%;padding:9px 11px;font-size:12px}.saniSearchOverlay{padding:4vh 10px 12px}.saniSearchCard{border-radius:18px;max-height:88vh}}
+</script>
 
 <section id="vehiclePage" class="screen page">
   <button type="button" class="back" onclick="showPage('homePage')">← Retour accueil</button>
@@ -9597,7 +9626,7 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 
-<div id="sanistock-version-bottom">SaniStock - version 1.1.29</div>
+<div id="sanistock-version-bottom">SaniStock - version 1.1.33</div>
 
 <style id="sanistock-annonce-modal-css">
 #homeInformationModal{
@@ -9678,7 +9707,7 @@ if ("serviceWorker" in navigator) {
   </div>
 </div>
 
-<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.29</div>
+<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.33</div>
 
 <style id="sanistock-connexion-accueil-uniquement">
 #saniConnection.saniConnHomeOnlyHidden{display:none !important;}
