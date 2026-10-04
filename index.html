@@ -1266,7 +1266,7 @@ body{display:block}
 <style id="sanistock-welcome-name-style">
 #sanistockWelcomeName{position:fixed;inset:0;z-index:29999;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;visibility:hidden;background:transparent;transition:opacity .35s ease,visibility .35s ease;}
 #sanistockWelcomeName.show{opacity:1;visibility:visible;}
-#sanistockWelcomeName .welcomeNameCard{width:min(86vw,360px);padding:24px 28px;border-radius:22px;background:#042349;border:1px solid rgba(255,255,255,.28);box-shadow:0 16px 45px rgba(0,40,90,.30),inset 0 1px 0 rgba(255,255,255,.18);text-align:center;transform:translateY(16px) scale(.96);}
+#sanistockWelcomeName .welcomeNameCard{width:min(86vw,360px);padding:24px 28px;border-radius:22px;background:#0758a5;border:1px solid rgba(255,255,255,.28);box-shadow:0 16px 45px rgba(0,40,90,.30),inset 0 1px 0 rgba(255,255,255,.18);text-align:center;transform:translateY(16px) scale(.96);}
 #sanistockWelcomeName.show .welcomeNameCard{animation:saniWelcomePop .55s cubic-bezier(.2,.8,.2,1) both;}
 #sanistockWelcomeName .welcomeText{font-size:30px;font-weight:900;color:#fff;line-height:1.15;text-shadow:0 3px 14px rgba(0,0,0,.22);}
 @keyframes saniWelcomePop{from{opacity:0;transform:translateY(16px) scale(.94)}to{opacity:1;transform:translateY(0) scale(1)}}
@@ -1889,15 +1889,15 @@ button.settingsAction.secondary:hover,
   box-sizing:border-box !important;
 }
 
-#homeLogoutBtn{display:flex !important;align-items:center;gap:5px;min-width:108px;justify-content:flex-start;padding:3px 6px !important;}
-#homeLogoutBtn .homeConnDot{width:7px;height:7px;border-radius:50%;background:#ffad21;box-shadow:0 0 6px rgba(255,173,33,.75);flex:0 0 7px;}
+#homeLogoutBtn{display:flex !important;align-items:center;gap:7px;min-width:132px;justify-content:flex-start;}
+#homeLogoutBtn .homeConnDot{width:9px;height:9px;border-radius:50%;background:#ffad21;box-shadow:0 0 8px rgba(255,173,33,.75);flex:0 0 9px;}
 #homeLogoutBtn.ok .homeConnDot{background:#38e36d;box-shadow:0 0 9px rgba(56,227,109,.9);}
 #homeLogoutBtn.error .homeConnDot{background:#ff3b45;box-shadow:0 0 9px rgba(255,59,69,.9);}
 #homeLogoutBtn.loading .homeConnDot{background:#ffad21;animation:saniPulse 1s infinite alternate;}
 .homeConnTexts{display:flex;flex-direction:column;align-items:flex-start;line-height:1.05;}
 #homeConnTitle{font-size:9px;font-weight:900;}
 #homeConnLogout{font-size:9px;font-weight:700;opacity:.9;margin-top:2px;}
-@media(max-width:420px){#homeLogoutBtn{right:8px !important;min-width:104px;padding:4px 6px !important;}#homeConnTitle,#homeConnLogout{font-size:8px !important;}}
+@media(max-width:420px){#homeLogoutBtn{right:8px !important;min-width:126px;padding:6px 9px !important;}#homeConnTitle,#homeConnLogout{font-size:8px !important;}}
 .homeConnModal{position:fixed;inset:0;z-index:1000010;background:rgba(0,20,40,.58);display:none;align-items:center;justify-content:center;padding:20px;}
 .homeConnModal.open{display:flex;}
 .homeConnModalCard{width:min(330px,92vw);background:#fff;color:#042349;border-radius:18px;padding:18px;box-shadow:0 18px 55px rgba(0,0,0,.35);text-align:center;}
@@ -1907,6 +1907,13 @@ button.settingsAction.secondary:hover,
 .homeConnDisconnect{background:#e32636;color:#fff;}
 .homeConnCancel{background:#dce7ef;color:#042349;}
 </style>
+</style>
+
+<style id="sanistock-connexion-fond-042349">
+/* Pendant la recherche de connexion : même fond bleu SaniStock */
+#employeeLoginOverlay{
+  background:#042349 !important;
+}
 </style>
 </head>
 <body>
@@ -9971,8 +9978,9 @@ if ("serviceWorker" in navigator) {
 
 <style id="sanistock-connexion-accueil-uniquement">
 #saniConnection.saniConnHomeOnlyHidden{display:none !important;}
-/* Indicateur intégré à l'accueil : on masque l'ancien doublon */
+/* Indicateur « Connecté à SaniStock » uniquement sur l’accueil */
 #saniConnection{display:none !important;}
+body:has(#homePage.active) #saniConnection{display:flex !important;}
 </style>
 <script>
 (function(){
@@ -10138,19 +10146,5 @@ if ("serviceWorker" in navigator) {
 /* Ajustements 1.1.48 */
 .saniGlobalSearchBtn{transform:translateY(10px);}
 </style>
-
-<style id="sanistock-ouverture-connexion-bleu">
-/* Écran d'ouverture uniquement : fond bleu SaniStock */
-#saniSplash{
-  background:#042349 !important;
-}
-/* Le logo SaniStock reste visible au centre */
-#saniSplash .splashLogo{
-  display:block !important;
-  visibility:visible !important;
-  opacity:1 !important;
-}
-</style>
-
 </body>
 </html>
