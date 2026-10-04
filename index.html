@@ -10153,5 +10153,20 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
   color:#fff !important;
 }
 </style>
+
+<style id="sanistock-connexion-accueil-final">
+/* Voyant Connexion / Déconnexion : UNIQUEMENT sur la page d'accueil */
+#homeLogoutBtn{
+  display:none !important;
+}
+body:has(#homePage.active) #homeLogoutBtn{
+  display:flex !important;
+}
+
+/* Fond de l'écran pendant la recherche des mots de passe / connexion */
+#employeeLoginOverlay{
+  background:#042349 !important;
+}
+</style>
 </body>
 </html>
