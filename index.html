@@ -1,4 +1,4 @@
-<!-- SaniStock version 1.1.37 : boutons colorés sans animation -->
+<!-- SaniStock version 1.1.50 : interface véhicules identique CHECK-LIST -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -1803,6 +1803,9 @@ body{display:block}
 .checklistAdminRow strong{font-size:14px;color:#042349}
 .checklistAdminEmpty{padding:15px;border-radius:12px;background:#f3f7fa;color:#61758a;margin-bottom:12px}
 @media(max-width:700px){.checklistAdminForm{grid-template-columns:1fr}.checklistAdminRow{grid-template-columns:1fr}.checklistAdminRow button{width:100%}}
+.vehicleAdminForm{margin-top:12px}
+.vehicleAdminRow{grid-template-columns:1fr 180px auto auto auto}
+@media(max-width:700px){.vehicleAdminRow{grid-template-columns:1fr}.vehicleAdminRow select,.vehicleAdminRow button{width:100%}}
 </style>
 
 <style id="checklist-back-color-fix">
@@ -1947,8 +1950,17 @@ button.settingsAction.secondary:hover,
 
     <section id="settingsPaneVehicules" class="settingsPane" role="tabpanel" hidden>
       <div class="settingsPaneHead">
-        <div><strong>🚑 Véhicules</strong><span>Ajouter, modifier, supprimer et changer la catégorie des véhicules.</span></div>
-        <button class="settingsAction" type="button" onclick="ajouterVehiculeUI()">＋ Ajouter</button>
+        <div><strong>🚑 Véhicules</strong><span>Ajoutez des véhicules et changez leur catégorie comme dans CHECK-LIST.</span></div>
+        <button class="settingsAction" type="button" onclick="chargerGestionVehicules()">↻ Actualiser</button>
+      </div>
+      <div class="checklistAdminForm vehicleAdminForm">
+        <input id="vehicleAdminVehicle" type="text" maxlength="100" placeholder="Nom / immatriculation du véhicule">
+        <select id="vehicleAdminCategory">
+          <option value="AMBULANCES">🚑 AMBULANCES</option>
+          <option value="TAXIS">🚕 TAXIS</option>
+          <option value="VSL">🚐 VSL</option>
+        </select>
+        <button class="settingsAction" type="button" onclick="ajouterVehiculeUI()">➕ Ajouter</button>
       </div>
       <div id="vehicleSettingsList"></div>
     </section>
@@ -4121,44 +4133,112 @@ function supprimerSalarieUI(nom){
   }).supprimerSalarie(Object.assign({salarie:nom},donneesAccesGestion()));
 }
 
-const VEHICLE_CATEGORY_KEY='sanistock_vehicle_categories_v1';
-const VEHICLE_CATEGORIES=['AMBULANCES','TAXIS','VSL'];
-function getVehicleCategories(){try{var x=JSON.parse(localStorage.getItem(VEHICLE_CATEGORY_KEY)||'{}');return x&&typeof x==='object'?x:{};}catch(e){return {};}}
-function saveVehicleCategories(x){localStorage.setItem(VEHICLE_CATEGORY_KEY,JSON.stringify(x||{}));}
-function vehicleCategoryFor(name){var x=getVehicleCategories();return VEHICLE_CATEGORIES.indexOf(x[name])>=0?x[name]:'VSL';}
-function vehicleCategoryLabel(c){return c==='AMBULANCES'?'🚑 AMBULANCES':c==='TAXIS'?'🚕 TAXIS':'🚐 VSL';}
 function chargerGestionVehicules(){
   const list=document.getElementById('vehicleSettingsList');
+  if(!list)return;
   list.innerHTML='Chargement...';
   google.script.run.withSuccessHandler(function(rows){
-    rows=Array.isArray(rows)?rows:[]; const cats=getVehicleCategories();
-    rows.forEach(function(r){if(!cats[r.vehicule])cats[r.vehicule]='VSL';}); saveVehicleCategories(cats);
-    list.innerHTML=rows.map(function(r){
-      const nom=JSON.stringify(r.vehicule).replace(/"/g,'&quot;'); const cat=vehicleCategoryFor(r.vehicule);
-      return '<div class="vehicleCard"><div class="vehicleTop"><div><div class="vehicleName">🚑 '+escapeHtml(r.vehicule)+'</div><div class="vehicleMeta">'+vehicleCategoryLabel(cat)+'</div></div></div><div class="vehicleBtns"><button class="btnVehicle" onclick="modifierVehiculeUI('+r.ligne+','+nom+')">✏️ Modifier</button><button class="btnVehicle" onclick="changerCategorieVehiculeUI('+nom+')">🔄 Catégorie</button><button class="btnDelete" onclick="supprimerVehiculeUI('+r.ligne+','+nom+')">🗑️ Supprimer</button></div></div>';
-    }).join('')||'<div class="vehicleCard">Aucun véhicule enregistré.</div>';
-  }).withFailureHandler(function(e){list.innerHTML='Erreur : '+escapeHtml(e&&e.message?e.message:e);}).getGestionVehicules(donneesAccesGestion());
+    rows=Array.isArray(rows)?rows:[];
+    const cats=['AMBULANCES','TAXIS','VSL'];
+    const labels={AMBULANCES:'🚑 AMBULANCES',TAXIS:'🚕 TAXIS',VSL:'🚐 VSL'};
+    let catsMap={AMBULANCES:[],TAXIS:[],VSL:[]};
+    try{
+      const saved=JSON.parse(localStorage.getItem('sanistock_vehicules_categories_v1')||'null');
+      if(saved&&saved.AMBULANCES&&saved.TAXIS&&saved.VSL) catsMap=saved;
+    }catch(e){}
+    const byName={};
+    cats.forEach(function(c){catsMap[c].forEach(function(v){byName[String(v).toLowerCase()]=c;});});
+    rows.forEach(function(r){
+      const n=String(r.vehicule||'').trim();
+      if(!n)return;
+      if(!byName[n.toLowerCase()]){
+        const u=n.toUpperCase();
+        let c=u.indexOf('VSL')>=0?'VSL':(u.indexOf('TAXI')>=0?'TAXIS':'AMBULANCES');
+        catsMap[c].push(n); byName[n.toLowerCase()]=c;
+      }
+    });
+    // Synchronise the local category list with the vehicles actually present in SaniStock.
+    const valid={}; rows.forEach(function(r){valid[String(r.vehicule||'').trim().toLowerCase()]=true;});
+    cats.forEach(function(c){catsMap[c]=catsMap[c].filter(function(v){return valid[String(v).toLowerCase()];});});
+    try{localStorage.setItem('sanistock_vehicules_categories_v1',JSON.stringify(catsMap));}catch(e){}
+    const rowByName={}; rows.forEach(function(r){rowByName[String(r.vehicule||'').trim().toLowerCase()]=r;});
+    let html='';
+    cats.forEach(function(c){
+      html+='<div style="margin:18px 0 8px;font-weight:800;color:#0757a0;font-size:15px">'+labels[c]+'</div>';
+      const arr=catsMap[c];
+      if(!arr.length){html+='<div class="checklistAdminEmpty">Aucun véhicule dans cette catégorie.</div>';return;}
+      arr.forEach(function(v){
+        const r=rowByName[String(v).toLowerCase()];
+        if(!r)return;
+        const nom=JSON.stringify(v).replace(/"/g,'&quot;');
+        const ligne=Number(r.ligne)||0;
+        const safeId='vehCat_'+String(c)+'_'+String(ligne).replace(/[^a-zA-Z0-9_-]/g,'_');
+        html+='<div class="checklistAdminRow vehicleAdminRow"><strong>🚑 '+escapeHtml(v)+'</strong>'+
+          '<select id="'+safeId+'">'+cats.map(function(x){return '<option value="'+x+'" '+(x===c?'selected':'')+'>'+labels[x]+'</option>';}).join('')+'</select>'+ 
+          '<button class="settingsAction" type="button" onclick="modifierVehiculeUI('+ligne+','+nom+',\''+c+'\')">✏️</button>'+ 
+          '<button class="settingsAction secondary" type="button" onclick="changerCategorieVehiculeUI('+ligne+','+nom+',\''+c+'\',\''+safeId+'\')">💾</button>'+ 
+          '<button class="settingsAction secondary" type="button" onclick="supprimerVehiculeUI('+ligne+','+nom+')">🗑️</button></div>';
+      });
+    });
+    list.innerHTML=html||'<div class="checklistAdminEmpty">Aucun véhicule enregistré.</div>';
+  }).withFailureHandler(function(e){
+    list.innerHTML='Erreur : '+escapeHtml(e&&e.message?e.message:e);
+  }).getGestionVehicules(donneesAccesGestion());
+}
+
+function _saveVehiculeCategoriesUI(map){
+  try{localStorage.setItem('sanistock_vehicules_categories_v1',JSON.stringify(map));}catch(e){}
+}
+function _loadVehiculeCategoriesUI(){
+  const d={AMBULANCES:[],TAXIS:[],VSL:[]};
+  try{const x=JSON.parse(localStorage.getItem('sanistock_vehicules_categories_v1')||'null');if(x&&x.AMBULANCES&&x.TAXIS&&x.VSL)return x;}catch(e){}
+  return d;
 }
 function ajouterVehiculeUI(){
-  const nom=prompt('Nom ou immatriculation du nouveau véhicule :'); if(nom===null||!nom.trim())return;
-  const cat=prompt('Catégorie :\n1 = AMBULANCES\n2 = TAXIS\n3 = VSL','3'); if(cat===null)return;
-  const map={'1':'AMBULANCES','2':'TAXIS','3':'VSL'}; const categorie=map[String(cat).trim()]||String(cat).trim().toUpperCase();
-  if(VEHICLE_CATEGORIES.indexOf(categorie)<0){messageParametres('❌ Catégorie invalide.',false);return;}
-  google.script.run.withSuccessHandler(function(){var x=getVehicleCategories();x[nom.trim()]=categorie;saveVehicleCategories(x);messageParametres('✅ Véhicule ajouté.');chargerGestionVehicules();chargerVehicules();}).withFailureHandler(function(e){messageParametres('❌ '+(e&&e.message?e.message:e),false);}).ajouterVehicule(Object.assign({vehicule:nom.trim()},donneesAccesGestion()));
+  const input=document.getElementById('vehicleAdminVehicle'), sel=document.getElementById('vehicleAdminCategory');
+  const nom=String(input&&input.value||'').trim(), cat=String(sel&&sel.value||'AMBULANCES');
+  if(!nom){alert('Saisissez le nom du véhicule.');return;}
+  google.script.run.withSuccessHandler(function(){
+    const d=_loadVehiculeCategoriesUI();
+    if(!d[cat].some(function(v){return String(v).toLowerCase()===nom.toLowerCase();}))d[cat].push(nom);
+    _saveVehiculeCategoriesUI(d);
+    if(input)input.value='';
+    messageParametres('✅ Véhicule ajouté.'); chargerGestionVehicules(); chargerVehicules();
+  }).withFailureHandler(function(e){
+    messageParametres('❌ '+(e&&e.message?e.message:e),false);
+  }).ajouterVehicule(Object.assign({vehicule:nom},donneesAccesGestion()));
 }
-function modifierVehiculeUI(ligne,ancienNom){
-  const nom=prompt('Modifier le véhicule :',ancienNom); if(nom===null||!nom.trim())return;
-  google.script.run.withSuccessHandler(function(){var x=getVehicleCategories();if(x[ancienNom]){x[nom.trim()]=x[ancienNom];delete x[ancienNom];}else{x[nom.trim()]=vehicleCategoryFor(ancienNom);}saveVehicleCategories(x);messageParametres('✅ Véhicule modifié.');chargerGestionVehicules();chargerVehicules();}).withFailureHandler(function(e){messageParametres('❌ '+(e&&e.message?e.message:e),false);}).modifierVehicule(Object.assign({ligne:ligne,vehicule:nom.trim()},donneesAccesGestion()));
+
+function modifierVehiculeUI(ligne,ancienNom,ancienneCat){
+  const nom=prompt('Modifier le véhicule :',ancienNom);
+  if(nom===null||!nom.trim())return;
+  google.script.run.withSuccessHandler(function(){
+    const d=_loadVehiculeCategoriesUI();
+    Object.keys(d).forEach(function(c){d[c]=d[c].map(function(v){return String(v).toLowerCase()===String(ancienNom).toLowerCase()?nom.trim():v;});});
+    _saveVehiculeCategoriesUI(d);
+    messageParametres('✅ Véhicule modifié.'); chargerGestionVehicules(); chargerVehicules();
+  }).withFailureHandler(function(e){
+    messageParametres('❌ '+(e&&e.message?e.message:e),false);
+  }).modifierVehicule(Object.assign({ligne:ligne,vehicule:nom.trim()},donneesAccesGestion()));
 }
-function changerCategorieVehiculeUI(nom){
-  var actuel=vehicleCategoryFor(nom); var choix=prompt('Catégorie de '+nom+' :\n1 = AMBULANCES\n2 = TAXIS\n3 = VSL',actuel==='AMBULANCES'?'1':actuel==='TAXIS'?'2':'3'); if(choix===null)return;
-  var map={'1':'AMBULANCES','2':'TAXIS','3':'VSL'}; var cat=map[String(choix).trim()]||String(choix).trim().toUpperCase();
-  if(VEHICLE_CATEGORIES.indexOf(cat)<0){messageParametres('❌ Catégorie invalide.',false);return;}
-  var x=getVehicleCategories();x[nom]=cat;saveVehicleCategories(x);chargerGestionVehicules();messageParametres('✅ Catégorie modifiée.');
+
+function changerCategorieVehiculeUI(ligne,nom,ancienneCat,selectId){
+  const sel=document.getElementById(selectId), nouvelleCat=sel&&sel.value;
+  if(!nouvelleCat||nouvelleCat===ancienneCat)return;
+  const d=_loadVehiculeCategoriesUI();
+  Object.keys(d).forEach(function(c){d[c]=d[c].filter(function(v){return String(v).toLowerCase()!==String(nom).toLowerCase();});});
+  d[nouvelleCat].push(nom); _saveVehiculeCategoriesUI(d); chargerGestionVehicules();
+  messageParametres('✅ Catégorie modifiée.');
 }
+
 function supprimerVehiculeUI(ligne,nom){
   if(!confirm('Supprimer '+nom+' de la liste des véhicules ?\n\nSon ancien historique reste conservé.'))return;
-  google.script.run.withSuccessHandler(function(){var x=getVehicleCategories();delete x[nom];saveVehicleCategories(x);messageParametres('✅ Véhicule supprimé.');chargerGestionVehicules();chargerVehicules();}).withFailureHandler(function(e){messageParametres('❌ '+(e&&e.message?e.message:e),false);}).supprimerVehicule(Object.assign({ligne:ligne,vehicule:nom},donneesAccesGestion()));
+  google.script.run.withSuccessHandler(function(){
+    const d=_loadVehiculeCategoriesUI(); Object.keys(d).forEach(function(c){d[c]=d[c].filter(function(v){return String(v).toLowerCase()!==String(nom).toLowerCase();});}); _saveVehiculeCategoriesUI(d);
+    messageParametres('✅ Véhicule supprimé.'); chargerGestionVehicules(); chargerVehicules();
+  }).withFailureHandler(function(e){
+    messageParametres('❌ '+(e&&e.message?e.message:e),false);
+  }).supprimerVehicule(Object.assign({ligne:ligne,vehicule:nom},donneesAccesGestion()));
 }
 
 function changerCodeAdminUI(){
@@ -9739,7 +9819,7 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 
-<div id="sanistock-version-bottom">SaniStock - version 1.1.37</div>
+<div id="sanistock-version-bottom">SaniStock - version 1.1.50</div>
 
 <style id="sanistock-annonce-modal-css">
 #homeInformationModal{
@@ -9820,7 +9900,7 @@ if ("serviceWorker" in navigator) {
   </div>
 </div>
 
-<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.37</div>
+<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.50</div>
 
 <style id="sanistock-connexion-accueil-uniquement">
 #saniConnection.saniConnHomeOnlyHidden{display:none !important;}
@@ -9989,7 +10069,7 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
   color:#042349 !important;
 }
 
-/* Ajustements 1.1.49 */
+/* Ajustements 1.1.48 */
 .saniGlobalSearchBtn{transform:translateY(4px);}
 </style>
 </body>
