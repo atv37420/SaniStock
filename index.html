@@ -1845,16 +1845,11 @@ button.settingsAction.secondary:hover,
 </style>
 
 <style>
-/* ===== SaniStock 1.1.46 — voyant connexion sous Déconnexion ===== */
-#homeLogoutBtn{
-  right:8px !important;
-  left:auto !important;
-  top:max(8px,env(safe-area-inset-top)) !important;
-}
+/* ===== SaniStock 1.1.47 — voyant connexion au-dessus de Déconnexion ===== */
 #saniConnection{
   left:auto !important;
   right:8px !important;
-  top:calc(max(8px, env(safe-area-inset-top)) + 42px) !important;
+  top:max(8px,env(safe-area-inset-top)) !important;
   padding:6px 9px !important;
   gap:6px !important;
   border-radius:15px !important;
@@ -1866,6 +1861,11 @@ button.settingsAction.secondary:hover,
 }
 #saniConnection .saniConnTitle{font-size:9px !important;}
 #saniConnection .saniConnSub{font-size:8px !important;}
+#homeLogoutBtn{
+  right:8px !important;
+  left:auto !important;
+  top:calc(max(8px,env(safe-area-inset-top)) + 43px) !important;
+}
 </style>
 </head>
 <body>
