@@ -10168,5 +10168,12 @@ body:has(#homePage.active) #homeLogoutBtn{
   background:#042349 !important;
 }
 </style>
+
+<style id="sanistock-connexion-home-only-final">
+/* Un seul voyant de connexion : celui de l'accueil */
+#saniConnection{display:none !important;}
+#homeLogoutBtn{display:none !important;}
+body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
+</style>
 </body>
 </html>
