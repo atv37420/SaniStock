@@ -1,4 +1,4 @@
-<!-- SaniStock version 1.1.51 : interface véhicules identique CHECK-LIST -->
+<!-- SaniStock version 1.1.53 : interface véhicules identique CHECK-LIST -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -1888,6 +1888,38 @@ button.settingsAction.secondary:hover,
 }
 </style>
 
+
+<style id="sanistock-v1-1-53-accueil-unique-final">
+/* VERSION 1.1.53 — bouton connexion uniquement sur ACCUEIL */
+#saniConnection{
+  display:none !important;
+  visibility:hidden !important;
+  opacity:0 !important;
+  pointer-events:none !important;
+}
+#homeLogoutBtn{
+  display:none !important;
+  visibility:hidden !important;
+  opacity:0 !important;
+  pointer-events:none !important;
+  position:absolute !important;
+  right:10px !important;
+  top:10px !important;
+  z-index:99999 !important;
+}
+#homePage #homeLogoutBtn.saniHomeTopVisible{
+  display:flex !important;
+  visibility:visible !important;
+  opacity:1 !important;
+  pointer-events:auto !important;
+}
+#homeLogoutBtn{
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:3px !important;
+}
+</style>
 </head>
 <body>
 
@@ -2404,6 +2436,13 @@ function showPage(id){
 
  if(!suivante || actuelle===suivante) return;
 
+ /* Historique de navigation centralisé : tous les boutons Retour restent fonctionnels. */
+ window.__saniNavStack=window.__saniNavStack||[];
+ if(!window.__saniGoingBack && actuelle && actuelle.id && actuelle.id!==id){
+   window.__saniNavStack.push(actuelle.id);
+   if(window.__saniNavStack.length>50) window.__saniNavStack.shift();
+ }
+
  var conn=document.getElementById('saniConnection');
  /* Le bouton de connexion reste caché pendant quelques secondes après un retour à l'accueil,
     afin de ne pas apparaître immédiatement pendant la transition. */
@@ -2451,37 +2490,23 @@ function showPage(id){
 }
 
 
-/* Navigation SaniStock : mémorise la page précédente pour les boutons Retour */
-(function(){
-  if(window.__saniPreviousPageReady) return;
-  window.__saniPreviousPageReady=true;
-  var originalShowPage=window.showPage;
-  var stack=[];
-  var navigatingBack=false;
-  window.showPage=function(id){
-    var current=document.querySelector('.screen.active');
-    if(current && current.id && current.id!==id && !navigatingBack){
-      stack.push(current.id);
-      if(stack.length>30) stack.shift();
+/* Navigation SaniStock — bouton Retour fiable */
+window.sanistockGoBack=function(){
+  var stack=window.__saniNavStack||[];
+  var current=document.querySelector('.screen.active');
+  while(stack.length){
+    var previous=stack.pop();
+    if(previous && (!current || previous!==current.id)){
+      window.__saniGoingBack=true;
+      try{ showPage(previous); } finally { window.__saniGoingBack=false; }
+      return;
     }
-    return originalShowPage(id);
-  };
-  window.sanistockGoBack=function(){
-    var current=document.querySelector('.screen.active');
-    while(stack.length){
-      var previous=stack.pop();
-      if(previous && previous!==current){
-        navigatingBack=true;
-        try{ originalShowPage(previous); } finally { navigatingBack=false; }
-        return;
-      }
-    }
-    if(current && current.id!=='homePage'){
-      navigatingBack=true;
-      try{ originalShowPage('homePage'); } finally { navigatingBack=false; }
-    }
-  };
-})();
+  }
+  if(current && current.id!=='homePage'){
+    window.__saniGoingBack=true;
+    try{ showPage('homePage'); } finally { window.__saniGoingBack=false; }
+  }
+};
 
 const $=id=>document.getElementById(id);
 let stockData=[];
@@ -9926,10 +9951,10 @@ if ("serviceWorker" in navigator) {
   </div>
 </div>
 
-<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.51</div>
+<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.53</div>
 
 <style id="sanistock-connexion-accueil-uniquement">
-/* ===== VERSION 1.1.52 — BOUTON CONNEXION UNIQUEMENT SUR ACCUEIL ===== */
+/* ===== VERSION 1.1.53 — BOUTON CONNEXION UNIQUEMENT SUR ACCUEIL ===== */
 /* Ancien voyant « Connecté à SaniStock » : supprimé visuellement partout */
 #saniConnection{
   display:none !important;
@@ -10204,18 +10229,6 @@ if ("serviceWorker" in navigator) {
     },DELAI_RETOUR_ACCUEIL);
   }
 
-  var ancienShowPage=window.showPage;
-  if(typeof ancienShowPage==='function'){
-    window.showPage=function(id){
-      if(id==='homePage'){
-        var result=ancienShowPage.apply(this,arguments);
-        afficherAvecDelai();
-        return result;
-      }
-      masquer();
-      return ancienShowPage.apply(this,arguments);
-    };
-  }
 
   /* Sécurité : si une navigation change l'écran sans passer par showPage,
      le bouton est quand même retiré de tous les menus. */
