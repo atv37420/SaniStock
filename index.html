@@ -1,4 +1,4 @@
-<!-- SaniStock version 1.1.58 : voyant unique en haut à droite -->
+<!-- SaniStock version 1.1.55 : interface véhicules identique CHECK-LIST -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -781,12 +781,12 @@ body{display:block}
 <style>
 /* ===== INDICATEUR CONNEXION - VERSION PLUS PETITE ===== */
 #saniConnection{
-  top:max(7px, env(safe-area-inset-top)) !important;
-  right:7px !important;
-  gap:4px !important;
-  padding:4px 6px !important;
-  border-radius:11px !important;
-  box-shadow:0 2px 8px rgba(0,0,0,.18) !important;
+  top:max(8px, env(safe-area-inset-top)) !important;
+  right:8px !important;
+  gap:5px !important;
+  padding:5px 8px !important;
+  border-radius:13px !important;
+  box-shadow:0 3px 10px rgba(0,0,0,.18) !important;
 }
 #saniConnection .saniDot{
   width:7px !important;
@@ -1870,7 +1870,7 @@ button.settingsAction.secondary:hover,
   top:calc(max(8px,env(safe-area-inset-top)) + 43px) !important;
 }
 <style>
-/* ===== SaniStock 1.1.57 — statut intégré au bouton Déconnexion ===== */
+/* ===== SaniStock 1.1.55 — statut intégré au bouton Déconnexion ===== */
 #saniConnection{display:none !important;}
 #homeLogoutBtn{
   position:fixed !important;
@@ -1907,58 +1907,6 @@ button.settingsAction.secondary:hover,
 .homeConnDisconnect{background:#e32636;color:#fff;}
 .homeConnCancel{background:#dce7ef;color:#042349;}
 </style>
-</style>
-
-<style id="sanistock-1-1-56-voyant-final">
-/* ===== 1.1.58 — UN SEUL VOYANT EN HAUT À DROITE ===== */
-/* Ancien voyant de connexion : masqué définitivement */
-#saniConnection{
-  display:none !important;
-  visibility:hidden !important;
-  opacity:0 !important;
-  pointer-events:none !important;
-}
-/* Nouveau voyant intégré : conservé en haut à droite */
-#homeLogoutBtn{
-  display:flex !important;
-  visibility:visible !important;
-  opacity:1 !important;
-  position:fixed !important;
-  top:max(8px,env(safe-area-inset-top)) !important;
-  right:10px !important;
-  left:auto !important;
-  bottom:auto !important;
-  z-index:999999 !important;
-}
-</style>
-
-<style id="sanistock-1-1-58-final-clean">
-/* ===== 1.1.58 — voyant unique très compact + version unique ===== */
-#saniConnection{display:none !important;visibility:hidden !important;opacity:0 !important;pointer-events:none !important;}
-#homeLogoutBtn{
-  display:flex !important;
-  visibility:visible !important;
-  opacity:1 !important;
-  position:fixed !important;
-  top:max(6px,env(safe-area-inset-top)) !important;
-  right:6px !important;
-  left:auto !important;
-  bottom:auto !important;
-  z-index:999999 !important;
-  min-width:0 !important;
-  width:auto !important;
-  padding:3px 5px !important;
-  gap:3px !important;
-  border-radius:8px !important;
-  font-size:7px !important;
-  line-height:1 !important;
-}
-#homeLogoutBtn .homeConnDot{width:5px !important;height:5px !important;flex:0 0 5px !important;}
-#homeLogoutBtn .homeConnTexts{line-height:1 !important;}
-#homeConnTitle,#homeConnLogout{font-size:6px !important;line-height:1 !important;}
-#homeConnLogout{margin-top:1px !important;}
-#sanistock-version-footer{display:none !important;}
-#sanistock-version-bottom{display:block !important;position:fixed !important;left:0 !important;right:0 !important;bottom:8px !important;padding:0 !important;margin:0 !important;text-align:center !important;color:#000 !important;font-size:12px !important;font-weight:500 !important;line-height:1.2 !important;z-index:9999 !important;pointer-events:none !important;}
 </style>
 </head>
 <body>
@@ -4452,7 +4400,7 @@ function changerCodeAdminUI(){
     if(!box||!text) return;
     const nom=String(name||'').trim().replace(/\s+/g,' ');
     const prenom=nom ? nom.split(' ')[0] : '';
-    text.textContent=prenom ? 'Bienvenue '+prenom+' !' : 'Bienvenue !';
+    text.textContent=prenom ? 'Bonjour '+prenom+' !' : 'Bonjour !';
     box.classList.remove('show');
     box.setAttribute('aria-hidden','false');
     void box.offsetWidth;
@@ -9939,7 +9887,7 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 
-<div id="sanistock-version-bottom">SaniStock - version 1.1.58</div>
+<div id="sanistock-version-bottom">SaniStock - version 1.1.55</div>
 
 <style id="sanistock-annonce-modal-css">
 #homeInformationModal{
@@ -10020,7 +9968,7 @@ if ("serviceWorker" in navigator) {
   </div>
 </div>
 
-<div id="sanistock-version-footer" style="display:none !important;">SaniStock - version 1.1.58</div>
+<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.55</div>
 
 <style id="sanistock-connexion-accueil-uniquement">
 #saniConnection.saniConnHomeOnlyHidden{display:none !important;}
