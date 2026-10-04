@@ -1712,8 +1712,8 @@ body{display:block}
 
 <!-- SaniStock 1.1.27 : annonce affichée une seule fois après lecture -->
 <style id="sanistock-splash-neutral-1-1-26">
-/* Démarrage neutre : uniquement le logo animé */
-#saniSplash{background:#ffffff !important;}
+/* Démarrage : fond bleu SaniStock uniquement sur l'écran d'ouverture */
+#saniSplash{background:#042349 !important;}
 #saniSplash .splashShade{display:none !important;}
 #saniSplash .welcome-only{display:none !important;}
 #saniSplash .splashContent{display:block !important;}
@@ -1907,13 +1907,6 @@ button.settingsAction.secondary:hover,
 .homeConnDisconnect{background:#e32636;color:#fff;}
 .homeConnCancel{background:#dce7ef;color:#042349;}
 </style>
-</style>
-
-<style id="sanistock-connexion-fond-042349">
-/* Pendant la recherche de connexion : même fond bleu SaniStock */
-#employeeLoginOverlay{
-  background:#042349 !important;
-}
 </style>
 </head>
 <body>
@@ -10146,5 +10139,39 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
 /* Ajustements 1.1.48 */
 .saniGlobalSearchBtn{transform:translateY(10px);}
 </style>
+
+
+<style id="sanistock-fond-connexion-042349-final">
+/* 1. Écran d'ouverture SaniStock */
+#saniSplash{
+  background:#042349 !important;
+}
+#saniSplash .splashBg{
+  display:none !important;
+}
+#saniSplash .splashShade{
+  display:none !important;
+}
+
+/* Logo SaniStock conservé */
+#saniSplash .splashLogo,
+#saniSplash .splashLogoAnimated{
+  display:block !important;
+  visibility:visible !important;
+  opacity:1 !important;
+}
+
+/* 2. Pendant la recherche de connexion */
+#employeeLoginOverlay{
+  background:#042349 !important;
+}
+
+/* Le bloc d'animation de connexion reste transparent :
+   seul le fond plein écran change de couleur. */
+#loginAmbulanceAnim{
+  background:transparent !important;
+}
+</style>
+
 </body>
 </html>
