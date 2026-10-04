@@ -10175,5 +10175,14 @@ body:has(#homePage.active) #homeLogoutBtn{
 #homeLogoutBtn{display:none !important;}
 body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
 </style>
+
+<style id="sanistock-supprimer-voyant-double-final">
+/* Supprime complètement l’ancien voyant « Connecté / En ligne ».
+   Seul le bouton de connexion/déconnexion de l’accueil (#homeLogoutBtn) reste visible. */
+#saniConnection{
+  display:none !important;
+  visibility:hidden !important;
+}
+</style>
 </body>
 </html>
