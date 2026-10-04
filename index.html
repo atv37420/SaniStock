@@ -10140,38 +10140,18 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
 .saniGlobalSearchBtn{transform:translateY(10px);}
 </style>
 
+<style id="sanistock-unique-label-and-welcome-final">
+/* Un seul affichage de SaniStock dans l'indicateur de connexion */
+#saniConnection .saniConnSub{display:none !important;}
 
-<style id="sanistock-fond-connexion-042349-final">
-/* 1. Écran d'ouverture SaniStock */
-#saniSplash{
+/* Bulle Bonjour après la connexion automatique */
+#sanistockWelcomeName .welcomeNameCard{
   background:#042349 !important;
+  color:#fff !important;
 }
-#saniSplash .splashBg{
-  display:none !important;
-}
-#saniSplash .splashShade{
-  display:none !important;
-}
-
-/* Logo SaniStock conservé */
-#saniSplash .splashLogo,
-#saniSplash .splashLogoAnimated{
-  display:block !important;
-  visibility:visible !important;
-  opacity:1 !important;
-}
-
-/* 2. Pendant la recherche de connexion */
-#employeeLoginOverlay{
-  background:#042349 !important;
-}
-
-/* Le bloc d'animation de connexion reste transparent :
-   seul le fond plein écran change de couleur. */
-#loginAmbulanceAnim{
-  background:transparent !important;
+#sanistockWelcomeName .welcomeText{
+  color:#fff !important;
 }
 </style>
-
 </body>
 </html>
