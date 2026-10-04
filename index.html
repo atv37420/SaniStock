@@ -434,7 +434,7 @@ body{display:block}
 .selectors select{width:100%;padding:11px 8px;border:1px solid #c7d9e6;border-radius:9px;background:#fff;color:#042349}
 .disCard{padding:16px}
 .progressHead{display:flex;justify-content:space-between;align-items:center;color:#042349;font-size:10px}.progressHead strong{font-size:19px}
-.progress{height:9px;background:#dce7ef;border-radius:20px;overflow:hidden;margin:9px 0 14px}.progress span{display:block;width:0;height:100%;background:#0875c9;transition:.2s}
+.progress{height:9px;background:#e32636;border-radius:20px;overflow:hidden;margin:9px 0 14px}.progress span{display:block;width:0;height:100%;background:#0875c9;transition:width .25s ease}
 .task{position:relative;width:100%;display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px;margin:8px 0;padding:10px;border:1px solid #d8e5ed;border-radius:13px;background:#fff;color:#042349;text-align:left;cursor:pointer}
 .taskIcon{display:inline-grid;place-items:center;width:28px;height:28px;min-width:28px;margin-right:8px;border-radius:8px;background:#eef5fa;color:#042349;vertical-align:middle}.taskSvg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.taskLabel{vertical-align:middle}.task input{position:absolute;opacity:0}.task i{font-style:normal;width:29px;height:29px;border-radius:50%;display:grid;place-items:center;background:#e8f3fb;color:#042349;font-weight:900}.task b{font-size:11px;display:flex;align-items:center;min-width:0}.taskStatus{padding:7px 9px;border-radius:8px;background:#e6f7eb;color:#148c47;font-size:10px;font-weight:900}.task em{font-style:normal;background:#df2633;color:#fff;font-size:8px;padding:3px 5px;border-radius:6px}.task.done{background:#f0fbf4;border-color:#4eb879}.task.done .taskStatus{background:#15934b;color:#fff}
 .allBtn,.validBtn,.histBtn{width:100%;border:0;border-radius:13px;cursor:pointer;font-weight:900}.allBtn{margin-top:13px;padding:12px;background:#e4f1fb;color:#042349;text-align:left}.allBtn small{display:block;margin:4px 0 0 22px;color:#527a9a}.validBtn{margin-top:11px;padding:14px;background:#15934b;color:#fff}.histBtn{margin-top:9px;padding:13px;background:#075ba9;color:#fff;font-size:11px}
@@ -9991,6 +9991,9 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
 #checklistPage .checklistCard *, #checklistPage .checklistVehicle *{
   color:#042349 !important;
 }
+
+/* Ajustements 1.1.48 */
+.saniGlobalSearchBtn{transform:translateY(4px);}
 </style>
 </body>
 </html>
