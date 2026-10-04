@@ -1,4 +1,4 @@
-<!-- SaniStock version 1.1.53 : interface véhicules identique CHECK-LIST -->
+<!-- SaniStock version 1.1.54 : interface véhicules identique CHECK-LIST -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -1869,6 +1869,25 @@ button.settingsAction.secondary:hover,
   left:auto !important;
   top:calc(max(8px,env(safe-area-inset-top)) + 43px) !important;
 }
+<style>
+/* ===== SaniStock 1.1.54 — Déconnexion en bas à droite ===== */
+#homeLogoutBtn{
+  position:fixed !important;
+  top:auto !important;
+  left:auto !important;
+  right:10px !important;
+  bottom:7px !important;
+  z-index:99999 !important;
+  padding:4px 8px !important;
+  border-radius:10px !important;
+  font-size:10px !important;
+}
+#sanistock-version-bottom{
+  bottom:8px !important;
+  padding-right:105px !important;
+  box-sizing:border-box !important;
+}
+</style>
 </style>
 </head>
 <body>
@@ -9819,7 +9838,7 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 
-<div id="sanistock-version-bottom">SaniStock - version 1.1.53</div>
+<div id="sanistock-version-bottom">SaniStock - version 1.1.54</div>
 
 <style id="sanistock-annonce-modal-css">
 #homeInformationModal{
@@ -9900,7 +9919,7 @@ if ("serviceWorker" in navigator) {
   </div>
 </div>
 
-<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.53</div>
+<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.54</div>
 
 <style id="sanistock-connexion-accueil-uniquement">
 #saniConnection.saniConnHomeOnlyHidden{display:none !important;}
