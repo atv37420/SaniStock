@@ -9971,9 +9971,8 @@ if ("serviceWorker" in navigator) {
 
 <style id="sanistock-connexion-accueil-uniquement">
 #saniConnection.saniConnHomeOnlyHidden{display:none !important;}
-/* Indicateur « Connecté à SaniStock » uniquement sur l’accueil */
+/* Indicateur intégré à l'accueil : on masque l'ancien doublon */
 #saniConnection{display:none !important;}
-body:has(#homePage.active) #saniConnection{display:flex !important;}
 </style>
 <script>
 (function(){
