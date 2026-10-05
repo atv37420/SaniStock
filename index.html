@@ -10815,34 +10815,32 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
   };
   window.envoyerMailTaxi=async function(){
     var btn=document.querySelector('.taxiMailBtn'),old=btn&&btn.textContent;
+    var pdfWindow=null;
     if(btn){btn.disabled=true;btn.textContent='⏳ GÉNÉRATION DU PDF...';}
     try{
-      // Génère d'abord le PDF exact à partir du modèle Taxi.
+      // Ouvre immédiatement une fenêtre autorisée par le clic utilisateur.
+      // Elle sera remplie avec le PDF une fois celui-ci généré.
+      pdfWindow=window.open('about:blank','_blank');
       var pdf=await buildExactPdf();
+      if(!pdf || !pdf.blob || pdf.blob.size===0) throw new Error('Le PDF généré est vide.');
+      var url=URL.createObjectURL(pdf.blob);
+      if(pdfWindow && !pdfWindow.closed){
+        pdfWindow.location.href=url;
+      }else{
+        var a=document.createElement('a');a.href=url;a.download=pdf.filename;document.body.appendChild(a);a.click();a.remove();
+      }
+      // Téléchargement explicite du PDF pour qu'il soit disponible comme pièce jointe.
+      var dl=document.createElement('a');dl.href=url;dl.download=pdf.filename;dl.style.display='none';document.body.appendChild(dl);dl.click();dl.remove();
       var dest='hognonlewis@gmail.com';
       var subject='Check-list Taxi - '+(document.getElementById('taxiImmatriculation')?.value||'')+' - '+dateFR(document.getElementById('taxiDate')?.value||'');
-      var body='Bonjour,\n\nVeuillez trouver la fiche de contrôle et d’entretien mensuel du taxi.\n\nLe PDF vient d’être téléchargé automatiquement. Ajoutez-le en pièce jointe à ce message avant l’envoi.\n\nCordialement,\nSaniStock';
-
-      // Télécharge systématiquement le PDF avant d’ouvrir le logiciel de messagerie.
-      var url=URL.createObjectURL(pdf.blob);
-      var a=document.createElement('a');
-      a.href=url;
-      a.download=pdf.filename;
-      a.style.display='none';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(function(){URL.revokeObjectURL(url);},10000);
-
-      // Laisse au navigateur le temps de lancer le téléchargement, puis ouvre le mail.
-      setTimeout(function(){
-        window.location.href='mailto:'+dest+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
-      },500);
-
-      alert('✅ PDF généré et téléchargé !\n\nLe mail va maintenant s’ouvrir. Ajoutez le PDF téléchargé en pièce jointe avant d’envoyer.');
+      var body='Bonjour,\n\nVeuillez trouver la fiche de contrôle et d’entretien mensuel du taxi.\n\nLe PDF vient d’être généré et téléchargé automatiquement : '+pdf.filename+'\nAjoutez ce fichier en pièce jointe avant l’envoi.\n\nCordialement,\nSaniStock';
+      alert('✅ PDF généré !\n\nLe PDF a été ouvert et téléchargé.\nVous pouvez maintenant l’ajouter en pièce jointe au mail.');
+      window.location.href='mailto:'+dest+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
+      setTimeout(function(){URL.revokeObjectURL(url);},60000);
     }catch(e){
-      console.error(e);
-      alert('❌ Impossible de préparer le PDF pour le mail : '+(e&&e.message?e.message:e));
+      console.error('Taxi PDF/mail:',e);
+      if(pdfWindow && !pdfWindow.closed) pdfWindow.close();
+      alert('❌ ERREUR PDF TAXI : '+(e&&e.message?e.message:e));
     }finally{
       if(btn){btn.disabled=false;btn.textContent=old||'📧 ENVOYER PAR MAIL';}
     }
