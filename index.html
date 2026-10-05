@@ -10814,13 +10814,38 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     finally{if(btn){btn.disabled=false;btn.textContent=old||'📄 GÉNÉRER LE PDF';}}
   };
   window.envoyerMailTaxi=async function(){
-    var btn=document.querySelector('.taxiMailBtn'),old=btn&&btn.textContent;if(btn){btn.disabled=true;btn.textContent='⏳ PRÉPARATION DU PDF...';}
-    try{var pdf=await buildExactPdf(),file=new File([pdf.blob],pdf.filename,{type:'application/pdf'}),dest='hognonlewis@gmail.com',subject='Check-list Taxi - '+(document.getElementById('taxiImmatriculation')?.value||'')+' - '+dateFR(document.getElementById('taxiDate')?.value||'');
-      var body='Bonjour,\n\nVeuillez trouver la fiche de contrôle et d’entretien mensuel du taxi.\n\nCordialement,\nSaniStock';
-      if(navigator.canShare&&navigator.share&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:subject,text:body});}
-      else{var url=URL.createObjectURL(pdf.blob),a=document.createElement('a');a.href=url;a.download=pdf.filename;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url);},10000);window.location.href='mailto:'+dest+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body+'\n\nLe PDF a été téléchargé : '+pdf.filename+'\nAjoutez-le en pièce jointe avant l’envoi.');}
-    }catch(e){console.error(e);alert('❌ Impossible de préparer le PDF pour le mail : '+(e&&e.message?e.message:e));}
-    finally{if(btn){btn.disabled=false;btn.textContent=old||'📧 ENVOYER PAR MAIL';}}
+    var btn=document.querySelector('.taxiMailBtn'),old=btn&&btn.textContent;
+    if(btn){btn.disabled=true;btn.textContent='⏳ GÉNÉRATION DU PDF...';}
+    try{
+      // Génère d'abord le PDF exact à partir du modèle Taxi.
+      var pdf=await buildExactPdf();
+      var dest='hognonlewis@gmail.com';
+      var subject='Check-list Taxi - '+(document.getElementById('taxiImmatriculation')?.value||'')+' - '+dateFR(document.getElementById('taxiDate')?.value||'');
+      var body='Bonjour,\n\nVeuillez trouver la fiche de contrôle et d’entretien mensuel du taxi.\n\nLe PDF vient d’être téléchargé automatiquement. Ajoutez-le en pièce jointe à ce message avant l’envoi.\n\nCordialement,\nSaniStock';
+
+      // Télécharge systématiquement le PDF avant d’ouvrir le logiciel de messagerie.
+      var url=URL.createObjectURL(pdf.blob);
+      var a=document.createElement('a');
+      a.href=url;
+      a.download=pdf.filename;
+      a.style.display='none';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(function(){URL.revokeObjectURL(url);},10000);
+
+      // Laisse au navigateur le temps de lancer le téléchargement, puis ouvre le mail.
+      setTimeout(function(){
+        window.location.href='mailto:'+dest+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
+      },500);
+
+      alert('✅ PDF généré et téléchargé !\n\nLe mail va maintenant s’ouvrir. Ajoutez le PDF téléchargé en pièce jointe avant d’envoyer.');
+    }catch(e){
+      console.error(e);
+      alert('❌ Impossible de préparer le PDF pour le mail : '+(e&&e.message?e.message:e));
+    }finally{
+      if(btn){btn.disabled=false;btn.textContent=old||'📧 ENVOYER PAR MAIL';}
+    }
   };
 })();
 
