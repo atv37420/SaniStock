@@ -10949,7 +10949,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
   async function chargerModeleVsl(){const r=await fetch('./vsl_template.pdf',{cache:'no-store'});if(!r.ok)throw new Error('Modèle PDF VSL introuvable. Ajoutez vsl_template.pdf à GitHub Pages.');return r.arrayBuffer();}
   function cover(page,x,y,w,h,color){page.drawRectangle({x:x,y:y,width:w,height:h,color:color});}
   function drawValue(page,font,text,x,y,maxW,size,color){let t=String(text||'');while(t.length&&font.widthOfTextAtSize(t,size)>maxW)t=t.slice(0,-1);if(t)page.drawText(t,{x,y,size,font,color});}
-  function drawCheck(page,x,y,size,color){page.drawText('✓',{x,y,size,font:page.__bold,color});}
+  function drawCheck(page,x,y,size,color){const w=size*0.9;const h=size*0.9;page.drawLine({start:{x:x-w*0.45,y:y-h*0.05},end:{x:x-w*0.05,y:y-h*0.45},thickness:Math.max(1.2,size*0.13),color});page.drawLine({start:{x:x-w*0.05,y:y-h*0.45},end:{x:x+w*0.55,y:y+h*0.35},thickness:Math.max(1.2,size*0.13),color});}
   function drawX(page,x,y,size,color){page.drawText('X',{x,y,size,font:page.__bold,color});}
   function wrap(font,text,size,maxW){const words=String(text||'').split(/\s+/),lines=[];let line='';for(const w of words){const test=line?line+' '+w:w;if(font.widthOfTextAtSize(test,size)<=maxW)line=test;else{if(line)lines.push(line);line=w;}}if(line)lines.push(line);return lines;}
   async function buildExactPdf(){
