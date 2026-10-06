@@ -2324,7 +2324,7 @@ button.settingsAction.secondary:hover,
 
     <div class="selectors">
       <div><label>SALARIÉ</label><select id="employee"><option value="">Sélectionner votre nom</option></select><button type="button" id="addColleagueBtn" class="addColleagueBtn" onclick="toggleSecondColleague()" hidden>＋ Ajouter un collègue</button><div id="secondColleagueWrap" class="secondColleagueWrap" hidden><label>2ᵉ COLLÈGUE</label><select id="employee2"><option value="">Sélectionner le collègue</option></select></div></div>
-      <div><label>VÉHICULE</label><select id="vehicle" onchange="adapterChecklistVehicule()"><option value="">Sélectionner un véhicule</option><option>HA-219-PS – AMBU TRAFIC</option><option>PEUGEOT BOXER</option><option>AUDI A6 TAXI</option><option>HK-887-SD – FORD TOURNEO</option><option>FH-061-DT – CADDY TAXI</option><option>GH805GV – IONIQ 5 TAXI</option><option>GH-575-RH – CADDY VSL</option><option>DR-607-TE – CADDY BLANC</option><option>FC-295-XP – SKODA SUPERB</option><option>FF-458-QT – SKODA BREAK VSL</option><option>EW-353-WR – SKODA BREAK VSL</option><option>FF-334-SL – SKODA KODIAQ VSL</option><option>EN-114-BK – SKODA SUPERB VSL</option></select></div>
+      <div><label>VÉHICULE</label><select id="vehicle" onchange="adapterChecklistVehicule()"><option value="">Sélectionner un véhicule</option><option>FZ-349-AT – AMBULANCE PEUGEOT BOXER</option><option>AUDI A6 TAXI</option><option>HK-887-SD – FORD TOURNEO</option><option>FH-061-DT – CADDY TAXI</option><option>GH805GV – IONIQ 5 TAXI</option><option>GH-575-RH – CADDY VSL</option><option>DR-607-TE – CADDY BLANC</option><option>FC-295-XP – SKODA SUPERB</option><option>FF-458-QT – SKODA BREAK VSL</option><option>EW-353-WR – SKODA BREAK VSL</option><option>FF-334-SL – SKODA KODIAQ VSL</option><option>EN-114-BK – SKODA SUPERB VSL</option></select></div>
     </div>
 
     <div class="disCard">
@@ -2756,7 +2756,7 @@ function electricFuelLabel(){
 }
 function isAmbulanceVehicle(nom){
  const v=String(nom||'').toUpperCase();
- return v.includes('AMBU')||v.includes('AMBULANCE')||v.includes('BOXER');
+ return v.includes('FZ-349-AT') || v.includes('AMBULANCE PEUGEOT BOXER');
 }
 function currentChecklist(){
  const veh=$('vehicle')?$('vehicle').value:'';
@@ -9973,7 +9973,7 @@ if ("serviceWorker" in navigator) {
   </div>
 </div>
 
-<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.60</div>
+<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.61</div>
 
 <style id="sanistock-connexion-accueil-uniquement">
 #saniConnection.saniConnHomeOnlyHidden{display:none !important;}
@@ -10004,7 +10004,7 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
 (function(){
   const KEY='sanistock_checklist_vehicules_v1';
   const DEFAULTS={
-    'AMBULANCES':['FZ-349-AT – AMBULANCE PEUGEOT BOXER','HA-219-PS – AMBULANCE RENAULT TRAFIC'],
+    'AMBULANCES':['FZ-349-AT – AMBULANCE PEUGEOT BOXER'],
     'TAXIS':['DR-951-FG – AUDI A6 TAXI','FH-061-DT – CADDY TAXI','GH-805-GV – IONIQ 5 TAXI','HK-887-SD – FORD TOURNEO TAXI','DR-607-TE – CADDY TAXI'],
     'VSL':['GH-575-RH – CADDY VSL','FF-458-QT – SKODA BREAK VSL','FF-334-SL – SKODA KODIAQ VSL','EN-114-BK – SKODA SUPERB VSL','FC-295-XP – SKODA SUPERB VSL']
   };
@@ -10057,6 +10057,7 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
 (function(){
   const V=(window.getChecklistVehiculesData?window.getChecklistVehiculesData():window.CHECKLIST_VEHICLES_DEFAULTS);
   window.CHECKLIST_VEHICLES_FIXED=V;
+  if(Array.isArray(V.AMBULANCES)){ V.AMBULANCES=V.AMBULANCES.filter(function(v){ var u=String(v||'').toUpperCase(); return u.includes('FZ-349-AT') || u.includes('AMBULANCE PEUGEOT BOXER'); }); }
   function esc(x){return String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
   function checklistCategoryLabel(cat){
     var c=String(cat||'').toUpperCase();
@@ -11530,7 +11531,7 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
 
   window.ouvrirChecklistAmbulance=function(v){
     const box=document.getElementById('checklistContent'),sub=document.getElementById('checklistSubtitle');if(!box)return;
-    if(sub)sub.textContent='AMBULANCE — contrôle du véhicule';
+    if(sub)sub.textContent='AMBULANCE TYPE B — contrôle du véhicule';
     box.innerHTML=ambulanceHtml(v);
     buildAmbSections();
     setCrew();
@@ -11545,7 +11546,7 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
   const previousOpen=window.ouvrirChecklistVehiculeFixe;
   window.ouvrirChecklistVehiculeFixe=function(v){
     const s=String(v||'').toUpperCase();
-    if(s.includes('AMBU')||s.includes('AMBULANCE')||s.includes('BOXER')){window.ouvrirChecklistAmbulance(v);return;}
+    if(s.includes('FZ-349-AT') || s.includes('AMBULANCE PEUGEOT BOXER')){window.ouvrirChecklistAmbulance(v);return;}
     return previousOpen.apply(this,arguments);
   };
 })();
