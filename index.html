@@ -10943,6 +10943,12 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
 .vslSignatureHint{font-size:13px;color:#64748b;margin:0 0 8px}.vslSignatureActions{display:flex;justify-content:flex-end;margin-top:8px}.vslSignatureClear{border:1px solid #cbd5e1;background:#f8fafc;color:#334155;border-radius:8px;padding:8px 12px;font-weight:700;cursor:pointer}
 @media(max-width:650px){.vslInfoGrid{grid-template-columns:1fr}.vslChecklistHead,.vslChecklistRow{grid-template-columns:minmax(0,1fr) 52px 52px 52px 82px;gap:4px}.vslChecklistHead{font-size:8px}.vslChecklistRow{font-size:10px}}
 </style>
+
+<style id="sanistock-vsl-tout-cocher-style">
+.vslCategoryActions{display:flex;justify-content:flex-end;padding:5px 8px;background:#f8fafc;border-left:1px solid #dbe5ee;border-right:1px solid #dbe5ee;}
+.vslToutCocher{border:1px solid #2563eb;background:#fff;color:#2563eb;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;}
+.vslToutCocher:active{transform:scale(.98);}
+</style>
 <script id="sanistock-checklist-vsl-js">
 (function(){
   const VSL_ITEMS = [
@@ -11001,7 +11007,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     html+='<div class="vslField"><label>Immatriculation :</label><input id="vslImmatriculation" type="text" value="'+esc(vehicle.split(' – ')[0]||'')+'" readonly></div>';
     html+='<div class="vslField"><label>Kms :</label><input id="vslKms" type="text" inputmode="numeric" placeholder="Saisir le kilométrage"></div></div></div>';
     Object.keys(groups).forEach(function(cat){
-      html+='<div class="vslSection"><div class="vslSectionTitle">'+esc(cat)+'</div>';
+      html+='<div class="vslSection"><div class="vslSectionTitle">'+esc(cat)+'</div><div class="vslCategoryActions"><button type="button" class="vslToutCocher" onclick="toutCocherVslCategorie(\''+esc(cat).replace(/'/g,\"\\'\")+\'\')">✓ TOUT COCHER</button></div>';
       html+='<div class="vslChecklistHead"><div>Inventaire</div><div>Quantité</div><div>Présent</div><div>Manque</div><div>Quantité manquante</div></div>';
       groups[cat].forEach(function(item){const i=VSL_ITEMS.indexOf(item);const id='vslItem'+i;html+='<div class="vslChecklistRow" data-vsl-index="'+i+'"><div>'+esc(item.name)+'</div><div class="vslQty">'+esc(item.quantity)+'</div><div class="vslChoice"><input type="radio" name="'+id+'" value="present" onchange="toggleVslMissing('+i+',false)"></div><div class="vslChoice"><input type="radio" name="'+id+'" value="manque" onchange="toggleVslMissing('+i+',true)"></div><div><input id="vslMissing'+i+'" class="vslMissingQty" type="text" inputmode="numeric" autocomplete="off" placeholder="—"></div></div>';});
       html+='</div>';
@@ -11017,6 +11023,13 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     if(nom){hidden.value=nom;box.innerHTML='👤 <strong>Chauffeur reconnu :</strong> '+esc(nom);return;}
     box.innerHTML='⚠️ Aucun chauffeur connecté. Reconnectez-vous à SaniStock.';
   }
+  window.toutCocherVslCategorie=function(cat){
+    VSL_ITEMS.forEach(function(item,i){
+      if(item.category!==cat)return;
+      const r=document.querySelector('#checklistVslDetail .vslChecklistRow[data-vsl-index="'+i+'"] input[value="present"]');
+      if(r){r.checked=true;r.dispatchEvent(new Event('change',{bubbles:true}));}
+    });
+  };
   window.toggleVslMissing=function(i,enabled){const q=document.getElementById('vslMissing'+i);if(!q)return;q.disabled=false;q.readOnly=false;if(!enabled)q.value='';if(enabled)setTimeout(()=>q.focus(),20);};
   function getMissing(i){const input=document.getElementById('vslMissing'+i);return input?String(input.value||'').trim():'';}
   function getState(i){const r=document.querySelector('#checklistVslDetail .vslChecklistRow[data-vsl-index="'+i+'"]');if(!r)return '';const c=r.querySelector('input[type="radio"]:checked');return c?String(c.value||'').toLowerCase():'';}
