@@ -10785,23 +10785,39 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
   window.envoyerMailTaxi=async function(){
     var btn=document.querySelector('.taxiMailBtn');
     var old=btn&&btn.textContent;
-    if(btn){btn.disabled=true;btn.textContent='⏳ ENVOI DIRECT DU PDF...';}
+    if(btn){btn.disabled=true;btn.textContent='⏳ PRÉPARATION DU PDF...';}
 
     try{
+      // IMPORTANT : on utilise exactement les mêmes octets que le PDF généré.
+      // Aucun téléchargement et aucune nouvelle génération côté serveur.
       var pdf=await buildExactPdf();
-      var salarie='', code='';
+      var buffer=await pdf.blob.arrayBuffer();
+      var bytes=new Uint8Array(buffer);
+      if(!bytes.length) throw new Error('Le PDF généré est vide.');
+
+      // Base64 URL-safe : évite toute altération des caractères + / = pendant
+      // le POST de formulaire vers Google Apps Script.
+      var binary='',chunk=0x8000;
+      for(var i=0;i<bytes.length;i+=chunk){
+        binary+=String.fromCharCode.apply(null,bytes.subarray(i,Math.min(i+chunk,bytes.length)));
+      }
+      var base64=btoa(binary);
+      var base64Url=base64.replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+
+      var hash='';
+      if(window.crypto&&window.crypto.subtle){
+        var digest=await window.crypto.subtle.digest('SHA-256',buffer);
+        var hashBytes=new Uint8Array(digest),parts=[];
+        for(var h=0;h<hashBytes.length;h++) parts.push(hashBytes[h].toString(16).padStart(2,'0'));
+        hash=parts.join('');
+      }
+
+      var salarie='',code='';
       try{
         salarie=String(localStorage.getItem('sanistock_employee_name')||'').trim();
         code=String(localStorage.getItem('sanistock_employee_code')||'').trim();
       }catch(e){}
       if(!salarie||!code) throw new Error('Session salarié introuvable. Déconnectez-vous puis reconnectez-vous à SaniStock.');
-
-      var buffer=await pdf.blob.arrayBuffer();
-      var bytes=new Uint8Array(buffer), binary='', chunk=0x8000;
-      for(var i=0;i<bytes.length;i+=chunk){
-        binary+=String.fromCharCode.apply(null,bytes.subarray(i,Math.min(i+chunk,bytes.length)));
-      }
-      var base64=btoa(binary);
 
       var immat=String(document.getElementById('taxiImmatriculation')?.value||'').trim();
       var date=String(document.getElementById('taxiDate')?.value||'').trim();
@@ -10810,18 +10826,13 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
       var dateAff=typeof dateFR==='function'?dateFR(date):date;
       var subject='Check-list Taxi - '+immat+' - '+dateAff;
       var body=[
-        'Bonjour,',
-        '',
-        'Veuillez trouver ci-joint la fiche de contrôle et d’entretien mensuel du taxi.',
-        '',
+        'Bonjour,','',
+        'Veuillez trouver ci-joint la fiche de contrôle et d’entretien mensuel du taxi.','',
         'Véhicule : '+vehicle,
         'Immatriculation : '+immat,
         'Chauffeur : '+salarie,
         'Date : '+dateAff,
-        'Kms : '+kms,
-        '',
-        'Cordialement,',
-        'SaniStock'
+        'Kms : '+kms,'','Cordialement,','SaniStock'
       ].join('\n');
 
       var api=(window.SANISTOCK_API_URL||'https://script.google.com/macros/s/AKfycbxz5dZkT7FyFx8ohxWmg2Pt23Yqx0LQDMqqJg8LM8bkfN3ulkb37VqUO8m8WvjyuGBqrg/exec');
@@ -10831,25 +10842,19 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
       document.body.appendChild(frame);
 
       var form=document.createElement('form');
-      form.method='POST';
-      form.action=api;
-      form.target=frame.name;
-      form.style.display='none';
-
+      form.method='POST'; form.action=api; form.target=frame.name; form.style.display='none';
       var input=document.createElement('textarea');
       input.name='payload';
       input.value=JSON.stringify({action:'envoyerTaxiPdf',data:{
-        salarie:salarie,code:code,filename:pdf.filename,base64:base64,
+        salarie:salarie,code:code,filename:pdf.filename,
+        base64url:base64Url,byteLength:bytes.length,sha256:hash,
         subject:subject,body:body
       }});
-      form.appendChild(input);
-      document.body.appendChild(form);
-      form.submit();
+      form.appendChild(input);document.body.appendChild(form);form.submit();
 
-      // L'envoi est effectué par Apps Script. Aucun fichier n'est téléchargé sur le téléphone.
-      await new Promise(function(resolve){setTimeout(resolve,4000);});
+      await new Promise(function(resolve){setTimeout(resolve,4500);});
       form.remove();frame.remove();
-      alert('✅ La fiche Taxi a été envoyée directement par mail avec le PDF en pièce jointe.');
+      alert('✅ La fiche Taxi remplie a été envoyée directement par mail avec le PDF en pièce jointe.');
     }catch(e){
       console.error(e);
       alert('❌ Impossible d’envoyer la fiche Taxi : '+(e&&e.message?e.message:e));
