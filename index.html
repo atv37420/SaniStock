@@ -10949,7 +10949,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
   async function chargerModeleVsl(){const r=await fetch('./vsl_template.pdf',{cache:'no-store'});if(!r.ok)throw new Error('Modèle PDF VSL introuvable. Ajoutez vsl_template.pdf à GitHub Pages.');return r.arrayBuffer();}
   function cover(page,x,y,w,h,color){page.drawRectangle({x:x,y:y,width:w,height:h,color:color});}
   function drawValue(page,font,text,x,y,maxW,size,color){let t=String(text||'');while(t.length&&font.widthOfTextAtSize(t,size)>maxW)t=t.slice(0,-1);if(t)page.drawText(t,{x,y,size,font,color});}
-  function drawCheck(page,x,y,size,color){const w=size*0.9;const h=size*0.9;page.drawLine({start:{x:x-w*0.50,y:y-h*0.05},end:{x:x-w*0.05,y:y-h*0.45},thickness:Math.max(1.2,size*0.13),color});page.drawLine({start:{x:x-w*0.05,y:y-h*0.45},end:{x:x+w*0.50,y:y+h*0.35},thickness:Math.max(1.2,size*0.13),color});}
+  function drawCheck(page,x,y,size,color){const w=size*0.92;const h=size*0.92;const t=Math.max(1.25,size*0.14);page.drawLine({start:{x:x-w*0.48,y:y-h*0.02},end:{x:x-w*0.08,y:y-h*0.42},thickness:t,color});page.drawLine({start:{x:x-w*0.08,y:y-h*0.42},end:{x:x+w*0.50,y:y+h*0.38},thickness:t,color});}
   function drawX(page,x,y,size,color){const t='X',w=page.__bold.widthOfTextAtSize(t,size);page.drawText(t,{x:x-w/2,y:y-size*0.18,size,font:page.__bold,color});}
   function wrap(font,text,size,maxW){const words=String(text||'').split(/\s+/),lines=[];let line='';for(const w of words){const test=line?line+' '+w:w;if(font.widthOfTextAtSize(test,size)<=maxW)line=test;else{if(line)lines.push(line);line=w;}}if(line)lines.push(line);return lines;}
   async function buildExactPdf(){
@@ -10968,6 +10968,8 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     addRows([11,12,13,14],[358.72,380.39,399.83,417.47],[false,true,false,true],p1,285.9,332.2,426.8);
     addRows([15,16,17,18,19,20,21,22,23,24,25,26,27,28,29],[481.17,495.26,509.95,539.70,568.87,590.29,619.68,648.27,668.93,683.02,697.13,718.55,740.02,754.11,768.22],[true,false,true,false,true,false,true,false,true,false,true,false,true,false,true],p1,285.9,332.2,426.8);
     addRows([30,31,32,33,34],[67.90,89.37,110.79,140.18,161.65],[false,false,true,false,false],p2,285.9,332.2,426.8);
+    // Valise noir : repères fixes et parfaitement alignés sur les centres réels des colonnes.
+    // Même axe pour tous les ✓ dans Présent et tous les X dans Manque.
     addRows([35,36,37,38,39,40,41],[229.16,242.66,256.16,269.66,290.72,320.83,343.39],[false,true,false,true,false,true,false],p2,285.9,332.2,426.8);
     if(obs){const lines=wrap(font,obs,8,455),start=841.89-555;lines.slice(0,7).forEach((line,j)=>p2.drawText(line,{x:57,y:start-j*15,size:8,font,color:black}));}
     if(equip){cover(p2,95,93,260,18,white);drawValue(p2,bold,equip,100,98,250,9,black);}
