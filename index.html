@@ -10814,7 +10814,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
 
     // Page 2 : désinfection, observations et signature.
     [34,35,36].forEach(function(idx,k){var st=getState(idx),miss=getMissing(idx),y=[743,730,716][k],rowBg=(k%2===0?white:gray);if(st){if(st==='present'){cover(p2,317,y-6,12,13,rowBg);drawCheck(p2,323,y,10,black);}else{cover(p2,387,y-6,12,13,rowBg);drawX(p2,393,y,10,black);}}if(miss){cover(p2,427,y-6,50,13,rowBg);drawValue(p2,bold,miss,430,y-3,47,8,red);}});
-    if(obs){var lines=wrapText(font,obs,8,410),yy=665;lines.slice(0,8).forEach(function(line){p2.drawText(line,{x:56,y:yy,size:8,font:font,color:black});yy-=11;});}
+    if(obs){var lines=wrapText(font,obs,8,410),yy=665;lines.slice(0,8).forEach(function(line){p2.drawText(line,{x:76,y:yy,size:8,font:font,color:black});yy-=11;});}
     if(equip){cover(p2,155,575,170,18,white);drawValue(p2,font,equip,160,579,160,9,black);}
     if(sig&&sig.indexOf('data:image/')===0){
       try{
