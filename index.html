@@ -11125,9 +11125,10 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     // Page 2 : 5 lignes de trousse puis 7 lignes de Valise noir.
     const rows2=[
       [30,695.6],[31,672.6],[32,649.6],[33,623.3],[34,599.9],
-      // Valise noir : centres exacts des 7 lignes du modèle PDF.
-      [35,619.96],[36,606.40],[37,592.90],[38,579.40],[39,558.33],
-      [40,528.22],[41,505.67]
+      // Valise noir : 1 seule coche, exactement au centre de chaque ligne.
+      // Espacements repris sur les hauteurs réelles des lignes du modèle.
+      [35,623.1],[36,607.6],[37,592.1],[38,576.6],[39,552.2],
+      [40,527.3],[41,511.2]
     ];
 
     // Papiers véhicule : les 11 cases du modèle sont dans la zone PAPIERS.
@@ -11158,8 +11159,8 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
         const state=selected ? String(selected.value||'').toLowerCase() : '';
         const missing=document.getElementById('vslMissing'+i)?.value?.trim()||'';
         if(state==='present') {
-          if(pg===p2 && i>=35) checkValise(pg,X_PRESENT,y);
-          else check(pg,X_PRESENT,y);
+          // Une seule coche par ligne, sans superposition.
+          check(pg,X_PRESENT,y);
         }
         if(state==='manque') cross(pg,X_MANQUE,y);
         if(missing) center(pg,missing,X_MISSING,y-2,8,bold);
