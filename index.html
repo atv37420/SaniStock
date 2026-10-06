@@ -11137,13 +11137,13 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     // les ✓ / X restent dans les bonnes cases et ne puissent pas remonter
     // dans INFORMATIONS GENERALES ou descendre dans MATERIEL VEHICULE.
     const paperRows=[
-      // Position réelle des 11 lignes PAPIERS VEHICULE sur le modèle VSL.
-      // Colonne gauche : indices 1,3,5,7,9.
-      // Colonne droite : indices 0,2,4,6,8,10.
-      [1,233.18,668.41],[3,233.18,654.41],[5,233.18,640.41],
-      [7,233.18,622.88],[9,233.18,582.91],
-      [0,409.19,668.41],[2,409.19,654.41],[4,409.19,640.41],
-      [6,409.19,622.88],[8,409.19,596.21],[10,409.19,582.91]
+      // Centres recalés sur les lignes/textes du modèle PDF original.
+      // Gauche : Carte grise, Cartes Leclerc/Carrefour, Carnet, Support PDA, Télécom.
+      [1,233.18,657.60],[3,233.18,644.10],[5,233.18,619.84],
+      [7,233.18,599.74],[9,233.18,586.24],
+      // Droite : Agrément ARS, Assurance, Constat, Cahier entretien, Contrôle technique, Cartes de visite.
+      [0,409.19,671.10],[2,409.19,657.60],[4,409.19,644.10],
+      [6,409.19,619.84],[8,409.19,599.74],[10,409.19,586.24]
     ];
 
     paperRows.forEach(([i,x,y])=>{
