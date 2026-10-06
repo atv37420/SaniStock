@@ -10963,12 +10963,14 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     const cross=(pg,x,y)=>{pg.drawLine({start:{x:x-4,y:y-4},end:{x:x+4,y:y+4},thickness:1.4,color:black});pg.drawLine({start:{x:x-4,y:y+4},end:{x:x+4,y:y-4},thickness:1.4,color:black});};
     // Le nouveau modèle est conservé intact : aucune ligne du tableau n'est recouverte.
     put(p1,date,22,H-103,8,bold);put(p1,immat,205,H-103,8,bold);put(p1,kms,421,H-103,8,bold);put(p1,equip,22,H-118,8,bold);
-    const papers=[[1,229,H-171],[3,229,H-184],[5,229,H-197],[7,229,H-211],[9,229,H-224],[0,442,H-171],[2,442,H-184],[4,442,H-197],[6,442,H-211],[8,442,H-224],[10,442,H-237]];
+    // Coordonnées calées sur le nouveau modèle VSL à 5 colonnes.
+    // Colonnes : Inventaire | Quantité | Présent | Manque | Quantité manquante.
+    const papers=[[1,228,671],[3,228,658],[5,228,645],[7,228,632],[9,228,619],[0,442,671],[2,442,658],[4,442,645],[6,442,632],[8,442,619],[10,442,606]];
     papers.forEach(([i,x,y])=>{const st=getState(i);if(st==='present')check(p1,x,y);else if(st==='manque')cross(p1,x,y);});
-    const rows1=[[11,404],[12,421],[13,439],[14,457],[15,487],[16,505],[17,522],[18,558],[19,593],[20,616],[21,646],[22,680],[23,699],[24,716],[25,736],[26,756],[27,773],[28,791],[29,808]];
-    rows1.forEach(([i,y])=>{const st=getState(i),m=getMissing(i);if(st==='present')check(p1,305,y);else if(st==='manque')cross(p1,356,y);if(m)center(p1,m,469,y-2,8,bold);});
-    const rows2=[[30,H-109],[31,H-127],[32,H-145],[33,H-163],[34,H-181],[35,H-210],[36,H-228],[37,H-246],[38,H-264],[39,H-282],[40,H-300],[41,H-318]];
-    rows2.forEach(([i,y])=>{const st=getState(i),m=getMissing(i);if(st==='present')check(p2,305,y);else if(st==='manque')cross(p2,356,y);if(m)center(p2,m,469,y-2,8,bold);});
+    const rows1=[[11,466],[12,445],[13,424],[14,403],[15,372],[16,351],[17,330],[18,299],[19,274],[20,250],[21,226],[22,198],[23,176],[24,154],[25,132],[26,111],[27,89],[28,68],[29,47]];
+    rows1.forEach(([i,y])=>{const st=getState(i),m=getMissing(i);if(st==='present')check(p1,405,y);else if(st==='manque')cross(p1,456,y);if(m)center(p1,m,533,y-2,8,bold);});
+    const rows2=[[30,718],[31,690],[32,659],[33,630],[34,599],[35,574],[36,550],[37,521],[38,494],[39,466],[40,439],[41,413]];
+    rows2.forEach(([i,y])=>{const st=getState(i),m=getMissing(i);if(st==='present')check(p2,405,y);else if(st==='manque')cross(p2,456,y);if(m)center(p2,m,533,y-2,8,bold);});
     if(obs){const lines=wrap(font,obs,8,520);lines.slice(0,8).forEach((line,j)=>put(p2,line,20,H-650-j*13,8,font));}
     if(sig&&sig.indexOf('data:image/')===0){try{const im=await new Promise((res,rej)=>{const x=new Image();x.onload=()=>res(x);x.onerror=rej;x.src=sig;}),sc=document.createElement('canvas');sc.width=im.width;sc.height=im.height;sc.getContext('2d').drawImage(im,0,0);const pix=sc.getContext('2d').getImageData(0,0,sc.width,sc.height).data;let minX=sc.width,minY=sc.height,maxX=-1,maxY=-1;for(let yy=0;yy<sc.height;yy++)for(let xx=0;xx<sc.width;xx++){const k=(yy*sc.width+xx)*4,a=pix[k+3],r=pix[k],g=pix[k+1],bb=pix[k+2];if(a>20&&(r<245||g<245||bb<245)){minX=Math.min(minX,xx);maxX=Math.max(maxX,xx);minY=Math.min(minY,yy);maxY=Math.max(maxY,yy);}}if(maxX>=minX){const pad=18,cw=Math.min(sc.width,maxX-minX+1+pad*2),ch=Math.min(sc.height,maxY-minY+1+pad*2),crop=document.createElement('canvas');crop.width=cw;crop.height=ch;crop.getContext('2d').drawImage(sc,Math.max(0,minX-pad),Math.max(0,minY-pad),Math.min(sc.width,cw),Math.min(sc.height,ch),0,0,cw,ch);const png=await doc.embedPng(crop.toDataURL('image/png')),maxW=180,maxH=45,scale=Math.min(maxW/png.width,maxH/png.height),dw=png.width*scale,dh=png.height*scale;p2.drawImage(png,{x:(W-dw)/2,y:34,width:dw,height:dh});}}catch(e){console.warn('Signature VSL',e);}}
     const bytes=await doc.save();return {blob:new Blob([bytes],{type:'application/pdf'}),filename:'Check-list VSL - '+(immat||'sans-immatriculation')+' - '+(date||'date').replaceAll('/','-')+'.pdf'};
