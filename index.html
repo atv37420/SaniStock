@@ -10946,78 +10946,34 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
   window.validerChecklistVsl=function(){const equip=document.getElementById('vslEquipage')?.value||'',date=document.getElementById('vslDate')?.value||'',immat=document.getElementById('vslImmatriculation')?.value||'',kms=document.getElementById('vslKms')?.value||'';if(!equip||!date||!immat||!kms){alert('Merci de vérifier le chauffeur, la date, l’immatriculation et les Kms.');return;}const result=VSL_ITEMS.map((x,i)=>({categorie:x.category,element:x.name,quantite:x.quantity,present:getState(i)==='present',quantiteManquante:getMissing(i)}));localStorage.setItem('sanistock_last_vsl_checklist',JSON.stringify({vehicle:document.getElementById('checklistVslSubtitle')?.textContent||'',equipage:equip,date,immatriculation:immat,kms,result,observations:document.getElementById('vslObservations')?.value||'',signature:document.getElementById('vslSignature')?.value||'',savedAt:new Date().toISOString()}));alert('✅ Contrôle VSL enregistré sur cet appareil.');};
   function dateFR(v){if(!v)return '';const p=String(v).split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:v;}
   async function loadPdfLib(){if(window.PDFLib)return window.PDFLib;if(!window.__saniPdfLibPromise){window.__saniPdfLibPromise=new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js';s.onload=()=>resolve(window.PDFLib);s.onerror=()=>reject(new Error('Bibliothèque PDF indisponible.'));document.head.appendChild(s);});}return window.__saniPdfLibPromise;}
-  async function chargerModeleVsl(){const r=await fetch('./vsl_template.pdf',{cache:'no-store'});if(!r.ok)throw new Error('Modèle PDF VSL introuvable. Ajoutez vsl_template.pdf à GitHub Pages.');return r.arrayBuffer();}
+  async function chargerModeleVsl(){const r=await fetch('./vsl_template.pdf?v=20261006-clean',{cache:'no-store'});if(!r.ok)throw new Error('Modèle PDF VSL introuvable. Ajoutez vsl_template.pdf à GitHub Pages.');return r.arrayBuffer();}
   function cover(page,x,y,w,h,color){page.drawRectangle({x:x,y:y,width:w,height:h,color:color});}
   function drawValue(page,font,text,x,y,maxW,size,color){let t=String(text||'');while(t.length&&font.widthOfTextAtSize(t,size)>maxW)t=t.slice(0,-1);if(t)page.drawText(t,{x,y,size,font,color});}
-  function drawCheck(page,x,y,size,color){const w=size*0.9;const h=size*0.9;page.drawLine({start:{x:x-w*0.50,y:y-h*0.05},end:{x:x-w*0.05,y:y-h*0.45},thickness:Math.max(1.2,size*0.13),color});page.drawLine({start:{x:x-w*0.05,y:y-h*0.45},end:{x:x+w*0.50,y:y+h*0.35},thickness:Math.max(1.2,size*0.13),color});}
-  function drawX(page,x,y,size,color){const t='X',w=page.__bold.widthOfTextAtSize(t,size);page.drawText(t,{x:x-w/2,y:y-size*0.18,size,font:page.__bold,color});}
+  function drawCheck(page,x,y,size,color){const w=size*0.9;const h=size*0.9;page.drawLine({start:{x:x-w*0.45,y:y-h*0.05},end:{x:x-w*0.05,y:y-h*0.45},thickness:Math.max(1.2,size*0.13),color});page.drawLine({start:{x:x-w*0.05,y:y-h*0.45},end:{x:x+w*0.55,y:y+h*0.35},thickness:Math.max(1.2,size*0.13),color});}
+  function drawX(page,x,y,size,color){page.drawText('X',{x,y,size,font:page.__bold,color});}
   function wrap(font,text,size,maxW){const words=String(text||'').split(/\s+/),lines=[];let line='';for(const w of words){const test=line?line+' '+w:w;if(font.widthOfTextAtSize(test,size)<=maxW)line=test;else{if(line)lines.push(line);line=w;}}if(line)lines.push(line);return lines;}
   async function buildExactPdf(){
-    const PDFLib=await loadPdfLib(),doc=await PDFLib.PDFDocument.load(await chargerModeleVsl()),font=await doc.embedFont(PDFLib.StandardFonts.Helvetica),bold=await doc.embedFont(PDFLib.StandardFonts.HelveticaBold),black=PDFLib.rgb(0,0,0),white=PDFLib.rgb(1,1,1),paperGray=PDFLib.rgb(217/255,217/255,217/255),rowGray=PDFLib.rgb(191/255,191/255,191/255);bold.__unused=0;
-    const p1=doc.getPage(0),p2=doc.getPage(1);p1.__bold=bold;p2.__bold=bold;
+    const PDFLib=await loadPdfLib(),doc=await PDFLib.PDFDocument.load(await chargerModeleVsl());
+    const font=await doc.embedFont(PDFLib.StandardFonts.Helvetica),bold=await doc.embedFont(PDFLib.StandardFonts.HelveticaBold),black=PDFLib.rgb(0,0,0);
+    const p1=doc.getPage(0),p2=doc.getPage(1),W=p1.getWidth(),H=p1.getHeight();
     const equip=document.getElementById('vslEquipage')?.value||'',date=dateFR(document.getElementById('vslDate')?.value||''),immat=document.getElementById('vslImmatriculation')?.value||'',kms=document.getElementById('vslKms')?.value||'',obs=document.getElementById('vslObservations')?.value||'',sig=document.getElementById('vslSignature')?.value||'';
-    // Informations générales : les pointillés sont remplacés sans toucher aux lignes grises.
-    cover(p1,78,719,64,15,paperGray);drawValue(p1,bold,date,81,723,58,9,black);cover(p1,280,719,65,15,paperGray);drawValue(p1,bold,immat,284,723,58,9,black);cover(p1,390,719,65,15,paperGray);drawValue(p1,bold,kms,394,723,58,9,black);cover(p1,97,705,345,16,paperGray);drawValue(p1,bold,equip,101,709,335,9,black);
-    // Papiers : 5 cases à gauche, 6 à droite.
-    const left=[{i:1,y:183.48},{i:3,y:196.99},{i:5,y:220.74},{i:7,y:241.35},{i:9,y:254.85}],right=[{i:0,y:169.99},{i:2,y:183.48},{i:4,y:196.99},{i:6,y:220.06},{i:8,y:241.35},{i:10,y:254.85}];
-    function paper(arr,x){arr.forEach(o=>{const st=getState(o.i);if(!st)return;const py=841.89-o.y;cover(p1,x-4,py-5,12,12,paperGray);st==='present'?drawCheck(p1,x,py-1,10,black):drawX(p1,x,py-1,10,black);});}
-    paper(left,229);paper(right,442);
-    const material=[];
-    function drawCenteredValue(page,font,text,cx,y,maxW,size,color){const t=String(text||'');if(!t)return;let s=size;while(t.length&&font.widthOfTextAtSize(t,s)>maxW)s-=0.25;const w=font.widthOfTextAtSize(t,s);page.drawText(t,{x:cx-w/2,y,size:s,font,color});}
-    const addRows=(indices,ys,bgs,page,xp,xm,xq)=>{indices.forEach((idx,j)=>{const st=getState(idx),miss=getMissing(idx),y=ys[j],py=841.89-y,bg=bgs[j]?rowGray:white;if(st==='present'){cover(page,xp-5.5,py-6,11,12,bg);drawCheck(page,xp,py-1,10,black);}else if(st==='manque'){cover(page,xm-5.5,py-6,11,12,bg);drawX(page,xm,py-1,10,black);}if(miss){cover(page,xq-40,py-6,80,12,bg);drawCenteredValue(page,bold,miss,xq,py-2,76,8,black);}})};
-    addRows([11,12,13,14],[358.72,380.39,399.83,417.47],[false,true,false,true],p1,285.9,332.2,426.8);
-    addRows([15,16,17,18,19,20,21,22,23,24,25,26,27,28,29],[481.17,495.26,509.95,539.70,568.87,590.29,619.68,648.27,668.93,683.02,697.13,718.55,740.02,754.11,768.22],[true,false,true,false,true,false,true,false,true,false,true,false,true,false,true],p1,285.9,332.2,426.8);
-    addRows([30,31,32,33,34],[67.90,89.37,110.79,140.18,161.65],[false,false,true,false,false],p2,285.9,332.2,426.8);
-    // VALISE NOIR : nettoyage exact du modèle d'origine.
-    // Les 3 dernières lignes du modèle contiennent encore des "N" et une séparation
-    // verticale de l'ancienne colonne Option. On les recouvre puis on redessine
-    // uniquement les 5 colonnes utiles : Inventaire | Quantité | Présent | Manque | Quantité manquante.
-    (function(){
-      const xQtyLeft=226.0, xPresentManque=265.5, xManqueQty=305.0, xRight=429.0;
-      const yTop=604.5, yCotocelBottom=580.0, yGantsBottom=552.5, yBottom=540.5;
-      const gray=PDFLib.rgb(191/255,191/255,191/255), line=PDFLib.rgb(.30,.30,.30);
-
-      // Nettoyage des 3 lignes concernées : supprime N + anciennes lignes Option.
-      cover(p2,xQtyLeft,yCotocelBottom,xRight-xQtyLeft,yTop-yCotocelBottom,white);
-      cover(p2,xQtyLeft,yGantsBottom,xRight-xQtyLeft,yCotocelBottom-yGantsBottom,gray);
-      cover(p2,xQtyLeft,yBottom,xRight-xQtyLeft,yGantsBottom-yBottom,white);
-
-      // Séparations verticales parfaitement continues et alignées avec les lignes du haut.
-      [xQtyLeft,xPresentManque,xManqueQty,xRight].forEach(function(x){
-        p2.drawLine({start:{x,y:yTop},end:{x,y:yBottom},thickness:.65,color:line});
-      });
-
-      // Séparations horizontales propres.
-      [yCotocelBottom,yGantsBottom].forEach(function(y){
-        p2.drawLine({start:{x:xQtyLeft,y},end:{x:xRight,y},thickness:.45,color:line});
-      });
-
-      // Recrée les pointillés de la colonne Quantité manquante.
-      function dots(y){
-        for(let x=337;x<=383;x+=4.2){
-          p2.drawCircle({x,y,radius:.55,color:PDFLib.rgb(.45,.45,.45)});
-        }
-      }
-      dots(592.0); dots(566.0); dots(546.5);
-
-      // Valeurs de la zone Valise noir, bien centrées dans les bonnes colonnes.
-      const indices=[35,36,37,38,39,40,41];
-      const centers=[644.8,633.3,621.8,610.3,598.3,566.0,546.5];
-      // Les 4 premières lignes sont déjà propres dans le modèle ; on ne redessine
-      // ici que les 3 dernières pour supprimer définitivement les N.
-      [4,5,6].forEach(function(r){
-        const idx=indices[r],st=getState(idx),miss=getMissing(idx),py=centers[r];
-        if(st==='present') drawCheck(p2,245.75,py-1,10,black);
-        else if(st==='manque') drawX(p2,285.25,py-1,10,black);
-        if(miss) drawCenteredValue(p2,bold,miss,367.0,py-2,110,8,black);
-      });
-    })();
-    if(obs){const lines=wrap(font,obs,8,455),start=841.89-555;lines.slice(0,7).forEach((line,j)=>p2.drawText(line,{x:57,y:start-j*15,size:8,font,color:black}));}
-    if(equip){cover(p2,95,93,260,18,white);drawValue(p2,bold,equip,100,98,250,9,black);}
-    if(sig&&sig.indexOf('data:image/')===0){try{const im=await new Promise((res,rej)=>{const x=new Image();x.onload=()=>res(x);x.onerror=rej;x.src=sig;}),sc=document.createElement('canvas');sc.width=im.width;sc.height=im.height;const sx=sc.getContext('2d');sx.drawImage(im,0,0);const pix=sx.getImageData(0,0,sc.width,sc.height).data;let minX=sc.width,minY=sc.height,maxX=-1,maxY=-1;for(let yy=0;yy<sc.height;yy++)for(let xx=0;xx<sc.width;xx++){const k=(yy*sc.width+xx)*4,a=pix[k+3],r=pix[k],g=pix[k+1],b=pix[k+2];if(a>20&&(r<245||g<245||b<245)){minX=Math.min(minX,xx);maxX=Math.max(maxX,xx);minY=Math.min(minY,yy);maxY=Math.max(maxY,yy);}}if(maxX>=minX){const pad=18,cw=Math.min(sc.width,maxX-minX+1+pad*2),ch=Math.min(sc.height,maxY-minY+1+pad*2),crop=document.createElement('canvas');crop.width=cw;crop.height=ch;crop.getContext('2d').drawImage(sc,Math.max(0,minX-pad),Math.max(0,minY-pad),Math.min(sc.width,cw),Math.min(sc.height,ch),0,0,cw,ch);const png=await doc.embedPng(crop.toDataURL('image/png')),maxW=230,maxH=55,scale=Math.min(maxW/png.width,maxH/png.height),dw=png.width*scale,dh=png.height*scale;p2.drawImage(png,{x:(p2.getWidth()-dw)/2,y:102+(maxH-dh)/2,width:dw,height:dh});}}catch(e){console.warn('Signature VSL',e);}}
+    const put=(pg,t,x,y,size=8,b=font)=>{if(t)pg.drawText(String(t),{x,y,size,font:b,color:black});};
+    const center=(pg,t,cx,y,size=8,b=bold)=>{if(t){const v=String(t),tw=b.widthOfTextAtSize(v,size);put(pg,v,cx-tw/2,y,size,b);}};
+    const check=(pg,x,y)=>{pg.drawLine({start:{x:x-4,y:y+1},end:{x:x-1,y:y-3},thickness:1.5,color:black});pg.drawLine({start:{x:x-1,y:y-3},end:{x:x+5,y:y+5},thickness:1.5,color:black});};
+    const cross=(pg,x,y)=>{pg.drawLine({start:{x:x-4,y:y-4},end:{x:x+4,y:y+4},thickness:1.4,color:black});pg.drawLine({start:{x:x-4,y:y+4},end:{x:x+4,y:y-4},thickness:1.4,color:black});};
+    // Le nouveau modèle est conservé intact : aucune ligne du tableau n'est recouverte.
+    put(p1,date,22,H-103,8,bold);put(p1,immat,205,H-103,8,bold);put(p1,kms,421,H-103,8,bold);put(p1,equip,22,H-118,8,bold);
+    const papers=[[1,229,H-171],[3,229,H-184],[5,229,H-197],[7,229,H-211],[9,229,H-224],[0,442,H-171],[2,442,H-184],[4,442,H-197],[6,442,H-211],[8,442,H-224],[10,442,H-237]];
+    papers.forEach(([i,x,y])=>{const st=getState(i);if(st==='present')check(p1,x,y);else if(st==='manque')cross(p1,x,y);});
+    const rows1=[[11,404],[12,421],[13,439],[14,457],[15,487],[16,505],[17,522],[18,558],[19,593],[20,616],[21,646],[22,680],[23,699],[24,716],[25,736],[26,756],[27,773],[28,791],[29,808]];
+    rows1.forEach(([i,y])=>{const st=getState(i),m=getMissing(i);if(st==='present')check(p1,305,y);else if(st==='manque')cross(p1,356,y);if(m)center(p1,m,469,y-2,8,bold);});
+    const rows2=[[30,H-109],[31,H-127],[32,H-145],[33,H-163],[34,H-181],[35,H-210],[36,H-228],[37,H-246],[38,H-264],[39,H-282],[40,H-300],[41,H-318]];
+    rows2.forEach(([i,y])=>{const st=getState(i),m=getMissing(i);if(st==='present')check(p2,305,y);else if(st==='manque')cross(p2,356,y);if(m)center(p2,m,469,y-2,8,bold);});
+    if(obs){const lines=wrap(font,obs,8,520);lines.slice(0,8).forEach((line,j)=>put(p2,line,20,H-650-j*13,8,font));}
+    if(sig&&sig.indexOf('data:image/')===0){try{const im=await new Promise((res,rej)=>{const x=new Image();x.onload=()=>res(x);x.onerror=rej;x.src=sig;}),sc=document.createElement('canvas');sc.width=im.width;sc.height=im.height;sc.getContext('2d').drawImage(im,0,0);const pix=sc.getContext('2d').getImageData(0,0,sc.width,sc.height).data;let minX=sc.width,minY=sc.height,maxX=-1,maxY=-1;for(let yy=0;yy<sc.height;yy++)for(let xx=0;xx<sc.width;xx++){const k=(yy*sc.width+xx)*4,a=pix[k+3],r=pix[k],g=pix[k+1],bb=pix[k+2];if(a>20&&(r<245||g<245||bb<245)){minX=Math.min(minX,xx);maxX=Math.max(maxX,xx);minY=Math.min(minY,yy);maxY=Math.max(maxY,yy);}}if(maxX>=minX){const pad=18,cw=Math.min(sc.width,maxX-minX+1+pad*2),ch=Math.min(sc.height,maxY-minY+1+pad*2),crop=document.createElement('canvas');crop.width=cw;crop.height=ch;crop.getContext('2d').drawImage(sc,Math.max(0,minX-pad),Math.max(0,minY-pad),Math.min(sc.width,cw),Math.min(sc.height,ch),0,0,cw,ch);const png=await doc.embedPng(crop.toDataURL('image/png')),maxW=180,maxH=45,scale=Math.min(maxW/png.width,maxH/png.height),dw=png.width*scale,dh=png.height*scale;p2.drawImage(png,{x:(W-dw)/2,y:34,width:dw,height:dh});}}catch(e){console.warn('Signature VSL',e);}}
     const bytes=await doc.save();return {blob:new Blob([bytes],{type:'application/pdf'}),filename:'Check-list VSL - '+(immat||'sans-immatriculation')+' - '+(date||'date').replaceAll('/','-')+'.pdf'};
   }
-  window.saniStockGenererVslPdfExact=buildExactPdf;
+window.saniStockGenererVslPdfExact=buildExactPdf;
   window.genererPdfVsl=async function(){const btn=document.querySelector('.vslPdfBtn'),old=btn&&btn.textContent;if(btn){btn.disabled=true;btn.textContent='⏳ GÉNÉRATION DU PDF...';}try{const pdf=await buildExactPdf(),url=URL.createObjectURL(pdf.blob),a=document.createElement('a');a.href=url;a.download=pdf.filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);alert('✅ PDF VSL généré avec la mise en page exacte de la fiche VSL d’origine.');}catch(e){console.error(e);alert('❌ Impossible de générer le PDF VSL : '+(e&&e.message?e.message:e));}finally{if(btn){btn.disabled=false;btn.textContent=old||'📄 GÉNÉRER LE PDF';}}};
   window.envoyerMailVsl=async function(){const btn=document.querySelector('.vslMailBtn'),old=btn&&btn.textContent;if(btn){btn.disabled=true;btn.textContent='⏳ PRÉPARATION DU PDF...';}try{const pdf=await buildExactPdf(),buffer=await pdf.blob.arrayBuffer(),bytes=new Uint8Array(buffer);if(!bytes.length)throw new Error('Le PDF généré est vide.');let binary='',chunk=0x8000;for(let i=0;i<bytes.length;i+=chunk)binary+=String.fromCharCode.apply(null,bytes.subarray(i,Math.min(i+chunk,bytes.length)));const base64=btoa(binary).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');let hash='';if(window.crypto&&window.crypto.subtle){const d=await window.crypto.subtle.digest('SHA-256',buffer),hb=new Uint8Array(d);hash=Array.from(hb).map(x=>x.toString(16).padStart(2,'0')).join('');}let salarie='',code='';try{salarie=String(localStorage.getItem('sanistock_employee_name')||'').trim();code=String(localStorage.getItem('sanistock_employee_code')||'').trim();}catch(e){}if(!salarie||!code)throw new Error('Session salarié introuvable. Reconnectez-vous à SaniStock.');const immat=document.getElementById('vslImmatriculation')?.value||'',date=document.getElementById('vslDate')?.value||'',vehicle=(document.getElementById('checklistVslSubtitle')?.textContent||'').replace(/^Véhicule\s*:\s*/,'').trim(),kms=document.getElementById('vslKms')?.value||'',dateAff=dateFR(date),subject='Check-list VSL - '+immat+' - '+dateAff,body=['Bonjour,','','Veuillez trouver ci-joint la fiche de contrôle et d’entretien mensuel du VSL.','', 'Véhicule : '+vehicle,'Immatriculation : '+immat,'Chauffeur : '+salarie,'Date : '+dateAff,'Kms : '+kms,'','Cordialement,','SaniStock'].join('\n');const api=(window.SANISTOCK_API_URL||'https://script.google.com/macros/s/AKfycbxz5dZkT7FyFx8ohxWmg2Pt23Yqx0LQDMqqJg8LM8bkfN3ulkb37VqUO8m8WvjyuGBqrg/exec'),frame=document.createElement('iframe');frame.name='sanistockVslMail_'+Date.now();frame.style.display='none';document.body.appendChild(frame);const form=document.createElement('form');form.method='POST';form.action=api;form.target=frame.name;form.style.display='none';const input=document.createElement('textarea');input.name='payload';input.value=JSON.stringify({action:'envoyerVslPdf',data:{salarie,code,filename:pdf.filename,base64url:base64,byteLength:bytes.length,sha256:hash,subject,body}});form.appendChild(input);document.body.appendChild(form);form.submit();await new Promise(r=>setTimeout(r,4500));form.remove();frame.remove();alert('✅ La fiche VSL remplie a été envoyée directement par mail avec le PDF en pièce jointe.');}catch(e){console.error(e);alert('❌ Impossible d’envoyer la fiche VSL : '+(e&&e.message?e.message:e));}finally{if(btn){btn.disabled=false;btn.textContent=old||'📧 ENVOYER PAR MAIL';}}};
   window.ouvrirChecklistVehiculeFixeVsl=window.ouvrirChecklistVehiculeFixe;
