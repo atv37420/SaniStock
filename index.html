@@ -10937,7 +10937,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     function smooth(){if(points.length===1){dot(points[0]);return;}if(points.length===2){ctx.beginPath();ctx.moveTo(points[0].x,points[0].y);ctx.lineTo(points[1].x,points[1].y);ctx.stroke();return;}const a=points[points.length-3],b=points[points.length-2],c=points[points.length-1],mx=(b.x+c.x)/2,my=(b.y+c.y)/2;ctx.beginPath();ctx.moveTo((a.x+b.x)/2,(a.y+b.y)/2);ctx.quadraticCurveTo(b.x,b.y,mx,my);ctx.stroke();}
     function start(e){e.preventDefault();if(e.pointerId!=null)canvas.setPointerCapture(e.pointerId);drawing=true;points=[];dot(pos(e));points.push(pos(e));}
     function move(e){if(!drawing)return;e.preventDefault();const p=pos(e),last=points[points.length-1];if(last&&Math.hypot(p.x-last.x,p.y-last.y)<0.7)return;points.push(p);if(points.length>3)points.shift();smooth();}
-    function end(e){if(!drawing)return;e.preventDefault();drawing=false;if(e.pointerId!=null){try{canvas.releasePointerCapture(e.pointerId);}catch(_){}}if(points.length>=2){const a=points[points.length-2],b=points[points.length-1];ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();}hidden.value=canvas.toDataURL('image/png');points=[];}
+    function end(e){if(!drawing)return;e.preventDefault();drawing=false;if(e.pointerId!=null){try{canvas.releasePointerCapture(e.pointerId);}catch(_){}}if(points.length>=2){const a=points[points.length-2],b=points[points.length-1];ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();}/* Signature nette : recadrage automatique autour du trait avant export. */try{const src=canvas;const cctx=src.getContext('2d');const data=cctx.getImageData(0,0,src.width,src.height).data;let minX=src.width,minY=src.height,maxX=-1,maxY=-1;for(let yy=0;yy<src.height;yy++){for(let xx=0;xx<src.width;xx++){if(data[(yy*src.width+xx)*4+3]>18){if(xx<minX)minX=xx;if(xx>maxX)maxX=xx;if(yy<minY)minY=yy;if(yy>maxY)maxY=yy;}}}if(maxX>=0){const pad=Math.max(18,Math.round(src.width*0.012));minX=Math.max(0,minX-pad);minY=Math.max(0,minY-pad);maxX=Math.min(src.width-1,maxX+pad);maxY=Math.min(src.height-1,maxY+pad);const crop=document.createElement('canvas');crop.width=maxX-minX+1;crop.height=maxY-minY+1;const cc=crop.getContext('2d');cc.imageSmoothingEnabled=true;cc.drawImage(src,minX,minY,crop.width,crop.height,0,0,crop.width,crop.height);hidden.value=crop.toDataURL('image/png');}else hidden.value='';}catch(_){hidden.value=canvas.toDataURL('image/png');}points=[];}
     canvas.addEventListener('pointerdown',start,{passive:false});canvas.addEventListener('pointermove',move,{passive:false});canvas.addEventListener('pointerup',end,{passive:false});canvas.addEventListener('pointercancel',end,{passive:false});
   };
   window.effacerSignatureVsl=function(){const c=document.getElementById('vslSignatureCanvas'),h=document.getElementById('vslSignature');if(c)c.getContext('2d').clearRect(0,0,c.width,c.height);if(h)h.value='';};
@@ -11021,8 +11021,9 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     if(equip){clean(p2,115,65,180,20,white);value(p2,equip,120,72,170,9);}
     if(sig&&sig.indexOf('data:image/')===0){
       try{
-        const png=await doc.embedPng(sig); const maxW=190,maxH=55; const s=Math.min(maxW/png.width,maxH/png.height);
-        p2.drawImage(png,{x:(595.3-maxW)/2+(maxW-png.width*s)/2,y:30+(maxH-png.height*s)/2,width:png.width*s,height:png.height*s});
+        const png=await doc.embedPng(sig); const maxW=220,maxH=62; const s=Math.min(maxW/png.width,maxH/png.height);
+        /* Signature plus nette et remontée dans la zone Signatures. */
+        p2.drawImage(png,{x:(595.3-png.width*s)/2,y:48+(maxH-png.height*s)/2,width:png.width*s,height:png.height*s});
       }catch(e){console.warn('Signature VSL',e);}
     }
     const bytes=await doc.save();
