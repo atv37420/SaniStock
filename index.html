@@ -21,6 +21,7 @@
 /* ===== PONT GITHUB -> GOOGLE APPS SCRIPT + MODE HORS LIGNE ===== */
 (function(){
   const API_URL = 'https://script.google.com/macros/s/AKfycbxz5dZkT7FyFx8ohxWmg2Pt23Yqx0LQDMqqJg8LM8bkfN3ulkb37VqUO8m8WvjyuGBqrg/exec';
+  window.SANISTOCK_API_URL = API_URL;
   let n = 0;
   let synchronisationEnCours = false;
 
@@ -10874,7 +10875,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
 
       var form=document.createElement('form');
       form.method='POST';
-      form.action=API_URL;
+      form.action=(window.SANISTOCK_API_URL||'https://script.google.com/macros/s/AKfycbxz5dZkT7FyFx8ohxWmg2Pt23Yqx0LQDMqqJg8LM8bkfN3ulkb37VqUO8m8WvjyuGBqrg/exec');
       form.target=frame.name;
       form.style.display='none';
 
