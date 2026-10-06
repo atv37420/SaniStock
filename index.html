@@ -11113,12 +11113,14 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
 
     // Centres verticaux exacts des lignes du tableau, en coordonnées PDF.
     const rows1=[
-      // Sécurité — centres exacts des 4 lignes du modèle.
+      // Sécurité — 4 lignes.
       [11,491.2],[12,470.9],[13,450.6],[14,430.2],
-      // Trousse de secours (valise blanche) — du haut vers le bas.
-      [15,358.5],[16,352.3],[17,329.0],[18,305.6],[19,278.0],
-      [20,247.6],[21,221.6],[22,195.6],[23,172.3],[24,151.6],
-      [25,128.3],[26,105.3],[27,85.0]
+      // Trousse de secours (valise blanche) — 15 lignes EXACTEMENT.
+      // Un seul V au centre vertical de chaque ligne, sans V dans l'espace
+      // blanc sous le bandeau rouge et sans chevauchement.
+      [15,361.17],[16,347.01],[17,332.13],[18,302.37],[19,273.33],
+      [20,251.97],[21,222.45],[22,194.13],[23,173.25],[24,159.09],
+      [25,145.17],[26,116.85],[27,88.05],[28,74.13],[29,60.21]
     ];
 
     // Page 2 : 5 lignes de trousse puis 7 lignes de Valise noir.
