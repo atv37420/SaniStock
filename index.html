@@ -11046,7 +11046,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
   window.validerChecklistVsl=function(){const equip=document.getElementById('vslEquipage')?.value||'',date=document.getElementById('vslDate')?.value||'',immat=document.getElementById('vslImmatriculation')?.value||'',kms=document.getElementById('vslKms')?.value||'';if(!equip||!date||!immat||!kms){alert('Merci de vérifier le chauffeur, la date, l’immatriculation et les Kms.');return;}const result=VSL_ITEMS.map((x,i)=>({categorie:x.category,element:x.name,quantite:x.quantity,present:getState(i)==='present',quantiteManquante:getMissing(i)}));localStorage.setItem('sanistock_last_vsl_checklist',JSON.stringify({vehicle:document.getElementById('checklistVslSubtitle')?.textContent||'',equipage:equip,date,immatriculation:immat,kms,result,observations:document.getElementById('vslObservations')?.value||'',signature:document.getElementById('vslSignature')?.value||'',savedAt:new Date().toISOString()}));alert('✅ Contrôle VSL enregistré sur cet appareil.');};
   function dateFR(v){if(!v)return '';const p=String(v).split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:v;}
   async function loadPdfLib(){if(window.PDFLib)return window.PDFLib;if(!window.__saniPdfLibPromise){window.__saniPdfLibPromise=new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js';s.onload=()=>resolve(window.PDFLib);s.onerror=()=>reject(new Error('Bibliothèque PDF indisponible.'));document.head.appendChild(s);});}return window.__saniPdfLibPromise;}
-  async function chargerModeleVsl(){const r=await fetch('./vsl_template.pdf?v=20261006-final-aligne',{cache:'no-store'});if(!r.ok)throw new Error('Modèle PDF VSL introuvable. Ajoutez vsl_template.pdf à GitHub Pages.');return r.arrayBuffer();}
+  async function chargerModeleVsl(){const r=await fetch('./vsl_template_20261006_phonefix.pdf?v=20261006-v12',{cache:'no-store'});if(!r.ok)throw new Error('Modèle PDF VSL introuvable. Ajoutez vsl_template.pdf à GitHub Pages.');return r.arrayBuffer();}
   function cover(page,x,y,w,h,color){page.drawRectangle({x:x,y:y,width:w,height:h,color:color});}
   function drawValue(page,font,text,x,y,maxW,size,color){let t=String(text||'');while(t.length&&font.widthOfTextAtSize(t,size)>maxW)t=t.slice(0,-1);if(t)page.drawText(t,{x,y,size,font,color});}
   function drawCheck(page,x,y,size,color){const w=size*0.9;const h=size*0.9;page.drawLine({start:{x:x-w*0.45,y:y-h*0.05},end:{x:x-w*0.05,y:y-h*0.45},thickness:Math.max(1.2,size*0.13),color});page.drawLine({start:{x:x-w*0.05,y:y-h*0.45},end:{x:x+w*0.55,y:y+h*0.35},thickness:Math.max(1.2,size*0.13),color});}
@@ -11088,8 +11088,8 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
       // horizontales et rester visuellement centrée dans chaque ligne.
       const x=cx-1.7;
       const y=cy;
-      pg.drawLine({start:{x:x-3.0,y:y+0.5},end:{x:x-0.8,y:y-2.1},thickness:1.2,color:black});
-      pg.drawLine({start:{x:x-0.8,y:y-2.1},end:{x:x+3.6,y:y+3.8},thickness:1.2,color:black});
+      pg.drawLine({start:{x:x-3.6,y:y+0.7},end:{x:x-0.9,y:y-2.5},thickness:1.35,color:black});
+      pg.drawLine({start:{x:x-0.9,y:y-2.5},end:{x:x+4.4,y:y+4.2},thickness:1.35,color:black});
     };
 
     const cross=(pg,cx,cy)=>{
@@ -11127,8 +11127,8 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
       [30,695.6],[31,672.6],[32,649.6],[33,623.3],[34,599.9],
       // Valise noir : 1 seule coche, exactement au centre de chaque ligne.
       // Espacements repris sur les hauteurs réelles des lignes du modèle.
-      [35,623.1],[36,607.6],[37,592.1],[38,576.6],[39,552.2],
-      [40,527.3],[41,511.2]
+      [35,620.14],[36,606.46],[37,592.78],[38,579.34],[39,558.46],
+      [40,528.46],[41,505.90]
     ];
 
     // Papiers véhicule : les 11 cases du modèle sont dans la zone PAPIERS.
