@@ -10774,6 +10774,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     var bold=await doc.embedFont(PDFLib.StandardFonts.HelveticaBold);
     var black=PDFLib.rgb(0,0,0),white=PDFLib.rgb(1,1,1),red=PDFLib.rgb(.75,0,0);
     var p1=doc.getPage(0),p2=doc.getPage(1);
+
     var equip=String(document.getElementById('taxiEquipage')?.value||'').trim();
     var date=dateFR(document.getElementById('taxiDate')?.value||'');
     var immat=String(document.getElementById('taxiImmatriculation')?.value||'').trim();
@@ -10781,30 +10782,125 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     var obs=String(document.getElementById('taxiObservations')?.value||'').trim();
     var sig=String(document.getElementById('taxiSignature')?.value||'').trim();
 
-    // Informations générales : remplacement des pointillés par les réponses.
-    cover(p1,78,104,103,15,white); drawValue(p1,bold,date,81,106,98,9,black);
-    cover(p1,294,104,64,15,white); drawValue(p1,bold,immat,297,106,59,9,black);
-    cover(p1,401,104,66,15,white); drawValue(p1,bold,kms,405,106,60,9,black);
-    cover(p1,98,117,340,15,white); drawValue(p1,bold,equip,100,119,176,9,black);
+    /*
+      COORDONNEES CALIBREES SUR taxi_template.pdf
+      Page PDF : 595.30 x 841.89 pt
+      Les positions ci-dessous utilisent le repere PDF (origine en bas a gauche).
+    */
 
-    // Papiers : une seule case par document, exactement comme la fiche d'origine.
-    var left=[0,2,4,6,8,10],right=[1,3,5,7,9,11];
-    left.forEach(function(idx,r){var st=getState(idx);if(st){cover(p1,244,175+r*13.2,13,12,white);st==='present'?drawCheck(p1,250,181+r*13.2,10,black):drawX(p1,250,181+r*13.2,10,black);}});
-    right.forEach(function(idx,r){var st=getState(idx);if(st){cover(p1,446,175+r*13.2,13,12,white);st==='present'?drawCheck(p1,452,181+r*13.2,10,black):drawX(p1,452,181+r*13.2,10,black);}});
+    // --- INFORMATIONS GENERALES ---
+    // On masque uniquement les pointilles, pas les libelles.
+    cover(p1,74,718,123,10,white);
+    drawValue(p1,bold,date,76,720,119,9,black);
 
-    // Tableau matériel, coordonnées calées sur la vraie fiche Taxi.
-    var idxs=[12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33];
-    var ys=[332,349.3,366.6,383.9,401.1,418.4,477.7,494.9,511.9,529.2,546.2,563.6,580.8,598.2,656.9,674.2,691.5,708.8,726.1,743.3,760.6,777.9];
-    idxs.forEach(function(idx,j){var st=getState(idx),miss=getMissing(idx),y=ys[j];if(st){if(st==='present'){cover(p1,317,y-6,12,13,white);drawCheck(p1,323,y,10,black);}else{cover(p1,387,y-6,12,13,white);drawX(p1,393,y,10,black);}}if(miss){cover(p1,427,y-6,50,13,white);drawValue(p1,bold,miss,430,y-3,47,8,red);}});
+    cover(p1,289,718,72,10,white);
+    drawValue(p1,bold,immat,291,720,68,9,black);
 
-    // Page 2 : désinfection, observations et signature.
-    [34,35,36].forEach(function(idx,k){var st=getState(idx),miss=getMissing(idx),y=[100,113,126][k];if(st){if(st==='present'){cover(p2,317,y-6,12,13,white);drawCheck(p2,323,y,10,black);}else{cover(p2,387,y-6,12,13,white);drawX(p2,393,y,10,black);}}if(miss){cover(p2,427,y-6,50,13,white);drawValue(p2,bold,miss,430,y-3,47,8,red);}});
-    if(obs){var lines=wrapText(font,obs,8,410),yy=224;lines.slice(0,8).forEach(function(line){p2.drawText(line,{x:56,y:yy,size:8,font:font,color:black});yy-=11;});}
-    if(equip){cover(p2,105,244,120,20,white);drawValue(p2,font,equip,110,250,110,9,black);}
-    if(sig&&sig.indexOf('data:image/')===0){try{var png=await doc.embedPng(sig);p2.drawImage(png,{x:125,y:278,width:160,height:58});}catch(e){console.warn('Signature PDF',e);}}
+    cover(p1,397,718,80,10,white);
+    drawValue(p1,bold,kms,399,720,76,9,black);
+
+    // Deux pointilles sont prevus sur la ligne Equipage.
+    cover(p1,91,705,375,11,white);
+    drawValue(p1,bold,equip,94,707,368,9,black);
+
+    // --- PAPIERS VEHICULE ---
+    // Centres reels des cases du modele : x=249.6 / 452.3
+    // Ligne 1 puis espacement de 13.2 pt.
+    var paperLeft=[0,2,4,6,8,10], paperRight=[1,3,5,7,9,11];
+    paperLeft.forEach(function(idx,r){
+      var st=getState(idx);
+      if(st){
+        var y=660.7-r*13.2;
+        cover(p1,242,654.5-r*13.2,15,14.5,white);
+        st==='present'?drawCheck(p1,249.6,y,10,black):drawX(p1,249.6,y,10,black);
+      }
+    });
+    paperRight.forEach(function(idx,r){
+      var st=getState(idx);
+      if(st){
+        var y=660.7-r*13.2;
+        cover(p1,445,654.5-r*13.2,15,14.5,white);
+        st==='present'?drawCheck(p1,452.3,y,10,black):drawX(p1,452.3,y,10,black);
+      }
+    });
+
+    // --- MATERIEL VEHICULE : PAGE 1 ---
+    // Centres des cases du modele :
+    // Present = 323.0 ; Manque = 393.6 ; Quantite manquante = 429..476.
+    var materialIdx=[12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33];
+    var materialTopY=[
+      331.9,349.2,366.5,383.8,401.1,418.3,
+      477.2,494.5,511.8,529.1,546.4,563.6,580.9,598.2,
+      657.0,674.3,691.5,708.8,726.1,743.3,760.6,777.9
+    ];
+    materialIdx.forEach(function(idx,j){
+      var st=getState(idx),miss=getMissing(idx);
+      var y=841.8897705-materialTopY[j];
+      if(st){
+        if(st==='present'){
+          cover(p1,313.5,y-7.2,19,15,white);
+          drawCheck(p1,323.0,y,10,black);
+        }else{
+          cover(p1,383.8,y-7.2,19,15,white);
+          drawX(p1,393.6,y,10,black);
+        }
+      }
+      if(miss){
+        cover(p1,424,y-7.2,54,15,white);
+        drawValue(p1,bold,miss,428,y-3,48,8,red);
+      }
+    });
+
+    // --- PAGE 2 : DESINFECTION ---
+    var disinfectIdx=[34,35,36];
+    var disinfectTopY=[98.95,112.15,125.35];
+    disinfectIdx.forEach(function(idx,k){
+      var st=getState(idx),miss=getMissing(idx);
+      var y=841.8897705-disinfectTopY[k];
+      if(st){
+        if(st==='present'){
+          cover(p2,313.5,y-7.2,19,15,white);
+          drawCheck(p2,323.0,y,10,black);
+        }else{
+          cover(p2,383.8,y-7.2,19,15,white);
+          drawX(p2,393.6,y,10,black);
+        }
+      }
+      if(miss){
+        cover(p2,424,y-7.2,54,15,white);
+        drawValue(p2,bold,miss,428,y-3,48,8,red);
+      }
+    });
+
+    // --- OBSERVATIONS ---
+    // Zone comprise entre les lignes du modele.
+    if(obs){
+      cover(p2,52,620,430,58,white);
+      var lines=wrapText(font,obs,8,420),yy=665;
+      lines.slice(0,5).forEach(function(line){
+        p2.drawText(line,{x:56,y:yy,size:8,font:font,color:black});
+        yy-=11;
+      });
+    }
+
+    // --- SIGNATURE / CHAUFFEUR ---
+    if(equip){
+      cover(p2,104,565,145,18,white);
+      drawValue(p2,font,equip,109,571,135,9,black);
+    }
+    if(sig&&sig.indexOf('data:image/')===0){
+      try{
+        var png=await doc.embedPng(sig);
+        // Zone de signature sous le libelle "Signature".
+        p2.drawImage(png,{x:105,y:545,width:180,height:55});
+      }catch(e){console.warn('Signature PDF',e);}
+    }
 
     var bytes=await doc.save();
-    return {blob:new Blob([bytes],{type:'application/pdf'}),filename:'Check-list Taxi - '+(immat||'sans-immatriculation')+' - '+(date||'date').replaceAll('/','-')+'.pdf'};
+    return {
+      blob:new Blob([bytes],{type:'application/pdf'}),
+      filename:'Check-list Taxi - '+(immat||'sans-immatriculation')+' - '+(date||'date').replaceAll('/','-')+'.pdf'
+    };
   }
   window.saniStockGenererTaxiPdfExact=buildExactPdf;
   window.genererPdfTaxi=async function(){
@@ -10814,36 +10910,13 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     finally{if(btn){btn.disabled=false;btn.textContent=old||'📄 GÉNÉRER LE PDF';}}
   };
   window.envoyerMailTaxi=async function(){
-    var btn=document.querySelector('.taxiMailBtn'),old=btn&&btn.textContent;
-    var pdfWindow=null;
-    if(btn){btn.disabled=true;btn.textContent='⏳ GÉNÉRATION DU PDF...';}
-    try{
-      // Ouvre immédiatement une fenêtre autorisée par le clic utilisateur.
-      // Elle sera remplie avec le PDF une fois celui-ci généré.
-      pdfWindow=window.open('about:blank','_blank');
-      var pdf=await buildExactPdf();
-      if(!pdf || !pdf.blob || pdf.blob.size===0) throw new Error('Le PDF généré est vide.');
-      var url=URL.createObjectURL(pdf.blob);
-      if(pdfWindow && !pdfWindow.closed){
-        pdfWindow.location.href=url;
-      }else{
-        var a=document.createElement('a');a.href=url;a.download=pdf.filename;document.body.appendChild(a);a.click();a.remove();
-      }
-      // Téléchargement explicite du PDF pour qu'il soit disponible comme pièce jointe.
-      var dl=document.createElement('a');dl.href=url;dl.download=pdf.filename;dl.style.display='none';document.body.appendChild(dl);dl.click();dl.remove();
-      var dest='hognonlewis@gmail.com';
-      var subject='Check-list Taxi - '+(document.getElementById('taxiImmatriculation')?.value||'')+' - '+dateFR(document.getElementById('taxiDate')?.value||'');
-      var body='Bonjour,\n\nVeuillez trouver la fiche de contrôle et d’entretien mensuel du taxi.\n\nLe PDF vient d’être généré et téléchargé automatiquement : '+pdf.filename+'\nAjoutez ce fichier en pièce jointe avant l’envoi.\n\nCordialement,\nSaniStock';
-      alert('✅ PDF généré !\n\nLe PDF a été ouvert et téléchargé.\nVous pouvez maintenant l’ajouter en pièce jointe au mail.');
-      window.location.href='mailto:'+dest+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
-      setTimeout(function(){URL.revokeObjectURL(url);},60000);
-    }catch(e){
-      console.error('Taxi PDF/mail:',e);
-      if(pdfWindow && !pdfWindow.closed) pdfWindow.close();
-      alert('❌ ERREUR PDF TAXI : '+(e&&e.message?e.message:e));
-    }finally{
-      if(btn){btn.disabled=false;btn.textContent=old||'📧 ENVOYER PAR MAIL';}
-    }
+    var btn=document.querySelector('.taxiMailBtn'),old=btn&&btn.textContent;if(btn){btn.disabled=true;btn.textContent='⏳ PRÉPARATION DU PDF...';}
+    try{var pdf=await buildExactPdf(),file=new File([pdf.blob],pdf.filename,{type:'application/pdf'}),dest='hognonlewis@gmail.com',subject='Check-list Taxi - '+(document.getElementById('taxiImmatriculation')?.value||'')+' - '+dateFR(document.getElementById('taxiDate')?.value||'');
+      var body='Bonjour,\n\nVeuillez trouver la fiche de contrôle et d’entretien mensuel du taxi.\n\nCordialement,\nSaniStock';
+      if(navigator.canShare&&navigator.share&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:subject,text:body});}
+      else{var url=URL.createObjectURL(pdf.blob),a=document.createElement('a');a.href=url;a.download=pdf.filename;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url);},10000);window.location.href='mailto:'+dest+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body+'\n\nLe PDF a été téléchargé : '+pdf.filename+'\nAjoutez-le en pièce jointe avant l’envoi.');}
+    }catch(e){console.error(e);alert('❌ Impossible de préparer le PDF pour le mail : '+(e&&e.message?e.message:e));}
+    finally{if(btn){btn.disabled=false;btn.textContent=old||'📧 ENVOYER PAR MAIL';}}
   };
 })();
 
