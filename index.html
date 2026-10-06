@@ -1764,6 +1764,16 @@ body{display:block}
 #checklistPage .back{margin:0 0 14px !important;}
 #checklistPage h1{margin:4px 0 4px !important;font-size:28px;}
 #checklistPage #checklistSubtitle{margin:0 0 18px;color:#64748b;}
+.checklistCard{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;min-height:145px;justify-content:center;gap:4px;}
+.checklistVehicleLogo{display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:14px;background:#eef5fa;font-size:30px;line-height:1;margin-bottom:6px;box-shadow:inset 0 0 0 1px rgba(4,35,73,.06);}
+.checklistCard .checklistVehicleLogo{width:64px;height:64px;font-size:40px;margin-bottom:8px;}
+.checklistVehicle{display:grid;grid-template-columns:48px minmax(0,1fr) 22px;align-items:center;}
+.checklistVehicleName{min-width:0;}
+.checklistVehicleArrow{font-size:22px;color:#2f80ed;text-align:right;}
+.taxiLogo{background:#fff4df;}
+.vslLogo{background:#e8f5ff;}
+.ambulanceLogo{background:#ffe9ec;}
+
 .checklistGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}
 .checklistCard{width:100%;border:0;border-radius:18px;background:#fff;box-shadow:0 8px 24px rgba(4,35,73,.12);padding:20px;text-align:left;cursor:pointer;color:#042349;}
 .checklistCardTitle{font-size:19px;font-weight:800;display:block;}
@@ -10057,16 +10067,41 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
   const V=(window.getChecklistVehiculesData?window.getChecklistVehiculesData():window.CHECKLIST_VEHICLES_DEFAULTS);
   window.CHECKLIST_VEHICLES_FIXED=V;
   function esc(x){return String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+  function checklistVehicleIcon(cat){
+    var c=String(cat||'').toUpperCase();
+    if(c==='TAXIS') return '<span class="checklistVehicleLogo taxiLogo" aria-label="Taxi">🚕</span>';
+    if(c==='VSL') return '<span class="checklistVehicleLogo vslLogo" aria-label="VSL">🚐</span>';
+    if(c==='AMBULANCES') return '<span class="checklistVehicleLogo ambulanceLogo" aria-label="Ambulance">🚑</span>';
+    return '<span class="checklistVehicleLogo">🚗</span>';
+  }
+  function checklistCategoryLabel(cat){
+    var c=String(cat||'').toUpperCase();
+    if(c==='TAXIS') return 'TAXI';
+    if(c==='VSL') return 'VSL';
+    if(c==='AMBULANCES') return 'AMBULANCE';
+    return c;
+  }
   window.ouvrirChecklistCategories=function(){
     var box=document.getElementById('checklistContent'), sub=document.getElementById('checklistSubtitle'); if(!box)return;
     if(sub)sub.textContent='Choisissez une catégorie de véhicule';
-    box.innerHTML=Object.keys(V).map(function(c){return '<button type="button" class="checklistCard" data-check-cat="'+esc(c)+'"><span class="checklistCardTitle">'+esc(c)+'</span><span class="checklistCardDesc">'+V[c].length+' véhicule'+(V[c].length>1?'s':'')+'</span></button>';}).join('');
+    box.innerHTML='<div class="checklistGrid">'+Object.keys(V).map(function(c){
+      return '<button type="button" class="checklistCard" data-check-cat="'+esc(c)+'">'
+        +checklistVehicleIcon(c)
+        +'<span class="checklistCardTitle">'+esc(checklistCategoryLabel(c))+'</span>'
+        +'<span class="checklistCardDesc">'+V[c].length+' véhicule'+(V[c].length>1?'s':'')+'</span>'
+        +'</button>';
+    }).join('')+'</div>';
     if(typeof showPage==='function')showPage('checklistPage');
   };
   window.ouvrirChecklistVehicules=function(c){
     var box=document.getElementById('checklistContent'), sub=document.getElementById('checklistSubtitle'); if(!box)return;
-    if(sub)sub.textContent=c+' — choisissez un véhicule';
-    box.innerHTML='<button type="button" class="back" id="checklistBackCat">← Catégories</button>'+V[c].map(function(v){return '<button type="button" class="checklistVehicle" data-check-veh="'+esc(v)+'"><span>🚑 '+esc(v)+'</span><span>›</span></button>';}).join('');
+    if(sub)sub.textContent=checklistCategoryLabel(c)+' — choisissez un véhicule';
+    box.innerHTML='<button type="button" class="back" id="checklistBackCat">← Catégories</button>'
+      +V[c].map(function(v){
+        return '<button type="button" class="checklistVehicle" data-check-veh="'+esc(v)+'">'
+          +checklistVehicleIcon(c)
+          +'<span class="checklistVehicleName">'+esc(v)+'</span><span class="checklistVehicleArrow">›</span></button>';
+      }).join('');
   };
   window.ouvrirChecklistVehiculeFixe=function(v){alert('Véhicule sélectionné : '+v+'\n\nLa check-list détaillée de ce véhicule sera ajoutée ici.');};
   document.addEventListener('click',function(e){
