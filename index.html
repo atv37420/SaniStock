@@ -10968,27 +10968,48 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     addRows([11,12,13,14],[358.72,380.39,399.83,417.47],[false,true,false,true],p1,285.9,332.2,426.8);
     addRows([15,16,17,18,19,20,21,22,23,24,25,26,27,28,29],[481.17,495.26,509.95,539.70,568.87,590.29,619.68,648.27,668.93,683.02,697.13,718.55,740.02,754.11,768.22],[true,false,true,false,true,false,true,false,true,false,true,false,true,false,true],p1,285.9,332.2,426.8);
     addRows([30,31,32,33,34],[67.90,89.37,110.79,140.18,161.65],[false,false,true,false,false],p2,285.9,332.2,426.8);
-    // VALISE NOIR : on neutralise l'ancienne colonne Option du modèle et on reconstruit
-    // proprement les 5 colonnes identiques au tableau de la page 1.
+    // VALISE NOIR : nettoyage exact du modèle d'origine.
+    // Les 3 dernières lignes du modèle contiennent encore des "N" et une séparation
+    // verticale de l'ancienne colonne Option. On les recouvre puis on redessine
+    // uniquement les 5 colonnes utiles : Inventaire | Quantité | Présent | Manque | Quantité manquante.
     (function(){
-      const centers=[645.15,633.40,621.64,610.14,598.39,566.39,546.39];
-      const bounds=[650.89,639.39,627.39,615.89,604.39,592.39,579.89,552.39,540.39];
-      const bg=[white,rowGray,white,rowGray,white,rowGray,white];
-      const xLeft=225.5,xPresent=245.5,xManque=285.5,xQty=367.0,xRight=428.5;
-      const indices=[35,36,37,38,39,40,41];
-      // Fond propre de la zone Présent/Manque/Quantité manquante, sans les anciennes lignes Option.
-      for(let r=0;r<7;r++){
-        const yBottom=bounds[r+1], h=bounds[r]-bounds[r+1];
-        cover(p2,xLeft,yBottom,xRight-xLeft,h,bg[r]);
+      const xQtyLeft=226.0, xPresentManque=265.5, xManqueQty=305.0, xRight=429.0;
+      const yTop=604.5, yCotocelBottom=580.0, yGantsBottom=552.5, yBottom=540.5;
+      const gray=PDFLib.rgb(191/255,191/255,191/255), line=PDFLib.rgb(.30,.30,.30);
+
+      // Nettoyage des 3 lignes concernées : supprime N + anciennes lignes Option.
+      cover(p2,xQtyLeft,yCotocelBottom,xRight-xQtyLeft,yTop-yCotocelBottom,white);
+      cover(p2,xQtyLeft,yGantsBottom,xRight-xQtyLeft,yCotocelBottom-yGantsBottom,gray);
+      cover(p2,xQtyLeft,yBottom,xRight-xQtyLeft,yGantsBottom-yBottom,white);
+
+      // Séparations verticales parfaitement continues et alignées avec les lignes du haut.
+      [xQtyLeft,xPresentManque,xManqueQty,xRight].forEach(function(x){
+        p2.drawLine({start:{x,y:yTop},end:{x,y:yBottom},thickness:.65,color:line});
+      });
+
+      // Séparations horizontales propres.
+      [yCotocelBottom,yGantsBottom].forEach(function(y){
+        p2.drawLine({start:{x:xQtyLeft,y},end:{x:xRight,y},thickness:.45,color:line});
+      });
+
+      // Recrée les pointillés de la colonne Quantité manquante.
+      function dots(y){
+        for(let x=337;x<=383;x+=4.2){
+          p2.drawCircle({x,y,radius:.55,color:PDFLib.rgb(.45,.45,.45)});
+        }
       }
-      // Nouvelles séparations nettes et identiques à celles du tableau de la page 1.
-      [xLeft,265.5,305.5,xRight].forEach(x=>p2.drawLine({start:{x,y:bounds[0]},end:{x,y:bounds[8]},thickness:0.65,color:PDFLib.rgb(.25,.25,.25)}));
-      bounds.slice(1,8).forEach(y=>p2.drawLine({start:{x:xLeft,y},end:{x:xRight,y},thickness:0.45,color:PDFLib.rgb(.45,.45,.45)}));
-      indices.forEach((idx,r)=>{
-        const st=getState(idx),miss=getMissing(idx),py=centers[r];
-        if(st==='present'){drawCheck(p2,xPresent,py-1,10,black);}
-        else if(st==='manque'){drawX(p2,xManque,py-1,10,black);}
-        if(miss) drawCenteredValue(p2,bold,miss,xQty,py-2,110,8,black);
+      dots(592.0); dots(566.0); dots(546.5);
+
+      // Valeurs de la zone Valise noir, bien centrées dans les bonnes colonnes.
+      const indices=[35,36,37,38,39,40,41];
+      const centers=[644.8,633.3,621.8,610.3,598.3,566.0,546.5];
+      // Les 4 premières lignes sont déjà propres dans le modèle ; on ne redessine
+      // ici que les 3 dernières pour supprimer définitivement les N.
+      [4,5,6].forEach(function(r){
+        const idx=indices[r],st=getState(idx),miss=getMissing(idx),py=centers[r];
+        if(st==='present') drawCheck(p2,245.75,py-1,10,black);
+        else if(st==='manque') drawX(p2,285.25,py-1,10,black);
+        if(miss) drawCenteredValue(p2,bold,miss,367.0,py-2,110,8,black);
       });
     })();
     if(obs){const lines=wrap(font,obs,8,455),start=841.89-555;lines.slice(0,7).forEach((line,j)=>p2.drawText(line,{x:57,y:start-j*15,size:8,font,color:black}));}
