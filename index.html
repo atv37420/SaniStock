@@ -10366,68 +10366,89 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
   window.initSignatureTaxi=function(){
     const canvas=document.getElementById('taxiSignatureCanvas');
     const hidden=document.getElementById('taxiSignature');
-    if(!canvas || !hidden) return;
-    if(canvas.dataset.ready==='1') return;
+    if(!canvas || !hidden || canvas.dataset.ready==='1') return;
     canvas.dataset.ready='1';
 
-    const ctx=canvas.getContext('2d');
-    const ratio=window.devicePixelRatio||1;
+    const ctx=canvas.getContext('2d',{alpha:true});
+    const ratio=Math.max(2,window.devicePixelRatio||1);
     const rect=canvas.getBoundingClientRect();
-    const cssW=rect.width||900, cssH=rect.height||260;
+    const cssW=rect.width||900, cssH=rect.height||180;
     canvas.width=Math.round(cssW*ratio);
     canvas.height=Math.round(cssH*ratio);
-    ctx.scale(ratio,ratio);
-    ctx.lineWidth=1.8;
+    ctx.setTransform(ratio,0,0,ratio,0,0);
+    ctx.lineWidth=2.15;
     ctx.lineCap='round';
     ctx.lineJoin='round';
-    ctx.strokeStyle='#111111';
+    ctx.strokeStyle='#111827';
+    ctx.fillStyle='#111827';
 
-    let drawing=false, hasInk=false;
+    let drawing=false, hasInk=false, points=[];
 
     function pos(e){
       const r=canvas.getBoundingClientRect();
-      const t=e.touches&&e.touches[0];
-      return {
-        x:(t?t.clientX:e.clientX)-r.left,
-        y:(t?t.clientY:e.clientY)-r.top
-      };
+      return {x:e.clientX-r.left,y:e.clientY-r.top};
     }
+
+    function dot(p){
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,ctx.lineWidth/2,0,Math.PI*2);
+      ctx.fill();
+    }
+
+    function drawSmooth(){
+      if(points.length===1){ dot(points[0]); return; }
+      if(points.length===2){
+        ctx.beginPath();
+        ctx.moveTo(points[0].x,points[0].y);
+        ctx.lineTo(points[1].x,points[1].y);
+        ctx.stroke();
+        return;
+      }
+      const p0=points[points.length-3];
+      const p1=points[points.length-2];
+      const p2=points[points.length-1];
+      const mx=(p1.x+p2.x)/2, my=(p1.y+p2.y)/2;
+      ctx.beginPath();
+      ctx.moveTo((p0.x+p1.x)/2,(p0.y+p1.y)/2);
+      ctx.quadraticCurveTo(p1.x,p1.y,mx,my);
+      ctx.stroke();
+    }
+
     function start(e){
       e.preventDefault();
-      drawing=true;
-      const p=pos(e);
-      ctx.beginPath();
-      ctx.moveTo(p.x,p.y);
-      lastPoint=p;
+      if(e.pointerId!=null) canvas.setPointerCapture(e.pointerId);
+      drawing=true; hasInk=true; points=[];
+      const p=pos(e); points.push(p); dot(p);
     }
-    let lastPoint=null;
+
     function move(e){
       if(!drawing) return;
       e.preventDefault();
       const p=pos(e);
-      if(!lastPoint){ lastPoint=p; return; }
-      const mx=(lastPoint.x+p.x)/2, my=(lastPoint.y+p.y)/2;
-      ctx.beginPath();
-      ctx.moveTo(lastPoint.x,lastPoint.y);
-      ctx.quadraticCurveTo(lastPoint.x,lastPoint.y,mx,my);
-      ctx.stroke();
-      lastPoint=p;
-      hasInk=true;
+      const last=points[points.length-1];
+      if(last && Math.hypot(p.x-last.x,p.y-last.y)<0.7) return;
+      points.push(p);
+      if(points.length>3) points.shift();
+      drawSmooth();
     }
+
     function end(e){
       if(!drawing) return;
       e.preventDefault();
       drawing=false;
-      if(lastPoint){ ctx.beginPath(); ctx.moveTo(lastPoint.x,lastPoint.y); ctx.lineTo(pos(e).x,pos(e).y); ctx.stroke(); }
-      lastPoint=null;
+      if(e.pointerId!=null){try{canvas.releasePointerCapture(e.pointerId);}catch(_){}}
+      if(points.length>=2){
+        const p1=points[points.length-2], p2=points[points.length-1];
+        ctx.beginPath(); ctx.moveTo(p1.x,p1.y); ctx.lineTo(p2.x,p2.y); ctx.stroke();
+      }
       hidden.value=hasInk?canvas.toDataURL('image/png'):'';
+      points=[];
     }
 
-    canvas.addEventListener('pointerdown',start);
-    canvas.addEventListener('pointermove',move);
-    canvas.addEventListener('pointerup',end);
-    canvas.addEventListener('pointercancel',end);
-    canvas.addEventListener('pointerleave',end);
+    canvas.addEventListener('pointerdown',start,{passive:false});
+    canvas.addEventListener('pointermove',move,{passive:false});
+    canvas.addEventListener('pointerup',end,{passive:false});
+    canvas.addEventListener('pointercancel',end,{passive:false});
   };
 
   window.effacerSignatureTaxi=function(){
@@ -10610,7 +10631,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
 <style id="taxi-signature-style">
 .taxiSignatureBox{width:100%;box-sizing:border-box}
 .taxiSignatureHint{font-size:13px;color:#64748b;margin:0 0 8px}
-.taxiSignatureCanvas{display:block;width:100%;height:180px;box-sizing:border-box;background:#fff;border:2px solid #94a3b8;border-radius:10px;touch-action:none;cursor:crosshair}
+.taxiSignatureCanvas{display:block;width:100%;height:180px;box-sizing:border-box;background:#fff;border:1px solid #cbd5e1;border-radius:8px;touch-action:none;cursor:crosshair}
 .taxiSignatureActions{display:flex;justify-content:flex-end;margin-top:8px}
 .taxiSignatureClear{border:1px solid #cbd5e1;background:#f8fafc;color:#334155;border-radius:8px;padding:8px 12px;font-weight:700;cursor:pointer}
 @media print{
