@@ -2534,11 +2534,12 @@ function afficherListeSalaries(noms){
     const select=$(id);
     if(!select) return;
     const valeurActuelle=select.value;
+    const salarieConnecte=localStorage.getItem('sanistock_employee_name')||'';
+    const nomsPourListe=(id==='employee2') ? noms.filter(function(nom){ return String(nom)!==String(salarieConnecte); }) : noms;
     select.innerHTML='<option value="">'+(id==='employee2'?'Sélectionner le collègue':'Sélectionner votre nom')+'</option>'+
-      noms.map(function(nom){
+      nomsPourListe.map(function(nom){
         return '<option value="'+escapeHtml(nom)+'">'+escapeHtml(nom)+'</option>';
       }).join('');
-    const salarieConnecte=localStorage.getItem('sanistock_employee_name')||'';
     if(id==='employee' && salarieConnecte && noms.includes(salarieConnecte)){
       select.value=salarieConnecte;
       /* Le salarié connecté est imposé automatiquement dans Stock et Désinfection. */
