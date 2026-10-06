@@ -10287,7 +10287,6 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
 
     html += '<div class="taxiActions">';
     html += '<button type="button" class="taxiValidate" onclick="validerChecklistTaxi()">✓ TERMINER LE CONTRÔLE</button>';
-    html += '<button type="button" class="taxiPdfBtn" onclick="genererPdfTaxi()">📄 GÉNÉRER LE PDF</button>';
     html += '<button type="button" class="taxiMailBtn" onclick="envoyerMailTaxi()">📧 ENVOYER PAR MAIL</button>';
     html += '</div>';
     html += '<div class="taxiNotice">L’équipage est choisi parmi les salariés déjà enregistrés dans SaniStock. La date et l’immatriculation sont préremplies automatiquement.</div>';
@@ -10922,28 +10921,26 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
 <style id="sanistock-checklist-vsl-style">
 #checklistVslDetail{display:none;padding-bottom:25px}
 #checklistVslDetail.show{display:block}
-.vslInfoCard,.vslSection{background:#fff;border-radius:18px;box-shadow:0 7px 22px rgba(4,35,73,.10);padding:14px;margin:0 0 12px}
+ .vslInfoCard,.vslSection{background:#fff;border-radius:18px;box-shadow:0 7px 22px rgba(4,35,73,.10);padding:14px;margin:0 0 12px}
 .vslInfoTitle{font-size:16px;font-weight:900;color:#042349;margin-bottom:10px}
 .vslInfoGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
 .vslField label{display:block;font-size:10px;font-weight:900;color:#042349;margin-bottom:5px}
 .vslField input{width:100%;box-sizing:border-box;padding:11px;border:1px solid #cbd8e4;border-radius:10px;font:inherit;background:#fff;color:#042349}
-.toutCocherBtn{display:block;margin:0 auto 10px;padding:7px 14px;border:0;border-radius:9px;background:#0b6fb3;color:#fff;font-weight:800;font-size:12px;cursor:pointer}.toutCocherBtn:active{transform:scale(.98)}
 .vslSectionTitle{font-size:15px;font-weight:900;color:#042349;margin-bottom:9px;padding-bottom:7px;border-bottom:2px solid #edf3f7}
-.vslChecklistHead,.vslChecklistRow{display:grid;grid-template-columns:minmax(0,1fr) 78px 50px 62px 62px 100px;gap:7px;align-items:center}
+.vslChecklistHead,.vslChecklistRow{display:grid;grid-template-columns:minmax(0,1fr) 70px 75px 70px 95px;gap:7px;align-items:center}
 .vslChecklistHead{font-size:9px;font-weight:900;color:#60778c;text-align:center;margin-bottom:5px}
 .vslChecklistHead div:first-child{text-align:left}
 .vslChecklistRow{padding:9px 0;border-top:1px solid #e8eef3;font-size:11px;color:#042349}
-.vslQty{text-align:center;font-weight:900}.vslOption{display:none!important}
+.vslQty{text-align:center;font-weight:900}
 .vslChoice{display:flex;justify-content:center}.vslChoice input{width:18px;height:18px}
-.vslMissingQty{width:100%;box-sizing:border-box;padding:8px 5px;border:2px solid #0758a5;border-radius:8px;text-align:center;background:#fff!important;color:#042349!important;pointer-events:auto!important;cursor:text!important;position:relative;z-index:20;opacity:1!important}
+.vslMissingQty{width:100%;box-sizing:border-box;padding:8px 5px;border:2px solid #0758a5;border-radius:8px;text-align:center;background:#fff!important;color:#042349!important;pointer-events:auto!important;cursor:text!important;position:relative;z-index:20;opacity:1!important;user-select:text!important;-webkit-user-select:text!important}
 .vslActions{display:grid;gap:9px;margin-top:12px}
 .vslValidate{width:100%;border:0;border-radius:13px;padding:14px;background:#15934b;color:#fff;font-weight:900;cursor:pointer}
-.vslPdfBtn{width:100%;border:0;border-radius:13px;padding:13px;background:#0758a5;color:#fff;font-weight:900;cursor:pointer}
 .vslMailBtn{width:100%;border:0;border-radius:13px;padding:13px;background:#0b7a55;color:#fff;font-weight:900;cursor:pointer}
 .vslNotice{font-size:10px;color:#60778c;line-height:1.4;margin-top:7px}
 .vslSignatureCanvas{display:block;width:100%;height:180px;box-sizing:border-box;background:#fff;border:1px solid #cbd5e1;border-radius:8px;touch-action:none;cursor:crosshair}
 .vslSignatureHint{font-size:13px;color:#64748b;margin:0 0 8px}.vslSignatureActions{display:flex;justify-content:flex-end;margin-top:8px}.vslSignatureClear{border:1px solid #cbd5e1;background:#f8fafc;color:#334155;border-radius:8px;padding:8px 12px;font-weight:700;cursor:pointer}
-@media(max-width:650px){.vslInfoGrid{grid-template-columns:1fr}.vslChecklistHead,.vslChecklistRow{grid-template-columns:minmax(0,1fr) 52px 52px 52px 82px;gap:4px}.vslChecklistHead{font-size:8px}.vslChecklistRow{font-size:10px}}
+@media(max-width:650px){.vslInfoGrid{grid-template-columns:1fr}.vslChecklistHead,.vslChecklistRow{grid-template-columns:minmax(0,1fr) 50px 62px 58px 78px;gap:4px}.vslChecklistHead{font-size:8px}.vslChecklistRow{font-size:10px}}
 </style>
 <script id="sanistock-checklist-vsl-js">
 (function(){
