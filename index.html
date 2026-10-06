@@ -10286,7 +10286,8 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
 
     html += '<div class="taxiActions">';
     html += '<button type="button" class="taxiValidate" onclick="validerChecklistTaxi()">✓ TERMINER LE CONTRÔLE</button>';
-        html += '<button type="button" class="taxiMailBtn" onclick="envoyerMailTaxi()">📧 ENVOYER PAR MAIL</button>';
+    html += '<button type="button" class="taxiPdfBtn" onclick="genererPdfTaxi()">📄 GÉNÉRER LE PDF</button>';
+    html += '<button type="button" class="taxiMailBtn" onclick="envoyerMailTaxi()">📧 ENVOYER PAR MAIL</button>';
     html += '</div>';
     html += '<div class="taxiNotice">L’équipage est choisi parmi les salariés déjà enregistrés dans SaniStock. La date et l’immatriculation sont préremplies automatiquement.</div>';
     html += '</div>';
@@ -11074,32 +11075,32 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     };
 
     // Only the four information fields are written. Nothing is drawn in PAPIERS VEHICULE.
-    put(p1,date,22,H-103,8,bold);
-    put(p1,immat,205,H-103,8,bold);
-    put(p1,kms,421,H-103,8,bold);
-    put(p1,equip,22,H-118,8,bold);
+    // Coordonnées mesurées directement sur le modèle VSL PDF.
+    // Page = 595.30 x 841.89 pt.
+    // Colonnes : Inventaire | Quantité | Présent | Manque | Quantité manquante
+    // x = centres exacts des colonnes du modèle.
+    put(p1,date,52,H-121,8,bold);
+    put(p1,immat,225,H-121,8,bold);
+    put(p1,kms,421,H-121,8,bold);
+    put(p1,equip,52,H-143,8,bold);
 
-    // Exact centers measured from vsl_template.pdf:
-    // Inventaire | Quantité | Présent | Manque | Quantité manquante
-    const X_PRESENT=385.3;
-    const X_MANQUE=436.3;
-    const X_MISSING=509.3;
+    const X_PRESENT=(262.544+315.464)/2; // 289.004
+    const X_MANQUE=(315.464+357.356)/2;  // 336.410
+    const X_MISSING=(357.356+460.973)/2; // 409.165
 
-    // Page 1 row centers, in VSL_ITEMS order 11..29.
-    // Centres mesurés directement sur le nouveau modèle VSL.
-    // Page 1 : 19 lignes, de Sécurité jusqu'à Sacs poubelle 10 litres.
+    // Centres verticaux exacts des lignes du tableau, en coordonnées PDF.
     const rows1=[
-      [11,492.2],[12,471.9],[13,451.6],[14,431.3],
-      [15,393.3],[16,373.4],[17,352.4],[18,329.4],[19,306.1],
-      [20,278.9],[21,248.6],[22,222.6],[23,196.7],[24,173.4],
-      [25,152.7],[26,129.4],[27,106.5],[28,86.2],[29,65.6]
+      [11,356.8],[12,378.5],[13,397.9],[14,415.6],
+      [15,465.2],[16,479.3],[17,493.35],[18,508.05],[19,537.2],
+      [20,565.8],[21,586.6],[22,614.2],[23,641.6],[24,662.2],
+      [25,676.3],[26,690.4],[27,711.5],[28,731.3],[29,745.3]
     ];
 
-    // Page 2 : 5 lignes avant Valise noir + 7 lignes de Valise noir.
+    // Page 2 : 5 lignes de trousse puis 7 lignes de Valise noir.
     const rows2=[
-      [30,695.8],[31,672.5],[32,649.6],[33,623.3],[34,600.3],
-      [35,563.0],[36,542.7],[37,522.1],[38,501.8],[39,481.5],
-      [40,461.2],[41,440.9]
+      [30,66.7],[31,87.0],[32,107.2],[33,134.2],[34,154.5],
+      [35,208.5],[36,222.0],[37,235.5],[38,249.0],[39,262.5],
+      [40,283.6],[41,313.7]
     ];
 
     function applyRows(pg, rows){
@@ -11141,7 +11142,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
           crop.getContext('2d').drawImage(sc,Math.max(0,minX-pad),Math.max(0,minY-pad),Math.min(sc.width,cw),Math.min(sc.height,ch),0,0,cw,ch);
           const png=await doc.embedPng(crop.toDataURL('image/png'));
           const maxW=180,maxH=45,scale=Math.min(maxW/png.width,maxH/png.height),dw=png.width*scale,dh=png.height*scale;
-          p2.drawImage(png,{x:(W-dw)/2,y:34,width:dw,height:dh});
+          p2.drawImage(png,{x:(W-dw)/2,y:82,width:dw,height:dh});
         }
       }catch(e){console.warn('Signature VSL',e);}
     }
