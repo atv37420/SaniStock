@@ -11440,7 +11440,8 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
         cover(pg,444,y-8,57,16,bg);
         if(state==='present') centerText(pg,bold,'V',346.04,y+1,9,black);
         if(state==='manque') centerText(pg,bold,'X',407.15,y+1,9,black);
-        if(item.optional) centerText(pg,font,'optionnel',472.0,y+1,8,black);
+        const ambItem=AMBULANCE_ITEMS[i] || {};
+        if(ambItem.optional) centerText(pg,font,'optionnel',472.0,y+1,8,black);
         else if(missing) centerText(pg,bold,missing,472.0,y+1,8,black);
       }
     });
