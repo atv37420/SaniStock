@@ -11084,12 +11084,11 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
       pg.drawLine({start:{x:x-1.1,y:y-3.0},end:{x:x+5.0,y:y+5.0},thickness:1.5,color:black});
     };
     const checkValise=(pg,cx,cy)=>{
-      // Valise noir : coche plus compacte pour ne jamais toucher les lignes
-      // horizontales et rester visuellement centrée dans chaque ligne.
-      const x=cx-1.7;
-      const y=cy;
-      pg.drawLine({start:{x:x-3.6,y:y+0.7},end:{x:x-0.9,y:y-2.5},thickness:1.35,color:black});
-      pg.drawLine({start:{x:x-0.9,y:y-2.5},end:{x:x+4.4,y:y+4.2},thickness:1.35,color:black});
+      // VALISE NOIR : une seule coche, centrée exactement dans la ligne.
+      // La coche reste entièrement à l'intérieur de la cellule Présent.
+      const x=cx-1.9, y=cy;
+      pg.drawLine({start:{x:x-3.3,y:y+0.4},end:{x:x-0.7,y:y-2.4},thickness:1.25,color:black});
+      pg.drawLine({start:{x:x-0.7,y:y-2.4},end:{x:x+4.0,y:y+3.9},thickness:1.25,color:black});
     };
 
     const cross=(pg,cx,cy)=>{
@@ -11159,8 +11158,11 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
         const state=selected ? String(selected.value||'').toLowerCase() : '';
         const missing=document.getElementById('vslMissing'+i)?.value?.trim()||'';
         if(state==='present') {
-          // Une seule coche par ligne, sans superposition.
-          check(pg,X_PRESENT,y);
+          // Une seule coche par ligne. Pour la Valise noir, on utilise la coche
+          // compacte dédiée afin qu'elle soit parfaitement centrée et ne touche
+          // jamais les lignes horizontales.
+          if(i>=35 && i<=41) checkValise(pg,X_PRESENT,y);
+          else check(pg,X_PRESENT,y);
         }
         if(state==='manque') cross(pg,X_MANQUE,y);
         if(missing) center(pg,missing,X_MISSING,y-2,8,bold);
