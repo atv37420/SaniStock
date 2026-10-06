@@ -10377,10 +10377,10 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     canvas.width=Math.round(cssW*ratio);
     canvas.height=Math.round(cssH*ratio);
     ctx.scale(ratio,ratio);
-    ctx.lineWidth=2.5;
+    ctx.lineWidth=1.8;
     ctx.lineCap='round';
     ctx.lineJoin='round';
-    ctx.strokeStyle='#111827';
+    ctx.strokeStyle='#111111';
 
     let drawing=false, hasInk=false;
 
@@ -10398,19 +10398,28 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
       const p=pos(e);
       ctx.beginPath();
       ctx.moveTo(p.x,p.y);
+      lastPoint=p;
     }
+    let lastPoint=null;
     function move(e){
       if(!drawing) return;
       e.preventDefault();
       const p=pos(e);
-      ctx.lineTo(p.x,p.y);
+      if(!lastPoint){ lastPoint=p; return; }
+      const mx=(lastPoint.x+p.x)/2, my=(lastPoint.y+p.y)/2;
+      ctx.beginPath();
+      ctx.moveTo(lastPoint.x,lastPoint.y);
+      ctx.quadraticCurveTo(lastPoint.x,lastPoint.y,mx,my);
       ctx.stroke();
+      lastPoint=p;
       hasInk=true;
     }
     function end(e){
       if(!drawing) return;
       e.preventDefault();
       drawing=false;
+      if(lastPoint){ ctx.beginPath(); ctx.moveTo(lastPoint.x,lastPoint.y); ctx.lineTo(pos(e).x,pos(e).y); ctx.stroke(); }
+      lastPoint=null;
       hidden.value=hasInk?canvas.toDataURL('image/png'):'';
     }
 
@@ -10770,7 +10779,27 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     [34,35,36].forEach(function(idx,k){var st=getState(idx),miss=getMissing(idx),y=[743,730,716][k],rowBg=(k%2===0?white:gray);if(st){if(st==='present'){cover(p2,317,y-6,12,13,rowBg);drawCheck(p2,323,y,10,black);}else{cover(p2,387,y-6,12,13,rowBg);drawX(p2,393,y,10,black);}}if(miss){cover(p2,427,y-6,50,13,rowBg);drawValue(p2,bold,miss,430,y-3,47,8,red);}});
     if(obs){var lines=wrapText(font,obs,8,410),yy=665;lines.slice(0,8).forEach(function(line){p2.drawText(line,{x:56,y:yy,size:8,font:font,color:black});yy-=11;});}
     if(equip){cover(p2,155,575,170,18,white);drawValue(p2,font,equip,160,579,160,9,black);}
-    if(sig&&sig.indexOf('data:image/')===0){try{var png=await doc.embedPng(sig);p2.drawImage(png,{x:125,y:548,width:160,height:58});}catch(e){console.warn('Signature PDF',e);}}
+    if(sig&&sig.indexOf('data:image/')===0){
+      try{
+        // Recadre la signature pour supprimer tout l'espace vide du canvas et conserver ses proportions.
+        var sigImg=await new Promise(function(resolve,reject){var im=new Image();im.onload=function(){resolve(im);};im.onerror=reject;im.src=sig;});
+        var sc=document.createElement('canvas');sc.width=sigImg.width;sc.height=sigImg.height;
+        var sx=sc.getContext('2d');sx.drawImage(sigImg,0,0);
+        var pix=sx.getImageData(0,0,sc.width,sc.height).data, minX=sc.width,minY=sc.height,maxX=-1,maxY=-1;
+        for(var yy0=0;yy0<sc.height;yy0++)for(var xx0=0;xx0<sc.width;xx0++){
+          var a=pix[(yy0*sc.width+xx0)*4+3], r=pix[(yy0*sc.width+xx0)*4], g=pix[(yy0*sc.width+xx0)*4+1], b=pix[(yy0*sc.width+xx0)*4+2];
+          if(a>20 && (r<245||g<245||b<245)){if(xx0<minX)minX=xx0;if(xx0>maxX)maxX=xx0;if(yy0<minY)minY=yy0;if(yy0>maxY)maxY=yy0;}
+        }
+        if(maxX>=minX && maxY>=minY){
+          var pad=18, cw=Math.min(sc.width,maxX-minX+1+pad*2), ch=Math.min(sc.height,maxY-minY+1+pad*2);
+          var crop=document.createElement('canvas');crop.width=cw;crop.height=ch;
+          var cx=crop.getContext('2d');cx.drawImage(sc,Math.max(0,minX-pad),Math.max(0,minY-pad),Math.min(sc.width,cw),Math.min(sc.height,ch),0,0,cw,ch);
+          var png=await doc.embedPng(crop.toDataURL('image/png'));
+          var maxW=170,maxH=62, scale=Math.min(maxW/png.width,maxH/png.height), dw=png.width*scale, dh=png.height*scale;
+          p2.drawImage(png,{x:140+(maxW-dw)/2,y:548+(maxH-dh)/2,width:dw,height:dh});
+        }
+      }catch(e){console.warn('Signature PDF',e);}
+    }
 
     var bytes=await doc.save();
     return {blob:new Blob([bytes],{type:'application/pdf'}),filename:'Check-list Taxi - '+(immat||'sans-immatriculation')+' - '+(date||'date').replaceAll('/','-')+'.pdf'};
