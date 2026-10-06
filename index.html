@@ -11105,33 +11105,34 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
       pg.drawLine({start:{x:cx-4.2,y:cy+4.2},end:{x:cx+4.2,y:cy-4.2},thickness:1.4,color:black});
     };
 
-    // Coordonnées recalées sur le modèle VSL propre à 5 colonnes.
-    // Le modèle actuel place le tableau plus bas que l'ancienne version :
-    // les positions verticales sont donc recalculées directement sur ce modèle.
+    // Coordonnées calées sur LE modèle VSL réellement utilisé par SaniStock.
+    // Modèle : vsl_template.pdf (tableau 5 colonnes, page 1 + page 2).
     put(p1,date,52,726.5,8,bold);
     put(p1,immat,225,726.5,8,bold);
     put(p1,kms,421,726.5,8,bold);
     put(p1,equip,52,713.0,8,bold);
 
-    // Centres exacts des 3 colonnes de réponses.
-    const X_PRESENT=(262.544+315.464)/2;
-    const X_MANQUE=(315.464+357.356)/2;
-    const X_MISSING=(357.356+460.973)/2;
+    // Centres réels des colonnes du modèle :
+    // Présent : entre 359.3 et 410.7 pt
+    // Manque  : entre 410.7 et 462.0 pt
+    // Qté manquante : entre 462.0 et 555.8 pt
+    const X_PRESENT=385.2;
+    const X_MANQUE=436.2;
+    const X_MISSING=508.9;
 
-    // Page 1 — centres calculés à partir des limites horizontales du modèle.
-    // 4 lignes Sécurité + 15 lignes Trousse de secours (valise blanche).
+    // Page 1 — 4 lignes Sécurité + 15 lignes Trousse de secours.
     const rows1=[
-      [11,485.4],[12,463.8],[13,444.3],[14,426.6],
-      [15,363.1],[16,349.0],[17,334.3],[18,304.9],[19,276.4],
-      [20,255.7],[21,228.2],[22,200.9],[23,180.2],[24,166.1],
-      [25,152.0],[26,131.0],[27,110.3],[28,96.2],[29,82.2]
+      [11,491.2],[12,470.9],[13,450.6],[14,430.2],
+      [15,372.4],[16,351.9],[17,328.6],[18,305.4],[19,277.7],
+      [20,247.2],[21,221.2],[22,195.2],[23,171.9],[24,151.4],
+      [25,128.2],[26,105.1],[27,84.6],[28,64.1],[29,48.4]
     ];
 
     // Page 2 — 5 dernières lignes de la trousse + 7 lignes Valise noir.
     const rows2=[
-      [30,775.0],[31,756.0],[32,733.0],[33,710.0],[34,696.0],
-      [35,615.0],[36,601.0],[37,588.0],[38,574.0],[39,558.0],
-      [40,528.0],[41,512.0]
+      [30,695.4],[31,672.2],[32,649.1],[33,622.9],[34,599.7],
+      [35,562.2],[36,541.9],[37,521.4],[38,501.1],[39,480.6],
+      [40,460.2],[41,439.9]
     ];
 
     function applyRows(pg, rows){
