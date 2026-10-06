@@ -10965,12 +10965,14 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     put(p1,date,22,H-103,8,bold);put(p1,immat,205,H-103,8,bold);put(p1,kms,421,H-103,8,bold);put(p1,equip,22,H-118,8,bold);
     // Coordonnées calées sur le nouveau modèle VSL à 5 colonnes.
     // Colonnes : Inventaire | Quantité | Présent | Manque | Quantité manquante.
-    const papers=[[1,228,671],[3,228,658],[5,228,645],[7,228,632],[9,228,619],[0,442,671],[2,442,658],[4,442,645],[6,442,632],[8,442,619],[10,442,606]];
-    papers.forEach(([i,x,y])=>{const st=getState(i);if(st==='present')check(p1,x,y);else if(st==='manque')cross(p1,x,y);});
-    const rows1=[[11,466],[12,445],[13,424],[14,403],[15,372],[16,351],[17,330],[18,299],[19,274],[20,250],[21,226],[22,198],[23,176],[24,154],[25,132],[26,111],[27,89],[28,68],[29,47]];
-    rows1.forEach(([i,y])=>{const st=getState(i),m=getMissing(i);if(st==='present')check(p1,405,y);else if(st==='manque')cross(p1,456,y);if(m)center(p1,m,533,y-2,8,bold);});
-    const rows2=[[30,718],[31,690],[32,659],[33,630],[34,599],[35,574],[36,550],[37,521],[38,494],[39,466],[40,439],[41,413]];
-    rows2.forEach(([i,y])=>{const st=getState(i),m=getMissing(i);if(st==='present')check(p2,405,y);else if(st==='manque')cross(p2,456,y);if(m)center(p2,m,533,y-2,8,bold);});
+    // Le modèle VSL comporte 5 colonnes fixes. Les réponses sont posées au centre
+    // exact des colonnes Présent / Manque / Quantité manquante. Aucun marquage
+    // n'est ajouté dans la partie PAPIERS VEHICULE.
+    const X_PRESENT=385.3, X_MANQUE=436.3, X_MISSING=509.3;
+    const rows1=[[11,491.2],[12,470.6],[13,449.9],[14,429.2],[15,391.9],[16,371.9],[17,350.6],[18,329.2],[19,308.6],[20,277.2],[21,249.2],[22,221.2],[23,198.6],[24,169.9],[25,147.9],[26,125.9],[27,105.2],[28,84.0],[29,63.2]];
+    rows1.forEach(([i,y])=>{const st=getState(i),m=getMissing(i);if(st==='present')check(p1,X_PRESENT,y);else if(st==='manque')cross(p1,X_MANQUE,y);if(m)center(p1,m,X_MISSING,y-2,8,bold);});
+    const rows2=[[30,697.2],[31,672.0],[32,651.2],[33,621.2],[34,599.2],[35,562.0],[36,540.0],[37,520.0],[38,499.8],[39,478.8],[40,458.0],[41,437.9]];
+    rows2.forEach(([i,y])=>{const st=getState(i),m=getMissing(i);if(st==='present')check(p2,X_PRESENT,y);else if(st==='manque')cross(p2,X_MANQUE,y);if(m)center(p2,m,X_MISSING,y-2,8,bold);});
     if(obs){const lines=wrap(font,obs,8,520);lines.slice(0,8).forEach((line,j)=>put(p2,line,20,H-650-j*13,8,font));}
     if(sig&&sig.indexOf('data:image/')===0){try{const im=await new Promise((res,rej)=>{const x=new Image();x.onload=()=>res(x);x.onerror=rej;x.src=sig;}),sc=document.createElement('canvas');sc.width=im.width;sc.height=im.height;sc.getContext('2d').drawImage(im,0,0);const pix=sc.getContext('2d').getImageData(0,0,sc.width,sc.height).data;let minX=sc.width,minY=sc.height,maxX=-1,maxY=-1;for(let yy=0;yy<sc.height;yy++)for(let xx=0;xx<sc.width;xx++){const k=(yy*sc.width+xx)*4,a=pix[k+3],r=pix[k],g=pix[k+1],bb=pix[k+2];if(a>20&&(r<245||g<245||bb<245)){minX=Math.min(minX,xx);maxX=Math.max(maxX,xx);minY=Math.min(minY,yy);maxY=Math.max(maxY,yy);}}if(maxX>=minX){const pad=18,cw=Math.min(sc.width,maxX-minX+1+pad*2),ch=Math.min(sc.height,maxY-minY+1+pad*2),crop=document.createElement('canvas');crop.width=cw;crop.height=ch;crop.getContext('2d').drawImage(sc,Math.max(0,minX-pad),Math.max(0,minY-pad),Math.min(sc.width,cw),Math.min(sc.height,ch),0,0,cw,ch);const png=await doc.embedPng(crop.toDataURL('image/png')),maxW=180,maxH=45,scale=Math.min(maxW/png.width,maxH/png.height),dw=png.width*scale,dh=png.height*scale;p2.drawImage(png,{x:(W-dw)/2,y:34,width:dw,height:dh});}}catch(e){console.warn('Signature VSL',e);}}
     const bytes=await doc.save();return {blob:new Blob([bytes],{type:'application/pdf'}),filename:'Check-list VSL - '+(immat||'sans-immatriculation')+' - '+(date||'date').replaceAll('/','-')+'.pdf'};
