@@ -10996,11 +10996,11 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     let html='<div id="checklistVslDetail">';
     html+='<button type="button" class="back" onclick="fermerChecklistVsl()">← Retour</button>';
     html+='<h1>🚐 CHECK-LIST VSL</h1><p id="checklistVslSubtitle" style="margin:0 0 14px;color:#64748b">Véhicule : '+esc(vehicle)+'</p>';
-    html+='<div class="vslInfoCard"><div class="vslInfoTitle">Informations du contrôle</div><div class="vslInfoGrid">';
-    html+='<div class="vslField"><label>Équipage :</label><div id="vslEquipageList" style="color:#71879a;font-size:13px">Chargement…</div><input id="vslEquipage" type="hidden"></div>';
-    html+='<div class="vslField"><label>Date :</label><input id="vslDate" type="date" value="'+new Date().toISOString().slice(0,10)+'"></div>';
-    html+='<div class="vslField"><label>Immatriculation :</label><input id="vslImmatriculation" type="text" value="'+esc(vehicle.split(' – ')[0]||'')+'" readonly></div>';
-    html+='<div class="vslField"><label>Kms :</label><input id="vslKms" type="text" inputmode="numeric" placeholder="Saisir le kilométrage"></div></div></div>';
+    html+='<div class="taxiInfoCard"><div class="taxiInfoTitle">Informations du contrôle</div><div class="taxiInfoGrid">';
+    html+='<div class="taxiField"><label>Équipage :</label><div id="vslEquipageList" class="taxiCrewList"><div style="color:#71879a;font-size:13px">Chargement des salariés…</div></div><input id="vslEquipage" type="hidden"></div>';
+    html+='<div class="taxiField"><label>Date :</label><input id="vslDate" type="date" value="'+new Date().toISOString().slice(0,10)+'"></div>';
+    html+='<div class="taxiField"><label>Immatriculation :</label><input id="vslImmatriculation" type="text" value="'+esc(vehicle.split(' – ')[0]||'')+'" readonly></div>';
+    html+='<div class="taxiField"><label>Kms :</label><input id="vslKms" type="text" inputmode="numeric" placeholder="Saisir le kilométrage"></div></div></div>';
     Object.keys(groups).forEach(function(cat){
       html+='<div class="vslSection"><div class="vslSectionTitle">'+esc(cat)+'</div>';
       html+='<button type="button" class="toutCocherBtn" onclick="toutCocherSection(this)">✓ TOUT COCHER</button>';
@@ -11024,8 +11024,8 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
   function chargerEquipageVsl(){
     const box=document.getElementById('vslEquipageList'),hidden=document.getElementById('vslEquipage');if(!box||!hidden)return;
     let nom='';try{nom=String(localStorage.getItem('sanistock_employee_name')||'').trim();}catch(e){}
-    if(nom){hidden.value=nom;box.innerHTML='👤 <strong>Chauffeur reconnu :</strong> '+esc(nom);return;}
-    box.innerHTML='⚠️ Aucun chauffeur connecté. Reconnectez-vous à SaniStock.';
+    if(nom){hidden.value=nom;box.innerHTML='<div class="taxiChauffeurReconnu">👤 <strong>Chauffeur reconnu :</strong> '+esc(nom)+'</div>';return;}
+    box.innerHTML='<div class="taxiChauffeurNonReconnu">⚠️ Aucun chauffeur connecté. Reconnectez-vous à SaniStock.</div>';
   }
   window.toggleVslMissing=function(i,enabled){const q=document.getElementById('vslMissing'+i);if(!q)return;q.disabled=false;q.readOnly=false;if(!enabled)q.value='';if(enabled)setTimeout(()=>q.focus(),20);};
   function getMissing(i){const input=document.getElementById('vslMissing'+i);return input?String(input.value||'').trim():'';}
