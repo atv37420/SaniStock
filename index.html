@@ -11101,20 +11101,40 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
 
     // Centres verticaux exacts des lignes du tableau, en coordonnées PDF.
     const rows1=[
-      // Sécurité
-      [11,349.0],[12,377.4],[13,396.9],[14,414.5],
-      // Trousse de secours (valise blanche)
-      [15,478.2],[16,492.3],[17,507.0],[18,536.1],[19,564.7],
-      [20,585.5],[21,613.1],[22,640.5],[23,661.2],[24,675.3],
-      [25,689.4],[26,710.2],[27,731.1],[28,745.2],[29,759.3]
+      // Sécurité — centres exacts des 4 lignes du modèle.
+      [11,491.2],[12,470.9],[13,450.6],[14,430.2],
+      // Trousse de secours (valise blanche) — du haut vers le bas.
+      [15,392.6],[16,372.6],[17,352.3],[18,329.0],[19,305.6],
+      [20,278.0],[21,247.6],[22,221.6],[23,195.6],[24,172.3],
+      [25,151.6],[26,128.3],[27,105.3],[28,85.0],[29,64.3]
     ];
 
     // Page 2 : 5 lignes de trousse puis 7 lignes de Valise noir.
     const rows2=[
-      [30,72.4],[31,106.2],[32,133.2],[33,153.4],[34,173.7],
-      [35,214.2],[36,234.4],[37,247.7],[38,261.4],[39,282.5],
-      [40,312.6],[41,341.9]
+      [30,695.6],[31,672.6],[32,649.6],[33,623.3],[34,599.9],
+      [35,562.2],[36,541.9],[37,521.4],[38,501.1],[39,480.6],
+      [40,460.2],[41,439.9]
     ];
+
+    // Papiers véhicule : les 11 cases du modèle sont dans la zone PAPIERS.
+    // On utilise leurs centres réels, mesurés sur le PDF modèle, afin que
+    // les ✓ / X restent dans les bonnes cases et ne puissent pas remonter
+    // dans INFORMATIONS GENERALES ou descendre dans MATERIEL VEHICULE.
+    const paperRows=[
+      [0,233.18,668.41],[1,233.18,654.41],[2,233.18,640.41],
+      [3,233.18,622.88],[4,233.18,596.21],[5,233.18,582.91],
+      [6,409.19,668.41],[7,409.19,654.41],[8,409.19,640.41],
+      [9,409.19,622.88],[10,409.19,582.91]
+    ];
+
+    paperRows.forEach(([i,x,y])=>{
+      const row=document.querySelector('#checklistVslDetail .vslChecklistRow[data-vsl-index="'+i+'"]');
+      if(!row)return;
+      const selected=row.querySelector('input[type="radio"]:checked');
+      const state=selected ? String(selected.value||'').toLowerCase() : '';
+      if(state==='present') check(p1,x,y);
+      if(state==='manque') cross(p1,x,y);
+    });
 
     function applyRows(pg, rows){
       rows.forEach(([i,y])=>{
