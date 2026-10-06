@@ -10198,9 +10198,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
 .taxiInfoGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
 .taxiField label{display:block;font-size:10px;font-weight:900;color:#042349;margin-bottom:5px}
 .taxiField input{width:100%;box-sizing:border-box;padding:11px;border:1px solid #cbd8e4;border-radius:10px;font:inherit;background:#fff;color:#042349}
-.taxiSectionTitle{font-size:15px;font-weight:900;color:#042349;margin-bottom:9px;padding-bottom:7px;border-bottom:2px solid #edf3f7}.taxiAllBtn,.vslAllBtn{display:block;width:100%;margin:-2px 0 9px;border:0;border-radius:10px;padding:9px 12px;background:#e4f1fb;color:#042349;font-weight:900;font-size:11px;cursor:pointer;text-align:center}
-.taxiAllBtn:active,.vslAllBtn:active{transform:scale(.99);background:#d5eafa}
-
+.taxiSectionTitle{font-size:15px;font-weight:900;color:#042349;margin-bottom:9px;padding-bottom:7px;border-bottom:2px solid #edf3f7}
 .taxiChecklistHead,.taxiChecklistRow{display:grid;grid-template-columns:minmax(0,1fr) 70px 75px 70px 95px;gap:7px;align-items:center}
 .taxiChecklistHead{font-size:9px;font-weight:900;color:#60778c;text-align:center;margin-bottom:5px}
 .taxiChecklistHead div:first-child{text-align:left}
@@ -10256,7 +10254,6 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     Object.keys(groups).forEach(function(cat){
       html += '<div class="taxiSection">';
       html += '<div class="taxiSectionTitle">'+esc(cat)+'</div>';
-      html += '<button type="button" class="taxiAllBtn" data-category="'+esc(cat)+'" onclick="toutCocherTaxi(this.dataset.category)">✓ TOUT COCHER</button>';
       html += '<div class="taxiChecklistHead"><div>Inventaire</div><div>Quantité</div><div>Présent</div><div>Manque</div><div>Quantité manquante</div></div>';
       groups[cat].forEach(function(item){
         const globalIndex=TAXI_ITEMS.indexOf(item);
@@ -10289,6 +10286,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
 
     html += '<div class="taxiActions">';
     html += '<button type="button" class="taxiValidate" onclick="validerChecklistTaxi()">✓ TERMINER LE CONTRÔLE</button>';
+    html += '<button type="button" class="taxiPdfBtn" onclick="genererPdfTaxi()">📄 GÉNÉRER LE PDF</button>';
     html += '<button type="button" class="taxiMailBtn" onclick="envoyerMailTaxi()">📧 ENVOYER PAR MAIL</button>';
     html += '</div>';
     html += '<div class="taxiNotice">L’équipage est choisi parmi les salariés déjà enregistrés dans SaniStock. La date et l’immatriculation sont préremplies automatiquement.</div>';
@@ -10347,20 +10345,6 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
 
   window.fermerChecklistTaxi=function(){
     if(typeof window.ouvrirChecklistVehicules==='function') window.ouvrirChecklistVehicules('TAXIS');
-  };
-
-  window.toutCocherTaxi=function(category){
-    const cat=String(category||'');
-    TAXI_ITEMS.forEach(function(item,i){
-      if(String(item.category)!==cat) return;
-      const row=document.querySelector('#checklistTaxiDetail .taxiChecklistRow[data-taxi-index="'+i+'"]');
-      if(!row) return;
-      const present=row.querySelector('input[type="radio"][value="present"]');
-      if(present){
-        present.checked=true;
-        present.dispatchEvent(new Event('change',{bubbles:true}));
-      }
-    });
   };
 
   window.toggleTaxiMissing=function(i,enabled){
@@ -10814,7 +10798,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
 
     // Page 2 : désinfection, observations et signature.
     [34,35,36].forEach(function(idx,k){var st=getState(idx),miss=getMissing(idx),y=[743,730,716][k],rowBg=(k%2===0?white:gray);if(st){if(st==='present'){cover(p2,317,y-6,12,13,rowBg);drawCheck(p2,323,y,10,black);}else{cover(p2,387,y-6,12,13,rowBg);drawX(p2,393,y,10,black);}}if(miss){cover(p2,427,y-6,50,13,rowBg);drawValue(p2,bold,miss,430,y-3,47,8,red);}});
-    if(obs){var lines=wrapText(font,obs,8,410),yy=665;lines.slice(0,8).forEach(function(line){p2.drawText(line,{x:76,y:yy,size:8,font:font,color:black});yy-=11;});}
+    if(obs){var lines=wrapText(font,obs,8,410),yy=665;lines.slice(0,8).forEach(function(line){p2.drawText(line,{x:56,y:yy,size:8,font:font,color:black});yy-=11;});}
     if(equip){cover(p2,155,575,170,18,white);drawValue(p2,font,equip,160,579,160,9,black);}
     if(sig&&sig.indexOf('data:image/')===0){
       try{
@@ -11018,7 +11002,6 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     html+='<div class="vslField"><label>Kms :</label><input id="vslKms" type="text" inputmode="numeric" placeholder="Saisir le kilométrage"></div></div></div>';
     Object.keys(groups).forEach(function(cat){
       html+='<div class="vslSection"><div class="vslSectionTitle">'+esc(cat)+'</div>';
-      html+='<button type="button" class="vslAllBtn" data-category="'+esc(cat)+'" onclick="toutCocherVsl(this.dataset.category)">✓ TOUT COCHER</button>';
       html+='<div class="vslChecklistHead"><div>Inventaire</div><div>Quantité</div><div>Présent</div><div>Manque</div><div>Quantité manquante</div></div>';
       groups[cat].forEach(function(item){const i=VSL_ITEMS.indexOf(item);const id='vslItem'+i;html+='<div class="vslChecklistRow" data-vsl-index="'+i+'"><div>'+esc(item.name)+'</div><div class="vslQty">'+esc(item.quantity)+'</div><div class="vslChoice"><input type="radio" name="'+id+'" value="present" onchange="toggleVslMissing('+i+',false)"></div><div class="vslChoice"><input type="radio" name="'+id+'" value="manque" onchange="toggleVslMissing('+i+',true)"></div><div><input id="vslMissing'+i+'" class="vslMissingQty" type="text" inputmode="numeric" autocomplete="off" placeholder="—"></div></div>';});
       html+='</div>';
@@ -11034,20 +11017,6 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     if(nom){hidden.value=nom;box.innerHTML='👤 <strong>Chauffeur reconnu :</strong> '+esc(nom);return;}
     box.innerHTML='⚠️ Aucun chauffeur connecté. Reconnectez-vous à SaniStock.';
   }
-  window.toutCocherVsl=function(category){
-    const cat=String(category||'');
-    VSL_ITEMS.forEach(function(item,i){
-      if(String(item.category)!==cat) return;
-      const row=document.querySelector('#checklistVslDetail .vslChecklistRow[data-vsl-index="'+i+'"]');
-      if(!row) return;
-      const present=row.querySelector('input[type="radio"][value="present"]');
-      if(present){
-        present.checked=true;
-        present.dispatchEvent(new Event('change',{bubbles:true}));
-      }
-    });
-  };
-
   window.toggleVslMissing=function(i,enabled){const q=document.getElementById('vslMissing'+i);if(!q)return;q.disabled=false;q.readOnly=false;if(!enabled)q.value='';if(enabled)setTimeout(()=>q.focus(),20);};
   function getMissing(i){const input=document.getElementById('vslMissing'+i);return input?String(input.value||'').trim():'';}
   function getState(i){const r=document.querySelector('#checklistVslDetail .vslChecklistRow[data-vsl-index="'+i+'"]');if(!r)return '';const c=r.querySelector('input[type="radio"]:checked');return c?String(c.value||'').toLowerCase():'';}
@@ -11066,7 +11035,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
   window.validerChecklistVsl=function(){const equip=document.getElementById('vslEquipage')?.value||'',date=document.getElementById('vslDate')?.value||'',immat=document.getElementById('vslImmatriculation')?.value||'',kms=document.getElementById('vslKms')?.value||'';if(!equip||!date||!immat||!kms){alert('Merci de vérifier le chauffeur, la date, l’immatriculation et les Kms.');return;}const result=VSL_ITEMS.map((x,i)=>({categorie:x.category,element:x.name,quantite:x.quantity,present:getState(i)==='present',quantiteManquante:getMissing(i)}));localStorage.setItem('sanistock_last_vsl_checklist',JSON.stringify({vehicle:document.getElementById('checklistVslSubtitle')?.textContent||'',equipage:equip,date,immatriculation:immat,kms,result,observations:document.getElementById('vslObservations')?.value||'',signature:document.getElementById('vslSignature')?.value||'',savedAt:new Date().toISOString()}));alert('✅ Contrôle VSL enregistré sur cet appareil.');};
   function dateFR(v){if(!v)return '';const p=String(v).split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:v;}
   async function loadPdfLib(){if(window.PDFLib)return window.PDFLib;if(!window.__saniPdfLibPromise){window.__saniPdfLibPromise=new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js';s.onload=()=>resolve(window.PDFLib);s.onerror=()=>reject(new Error('Bibliothèque PDF indisponible.'));document.head.appendChild(s);});}return window.__saniPdfLibPromise;}
-  async function chargerModeleVsl(){const r=await fetch('./vsl_template_20261006_phonefix.pdf?v=1',{cache:'no-store'});if(!r.ok)throw new Error('Modèle PDF VSL introuvable. Ajoutez vsl_template.pdf à GitHub Pages.');return r.arrayBuffer();}
+  async function chargerModeleVsl(){const r=await fetch('./vsl_template.pdf?v=20261006-final-aligne',{cache:'no-store'});if(!r.ok)throw new Error('Modèle PDF VSL introuvable. Ajoutez vsl_template.pdf à GitHub Pages.');return r.arrayBuffer();}
   function cover(page,x,y,w,h,color){page.drawRectangle({x:x,y:y,width:w,height:h,color:color});}
   function drawValue(page,font,text,x,y,maxW,size,color){let t=String(text||'');while(t.length&&font.widthOfTextAtSize(t,size)>maxW)t=t.slice(0,-1);if(t)page.drawText(t,{x,y,size,font,color});}
   function drawCheck(page,x,y,size,color){const w=size*0.9;const h=size*0.9;page.drawLine({start:{x:x-w*0.45,y:y-h*0.05},end:{x:x-w*0.05,y:y-h*0.45},thickness:Math.max(1.2,size*0.13),color});page.drawLine({start:{x:x-w*0.05,y:y-h*0.45},end:{x:x+w*0.55,y:y+h*0.35},thickness:Math.max(1.2,size*0.13),color});}
@@ -11105,62 +11074,35 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
       pg.drawLine({start:{x:cx-4.2,y:cy+4.2},end:{x:cx+4.2,y:cy-4.2},thickness:1.4,color:black});
     };
 
-    // Coordonnées calées sur LE modèle VSL réellement utilisé par SaniStock.
-    // Modèle : vsl_template.pdf (tableau 5 colonnes, page 1 + page 2).
-    put(p1,date,87,699.5,8,bold);
-    put(p1,immat,280,699.5,8,bold);
-    put(p1,kms,436,699.5,8,bold);
-    put(p1,equip,87,678.5,8,bold);
+    // Only the four information fields are written. Nothing is drawn in PAPIERS VEHICULE.
+    // Coordonnées mesurées directement sur le modèle VSL PDF.
+    // Page = 595.30 x 841.89 pt.
+    // Colonnes : Inventaire | Quantité | Présent | Manque | Quantité manquante
+    // x = centres exacts des colonnes du modèle.
+    put(p1,date,52,H-121,8,bold);
+    put(p1,immat,225,H-121,8,bold);
+    put(p1,kms,421,H-121,8,bold);
+    put(p1,equip,52,H-143,8,bold);
 
-    // Centres réels des colonnes du modèle :
-    // Présent : entre 359.3 et 410.7 pt
-    // Manque  : entre 410.7 et 462.0 pt
-    // Qté manquante : entre 462.0 et 555.8 pt
-    const X_PRESENT=289.3;
-    const X_MANQUE=336.7;
-    const X_MISSING=408.7;
+    const X_PRESENT=(262.544+315.464)/2; // 289.004
+    const X_MANQUE=(315.464+357.356)/2;  // 336.410
+    const X_MISSING=(357.356+460.973)/2; // 409.165
 
-    // Papiers véhicule : le modèle n'a pas de colonnes Présent/Manque,
-    // donc on place directement un ✓ (présent) ou un X (manquant)
-    // à droite de chaque ligne, sans toucher au texte du modèle.
-    const paperRows=[
-      [1,'L',628.5],[2,'R',628.5],
-      [3,'L',613.0],[4,'R',613.0],
-      [5,'L',597.5],[6,'R',597.5],
-      [7,'L',582.2],[8,'R',582.2],
-      [9,'L',566.8],[10,'R',566.8]
-    ];
-    const PAPER_X_LEFT=231.5;
-    const PAPER_X_RIGHT=409.0;
-
-    function applyPaperRows(pg){
-      paperRows.forEach(([i,side,y])=>{
-        const row=document.querySelector('#checklistVslDetail .vslChecklistRow[data-vsl-index="'+i+'"]');
-        if(!row)return;
-        const selected=row.querySelector('input[type="radio"]:checked');
-        const state=selected ? String(selected.value||'').toLowerCase() : '';
-        const x=side==='L'?PAPER_X_LEFT:PAPER_X_RIGHT;
-        if(state==='present') check(pg,x,y);
-        if(state==='manque') cross(pg,x,y);
-      });
-    }
-
-    // Page 1 — 4 lignes Sécurité + 15 lignes Trousse de secours.
+    // Centres verticaux exacts des lignes du tableau, en coordonnées PDF.
     const rows1=[
-      [11,491.2],[12,470.9],[13,450.6],[14,430.2],
-      // Trousse de secours (valise blanche) — centres exacts des lignes du modèle VSL.
-      [15,392.6],[16,372.6],[17,352.3],[18,329.0],[19,305.6],
-      [20,278.0],[21,247.6],[22,221.6],[23,195.6],[24,172.3],
-      [25,151.6],[26,128.3],[27,105.3],[28,85.0],[29,64.3]
+      // Sécurité
+      [11,349.0],[12,377.4],[13,396.9],[14,414.5],
+      // Trousse de secours (valise blanche)
+      [15,478.2],[16,492.3],[17,507.0],[18,536.1],[19,564.7],
+      [20,585.5],[21,613.1],[22,640.5],[23,661.2],[24,675.3],
+      [25,689.4],[26,710.2],[27,731.1],[28,745.2],[29,759.3]
     ];
 
-    // Page 2 — 5 dernières lignes de la trousse + 7 lignes Valise noir.
+    // Page 2 : 5 lignes de trousse puis 7 lignes de Valise noir.
     const rows2=[
-      // Suite de la Trousse de secours (valise blanche) — centres exacts du modèle.
-      [30,695.6],[31,672.6],[32,649.6],[33,623.3],[34,599.9],
-      // Valise noir — inchangée.
-      [35,562.2],[36,541.9],[37,521.4],[38,501.1],[39,480.6],
-      [40,460.2],[41,439.9]
+      [30,72.4],[31,106.2],[32,133.2],[33,153.4],[34,173.7],
+      [35,214.2],[36,234.4],[37,247.7],[38,261.4],[39,282.5],
+      [40,312.6],[41,341.9]
     ];
 
     function applyRows(pg, rows){
@@ -11176,13 +11118,12 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
       });
     }
 
-    applyPaperRows(p1);
     applyRows(p1,rows1);
     applyRows(p2,rows2);
 
     if(obs){
       const lines=wrap(font,obs,8,520);
-      lines.slice(0,8).forEach((line,j)=>put(p2,line,60,H-650-j*13,8,font));
+      lines.slice(0,8).forEach((line,j)=>put(p2,line,20,H-650-j*13,8,font));
     }
 
     // Signature: centered in the signature area, without altering the model lines.
