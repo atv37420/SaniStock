@@ -1914,6 +1914,15 @@ button.settingsAction.secondary:hover,
 .taxiChauffeurReconnu{display:block;padding:11px 12px;border:1px solid #b8d7ee;border-radius:10px;background:#eef7ff;color:#042349;font-size:14px;font-weight:700}
 .taxiChauffeurNonReconnu{display:block;padding:11px 12px;border:1px solid #f1c6c6;border-radius:10px;background:#fff5f5;color:#9b1c1c;font-size:13px;font-weight:700}
 </style>
+
+<style id="ambulance-signature-style">
+.ambSignatureSection{margin-top:12px}
+.ambSignatureHint{font-size:13px;color:#64748b;margin:0 0 8px}
+.ambSignatureCanvas{display:block;width:100%;height:180px;box-sizing:border-box;background:#fff;border:2px solid #cbd5e1;border-radius:10px;touch-action:none;cursor:crosshair}
+.ambSignatureActions{display:flex;justify-content:flex-end;margin-top:8px}
+.ambSignatureClear{border:1px solid #cbd5e1;background:#f8fafc;color:#334155;border-radius:8px;padding:8px 12px;font-weight:700;cursor:pointer}
+@media(max-width:600px){.ambSignatureHint,.ambSignatureClear{font-size:11px}.ambSignatureCanvas{height:165px}}
+</style>
 </head>
 <body>
 
@@ -11323,6 +11332,7 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
       });
       html+='</div>';
     });
+    html+='<div class="vslSection ambSignatureSection"><div class="vslSectionTitle">SIGNATURE</div><div class="ambSignatureHint">✍️ Signez dans le cadre avec le doigt ou le stylet.</div><canvas id="ambSignatureCanvas" class="ambSignatureCanvas" width="900" height="260"></canvas><div class="ambSignatureActions"><button type="button" class="ambSignatureClear" onclick="effacerSignatureAmbulance()">🗑️ Effacer la signature</button></div><input id="ambSignature" type="hidden" value=""></div>';
     html+='<div class="vslSection"><div class="vslSectionTitle">OBSERVATIONS</div><textarea id="ambObservations" style="width:100%;min-height:110px;box-sizing:border-box;border:1px solid #cbd8e4;border-radius:10px;padding:10px;font:inherit" placeholder="Saisir les observations"></textarea></div>';
     html+='<div class="vslActions"><button type="button" class="vslValidate" onclick="validerChecklistAmbulance()">✓ TERMINER LE CONTRÔLE</button><button type="button" class="vslMailBtn" onclick="envoyerMailAmbulance()">📧 ENVOYER PAR MAIL</button></div>';
     html+='<div class="ambRequiredNote">Le 1er équipier est reconnu automatiquement depuis la connexion SaniStock. Le 2ᵉ équipier est choisi dans la liste déroulante. Les éléments marron à l’intérieur des kits sont affichés pour vérification et ne nécessitent pas de coche séparée.</div>';
@@ -11391,6 +11401,7 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
     const e1=nomConnecte();
     const e2=String(document.getElementById('ambCrew2')?.value||'').trim();
     const obs=String(document.getElementById('ambObservations')?.value||'').trim();
+    const sig=String(document.getElementById('ambSignature')?.value||'').trim();
     if(!e1)throw new Error('Le 1er équipier n’est pas reconnu. Reconnectez-vous à SaniStock.');
     if(!immat)throw new Error('Immatriculation non reconnue à partir du véhicule sélectionné.');
     if(!kms)throw new Error('Saisissez les Kms.');
@@ -11435,7 +11446,16 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
     });
     if(obs){
       const lines=wrapText(font,obs,500,8);
-      lines.slice(0,18).forEach(function(line,j){p3.drawText(line,{x:58,y:310-j*14,size:8,font:font,color:black});});
+      lines.slice(0,18).forEach(function(line,j){p3.drawText(line,{x:58,y:290-j*14,size:8,font:font,color:black});});
+    }
+    if(sig && sig.indexOf('data:image/')===0){
+      try{
+        const png=await doc.embedPng(sig);
+        const maxW=425,maxH=34;
+        const scale=Math.min(maxW/png.width,maxH/png.height);
+        const dw=png.width*scale,dh=png.height*scale;
+        p3.drawImage(png,{x:(W-dw)/2,y:314+(maxH-dh)/2,width:dw,height:dh});
+      }catch(e){console.warn('Signature Ambulance',e);}
     }
     const bytes=await doc.save();
     return {blob:new Blob([bytes],{type:'application/pdf'}),filename:'Check-list Ambulance - '+immat+' - '+htmlDateFR(date).replaceAll('/','-')+'.pdf'};
@@ -11455,12 +11475,31 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
     sec.innerHTML=h;box.insertBefore(sec,anchor);
   }
 
+  window.initSignatureAmbulance=function(){
+    const canvas=document.getElementById('ambSignatureCanvas'),hidden=document.getElementById('ambSignature');
+    if(!canvas||!hidden||canvas.dataset.ready==='1')return;
+    canvas.dataset.ready='1';
+    const ctx=canvas.getContext('2d',{alpha:true});
+    const ratio=Math.max(2,window.devicePixelRatio||1);
+    const rect=canvas.getBoundingClientRect(),cssW=rect.width||900,cssH=rect.height||180;
+    canvas.width=Math.round(cssW*ratio);canvas.height=Math.round(cssH*ratio);
+    ctx.setTransform(ratio,0,0,ratio,0,0);ctx.lineWidth=2.15;ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle='#111827';ctx.fillStyle='#111827';
+    let drawing=false,hasInk=false,last=null;
+    function pos(e){const r=canvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};}
+    function dot(p){ctx.beginPath();ctx.arc(p.x,p.y,1.25,0,Math.PI*2);ctx.fill();hasInk=true;}
+    function start(e){e.preventDefault();if(e.pointerId!=null)canvas.setPointerCapture(e.pointerId);drawing=true;last=pos(e);dot(last);}
+    function move(e){if(!drawing)return;e.preventDefault();const p=pos(e);ctx.beginPath();ctx.moveTo(last.x,last.y);ctx.lineTo(p.x,p.y);ctx.stroke();last=p;hasInk=true;}
+    function end(e){if(!drawing)return;e.preventDefault();drawing=false;if(e.pointerId!=null){try{canvas.releasePointerCapture(e.pointerId);}catch(_){}}hidden.value=hasInk?canvas.toDataURL('image/png'):'';last=null;}
+    canvas.addEventListener('pointerdown',start,{passive:false});canvas.addEventListener('pointermove',move,{passive:false});canvas.addEventListener('pointerup',end,{passive:false});canvas.addEventListener('pointercancel',end,{passive:false});
+  };
+  window.effacerSignatureAmbulance=function(){const c=document.getElementById('ambSignatureCanvas'),h=document.getElementById('ambSignature');if(c){const ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);}if(h)h.value='';};
+
   window.validerChecklistAmbulance=function(){
     const states=AMBULANCE_ITEMS.map(function(item,i){return {categorie:item.category,element:item.name,quantite:item.quantity,present:readState(i)==='present',manque:readState(i)==='manque',quantiteManquante:String(document.getElementById('ambMissing'+i)?.value||'').trim()};});
     const paperStates=AMBULANCE_PAPERS.map(function(p,i){const c=document.querySelector('#checklistAmbulanceDetail .ambPaperRow[data-paper-index="'+i+'"] input:checked');return {element:p.name,present:!!(c&&c.value==='present'),manque:!!(c&&c.value==='manque')};});
     const incomplete=states.some(function(x){return !x.present&&!x.manque})||paperStates.some(function(x){return !x.present&&!x.manque});
     if(incomplete){alert('Merci de valider chaque ligne avec V (OK) ou X (Manque).');return;}
-    localStorage.setItem('sanistock_last_ambulance_checklist',JSON.stringify({immatriculation:document.getElementById('ambImmatriculation')?.value||'',kms:document.getElementById('ambKms')?.value||'',date:document.getElementById('ambDate')?.value||'',equipier1:nomConnecte(),equipier2:document.getElementById('ambCrew2')?.value||'',vehicule:document.getElementById('checklistAmbulanceSubtitle')?.textContent||'',papiers:paperStates,result:states,observations:document.getElementById('ambObservations')?.value||'',savedAt:new Date().toISOString()}));
+    localStorage.setItem('sanistock_last_ambulance_checklist',JSON.stringify({immatriculation:document.getElementById('ambImmatriculation')?.value||'',kms:document.getElementById('ambKms')?.value||'',date:document.getElementById('ambDate')?.value||'',equipier1:nomConnecte(),equipier2:document.getElementById('ambCrew2')?.value||'',vehicule:document.getElementById('checklistAmbulanceSubtitle')?.textContent||'',papiers:paperStates,result:states,observations:document.getElementById('ambObservations')?.value||'',signature:document.getElementById('ambSignature')?.value||'',savedAt:new Date().toISOString()}));
     alert('✅ Contrôle AMBULANCE enregistré sur cet appareil.');
   };
 
@@ -11556,6 +11595,7 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
     buildAmbSections();
     setCrew();
     const d=document.getElementById('checklistAmbulanceDetail');if(d)d.classList.add('show');
+    setTimeout(function(){initSignatureAmbulance();},60);
   };
   window.fermerChecklistAmbulance=function(){if(typeof window.ouvrirChecklistVehicules==='function')window.ouvrirChecklistVehicules('AMBULANCES');};
   document.addEventListener('click',function(e){
