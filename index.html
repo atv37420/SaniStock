@@ -11120,6 +11120,31 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     const X_MANQUE=436.2;
     const X_MISSING=508.9;
 
+    // Papiers véhicule : le modèle n'a pas de colonnes Présent/Manque,
+    // donc on place directement un ✓ (présent) ou un X (manquant)
+    // à droite de chaque ligne, sans toucher au texte du modèle.
+    const paperRows=[
+      [1,'L',628.5],[2,'R',628.5],
+      [3,'L',613.0],[4,'R',613.0],
+      [5,'L',597.5],[6,'R',597.5],
+      [7,'L',582.2],[8,'R',582.2],
+      [9,'L',566.8],[10,'R',566.8]
+    ];
+    const PAPER_X_LEFT=182.5;
+    const PAPER_X_RIGHT=527.0;
+
+    function applyPaperRows(pg){
+      paperRows.forEach(([i,side,y])=>{
+        const row=document.querySelector('#checklistVslDetail .vslChecklistRow[data-vsl-index="'+i+'"]');
+        if(!row)return;
+        const selected=row.querySelector('input[type="radio"]:checked');
+        const state=selected ? String(selected.value||'').toLowerCase() : '';
+        const x=side==='L'?PAPER_X_LEFT:PAPER_X_RIGHT;
+        if(state==='present') check(pg,x,y);
+        if(state==='manque') cross(pg,x,y);
+      });
+    }
+
     // Page 1 — 4 lignes Sécurité + 15 lignes Trousse de secours.
     const rows1=[
       [11,491.2],[12,470.9],[13,450.6],[14,430.2],
@@ -11148,6 +11173,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
       });
     }
 
+    applyPaperRows(p1);
     applyRows(p1,rows1);
     applyRows(p2,rows2);
 
