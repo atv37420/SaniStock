@@ -11105,33 +11105,33 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
       pg.drawLine({start:{x:cx-4.2,y:cy+4.2},end:{x:cx+4.2,y:cy-4.2},thickness:1.4,color:black});
     };
 
-    // Only the four information fields are written. Nothing is drawn in PAPIERS VEHICULE.
-    // Coordonnées mesurées directement sur le modèle VSL PDF.
-    // Page = 595.30 x 841.89 pt.
-    // Colonnes : Inventaire | Quantité | Présent | Manque | Quantité manquante
-    // x = centres exacts des colonnes du modèle.
-    put(p1,date,52,H-121,8,bold);
-    put(p1,immat,225,H-121,8,bold);
-    put(p1,kms,421,H-121,8,bold);
-    put(p1,equip,52,H-143,8,bold);
+    // Coordonnées recalées sur le modèle VSL propre à 5 colonnes.
+    // Le modèle actuel place le tableau plus bas que l'ancienne version :
+    // les positions verticales sont donc recalculées directement sur ce modèle.
+    put(p1,date,52,726.5,8,bold);
+    put(p1,immat,225,726.5,8,bold);
+    put(p1,kms,421,726.5,8,bold);
+    put(p1,equip,52,713.0,8,bold);
 
-    const X_PRESENT=(262.544+315.464)/2; // 289.004
-    const X_MANQUE=(315.464+357.356)/2;  // 336.410
-    const X_MISSING=(357.356+460.973)/2; // 409.165
+    // Centres exacts des 3 colonnes de réponses.
+    const X_PRESENT=(262.544+315.464)/2;
+    const X_MANQUE=(315.464+357.356)/2;
+    const X_MISSING=(357.356+460.973)/2;
 
-    // Centres verticaux exacts des lignes du tableau, en coordonnées PDF.
+    // Page 1 — centres calculés à partir des limites horizontales du modèle.
+    // 4 lignes Sécurité + 15 lignes Trousse de secours (valise blanche).
     const rows1=[
-      [11,356.8],[12,378.5],[13,397.9],[14,415.6],
-      [15,465.2],[16,479.3],[17,493.35],[18,508.05],[19,537.2],
-      [20,565.8],[21,586.6],[22,614.2],[23,641.6],[24,662.2],
-      [25,676.3],[26,690.4],[27,711.5],[28,731.3],[29,745.3]
+      [11,689.0],[12,667.0],[13,650.0],[14,632.0],
+      [15,589.0],[16,578.0],[17,565.0],[18,548.0],[19,525.0],
+      [20,503.0],[21,480.5],[22,457.0],[23,436.0],[24,425.0],
+      [25,411.5],[26,399.0],[27,379.0],[28,367.0],[29,355.0]
     ];
 
-    // Page 2 : 5 lignes de trousse puis 7 lignes de Valise noir.
+    // Page 2 — 5 dernières lignes de la trousse + 7 lignes Valise noir.
     const rows2=[
-      [30,66.7],[31,87.0],[32,107.2],[33,134.2],[34,154.5],
-      [35,208.5],[36,222.0],[37,235.5],[38,249.0],[39,262.5],
-      [40,283.6],[41,313.7]
+      [30,775.0],[31,756.0],[32,733.0],[33,710.0],[34,696.0],
+      [35,615.0],[36,601.0],[37,588.0],[38,574.0],[39,558.0],
+      [40,528.0],[41,512.0]
     ];
 
     function applyRows(pg, rows){
