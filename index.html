@@ -11083,6 +11083,15 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
       pg.drawLine({start:{x:x-4.2,y:y+0.8},end:{x:x-1.1,y:y-3.0},thickness:1.5,color:black});
       pg.drawLine({start:{x:x-1.1,y:y-3.0},end:{x:x+5.0,y:y+5.0},thickness:1.5,color:black});
     };
+    const checkValise=(pg,cx,cy)=>{
+      // Valise noir : coche plus compacte pour ne jamais toucher les lignes
+      // horizontales et rester visuellement centrée dans chaque ligne.
+      const x=cx-1.7;
+      const y=cy;
+      pg.drawLine({start:{x:x-3.0,y:y+0.5},end:{x:x-0.8,y:y-2.1},thickness:1.2,color:black});
+      pg.drawLine({start:{x:x-0.8,y:y-2.1},end:{x:x+3.6,y:y+3.8},thickness:1.2,color:black});
+    };
+
     const cross=(pg,cx,cy)=>{
       // X centered on the exact center of the Manque column.
       pg.drawLine({start:{x:cx-4.2,y:cy-4.2},end:{x:cx+4.2,y:cy+4.2},thickness:1.4,color:black});
@@ -11148,7 +11157,10 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
         const selected=row.querySelector('input[type="radio"]:checked');
         const state=selected ? String(selected.value||'').toLowerCase() : '';
         const missing=document.getElementById('vslMissing'+i)?.value?.trim()||'';
-        if(state==='present') check(pg,X_PRESENT,y);
+        if(state==='present') {
+          if(pg===p2 && i>=35) checkValise(pg,X_PRESENT,y);
+          else check(pg,X_PRESENT,y);
+        }
         if(state==='manque') cross(pg,X_MANQUE,y);
         if(missing) center(pg,missing,X_MISSING,y-2,8,bold);
       });
