@@ -2333,7 +2333,7 @@ button.settingsAction.secondary:hover,
 
     <div class="selectors">
       <div><label>SALARIÉ</label><select id="employee"><option value="">Sélectionner votre nom</option></select><button type="button" id="addColleagueBtn" class="addColleagueBtn" onclick="toggleSecondColleague()" hidden>＋ Ajouter un collègue</button><div id="secondColleagueWrap" class="secondColleagueWrap" hidden><label>2ᵉ COLLÈGUE</label><select id="employee2"><option value="">Sélectionner le collègue</option></select></div></div>
-      <div><label>VÉHICULE</label><select id="vehicle" onchange="adapterChecklistVehicule()"><option value="">Sélectionner un véhicule</option><option>FZ-349-AT – AMBULANCE PEUGEOT BOXER</option><option>HA-219-PS – AMBULANCE RENAULT TRAFIC</option><option>AUDI A6 TAXI</option><option>HK-887-SD – FORD TOURNEO</option><option>FH-061-DT – CADDY TAXI</option><option>GH805GV – IONIQ 5 TAXI</option><option>GH-575-RH – CADDY VSL</option><option>DR-607-TE – CADDY BLANC</option><option>FC-295-XP – SKODA SUPERB</option><option>FF-458-QT – SKODA BREAK VSL</option><option>EW-353-WR – SKODA BREAK VSL</option><option>FF-334-SL – SKODA KODIAQ VSL</option><option>EN-114-BK – SKODA SUPERB VSL</option></select></div>
+      <div><label>VÉHICULE</label><select id="vehicle" onchange="adapterChecklistVehicule()"><option value="">Sélectionner un véhicule</option><option>FZ-349-AT – AMBULANCE PEUGEOT BOXER</option><option>AUDI A6 TAXI</option><option>HK-887-SD – FORD TOURNEO</option><option>FH-061-DT – CADDY TAXI</option><option>GH805GV – IONIQ 5 TAXI</option><option>GH-575-RH – CADDY VSL</option><option>DR-607-TE – CADDY BLANC</option><option>FC-295-XP – SKODA SUPERB</option><option>FF-458-QT – SKODA BREAK VSL</option><option>EW-353-WR – SKODA BREAK VSL</option><option>FF-334-SL – SKODA KODIAQ VSL</option><option>EN-114-BK – SKODA SUPERB VSL</option></select></div>
     </div>
 
     <div class="disCard">
@@ -10014,7 +10014,7 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
 (function(){
   const KEY='sanistock_checklist_vehicules_v1';
   const DEFAULTS={
-    'AMBULANCES':['FZ-349-AT – AMBULANCE PEUGEOT BOXER','HA-219-PS – AMBULANCE RENAULT TRAFIC'],
+    'AMBULANCES':['FZ-349-AT – AMBULANCE PEUGEOT BOXER'],
     'TAXIS':['DR-951-FG – AUDI A6 TAXI','FH-061-DT – CADDY TAXI','GH-805-GV – IONIQ 5 TAXI','HK-887-SD – FORD TOURNEO TAXI','DR-607-TE – CADDY TAXI'],
     'VSL':['GH-575-RH – CADDY VSL','FF-458-QT – SKODA BREAK VSL','FF-334-SL – SKODA KODIAQ VSL','EN-114-BK – SKODA SUPERB VSL','FC-295-XP – SKODA SUPERB VSL']
   };
@@ -10026,10 +10026,6 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
         ['AMBULANCES','TAXIS','VSL'].forEach(function(c){
           if(!x[c].length) x[c]=clone(DEFAULTS[c]);
         });
-        /* Ajout automatique de HA-219-PS sans supprimer les véhicules déjà enregistrés */
-        if(!x.AMBULANCES.some(function(v){return String(v||'').toUpperCase().includes('HA-219-PS');})){
-          x.AMBULANCES.push('HA-219-PS – AMBULANCE RENAULT TRAFIC');
-        }
         return x;
       }
     }catch(e){}
@@ -10645,8 +10641,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
           (sig&&sig.indexOf('data:image/')===0?'<img src="'+sig+'" alt="Signature">':'')+
         '</div>'+
         '<div class="meta">Véhicule : '+taxiPdfEscape(vehicle)+'</div>'+
-      '</div>
-</body></html>';
+      '</div></body></html>';
   }
 
 
@@ -11605,7 +11600,7 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
 
   window.ouvrirChecklistAmbulance=function(v){
     const box=document.getElementById('checklistContent'),sub=document.getElementById('checklistSubtitle');if(!box)return;
-    if(sub)sub.textContent='AMBULANCE — contrôle du véhicule';
+    if(sub)sub.textContent='AMBULANCE TYPE B — contrôle du véhicule';
     box.innerHTML=ambulanceHtml(v);
     buildAmbSections();
     setCrew();
@@ -11621,124 +11616,10 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
   const previousOpen=window.ouvrirChecklistVehiculeFixe;
   window.ouvrirChecklistVehiculeFixe=function(v){
     const s=String(v||'').toUpperCase();
-    if(s.includes('FZ-349-AT') || s.includes('AMBULANCE PEUGEOT BOXER') || s.includes('HA-219-PS') || s.includes('RENAULT TRAFIC')){window.ouvrirChecklistAmbulance(v);return;}
+    if(s.includes('FZ-349-AT') || s.includes('AMBULANCE PEUGEOT BOXER')){window.ouvrirChecklistAmbulance(v);return;}
     return previousOpen.apply(this,arguments);
   };
 })();
 </script>
-<!-- ===== AMBULANCE RENAULT TRAFIC HA-219-PS — CHECK-LIST DÉDIÉE ===== -->
-<style id="sanistock-ha219-dedicated-style">
-#checklistHa219Detail{display:none;padding-bottom:25px}
-#checklistHa219Detail.show{display:block}
-#checklistHa219Detail .ha219Kit{margin:5px 0 7px 18px;padding-left:8px;border-left:2px solid #f0b38f;color:#a84b0a;font-size:10px;line-height:1.35;font-weight:700}
-#checklistHa219Detail .ha219Kit div{margin:2px 0}
-#checklistHa219Detail .ha219Info{font-size:12px;color:#64748b;margin:0 0 14px}
-</style>
-<script id="sanistock-ha219-dedicated-js">
-(function(){
-  if(window.__saniHa219DedicatedReady)return;
-  window.__saniHa219DedicatedReady=true;
-
-  /* Contenu repris de la fiche HA-219-PS fournie : 3 pages, même organisation. */
-  const HA219_ITEMS=[
-    {category:'Relevage / Brancardage',name:'Chariot-brancard-civière',quantity:'1'},
-    {category:'Relevage / Brancardage',name:'Portoir type cuillère',quantity:'1'},
-    {category:'Relevage / Brancardage',name:'Matelas à dépression',quantity:'1'},
-    {category:'Relevage / Brancardage',name:'Chaise portoir pliable',quantity:'1'},
-    {category:'Relevage / Brancardage',name:'Pompe matelas à dépression double effet',quantity:'1'},
-    {category:'Immobilisation',name:'Collier cervical (3 tailles adultes ou reglable)',quantity:'1'},
-    {category:'Immobilisation',name:'Lot pour fracture (2 membres inf + 2 membres sup)',quantity:'1'},
-    {category:'Ventilation / respiration',name:'Oxygène portable',quantity:'2000l'},
-    {category:'Ventilation / respiration',name:'Insufflateurs manuels avec masques et canules pour tous les âges',quantity:'1'},
-    {category:'Ventilation / respiration',name:'Embout de ventilation bouche à masque avec entrée oxygène',quantity:'1'},
-    {category:'Ventilation / respiration',name:'Aspirateur de mucosité',quantity:'1'},
-    {category:'Diagnostique',name:'Appareil tension manuel, taille de serrage 10cm- 66cm',quantity:'1'},
-    {category:'Diagnostique',name:'Appareil tension automatique, taille de serrage 10cm- 66cm',quantity:'1',optional:true},
-    {category:'Diagnostique',name:'Oxymètre',quantity:'1'},
-    {category:'Diagnostique',name:'Stéthoscope',quantity:'1'},
-    {category:'Diagnostique',name:'Thermomètre',quantity:'1'},
-    {category:'Diagnostique',name:'Appareil à glycémie',quantity:'1'},
-    {category:'Diagnostique',name:'Lampe diagnostique',quantity:'1'},
-    {category:'Diagnostique',name:'Multiparamétre',quantity:'1'},
-    {category:'Réanimation',name:'Défibrillateur',quantity:'1'},
-    {category:"Bandage et matériels d'hygiéne",name:'Oreiller',quantity:'1'},
-    {category:"Bandage et matériels d'hygiéne",name:'Couverture bactériostatique',quantity:'1'},
-    {category:"Bandage et matériels d'hygiéne",name:'Kit plaies et membres sectionnés',quantity:'1',kit:['10 COMPRESSES STERILES 7,5*7,5 OU 10*10','2 PAIRES DE GANTS SERILES','2 BANDES TYPE VELPEAU 5CM ET 10CM','1 ROULEAU DE SPARADRAP 2CM','2 PANSEMENTS ABSORBANTS STERILES (DIT AMERICAIN) 20*40CM','1 PANSEMENT HEMOSTATIQUE D’URGENCE','1 COUVERTURE DE SURVIE','20 DOSETTES DE 5ML D’ANTISEPTIQUE NON IODE','1 PAIRE DE CISEAUX BOUTS RONDS','1 SAC ISOTHERME','2 PACKS DE FROID']},
-    {category:"Bandage et matériels d'hygiéne",name:'Kit brûlures',quantity:'1',kit:['2 PAIRES DE GANTS STERILES','1 COUVERTURE DE SURVIE STERILE','2 BANDES VELPEAU 10CM','10 DOSETTES DE SERUM PHYSIOLOGIQUE','1 ROULEAU DE SPARADRAP','5 COMPRESSES STERILES 7,5*7,5 OU 10*10','1 PAIRE DE CISEAUX']},
-    {category:"Bandage et matériels d'hygiéne",name:'Kit accouchement',quantity:'1',kit:['2 CHAMPS STERILES 75*90','10 COMPRESSES STERILES 7,5*7,5 OU 10*10','2 PAIRES DE GANTS SERILES','2 MASQUES CHIRURGICAUX','2 CLAMPS DE BAHR STERILES','1 BONNET NOUVEAU-NE','1 COUVERTURE DE SURVIS','1 PAIRE DE CISEAUX STERILES A BOUTS RONDS']},
-    {category:"Bandage et matériels d'hygiéne",name:'Haricot',quantity:'1'},
-    {category:"Bandage et matériels d'hygiéne",name:'Sac vomitoire',quantity:'1'},
-    {category:"Bandage et matériels d'hygiéne",name:'Bassin',quantity:'1'},
-    {category:"Bandage et matériels d'hygiéne",name:'Urinal',quantity:'1'},
-    {category:"Bandage et matériels d'hygiéne",name:'Paires de gants chirurgicaux stériles',quantity:'5'},
-    {category:"Bandage et matériels d'hygiéne",name:'Gants usage unique',quantity:'100'},
-    {category:"Bandage et matériels d'hygiéne",name:'Sac poubelle',quantity:'5'},
-    {category:'Protection individuelle',name:"Kit de protection contre l'infection",quantity:'1',kit:['1 PAIRE DE LUNETTES DE PROTECTION NORME EN166 :2001','1 PAIRE DE SUR-CHAUSSURES DE PROTECTION JETABLES','1 SAC POUR DECHETS A RISQUES INFECTIEUX','2 MASQUES CHIRURGICAUX']},
-    {category:'Protection individuelle',name:'Masques de type FFP2',quantity:'2'},
-    {category:'Matériel de protection et de sauvetage',name:'Détergeant et désinfectant pour matériel médical',quantity:'1'},
-    {category:'Matériel de protection et de sauvetage',name:'Détergeant et désinfectant pour sol',quantity:'1'},
-    {category:'Matériel de protection et de sauvetage',name:'Détergeant et désinfectant surface et mobilier',quantity:'1'},
-    {category:'Matériel de protection et de sauvetage',name:'Solution hydro-alcoolique',quantity:'1'},
-    {category:'Matériel de protection et de sauvetage',name:'Brise vitre / Coupe ceinture de sécurité dans la boite à gants',quantity:'1'},
-    {category:'Matériel de protection et de sauvetage',name:'Triangle ou lampe de pré-signalisation',quantity:'1'},
-    {category:'Matériel de protection et de sauvetage',name:'Extincteur',quantity:'1'},
-    {category:'Matériel de protection et de sauvetage',name:'Gilet jaune sous le siège passager',quantity:'2'},
-    {category:'Dispositifs pour le transport de nouveau-nés',name:'Nacelle',quantity:'1'},
-    {category:'Dispositifs pour le transport de nouveau-nés',name:"Sondes pédiatriques d'aspiration de différentes tailles",quantity:'1'},
-    {category:'Dispositifs pour le transport de nouveau-nés',name:'Lunettes à oxygène pour nouveau-né et nourrison',quantity:'2'},
-    {category:'Dispositifs pour le transport de nouveau-nés',name:'B.A.V.U nouveau-né et nourrisson avec masque et canules de diférentes tailles',quantity:'1'},
-    {category:'Dispositifs pour le transport de nouveau-nés',name:'Jeux attelles pédiatriques membres inf et sup',quantity:'1'},
-    {category:'Dispositifs pour le transport de nouveau-nés',name:'Matelas à dépression pédiatrique',quantity:'1'}
-  ];
-  const HA219_PAPERS=['Carte grise :','Carte Leclerc :','BIP Péages','Carnet de désinfection :','Support P.D.A. :','Télécom. Portail :','Certificat de décharge :','Assurance :','Constat :','Cahier du véhicule :','Contrôle technique :','Cartes de visite :','Agrement ARS :'];
-  const Y=window.AMB_PAGE_Y||{"1":[542.42,528.65,514.87,501.1,487.32,445.99,432.21,389.67,367.81,337.82,315.91,267.72,239.54,218.25,204.48,190.7,176.93,163.15,149.37,108.04],"2":[781.07,767.3,753.52,588.2,475.55,351.57,337.79,324.01,310.24,296.46,282.69,268.91,227.58,158.7,96.34,74.71],"3":[773.82,752.19,727.9,703.57,688.69,673.81,617.54,595.06,565.07,535.08,505.09,482.58]};
-  const PAPER_XY=[[285.321,697.59],[285.321,683.82],[285.321,670.04],[285.321,656.26],[285.321,642.49],[285.321,628.71],[285.321,614.93],[472.011,697.59],[472.011,683.82],[472.011,670.04],[472.011,656.26],[472.011,642.49],[472.011,628.71]];
-  function esc(v){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
-  function groups(){const g={};HA219_ITEMS.forEach((it,i)=>{(g[it.category]||(g[it.category]=[])).push([it,i]);});return g;}
-  function html(v){
-    let h='<div id="checklistHa219Detail"><button type="button" class="back" onclick="fermerChecklistHa219()">← Retour</button><h1>🚑 CHECK-LIST RENAULT TRAFIC</h1><p class="ha219Info">Véhicule : '+esc(v)+'</p>';
-    h+='<div class="vslInfoCard"><div class="vslInfoTitle">Informations du contrôle</div><div class="vslInfoGrid ambInfoGrid">';
-    h+='<div class="vslField"><label>IMMATRICULATION</label><input id="ha219Immat" value="HA-219-PS" readonly></div><div class="vslField"><label>KMS</label><input id="ha219Kms" type="text" inputmode="numeric" placeholder="Saisir le kilométrage"></div><div class="vslField"><label>DATE</label><input id="ha219Date" type="date" value="'+new Date().toISOString().slice(0,10)+'"></div><div class="vslField"><label>ÉQUIPIER 1 — AUTOMATIQUE</label><div id="ha219Crew1" class="ambCrewRecognized">Chargement du salarié reconnu…</div></div></div><div class="ambCrewGrid"><div class="ambCrewBox"><label>ÉQUIPIER 1</label><div id="ha219Crew1b" class="ambCrewRecognized">—</div></div><div class="ambCrewBox"><label>ÉQUIPIER 2</label><select id="ha219Crew2" class="ambCrewInput"><option value="">Sélectionner le 2ᵉ équipier</option></select></div></div></div>';
-    h+='<button type="button" class="toutCocherBtn" onclick="toutCocherHa219()">✓ TOUT COCHER</button>';
-    h+='<div class="vslSection"><div class="vslSectionTitle">PAPIERS VEHICULE</div><div class="vslChecklistHead"><div>Document</div><div></div><div>Présent</div><div>Manque</div><div></div></div>';
-    HA219_PAPERS.forEach((p,i)=>{h+='<div class="vslChecklistRow ha219Paper" data-i="'+i+'"><div>'+esc(p)+'</div><div></div><div class="vslChoice"><input type="radio" name="haPaper'+i+'" value="present"></div><div class="vslChoice"><input type="radio" name="haPaper'+i+'" value="manque"></div><div></div></div>';});
-    h+='</div>';
-    Object.keys(groups()).forEach(cat=>{h+='<div class="vslSection"><div class="vslSectionTitle">'+esc(cat)+'</div><button type="button" class="toutCocherBtn" onclick="toutCocherHa219Section(this)" data-cat="'+esc(cat)+'">✓ TOUT COCHER LA SECTION</button><div class="vslChecklistHead"><div>Inventaire</div><div>Quantité</div><div>Présent</div><div>Manque</div><div>Quantité manquante</div></div>';groups()[cat].forEach(pair=>{const it=pair[0],i=pair[1];h+='<div class="vslChecklistRow" data-ha-index="'+i+'"><div>'+esc(it.name)+(it.kit?'<div class="ha219Kit">'+it.kit.map(x=>'<div>– '+esc(x)+'</div>').join('')+'</div>':'')+'</div><div class="vslQty">'+esc(it.quantity)+'</div><div class="vslChoice"><input type="radio" name="haItem'+i+'" value="present"></div><div class="vslChoice"><input type="radio" name="haItem'+i+'" value="manque"></div><div><input id="haMissing'+i+'" class="vslMissingQty" type="text" inputmode="numeric" placeholder="'+(it.optional?'optionnel':'Écrire la quantité')+'"></div></div>';});h+='</div>';});
-    h+='<div class="vslSection"><div class="vslSectionTitle">INFORMATIONS</div><div class="ha219Kit" style="margin-left:0;border-left:0;color:#042349;font-size:12px;font-weight:600"><div>*Fiche à remplir intégralement et à rendre obligatoirement sous 7 jours, donnée fin de mois.</div><div>*Merci de présenter au bureau le carnet de nettoyage et de désinfection ainsi que le formulaire pour signature.</div><div>*Bien vérifier les péremptions.</div><div>*Vérifier l\'intégralité des kits (quantités et péremptions)</div><div>*Redonner le matériel périmé, piles usagées</div></div></div>';
-    h+='<div class="vslSection"><div class="vslSectionTitle">SIGNATURE</div><div class="ambSignatureHint">✍️ Signez dans le cadre avec le doigt ou le stylet.</div><canvas id="ha219Sig" class="ambSignatureCanvas" width="900" height="260"></canvas><div class="ambSignatureActions"><button type="button" class="ambSignatureClear" onclick="effacerSignatureHa219()">🗑️ Effacer la signature</button></div></div><div class="vslSection"><div class="vslSectionTitle">OBSERVATIONS</div><textarea id="ha219Obs" style="width:100%;min-height:110px;box-sizing:border-box;border:1px solid #cbd8e4;border-radius:10px;padding:10px;font:inherit" placeholder="Saisir les observations"></textarea></div>';
-    h+='<div class="vslActions"><button type="button" class="vslValidate" onclick="validerHa219()">✓ TERMINER LE CONTRÔLE</button><button type="button" class="vslMailBtn" onclick="envoyerMailHa219()">📧 ENVOYER PAR MAIL</button></div><div class="ambRequiredNote">Cette check-list est dédiée au Renault Trafic HA-219-PS. Elle utilise la fiche fournie, distincte de celle du Peugeot Boxer.</div></div>';
-    return h;
-  }
-  function setCrew(){const n=typeof nomConnecte==='function'?nomConnecte():'';const a=document.getElementById('ha219Crew1'),b=document.getElementById('ha219Crew1b'),s=document.getElementById('ha219Crew2');if(a)a.innerHTML=n?'👤 <strong>'+esc(n)+'</strong>':'⚠️ Salarié non reconnu';if(b)b.innerHTML=n?'👤 <strong>'+esc(n)+'</strong>':'⚠️ Reconnectez-vous à SaniStock';if(s){const src=document.getElementById('employee2'),names=[];if(src)Array.from(src.options||[]).forEach(o=>{const v=String(o.value||'').trim();if(v&&v!==n&&!names.includes(v))names.push(v)});try{const c=JSON.parse(localStorage.getItem('sanistock_salaries_cache')||'[]');if(Array.isArray(c))c.forEach(v=>{v=String(v||'').trim();if(v&&v!==n&&!names.includes(v))names.push(v)})}catch(e){}s.innerHTML='<option value="">Sélectionner le 2ᵉ équipier</option>'+names.map(v=>'<option value="'+esc(v)+'">'+esc(v)+'</option>').join('');}}
-  function sigInit(){const c=document.getElementById('ha219Sig');if(!c||c.dataset.ready==='1')return;c.dataset.ready='1';const ctx=c.getContext('2d'),r=Math.max(2,devicePixelRatio||1),b=c.getBoundingClientRect();c.width=Math.round((b.width||900)*r);c.height=Math.round((b.height||260)*r);ctx.setTransform(r,0,0,r,0,0);ctx.lineWidth=2.15;ctx.lineCap='round';ctx.lineJoin='round';let d=false,last=null;function pos(e){const x=c.getBoundingClientRect();return{x:e.clientX-x.left,y:e.clientY-x.top}}function st(e){e.preventDefault();d=true;last=pos(e);if(e.pointerId!=null)c.setPointerCapture(e.pointerId)}function mv(e){if(!d)return;e.preventDefault();const p=pos(e);ctx.beginPath();ctx.moveTo(last.x,last.y);ctx.lineTo(p.x,p.y);ctx.stroke();last=p}function en(e){d=false;if(e.pointerId!=null)try{c.releasePointerCapture(e.pointerId)}catch(_){} }c.addEventListener('pointerdown',st,{passive:false});c.addEventListener('pointermove',mv,{passive:false});c.addEventListener('pointerup',en,{passive:false});c.addEventListener('pointercancel',en,{passive:false});}
-  window.ouvrirChecklistAmbulanceTraficHa219=function(v){const box=document.getElementById('checklistContent'),sub=document.getElementById('checklistSubtitle');if(!box)return;if(sub)sub.textContent='AMBULANCE — RENAULT TRAFIC HA-219-PS';box.innerHTML=html(v||'HA-219-PS – AMBULANCE RENAULT TRAFIC');const d=document.getElementById('checklistHa219Detail');if(d)d.classList.add('show');setCrew();setTimeout(sigInit,60);};
-  window.fermerChecklistHa219=function(){if(typeof window.ouvrirChecklistVehicules==='function')window.ouvrirChecklistVehicules('AMBULANCES');};
-  window.toutCocherHa219=function(){HA219_ITEMS.forEach((_,i)=>{const r=document.querySelector('#checklistHa219Detail input[name="haItem'+i+'"][value="present"]');if(r)r.checked=true;const q=document.getElementById('haMissing'+i);if(q)q.value='';});HA219_PAPERS.forEach((_,i)=>{const r=document.querySelector('#checklistHa219Detail input[name="haPaper'+i+'"][value="present"]');if(r)r.checked=true;});};
-  window.toutCocherHa219Section=function(btn){const cat=btn.getAttribute('data-cat'),g=groups()[cat]||[];g.forEach(p=>{const i=p[1],r=document.querySelector('#checklistHa219Detail input[name="haItem'+i+'"][value="present"]');if(r)r.checked=true;const q=document.getElementById('haMissing'+i);if(q)q.value='';});};
-  window.effacerSignatureHa219=function(){const c=document.getElementById('ha219Sig');if(c){const ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);}};
-  window.validerHa219=function(){const items=HA219_ITEMS.map((x,i)=>({categorie:x.category,element:x.name,quantite:x.quantity,present:!!document.querySelector('#checklistHa219Detail input[name="haItem'+i+'"]:checked[value="present"]'),manque:!!document.querySelector('#checklistHa219Detail input[name="haItem'+i+'"]:checked[value="manque"]'),quantiteManquante:String(document.getElementById('haMissing'+i)?.value||'').trim()}));const papers=HA219_PAPERS.map((x,i)=>({element:x,present:!!document.querySelector('#checklistHa219Detail input[name="haPaper'+i+'"]:checked[value="present"]'),manque:!!document.querySelector('#checklistHa219Detail input[name="haPaper'+i+'"]:checked[value="manque"]')}));if(items.some(x=>!x.present&&!x.manque)||papers.some(x=>!x.present&&!x.manque)){alert('Merci de valider chaque ligne avec V (OK) ou X (Manque).');return;}localStorage.setItem('sanistock_last_ha219_checklist',JSON.stringify({immatriculation:'HA-219-PS',vehicule:'RENAULT TRAFIC',kms:document.getElementById('ha219Kms')?.value||'',date:document.getElementById('ha219Date')?.value||'',equipier1:typeof nomConnecte==='function'?nomConnecte():'',equipier2:document.getElementById('ha219Crew2')?.value||'',papiers,items,observations:document.getElementById('ha219Obs')?.value||'',signature:document.getElementById('ha219Sig')?.toDataURL?.('image/png')||'',savedAt:new Date().toISOString()}));alert('✅ Contrôle Ambulance HA-219-PS enregistré sur cet appareil.');};
-
-  function loadPdfLib(){if(window.PDFLib)return Promise.resolve(window.PDFLib);if(window.__saniAmbPdfLibPromise)return window.__saniAmbPdfLibPromise;window.__saniAmbPdfLibPromise=new Promise(function(resolve,reject){const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js';s.onload=function(){window.PDFLib?resolve(window.PDFLib):reject(new Error('PDFLib indisponible'));};s.onerror=function(){reject(new Error('Impossible de charger le générateur PDF.'));};document.head.appendChild(s);});return window.__saniAmbPdfLibPromise;}
-  function b64ToBytes(b64){const bin=atob(b64);const out=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)out[i]=bin.charCodeAt(i);return out;}
-  function wrapText(font,text,maxWidth,size){const words=String(text||'').split(/\s+/),lines=[];let line='';words.forEach(function(w){const test=line?line+' '+w:w;if(font.widthOfTextAtSize(test,size)<=maxWidth)line=test;else{if(line)lines.push(line);line=w;}});if(line)lines.push(line);return lines;}
-  async function buildPdf(){const PDFLib=await loadPdfLib();const doc=await PDFLib.PDFDocument.load(b64ToBytes(AMB_TEMPLATE_B64));const font=await doc.embedFont(PDFLib.StandardFonts.Helvetica),bold=await doc.embedFont(PDFLib.StandardFonts.HelveticaBold);const black=PDFLib.rgb(.05,.05,.05),gray=PDFLib.rgb(.74,.74,.74),white=PDFLib.rgb(1,1,1),paperBg=PDFLib.rgb(.85,.85,.85);const p1=doc.getPage(0),p2=doc.getPage(1),p3=doc.getPage(2);const kms=String(document.getElementById('ha219Kms')?.value||'').trim(),date=String(document.getElementById('ha219Date')?.value||'').trim(),e1=typeof nomConnecte==='function'?nomConnecte():'',e2=String(document.getElementById('ha219Crew2')?.value||'').trim(),obs=String(document.getElementById('ha219Obs')?.value||'').trim(),sig=document.getElementById('ha219Sig')?.toDataURL?.('image/png')||'';if(!e1)throw new Error('Le 1er équipier n’est pas reconnu.');if(!kms)throw new Error('Saisissez les Kms.');if(!date)throw new Error('Sélectionnez la date.');if(!e2)throw new Error('Ajoutez le 2ᵉ équipier.');
-    function cover(page,x,y,w,h,c){page.drawRectangle({x,y,width:w,height:h,color:c});} function center(page,f,t,cx,y,size,c){t=String(t||'');if(!t)return;page.drawText(t,{x:cx-f.widthOfTextAtSize(t,size)/2,y:y-size*.28,size,font:f,color:c});}
-    cover(p1,130,756,145,18,paperBg);cover(p1,255,728,118,20,paperBg);cover(p1,410,756,100,18,paperBg);cover(p1,92,728,148,20,paperBg);p1.drawText('HA-219-PS',{x:132,y:760,size:9,font:bold,color:black});p1.drawText(kms,{x:294,y:750,size:9,font:bold,color:black});p1.drawText(htmlDateFR(date),{x:414,y:760,size:9,font:bold,color:black});p1.drawText(e1+' / '+e2,{x:96,y:735,size:9,font:bold,color:black});
-    HA219_PAPERS.forEach(function(_,i){const r=document.querySelector('#checklistHa219Detail .ha219Paper[data-i="'+i+'"] input:checked'),state=r?r.value:'';const xy=PAPER_XY[i];cover(p1,xy[0]-7,xy[1]-7,14,15,paperBg);if(state==='present')center(p1,bold,'V',xy[0],xy[1]+1,9,black);if(state==='manque')center(p1,bold,'X',xy[0],xy[1]+1,9,black);});
-    const pages=[[p1,0,20,Y['1']],[p2,20,36,Y['2']],[p3,36,48,Y['3']]];pages.forEach(function(g,pi){const pg=g[0],start=g[1],end=g[2],ys=g[3];for(let j=0;j<end-start;j++){const i=start+j,row=document.querySelector('#checklistHa219Detail .vslChecklistRow[data-ha-index="'+i+'"]'),state=row&&row.querySelector('input:checked')?row.querySelector('input:checked').value:'',missing=String(document.getElementById('haMissing'+i)?.value||'').trim(),bg=j%2===0?gray:white;cover(pg,339,ys[j]-8,14,16,bg);cover(pg,400,ys[j]-8,14,16,bg);cover(pg,444,ys[j]-8,57,16,bg);if(state==='present')center(pg,bold,'V',346.04,ys[j]+1,9,black);if(state==='manque')center(pg,bold,'X',407.15,ys[j]+1,9,black);if(HA219_ITEMS[i].optional)center(pg,font,'optionnel',472,ys[j]+1,8,black);else if(missing)center(pg,bold,missing,472,ys[j]+1,8,black);}});
-    if(obs)wrapText(font,obs,500,8).slice(0,18).forEach(function(line,j){p3.drawText(line,{x:69.25,y:267.5-j*14,size:8,font,color:black});});
-    if(sig){try{const png=await doc.embedPng(sig);const maxW=425,maxH=34,scale=Math.min(maxW/png.width,maxH/png.height),dw=png.width*scale,dh=png.height*scale;p3.drawImage(png,{x:(595.303937-dw)/2,y:314+(maxH-dh)/2,width:dw,height:dh});}catch(e){console.warn(e);}}
-    const bytes=await doc.save();return {blob:new Blob([bytes],{type:'application/pdf'}),filename:'Check-list Ambulance HA-219-PS - '+htmlDateFR(date).replaceAll('/','-')+'.pdf'};
-  }
-  window.genererPdfHa219=async function(){try{const pdf=await buildPdf();const url=URL.createObjectURL(pdf.blob),a=document.createElement('a');a.href=url;a.download=pdf.filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);alert('✅ PDF HA-219-PS généré avec la fiche fournie.');}catch(e){console.error(e);alert('❌ Impossible de générer le PDF : '+(e&&e.message?e.message:e));}};
-  window.envoyerMailHa219=async function(){const btn=document.querySelector('#checklistHa219Detail .vslMailBtn'),old=btn&&btn.textContent;if(btn){btn.disabled=true;btn.textContent='⏳ PRÉPARATION DU PDF...';}try{const pdf=await buildPdf(),buffer=await pdf.blob.arrayBuffer(),bytes=new Uint8Array(buffer);let binary='',chunk=0x8000;for(let i=0;i<bytes.length;i+=chunk)binary+=String.fromCharCode.apply(null,bytes.subarray(i,Math.min(i+chunk,bytes.length)));const base64Url=btoa(binary).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');let salarie='',code='';try{salarie=String(localStorage.getItem('sanistock_employee_name')||'').trim();code=String(localStorage.getItem('sanistock_employee_code')||'').trim();}catch(e){}if(!salarie||!code)throw new Error('Session salarié introuvable. Reconnectez-vous à SaniStock.');const date=String(document.getElementById('ha219Date')?.value||'').trim(),kms=String(document.getElementById('ha219Kms')?.value||'').trim(),dateAff=typeof htmlDateFR==='function'?htmlDateFR(date):date,subject='Check-list Ambulance HA-219-PS - '+dateAff,body=['Bonjour,','',"Veuillez trouver ci-joint la fiche de contrôle et d’entretien du Renault Trafic HA-219-PS.",'','Véhicule : Renault Trafic','Immatriculation : HA-219-PS','Équipier 1 : '+salarie,'Équipier 2 : '+String(document.getElementById('ha219Crew2')?.value||''),'Date : '+dateAff,'Kms : '+kms,'','Cordialement,','SaniStock'].join('\n');const api=(window.SANISTOCK_API_URL||'https://script.google.com/macros/s/AKfycbxz5dZkT7FyFx8ohxWmg2Pt23Yqx0LQDMqqJg8LM8bkfN3ulkb37VqUO8m8WvjyuGBqrg/exec');const frame=document.createElement('iframe');frame.name='sanistockHa219Mail_'+Date.now();frame.style.display='none';document.body.appendChild(frame);const form=document.createElement('form');form.method='POST';form.action=api;form.target=frame.name;form.style.display='none';const input=document.createElement('textarea');input.name='payload';input.value=JSON.stringify({action:'envoyerVslPdf',data:{salarie,code,filename:pdf.filename,base64url:base64Url,byteLength:bytes.length,subject,body}});form.appendChild(input);document.body.appendChild(form);form.submit();await new Promise(r=>setTimeout(r,4500));form.remove();frame.remove();alert('✅ La fiche HA-219-PS a été envoyée par mail avec le PDF en pièce jointe.');}catch(e){console.error(e);alert('❌ Impossible d’envoyer la fiche HA-219-PS : '+(e&&e.message?e.message:e));}finally{if(btn){btn.disabled=false;btn.textContent=old||'📧 ENVOYER PAR MAIL';}}};
-  window.ouvrirChecklistAmbulanceTraficHa219=window.ouvrirChecklistAmbulanceTraficHa219||function(v){const box=document.getElementById('checklistContent'),sub=document.getElementById('checklistSubtitle');if(!box)return;if(sub)sub.textContent='AMBULANCE — RENAULT TRAFIC HA-219-PS';box.innerHTML=html(v||'HA-219-PS – AMBULANCE RENAULT TRAFIC');const d=document.getElementById('checklistHa219Detail');if(d)d.classList.add('show');setCrew();setTimeout(sigInit,60);};
-  window.fermerChecklistHa219=function(){if(typeof window.ouvrirChecklistVehicules==='function')window.ouvrirChecklistVehicules('AMBULANCES');};
-  const oldOpen=window.ouvrirChecklistVehiculeFixe;
-  if(typeof oldOpen==='function')window.ouvrirChecklistVehiculeFixe=function(v){const s=String(v||'').toUpperCase();if(s.includes('HA-219-PS')||s.includes('RENAULT TRAFIC')){window.ouvrirChecklistAmbulanceTraficHa219(v);return;}return oldOpen.apply(this,arguments);};
-})();
-</script>
-
-
 </body>
 </html>
