@@ -4405,10 +4405,8 @@ function changerCodeAdminUI(){
     const nom=String(name||'').trim().replace(/\s+/g,' ').toLowerCase();
     const c=String(code||'').trim();
     if(
-      nom!=='lewis hognon' &&
-      nom!=='lewis' &&
-      nom!=='laurent guette' &&
-      nom!=='guette laurent'
+      nom!=='hognon lewis' &&
+      nom!=='laurent guette'
     ) return;
     if(/^\d{4}$/.test(c)===false) return;
     localStorage.setItem(OWNER_DEVICE_KEY,'1');
