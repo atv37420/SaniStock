@@ -3019,9 +3019,9 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
     if(!online){
       etat('error','Hors ligne','Actions enregistrées hors ligne');
     }else if(pending>0){
-      etat('loading','Synchronisation',''+pending+' opération'+(pending>1?'s':'')+' en cours');
+      etat('ok','Connecté à SaniStock','Synchronisation de '+pending+' opération'+(pending>1?'s':''));
     }else{
-      etat('ok','En ligne','SaniStock connecté');
+      etat('ok','Connecté à SaniStock','SaniStock connecté');
     }
   }
 
@@ -3031,10 +3031,10 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
       return;
     }
 
-    etat('loading','En ligne','Vérification de la connexion');
+    etat('loading','Connexion...','Vérification de SaniStock');
 
     if(typeof google==='undefined' || !google.script || !google.script.run){
-      afficherStatut();
+      etat('error','Erreur de connexion','Service SaniStock indisponible');
       return;
     }
 
@@ -3043,7 +3043,7 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
         afficherStatut();
       })
       .withFailureHandler(function(err){
-        etat('error','Erreur de connexion', (err && err.message) ? err.message : 'Serveur temporairement indisponible');
+        etat('error','Erreur de connexion', (err && err.message) ? err.message : 'Serveur SaniStock indisponible');
       })
       .getStockData();
   }
