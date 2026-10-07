@@ -4404,10 +4404,7 @@ function changerCodeAdminUI(){
   function activerAccesProprietaire(name,code){
     const nom=String(name||'').trim().replace(/\s+/g,' ').toLowerCase();
     const c=String(code||'').trim();
-    if(
-      nom!=='hognon lewis' &&
-      nom!=='laurent guette'
-    ) return;
+    if(nom!=='hognon lewis' && nom!=='lewis hognon' && nom!=='lewis' && nom!=='laurent guette' && nom!=='guette laurent') return;
     if(/^\d{4}$/.test(c)===false) return;
     localStorage.setItem(OWNER_DEVICE_KEY,'1');
     localStorage.setItem('sanistock_employee_name',String(name).trim());
