@@ -2333,7 +2333,7 @@ button.settingsAction.secondary:hover,
 
     <div class="selectors">
       <div><label>SALARIÉ</label><select id="employee"><option value="">Sélectionner votre nom</option></select><button type="button" id="addColleagueBtn" class="addColleagueBtn" onclick="toggleSecondColleague()" hidden>＋ Ajouter un collègue</button><div id="secondColleagueWrap" class="secondColleagueWrap" hidden><label>2ᵉ COLLÈGUE</label><select id="employee2"><option value="">Sélectionner le collègue</option></select></div></div>
-      <div><label>VÉHICULE</label><select id="vehicle" onchange="adapterChecklistVehicule()"><option value="">Sélectionner un véhicule</option><option>FZ-349-AT – AMBULANCE PEUGEOT BOXER</option><option>AUDI A6 TAXI</option><option>HK-887-SD – FORD TOURNEO</option><option>FH-061-DT – CADDY TAXI</option><option>GH805GV – IONIQ 5 TAXI</option><option>GH-575-RH – CADDY VSL</option><option>DR-607-TE – CADDY BLANC</option><option>FC-295-XP – SKODA SUPERB</option><option>FF-458-QT – SKODA BREAK VSL</option><option>EW-353-WR – SKODA BREAK VSL</option><option>FF-334-SL – SKODA KODIAQ VSL</option><option>EN-114-BK – SKODA SUPERB VSL</option></select></div>
+      <div><label>VÉHICULE</label><select id="vehicle" onchange="adapterChecklistVehicule()"><option value="">Sélectionner un véhicule</option><option>FZ-349-AT – AMBULANCE PEUGEOT BOXER</option><option>HA-219-PS – AMBULANCE RENAULT TRAFIC</option><option>AUDI A6 TAXI</option><option>HK-887-SD – FORD TOURNEO</option><option>FH-061-DT – CADDY TAXI</option><option>GH805GV – IONIQ 5 TAXI</option><option>GH-575-RH – CADDY VSL</option><option>DR-607-TE – CADDY BLANC</option><option>FC-295-XP – SKODA SUPERB</option><option>FF-458-QT – SKODA BREAK VSL</option><option>EW-353-WR – SKODA BREAK VSL</option><option>FF-334-SL – SKODA KODIAQ VSL</option><option>EN-114-BK – SKODA SUPERB VSL</option></select></div>
     </div>
 
     <div class="disCard">
@@ -2766,7 +2766,7 @@ function electricFuelLabel(){
 }
 function isAmbulanceVehicle(nom){
  const v=String(nom||'').toUpperCase();
- return v.includes('FZ-349-AT') || v.includes('AMBULANCE PEUGEOT BOXER');
+ return v.includes('FZ-349-AT') || v.includes('AMBULANCE PEUGEOT BOXER') || v.includes('HA-219-PS') || v.includes('RENAULT TRAFIC AMBULANCE');
 }
 function currentChecklist(){
  const veh=$('vehicle')?$('vehicle').value:'';
