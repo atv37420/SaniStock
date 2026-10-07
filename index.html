@@ -2274,7 +2274,7 @@ button.settingsAction.secondary:hover,
         <div id="movementRows" class="movementRows"></div>
         <button type="button" class="addMovement" onclick="addMovementRow()">＋ AJOUTER UN AUTRE PRODUIT</button>
       </div>
-      <div class="stockField"><label>SALARIÉ</label><select id="stockEmployee" onchange="gererAccesEntreeStock()"><option value="">Sélectionner votre nom</option></select></div>
+      <div class="stockField"><label>SALARIÉ</label><select id="stockEmployee"><option value="">Sélectionner votre nom</option></select></div>
       <button id="stockSaveBtn" class="stockSave entryBtn" onclick="saveStockMovement()">✓ ENREGISTRER</button>
     </div>
   </div>
@@ -2642,35 +2642,17 @@ function renderStock(){
  $('stockList').innerHTML=rows.length?rows.map(r=>'<div class="stockItem"><div class="stockTop"><div class="stockName">'+escapeHtml(r.produit)+'</div><div class="stockQty"><b>'+escapeHtml(String(r.actuel ?? 0))+'</b></div></div></div>').join(''):'<div class="stockEmpty">Aucun produit trouvé.</div>';
 }
 let codeEntreeStockValide='';
-function normaliserNomEntreeStock(nom){
- const txt=String(nom||'').trim().replace(/\s+/g,' ').toLowerCase();
- return txt.normalize ? txt.normalize('NFD').replace(/[\u0300-\u036f]/g,'') : txt;
-}
-function estEntreeSansCodeInterface(nom){
- const n=normaliserNomEntreeStock(nom);
- return ['mike boucher','emilie roy','laurent guette','lewis hognon','nathalie forger'].indexOf(n)!==-1;
-}
 function demanderCodeEntreeStock(){
  const overlay=$('stockPinOverlay'), input=$('stockPinInput'), err=$('stockPinError');
  if(!overlay||!input) return;
- const salarie=String(($('stockEmployee')&&$('stockEmployee').value)||'').trim();
- // On choisit d'abord le salarié dans la fenêtre Entrée.
- // Le code n'est demandé ensuite que si le salarié n'est pas autorisé sans code.
- codeEntreeStockValide='';
- openStockModal('entree');
- if(salarie && !appareilProprietaire() && !estEntreeSansCodeInterface(salarie)){
-   input.value=''; if(err) err.textContent='';
-   overlay.classList.add('open'); overlay.setAttribute('aria-hidden','false');
-   setTimeout(()=>input.focus(),50);
+ const salarie=String(($('stockEmployee')&&$('stockEmployee').value)||'').trim().replace(/\s+/g,' ').toLowerCase();
+ const entreesSansCode=['mike boucher','emilie roy','laurent guette','lewis hognon','nathalie forger'];
+ if(appareilProprietaire() || entreesSansCode.indexOf(salarie)!==-1){
+   codeEntreeStockValide='';
+   openStockModal('entree');
+   return;
  }
-}
-function gererAccesEntreeStock(){
- const salarie=String(($('stockEmployee')&&$('stockEmployee').value)||'').trim();
- if(!salarie || appareilProprietaire() || estEntreeSansCodeInterface(salarie)) return;
- const overlay=$('stockPinOverlay'), input=$('stockPinInput'), err=$('stockPinError');
- if(!overlay||!input) return;
- if(codeEntreeStockValide) return;
- input.value=''; if(err) err.textContent='';
+ input.value=''; err.textContent='';
  overlay.classList.add('open'); overlay.setAttribute('aria-hidden','false');
  setTimeout(()=>input.focus(),50);
 }
@@ -3060,8 +3042,8 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
       .withSuccessHandler(function(){
         afficherStatut();
       })
-      .withFailureHandler(function(){
-        etat('loading','En ligne','Serveur temporairement indisponible');
+      .withFailureHandler(function(err){
+        etat('error','Erreur de connexion', (err && err.message) ? err.message : 'Serveur temporairement indisponible');
       })
       .getStockData();
   }
