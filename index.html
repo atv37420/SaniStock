@@ -3009,7 +3009,7 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
     var dot=document.getElementById('homeConnDot');
     var bt=document.getElementById('homeConnTitle');
     if(btn){btn.classList.remove('ok','error','loading');btn.classList.add(type==='ok'?'ok':(type==='error'?'error':'loading'));}
-    if(bt) bt.textContent=titre==='En ligne'?'Connecté à SaniStock':(titre==='Hors ligne'?'Hors ligne':'Connexion...');
+    if(bt) bt.textContent=(titre==='En ligne'||titre==='Connecté à SaniStock')?'Connecté à SaniStock':(titre==='Hors ligne'?'Hors ligne':'Connexion à SaniStock...');
   }
 
   function afficherStatut(){
