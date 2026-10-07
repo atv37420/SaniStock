@@ -10014,7 +10014,7 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
 (function(){
   const KEY='sanistock_checklist_vehicules_v1';
   const DEFAULTS={
-    'AMBULANCES':['FZ-349-AT – AMBULANCE PEUGEOT BOXER'],
+    'AMBULANCES':['FZ-349-AT – AMBULANCE PEUGEOT BOXER','HA-219-PS – AMBULANCE RENAULT TRAFIC'],
     'TAXIS':['DR-951-FG – AUDI A6 TAXI','FH-061-DT – CADDY TAXI','GH-805-GV – IONIQ 5 TAXI','HK-887-SD – FORD TOURNEO TAXI','DR-607-TE – CADDY TAXI'],
     'VSL':['GH-575-RH – CADDY VSL','FF-458-QT – SKODA BREAK VSL','FF-334-SL – SKODA KODIAQ VSL','EN-114-BK – SKODA SUPERB VSL','FC-295-XP – SKODA SUPERB VSL']
   };
@@ -10026,6 +10026,10 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
         ['AMBULANCES','TAXIS','VSL'].forEach(function(c){
           if(!x[c].length) x[c]=clone(DEFAULTS[c]);
         });
+        /* Ajout automatique de HA-219-PS sans supprimer les véhicules déjà enregistrés */
+        if(!x.AMBULANCES.some(function(v){return String(v||'').toUpperCase().includes('HA-219-PS');})){
+          x.AMBULANCES.push('HA-219-PS – AMBULANCE RENAULT TRAFIC');
+        }
         return x;
       }
     }catch(e){}
@@ -11600,7 +11604,7 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
 
   window.ouvrirChecklistAmbulance=function(v){
     const box=document.getElementById('checklistContent'),sub=document.getElementById('checklistSubtitle');if(!box)return;
-    if(sub)sub.textContent='AMBULANCE TYPE B — contrôle du véhicule';
+    if(sub)sub.textContent='AMBULANCE — contrôle du véhicule';
     box.innerHTML=ambulanceHtml(v);
     buildAmbSections();
     setCrew();
@@ -11616,7 +11620,7 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
   const previousOpen=window.ouvrirChecklistVehiculeFixe;
   window.ouvrirChecklistVehiculeFixe=function(v){
     const s=String(v||'').toUpperCase();
-    if(s.includes('FZ-349-AT') || s.includes('AMBULANCE PEUGEOT BOXER')){window.ouvrirChecklistAmbulance(v);return;}
+    if(s.includes('FZ-349-AT') || s.includes('AMBULANCE PEUGEOT BOXER') || s.includes('HA-219-PS') || s.includes('RENAULT TRAFIC')){window.ouvrirChecklistAmbulance(v);return;}
     return previousOpen.apply(this,arguments);
   };
 })();
