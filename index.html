@@ -11623,3 +11623,43 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
 </script>
 </body>
 </html>
+
+<style id="sanistock-voyant-connexion-vert-final">
+/* Voyant SaniStock : vert dès que l'application est en ligne.
+   Orange supprimé : vert = connecté, rouge = hors ligne/erreur. */
+#saniConnection .saniDot,
+#saniConnection.loading .saniDot,
+#homeLogoutBtn .homeConnDot,
+#homeLogoutBtn.loading .homeConnDot{
+  background:#38e36d !important;
+  box-shadow:0 0 10px rgba(56,227,109,.9) !important;
+  animation:none !important;
+}
+#saniConnection.ok .saniDot,
+#homeLogoutBtn.ok .homeConnDot{
+  background:#38e36d !important;
+  box-shadow:0 0 10px rgba(56,227,109,.9) !important;
+}
+#saniConnection.error .saniDot,
+#homeLogoutBtn.error .homeConnDot{
+  background:#ff3b45 !important;
+  box-shadow:0 0 10px rgba(255,59,69,.9) !important;
+}
+</style>
+<script>
+/* Connexion : être en ligne = voyant vert, même s'il reste des opérations à synchroniser. */
+(function(){
+  var ancien=window.verifierConnexionSaniStock;
+  function forcerVertSiEnLigne(){
+    if(!navigator.onLine) return;
+    var btn=document.getElementById('homeLogoutBtn');
+    var dot=document.getElementById('homeConnDot');
+    var title=document.getElementById('homeConnTitle');
+    if(btn){btn.classList.remove('error','loading');btn.classList.add('ok');}
+    if(dot){dot.style.background='#38e36d';dot.style.boxShadow='0 0 10px rgba(56,227,109,.9)';dot.style.animation='none';}
+    if(title) title.textContent='Connecté à SaniStock';
+  }
+  window.addEventListener('online',function(){setTimeout(forcerVertSiEnLigne,600);});
+  document.addEventListener('DOMContentLoaded',function(){setTimeout(forcerVertSiEnLigne,1200);});
+})();
+</script>
