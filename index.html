@@ -10851,7 +10851,8 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     if(miss33){cover(p2,missingX-25,y33-6,50,13,rowBg33);drawValue(p2,bold,miss33,missingX-22,y33-3,47,8,red);}
 
     [34,35,36].forEach(function(idx,k){var st=getState(idx),miss=getMissing(idx),y=[720,706,692][k],rowBg=(k%2===0?white:gray);if(st==='present'){cover(p2,presentX-6,y-6,12,13,rowBg);drawCheck(p2,presentX,y,10,black);}else if(st==='manque'){cover(p2,manqueX-6,y-6,12,13,rowBg);drawX(p2,manqueX,y,10,black);}if(miss){cover(p2,missingX-25,y-6,50,13,rowBg);drawValue(p2,bold,miss,missingX-22,y-3,47,8,red);}});
-    if(obs){var lines=wrapText(font,obs,8,410),yy=665;lines.slice(0,8).forEach(function(line){p2.drawText(line,{x:56,y:yy,size:8,font:font,color:black});yy-=11;});}
+    // Texte des observations : 10 points à droite et 20 points plus bas.
+    if(obs){var lines=wrapText(font,obs,8,410),yy=645;lines.slice(0,8).forEach(function(line){p2.drawText(line,{x:66,y:yy,size:8,font:font,color:black});yy-=11;});}
     if(equip){cover(p2,155,555,170,18,white);drawValue(p2,font,equip,160,559,160,9,black);}
     if(sig&&sig.indexOf('data:image/')===0){
       try{
