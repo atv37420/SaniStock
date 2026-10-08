@@ -10302,7 +10302,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     return mm ? mm[1].toUpperCase() : '';
   }
 
-  function taxiHtml(vehicle){
+  window.taxiHtml=function taxiHtml(vehicle){
     const groups = {};
     TAXI_ITEMS.forEach(function(item){
       if(!groups[item.category]) groups[item.category]=[];
@@ -11066,7 +11066,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     {category:'Valise noir',name:'Masque chirurgical',quantity:'1',option:'N'}
   ];
   function esc(v){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
-  function vslHtml(vehicle){
+  window.vslHtml=function vslHtml(vehicle){
     const groups={}; VSL_ITEMS.forEach(x=>(groups[x.category]||(groups[x.category]=[])).push(x));
     let html='<div id="checklistVslDetail">';
     html+='<button type="button" class="back" onclick="fermerChecklistVsl()">← Retour</button>';
@@ -11982,25 +11982,30 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
     try{
       var box=document.getElementById('checklistContent'),sub=document.getElementById('checklistSubtitle');
       if(!box)return false;
-      if(typeof taxiHtml==='function') box.innerHTML=taxiHtml(v);
-      else return false;
+      if(typeof window.taxiHtml!=='function')throw new Error('taxiHtml indisponible');
+      box.innerHTML=window.taxiHtml(v);
       if(sub)sub.textContent='TAXI — contrôle du véhicule';
+      var d=document.getElementById('checklistTaxiDetail');if(d)d.classList.add('show');
+      if(typeof window.showPage==='function')window.showPage('checklistPage');
       if(typeof window.chargerEquipageTaxi==='function') window.chargerEquipageTaxi();
       setTimeout(function(){if(typeof window.chargerEquipageTaxi==='function')window.chargerEquipageTaxi();},150);
-      var d=document.getElementById('checklistTaxiDetail');if(d)d.classList.add('show');
       if(typeof window.initSignatureTaxi==='function')setTimeout(window.initSignatureTaxi,60);
-      return false;
-    }catch(e){console.error('Ouverture TAXI',e);return false;}
+    }catch(e){console.error('Ouverture TAXI',e);}
+    return false;
   };
   window.saniOuvrirVslDirect=function(v){
     try{
-      if(typeof window.ouvrirChecklistVslDirect==='function') return window.ouvrirChecklistVslDirect(v);
+      if(typeof window.ouvrirChecklistVslDirect!=='function')throw new Error('ouvrirChecklistVslDirect indisponible');
+      window.ouvrirChecklistVslDirect(v);
+      if(typeof window.showPage==='function')window.showPage('checklistPage');
     }catch(e){console.error('Ouverture VSL',e);}
     return false;
   };
   window.saniOuvrirTraficDirect=function(v){
     try{
-      if(typeof window.ouvrirChecklistAmbulanceTraficHa219==='function'){window.ouvrirChecklistAmbulanceTraficHa219(v);return false;}
+      if(typeof window.ouvrirChecklistAmbulanceTraficHa219!=='function')throw new Error('checklist Trafic indisponible');
+      window.ouvrirChecklistAmbulanceTraficHa219(v);
+      if(typeof window.showPage==='function')window.showPage('checklistPage');
     }catch(e){console.error('Ouverture Trafic',e);}
     return false;
   };
