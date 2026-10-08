@@ -3142,8 +3142,9 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
 
     etat('loading','En ligne','Vérification de la connexion');
 
-    if(typeof google==='undefined' || !google.script || !google.script.run){
-      afficherStatut();
+    if(!gsDisponible()){
+      if(navigator.onLine) etat('ok','En ligne','SaniStock connecté');
+      else afficherStatut();
       return;
     }
 
@@ -3152,8 +3153,9 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
         afficherStatut();
       })
       .withFailureHandler(function(){
-        // Le serveur Apps Script peut être momentanément indisponible :
-        // ne laisse pas le voyant orange bloqué.
+        /* L'application reste utilisable depuis GitHub Pages même si Apps Script
+           met quelques secondes à répondre. Ne bloque pas l'interface et ne
+           laisse pas le voyant orange. */
         if(navigator.onLine) etat('ok','En ligne','SaniStock connecté');
         else afficherStatut();
       })
@@ -3777,7 +3779,9 @@ function reinitialiserAccesProprietaire(){
   alert('🔒 L’accès propriétaire a été réinitialisé sur cet appareil.');
 }
 function gsDisponible(){
-  return !!(window.google&&google.script&&google.script.run);
+  /* SaniStock fonctionne depuis GitHub Pages : le pont API JSONP
+     remplace google.script.run qui n'existe pas sur GitHub Pages. */
+  return !!(window.SANISTOCK_API_URL || (window.google&&google.script&&google.script.run));
 }
 
 
@@ -3790,7 +3794,8 @@ function donneesAccesGestion() {
 }
 
 function ouvrirParametres(){
-  if(!gsDisponible()){alert('Connexion SaniStock indisponible.');return}
+  /* Ne bloque jamais l'ouverture des Paramètres à cause de google.script.run.
+     Depuis GitHub Pages, les appels passent par SANISTOCK_API_URL. */
   /* Hognon Lewis et Laurent Guette sont propriétaires :
      accès direct aux paramètres, sans demander le code administrateur. */
   if(nomEstProprietaireSaniStock()){
@@ -4838,7 +4843,7 @@ function chargerTableauBord(){
   */
   const runner=(window.google&&google.script&&google.script.run)?google.script.run:null;
   if(!runner){
-    fail({message:'Connexion SaniStock indisponible'});
+    fail({message:'Pont SaniStock indisponible. Rechargez la page.'});
     return;
   }
 
