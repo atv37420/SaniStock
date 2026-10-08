@@ -22,6 +22,94 @@
 (function(){
   const API_URL = 'https://script.google.com/macros/s/AKfycbxz5dZkT7FyFx8ohxWmg2Pt23Yqx0LQDMqqJg8LM8bkfN3ulkb37VqUO8m8WvjyuGBqrg/exec';
   window.SANISTOCK_API_URL = API_URL;
+
+  /* ===== COMPATIBILITÉ GOOGLE APPS SCRIPT DEPUIS GITHUB PAGES =====
+     Sur GitHub Pages, google.script.run n'existe pas (il n'existe que dans
+     une page servie directement par Apps Script). On garde exactement le
+     même code de l'application et on fait passer ces appels par l'API JSONP
+     SaniStock déjà utilisée par l'application. */
+  (function(){
+    if(window.google && window.google.script && window.google.script.run) return;
+
+    window.google = window.google || {};
+    window.google.script = window.google.script || {};
+
+    function appelApi(action,args,onSuccess,onFailure){
+      var data=null;
+      var a=Array.prototype.slice.call(args||[]);
+
+      if(a.length===1){
+        data=a[0];
+      }else if(a.length>1){
+        data=a;
+      }
+
+      /* Les fonctions Apps Script qui attendent un argument simple utilisent
+         un objet nommé côté API. */
+      if(a.length===1 && (action==='verifierCodeAdmin' || action==='verifierCodeEntreeStock')){
+        data={code:a[0]};
+      }
+      if(a.length===1 && action==='getHistoriqueDesinfections' && typeof a[0] !== 'object'){
+        data={limit:a[0]};
+      }
+
+      var cb='__sani_gs_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+      var script=document.createElement('script');
+      var fini=false;
+      function terminer(){
+        if(fini)return;
+        fini=true;
+        try{delete window[cb];}catch(e){window[cb]=undefined;}
+        if(script.parentNode)script.parentNode.removeChild(script);
+      }
+      window[cb]=function(res){
+        terminer();
+        if(res && res.success){
+          if(typeof onSuccess==='function')onSuccess(res.data);
+        }else if(typeof onFailure==='function'){
+          onFailure({message:(res&&res.error)||'Erreur Google Apps Script'});
+        }
+      };
+      script.onerror=function(){
+        terminer();
+        if(typeof onFailure==='function')onFailure({message:'Impossible de joindre Google Apps Script.'});
+      };
+      var q=new URLSearchParams({
+        api:'1',
+        action:String(action),
+        callback:cb,
+        data:JSON.stringify(data==null?null:data),
+        _:String(Date.now())
+      });
+      script.src=API_URL+'?'+q.toString();
+      script.async=true;
+      document.head.appendChild(script);
+      setTimeout(function(){
+        if(!fini){
+          terminer();
+          if(typeof onFailure==='function')onFailure({message:'Délai de connexion à Google Apps Script dépassé.'});
+        }
+      },30000);
+    }
+
+    function creerRun(){
+      var success=null, failure=null;
+      var run=new Proxy({}, {
+        get:function(target,prop){
+          if(prop==='withSuccessHandler') return function(fn){success=fn;return run;};
+          if(prop==='withFailureHandler') return function(fn){failure=fn;return run;};
+          if(prop==='withUserObject') return function(){return run;};
+          return function(){
+            var args=arguments;
+            appelApi(String(prop),args,success,failure);
+          };
+        }
+      });
+      return run;
+    }
+
+    window.google.script.run=creerRun();
+  })();
   let n = 0;
   let synchronisationEnCours = false;
 
