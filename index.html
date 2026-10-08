@@ -4823,50 +4823,59 @@ setTimeout(chargerInformationAccueil,6000);
 function chargerTableauBord(){
   const box=document.getElementById('dashboardContent');
   if(!box) return;
-  box.innerHTML='<div class="dashboardLoading">Chargement des données…</div>';
+  box.innerHTML='<div class="dashboardLoading">Chargement du tableau de bord…</div>';
 
-  let stock=null, historique=null, vehicules=null, pending=3, failed=false;
+  let stock=[], historique=[], vehicules=[];
+  let pending=3;
+  let erreurs=[];
 
-  function done(){
+  function terminer(nom, valeur, err){
+    if(nom==='stock') stock=Array.isArray(valeur)?valeur:[];
+    if(nom==='historique') historique=Array.isArray(valeur)?valeur:[];
+    if(nom==='vehicules') vehicules=Array.isArray(valeur)?valeur:[];
+    if(err) erreurs.push(nom+': '+(err&&err.message?err.message:String(err)));
     pending--;
-    if(pending>0 || failed) return;
-    afficherTableauBord(stock||[], historique||[], vehicules||[]);
+    if(pending>0) return;
+
+    /* Le tableau de bord doit toujours pouvoir s'ouvrir.
+       Une seule donnée indisponible ne doit plus bloquer les autres. */
+    try{
+      afficherTableauBord(stock,historique,vehicules);
+      if(erreurs.length){
+        const note=document.createElement('div');
+        note.className='dashboardRefreshNote';
+        note.textContent='⚠️ Certaines données n’ont pas pu être actualisées. Le tableau de bord reste disponible.';
+        box.prepend(note);
+      }
+    }catch(e){
+      console.error('Tableau de bord',e);
+      box.innerHTML='<div class="dashboardError">Impossible d’afficher le tableau de bord.<br><small>'+escapeHtml(e&&e.message?e.message:String(e))+'</small></div>';
+    }
   }
 
-  function fail(err){
-    if(failed) return;
-    failed=true;
-    const msg=err&&err.message?err.message:String(err||'Erreur inconnue');
-    box.innerHTML='<div class="dashboardError">Impossible de charger le tableau de bord.<br><small>'+escapeHtml(msg)+'</small></div>';
-  }
-
-  /*
-     IMPORTANT : le tableau de bord doit fonctionner depuis GitHub Pages.
-     On utilise donc le même pont SaniStock/API que le reste de l'application.
-     Le stock est lu avec getStockData() : le calcul des alertes est fait ici,
-     donc aucun contrôle administrateur supplémentaire n'est nécessaire pour
-     l'affichage du tableau de bord.
-  */
   const runner=(window.google&&google.script&&google.script.run)?google.script.run:null;
   if(!runner){
-    fail({message:'Pont SaniStock indisponible. Rechargez la page.'});
+    box.innerHTML='<div class="dashboardError">Connexion SaniStock indisponible.<br><small>Rechargez la page puis réessayez.</small></div>';
     return;
   }
 
   runner.withSuccessHandler(function(r){
-    stock=Array.isArray(r)?r:[];
-    done();
-  }).withFailureHandler(fail).getStockData();
+    terminer('stock',r,null);
+  }).withFailureHandler(function(e){
+    terminer('stock',[],e);
+  }).getStockData();
 
   runner.withSuccessHandler(function(r){
-    historique=Array.isArray(r)?r:[];
-    done();
-  }).withFailureHandler(fail).getHistoriqueDesinfections(20);
+    terminer('historique',r,null);
+  }).withFailureHandler(function(e){
+    terminer('historique',[],e);
+  }).getHistoriqueDesinfections(20);
 
   runner.withSuccessHandler(function(r){
-    vehicules=Array.isArray(r)?r:[];
-    done();
-  }).withFailureHandler(fail).getVehicules();
+    terminer('vehicules',r,null);
+  }).withFailureHandler(function(e){
+    terminer('vehicules',[],e);
+  }).getVehicules();
 }
 
 function dashboardDate_(value){
