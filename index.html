@@ -3039,9 +3039,9 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
 
     if(!online){
       etat('error','Hors ligne','Actions enregistrées hors ligne');
-    }else if(pending>0){
-      etat('loading','Synchronisation',''+pending+' opération'+(pending>1?'s':'')+' en cours');
     }else{
+      // Une connexion réseau suffit pour afficher l'état vert.
+      // Les opérations en attente sont synchronisées en arrière-plan.
       etat('ok','En ligne','SaniStock connecté');
     }
   }
@@ -3064,7 +3064,10 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
         afficherStatut();
       })
       .withFailureHandler(function(){
-        etat('loading','En ligne','Serveur temporairement indisponible');
+        // Le serveur Apps Script peut être momentanément indisponible :
+        // ne laisse pas le voyant orange bloqué.
+        if(navigator.onLine) etat('ok','En ligne','SaniStock connecté');
+        else afficherStatut();
       })
       .getStockData();
   }
@@ -4599,59 +4602,72 @@ function changerCodeAdminUI(){
     afficherModeCodeSeul(savedName,'Entrez votre mot de passe.');
   }
   function loadNames(){
-    setLoginAnimation(true,'Préparation de votre connexion','Connexion SaniStock…');
+    setLoginAnimation(false);
 
-    // Hors ligne : on construit immédiatement l'écran de connexion depuis
-    // les données déjà enregistrées sur le PDA. Aucun appel réseau n'est requis.
+    /*
+      IMPORTANT : ne jamais bloquer l'écran de connexion en attendant
+      Google Apps Script. Le dernier nom connu sur le PDA est suffisant
+      pour afficher immédiatement la connexion.
+    */
     const saved=savedCredentials();
     let cachedNames=[];
     try{cachedNames=JSON.parse(localStorage.getItem('sanistock_cached_employee_names')||'[]')}catch(e){cachedNames=[]}
-    cachedNames=Array.isArray(cachedNames)?cachedNames:[];
+    cachedNames=Array.isArray(cachedNames)?cachedNames.filter(Boolean):[];
 
-    if(!navigator.onLine){
-      if(saved.name && saved.code){
-        afficherModeCodeSeul(saved.name,'📵 Hors ligne : utilisez votre mot de passe enregistré sur cet appareil.');
-        // Le code est déjà mémorisé sur cet appareil : l'utilisateur peut
-        // entrer son code et être déverrouillé sans Google Apps Script.
-        return;
-      }
-      if(cachedNames.length){
-        nameSel.innerHTML='<option value="">Sélectionner votre nom</option>'+cachedNames.map(function(n){return '<option value="'+escapeHtml(n)+'">'+escapeHtml(n)+'</option>'}).join('');
-        afficherModePremiereConnexion();
-        showError('📵 Hors ligne : choisissez votre nom et utilisez un mot de passe déjà enregistré sur cet appareil.');
-        return;
-      }
-      afficherModePremiereConnexion();
-      showError('📵 Première connexion nécessaire avec Internet pour charger les salariés.');
-      return;
+    function afficherNoms(noms){
+      noms=Array.isArray(noms)?noms.filter(Boolean):[];
+      nameSel.innerHTML='<option value="">Sélectionner votre nom</option>'+
+        noms.map(function(n){return '<option value="'+escapeHtml(n)+'">'+escapeHtml(n)+'</option>'}).join('');
     }
 
-    if(!(window.google&&google.script&&google.script.run)){
-      setTimeout(loadNames,500);
-      return;
-    }
-    google.script.run.withSuccessHandler(function(noms){
-      noms=Array.isArray(noms)?noms:[];
-      try{localStorage.setItem('sanistock_cached_employee_names',JSON.stringify(noms));}catch(e){}
-      nameSel.innerHTML='<option value="">Sélectionner votre nom</option>'+noms.map(function(n){return '<option value="'+escapeHtml(n)+'">'+escapeHtml(n)+'</option>'}).join('');
-      const saved=savedCredentials();
-      if(saved.name&&saved.code&&noms.includes(saved.name)){
+    /* Affichage immédiat depuis le cache. */
+    if(cachedNames.length){
+      afficherNoms(cachedNames);
+      if(saved.name && saved.code && cachedNames.indexOf(saved.name)>=0){
         autoConnect(saved.name,saved.code);
       }else{
         afficherModePremiereConnexion();
       }
-    }).withFailureHandler(function(){
-      let noms=[]; try{noms=JSON.parse(localStorage.getItem('sanistock_cached_employee_names')||'[]')}catch(e){noms=[]}
-      noms=Array.isArray(noms)?noms:[];
-      nameSel.innerHTML='<option value="">Sélectionner votre nom</option>'+noms.map(function(n){return '<option value="'+escapeHtml(n)+'">'+escapeHtml(n)+'</option>'}).join('');
-      const saved=savedCredentials();
-      if(saved.name){
-        afficherModeCodeSeul(saved.name,noms.length?'Mode hors ligne : entrez votre mot de passe déjà enregistré.':'Connexion automatique impossible. Entrez votre mot de passe.');
-      }else{
-        afficherModePremiereConnexion();
-        showError(noms.length?'Mode hors ligne : choisissez votre nom puis utilisez votre mot de passe.':'Aucun salarié enregistré sur cet appareil. Connectez-vous une première fois avec Internet.');
-      }
-    }).getSalaries();
+    }else if(saved.name && saved.code){
+      /* Même sans liste, un compte déjà enregistré peut être ouvert localement. */
+      autoConnect(saved.name,saved.code);
+    }else if(!navigator.onLine){
+      afficherModePremiereConnexion();
+      showError('📵 Première connexion nécessaire avec Internet pour charger les salariés.');
+      return;
+    }else{
+      afficherModePremiereConnexion();
+      showError('Chargement des salariés…');
+    }
+
+    /* Hors ligne : le cache/compte local suffit. */
+    if(!navigator.onLine) return;
+
+    /* Rafraîchissement serveur en arrière-plan, sans bloquer la connexion. */
+    if(!(window.google&&google.script&&google.script.run)) return;
+    try{
+      google.script.run
+        .withSuccessHandler(function(noms){
+          noms=Array.isArray(noms)?noms.filter(Boolean):[];
+          if(noms.length){
+            try{localStorage.setItem('sanistock_cached_employee_names',JSON.stringify(noms));}catch(e){}
+            afficherNoms(noms);
+            const actuel=savedCredentials();
+            if(actuel.name && actuel.code && noms.indexOf(actuel.name)>=0){
+              autoConnect(actuel.name,actuel.code);
+            }else if(!actuel.name){
+              afficherModePremiereConnexion();
+            }
+          }
+        })
+        .withFailureHandler(function(err){
+          console.warn('Rafraîchissement salariés indisponible :',err);
+          /* Le cache déjà affiché reste utilisable. */
+        })
+        .getSalaries();
+    }catch(e){
+      console.warn('Chargement salariés serveur impossible :',e);
+    }
   }
   btn.addEventListener('click',function(){
     // En mode code seul (hors ligne), la liste des salariés est masquée :
