@@ -11472,15 +11472,16 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
     if(!e2)throw new Error('Ajoutez le 2ᵉ équipier manuellement.');
     const p1=doc.getPage(0),p2=doc.getPage(1),p3=doc.getPage(2);
 
-    // Informations générales : on masque uniquement les anciennes lignes pour que les champs soient propres.
-    cover(p1,130,756,145,18,paperBg);
-    cover(p1,255,728,118,20,paperBg);
-    cover(p1,410,756,100,18,paperBg);
-    cover(p1,92,728,148,20,paperBg);
-    p1.drawText(immat,{x:132,y:748,size:9,font:bold,color:black});
-    p1.drawText(kms,{x:294,y:735,size:9,font:bold,color:black});
-    p1.drawText(htmlDateFR(date),{x:414,y:748,size:9,font:bold,color:black});
-    p1.drawText(e1+' / '+e2,{x:96,y:735,size:9,font:bold,color:black});
+    // Informations générales : valeurs recadrées dans les zones du modèle.
+    // 1re ligne : Immatriculation / KMS / DATE. 2e ligne : Equipage.
+    cover(p1,130,741,145,16,paperBg);
+    cover(p1,286,741,105,16,paperBg);
+    cover(p1,423,741,105,16,paperBg);
+    cover(p1,92,727,330,16,paperBg);
+    p1.drawText(immat,{x:132,y:746,size:9,font:bold,color:black});
+    p1.drawText(kms,{x:294,y:746,size:9,font:bold,color:black});
+    p1.drawText(htmlDateFR(date),{x:430,y:746,size:9,font:bold,color:black});
+    p1.drawText(e1+' / '+e2,{x:96,y:732,size:9,font:bold,color:black});
 
     // Papiers véhicule : V = OK, X = manque. Les anciens petits symboles sont nettoyés.
     ambPapers.forEach(function(it,i){
