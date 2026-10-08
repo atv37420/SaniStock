@@ -10265,7 +10265,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     Object.keys(groups).forEach(function(cat){
       html += '<div class="taxiSection">';
       html += '<div class="taxiSectionTitle">'+esc(cat)+'</div>';
-      html += '<button type="button" class="toutCocherBtn" onclick="toutCocherSection(this)">✓ TOUT COCHER</button>';
+      html += '<button type="button" class="toutCocherBtn" onclick="toutCocherSection(this)">✓ TOUT COCHER</button><button type="button" class="toutCocherBtn" onclick="toutDecocherSection(this)">✕ TOUT DÉCOCHER</button>';
       html += '<div class="taxiChecklistHead"><div>Inventaire</div><div>Quantité</div><div>Présent</div><div>Manque</div><div>Quantité manquante</div></div>';
       groups[cat].forEach(function(item){
         const globalIndex=TAXI_ITEMS.indexOf(item);
@@ -10759,6 +10759,16 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     ["Désinfection","Bombe desinfectante","1"],["Désinfection","Lingettes desinfectantes","1"],["Désinfection","Poubelle","1"]
   ];
 
+  window.toutDecocherAmbulanceSection=function(btn,cat){
+    const vehicle=String(document.getElementById('checklistAmbulanceDetail #checklistAmbulanceSubtitle')?.textContent||'');
+    const group=getGroups(getAmbItems(vehicle))[cat]||[];
+    group.forEach(function(pair){
+      const i=pair[1];
+      document.querySelectorAll('#checklistAmbulanceDetail .vslChecklistRow[data-amb-index="'+i+'"] input[type="radio"]').forEach(function(r){r.checked=false;});
+      const q=document.getElementById('ambMissing'+i);if(q)q.value='';
+    });
+  };
+
   function loadPdfLib(){
     if(window.PDFLib) return Promise.resolve(window.PDFLib);
     return new Promise(function(resolve,reject){
@@ -11064,7 +11074,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     html+='<div class="taxiField"><label>Kms :</label><input id="vslKms" type="text" inputmode="numeric" placeholder="Saisir le kilométrage"></div></div></div>';
     Object.keys(groups).forEach(function(cat){
       html+='<div class="vslSection"><div class="vslSectionTitle">'+esc(cat)+'</div>';
-      html+='<button type="button" class="toutCocherBtn" onclick="toutCocherSection(this)">✓ TOUT COCHER</button>';
+      html+='<button type="button" class="toutCocherBtn" onclick="toutCocherSection(this)">✓ TOUT COCHER</button><button type="button" class="toutCocherBtn" onclick="toutDecocherSection(this)">✕ TOUT DÉCOCHER</button>';
       html+='<div class="vslChecklistHead"><div>Inventaire</div><div>Quantité</div><div>Présent</div><div>Manque</div><div>Quantité manquante</div></div>';
       groups[cat].forEach(function(item){const i=VSL_ITEMS.indexOf(item);const id='vslItem'+i;html+='<div class="vslChecklistRow" data-vsl-index="'+i+'"><div>'+esc(item.name)+'</div><div class="vslQty">'+esc(item.quantity)+'</div><div class="vslChoice"><input type="radio" name="'+id+'" value="present" onchange="toggleVslMissing('+i+',false)"></div><div class="vslChoice"><input type="radio" name="'+id+'" value="manque" onchange="toggleVslMissing('+i+',true)"></div><div><input id="vslMissing'+i+'" class="vslMissingQty" type="text" inputmode="numeric" autocomplete="off" placeholder="—"></div></div>';});
       html+='</div>';
@@ -11081,6 +11091,12 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
       r.checked=true;
       r.dispatchEvent(new Event('change',{bubbles:true}));
     });
+  };
+  window.toutDecocherSection=function(btn){
+    const section=btn&&btn.closest ? btn.closest('.taxiSection,.vslSection') : null;
+    if(!section)return;
+    section.querySelectorAll('input[type="radio"]').forEach(function(r){r.checked=false;});
+    section.querySelectorAll('input[type="text"]').forEach(function(q){q.value='';});
   };
   function chargerEquipageVsl(){
     const box=document.getElementById('vslEquipageList'),hidden=document.getElementById('vslEquipage');if(!box||!hidden)return;
@@ -11351,11 +11367,11 @@ window.saniStockGenererVslPdfExact=buildExactPdf;
     html+='<div class="ambCrewBox"><label>ÉQUIPIER 2</label><select id="ambCrew2" class="ambCrewInput"><option value="">Sélectionner le 2ᵉ équipier</option></select></div>';
     html+='</div></div>';
 
-    html+='<button type="button" class="toutCocherBtn" onclick="toutCocherAmbulance()">✓ TOUT COCHER</button>';
+    html+='<button type="button" class="toutCocherBtn" onclick="toutCocherAmbulance()">✓ TOUT COCHER</button><button type="button" class="toutCocherBtn" onclick="toutDecocherAmbulance()">✕ TOUT DÉCOCHER</button>';
     Object.keys(groups).forEach(function(cat){
       html+='<div class="vslSection">';
       html+='<div class="vslSectionTitle">'+esc(cat)+'</div>';
-html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+'">✓ TOUT COCHER LA SECTION</button>';
+html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+'">✓ TOUT COCHER LA SECTION</button><button type="button" class="toutCocherBtn" onclick="toutDecocherAmbulanceSection(this,\''+esc(cat)+'\')">✕ TOUT DÉCOCHER LA SECTION</button>';
       html+='<div class="vslChecklistHead"><div>Inventaire</div><div>Quantité</div><div>Présent</div><div>Manque</div><div>Quantité manquante</div></div>';
       groups[cat].forEach(function(pair){
         const item=pair[0], i=pair[1];
@@ -11421,6 +11437,10 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
     const items=getAmbItems(vehicle);
     items.forEach(function(_,i){const r=document.querySelector('#checklistAmbulanceDetail .vslChecklistRow[data-amb-index="'+i+'"] input[value="present"]');if(r)r.checked=true;const q=document.getElementById('ambMissing'+i);if(q)q.value='';});
   };
+  window.toutDecocherAmbulance=function(){
+    document.querySelectorAll('#checklistAmbulanceDetail .vslChecklistRow input[type="radio"]').forEach(function(r){r.checked=false;});
+    document.querySelectorAll('#checklistAmbulanceDetail input[id^="ambMissing"]').forEach(function(q){q.value='';});
+  };
   window.toutCocherAmbulanceSection=function(btn,cat){
     const vehicle=String(document.getElementById('checklistAmbulanceDetail #checklistAmbulanceSubtitle')?.textContent||'');
     const group=getGroups(getAmbItems(vehicle))[cat]||[];
@@ -11475,12 +11495,14 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
     // Informations générales : valeurs recadrées dans les zones du modèle.
     // 1re ligne : Immatriculation / KMS / DATE. 2e ligne : Equipage.
     cover(p1,130,741,145,16,paperBg);
-    cover(p1,286,741,105,16,paperBg);
-    cover(p1,423,741,105,16,paperBg);
+    // On efface uniquement les anciennes valeurs, sans recouvrir les libellés KMS / DATE.
+    cover(p1,350,741,62,16,paperBg);
+    cover(p1,480,741,95,16,paperBg);
     cover(p1,92,727,330,16,paperBg);
     p1.drawText(immat,{x:132,y:746,size:9,font:bold,color:black});
-    p1.drawText(kms,{x:364,y:746,size:9,font:bold,color:black});
-    p1.drawText(htmlDateFR(date),{x:500,y:746,size:9,font:bold,color:black});
+    // KMS et DATE décalés de 20 points vers la droite.
+    p1.drawText(kms,{x:384,y:746,size:9,font:bold,color:black});
+    p1.drawText(htmlDateFR(date),{x:520,y:746,size:9,font:bold,color:black});
     p1.drawText(e1+' / '+e2,{x:96,y:732,size:9,font:bold,color:black});
 
     // Papiers véhicule : V = OK, X = manque. Les anciens petits symboles sont nettoyés.
