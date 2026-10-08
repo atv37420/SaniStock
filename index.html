@@ -10092,11 +10092,22 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
     if(sub)sub.textContent=checklistCategoryLabel(c)+' — choisissez un véhicule';
     box.innerHTML='<button type="button" class="back" id="checklistBackCat">← Catégories</button>'
       +V[c].map(function(v){
-        return '<button type="button" class="checklistVehicle" data-check-veh="'+esc(v)+'">'
+        return '<button type="button" class="checklistVehicle" data-check-veh="'+esc(v)+'" onclick="return saniOuvrirVehiculeDepuisBouton(this);">'
           +'<span class="checklistVehicleName">'+esc(v)+'</span><span class="checklistVehicleArrow">›</span></button>';
       }).join('');
   };
   window.ouvrirChecklistVehiculeFixe=function(v){alert('Véhicule sélectionné : '+v+'\n\nLa check-list détaillée de ce véhicule sera ajoutée ici.');};
+  // Ouverture robuste des véhicules : le bouton appelle directement cette fonction
+  // afin de ne pas dépendre uniquement de la délégation du clic document.
+  window.saniOuvrirVehiculeDepuisBouton=function(btn){
+    try{
+      var v=btn&&btn.getAttribute?btn.getAttribute('data-check-veh'):'';
+      if(v && typeof window.ouvrirChecklistVehiculeFixe==='function'){
+        window.ouvrirChecklistVehiculeFixe(v);
+      }
+    }catch(err){console.error('Ouverture véhicule SaniStock',err);}
+    return false;
+  };
   document.addEventListener('click',function(e){
     var cat=e.target.closest && e.target.closest('[data-check-cat]'); if(cat){window.ouvrirChecklistVehicules(cat.getAttribute('data-check-cat'));return;}
     var veh=e.target.closest && e.target.closest('[data-check-veh]'); if(veh){window.ouvrirChecklistVehiculeFixe(veh.getAttribute('data-check-veh'));return;}
