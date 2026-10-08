@@ -2562,14 +2562,35 @@ function chargerSalaries(){
   let cache=[];
   try{cache=JSON.parse(localStorage.getItem('sanistock_salaries_cache')||'[]');}catch(e){cache=[];}
   if(cache.length) afficherListeSalaries(cache);
-  if(!(window.google&&google.script&&google.script.run)) return;
-  google.script.run
-    .withSuccessHandler(function(noms){afficherListeSalaries(noms);})
-    .withFailureHandler(function(err){
-      console.error('Impossible de charger les salariés :',err);
-      if(cache.length) afficherListeSalaries(cache);
-    })
-    .getSalaries();
+
+  function appelerServeur(essai){
+    if(!(window.google&&google.script&&google.script.run)){
+      if(essai<20) setTimeout(function(){appelerServeur(essai+1);},500);
+      return;
+    }
+    try{
+      google.script.run
+        .withSuccessHandler(function(noms){
+          noms=Array.isArray(noms)?noms:[];
+          if(noms.length){
+            afficherListeSalaries(noms);
+            try{localStorage.setItem('sanistock_cached_employee_names',JSON.stringify(noms));}catch(e){}
+          }else if(cache.length){
+            afficherListeSalaries(cache);
+          }
+        })
+        .withFailureHandler(function(err){
+          console.error('Impossible de charger les salariés :',err);
+          if(cache.length) afficherListeSalaries(cache);
+          else if(essai<3) setTimeout(function(){appelerServeur(essai+1);},1000);
+        })
+        .getSalaries();
+    }catch(e){
+      console.error('Erreur accès salariés :',e);
+      if(essai<20) setTimeout(function(){appelerServeur(essai+1);},500);
+    }
+  }
+  appelerServeur(0);
 }
 
 /* LISTE DES VÉHICULES DEPUIS GOOGLE SHEETS */
@@ -4605,6 +4626,10 @@ function changerCodeAdminUI(){
       return;
     }
 
+    if(!(window.google&&google.script&&google.script.run)){
+      setTimeout(loadNames,500);
+      return;
+    }
     google.script.run.withSuccessHandler(function(noms){
       noms=Array.isArray(noms)?noms:[];
       try{localStorage.setItem('sanistock_cached_employee_names',JSON.stringify(noms));}catch(e){}
