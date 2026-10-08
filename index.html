@@ -10802,10 +10802,10 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
 
     // Informations générales : on écrit uniquement dans les zones prévues, sans masquer les libellés.
     // Coordonnées calées sur le modèle taxi_template.pdf.
-    drawValue(p1,bold,date,78,716,95,9,black);
-    drawValue(p1,bold,immat,307,716,68,9,black);
-    drawValue(p1,bold,kms,426,716,58,9,black);
-    drawValue(p1,bold,equip,96,702,340,9,black);
+    drawValue(p1,bold,date,88,716,95,9,black);
+    drawValue(p1,bold,immat,317,716,68,9,black);
+    drawValue(p1,bold,kms,436,716,58,9,black);
+    drawValue(p1,bold,equip,106,702,340,9,black);
 
     // Papiers : une seule case par document, exactement comme la fiche d'origine.
     var left=[0,2,4,6,8,10],right=[1,3,5,7,9,11];
@@ -10851,7 +10851,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
 
     [34,35,36].forEach(function(idx,k){var st=getState(idx),miss=getMissing(idx),y=[720,706,692][k],rowBg=(k%2===0?white:gray);if(st==='present'){cover(p2,presentX-6,y-6,12,13,rowBg);drawCheck(p2,presentX,y,10,black);}else if(st==='manque'){cover(p2,manqueX-6,y-6,12,13,rowBg);drawX(p2,manqueX,y,10,black);}if(miss){cover(p2,missingX-25,y-6,50,13,rowBg);drawValue(p2,bold,miss,missingX-22,y-3,47,8,red);}});
     if(obs){var lines=wrapText(font,obs,8,410),yy=665;lines.slice(0,8).forEach(function(line){p2.drawText(line,{x:56,y:yy,size:8,font:font,color:black});yy-=11;});}
-    if(equip){cover(p2,155,575,170,18,white);drawValue(p2,font,equip,160,579,160,9,black);}
+    if(equip){cover(p2,155,555,170,18,white);drawValue(p2,font,equip,160,559,160,9,black);}
     if(sig&&sig.indexOf('data:image/')===0){
       try{
         // Recadre la signature pour supprimer tout l'espace vide du canvas et conserver ses proportions.
@@ -10869,7 +10869,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
           var cx=crop.getContext('2d');cx.drawImage(sc,Math.max(0,minX-pad),Math.max(0,minY-pad),Math.min(sc.width,cw),Math.min(sc.height,ch),0,0,cw,ch);
           var png=await doc.embedPng(crop.toDataURL('image/png'));
           var maxW=170,maxH=62, scale=Math.min(maxW/png.width,maxH/png.height), dw=png.width*scale, dh=png.height*scale;
-          p2.drawImage(png,{x:140+(maxW-dw)/2,y:548+(maxH-dh)/2,width:dw,height:dh});
+          p2.drawImage(png,{x:140+(maxW-dw)/2,y:528+(maxH-dh)/2,width:dw,height:dh});
         }
       }catch(e){console.warn('Signature PDF',e);}
     }
