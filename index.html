@@ -4665,10 +4665,16 @@ function changerCodeAdminUI(){
       }
     }).verifierCodeSalarie({salarie:name,code:String(code)});
   }
+  let autoConnexionEnCours=false;
+  let autoConnexionNom='';
   function autoConnect(savedName,savedCode){
-    // Le compte a déjà été validé sur cet appareil : ouverture immédiate.
-    // Le serveur est consulté ensuite sans bloquer l'utilisateur.
+    // Un seul lancement d'auto-connexion par ouverture de l'application.
+    // Le cache et le rafraîchissement Google Apps Script peuvent répondre
+    // tous les deux : ils ne doivent jamais afficher deux fois Bonjour.
     if(savedName && savedCode){
+      if(autoConnexionEnCours && autoConnexionNom===String(savedName)) return;
+      autoConnexionEnCours=true;
+      autoConnexionNom=String(savedName);
       activerAccesProprietaire(savedName,savedCode);
       setLoginAnimation(false);
       unlock(savedName);
