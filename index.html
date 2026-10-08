@@ -11526,17 +11526,18 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
     });
     if(obs){
       const lines=wrapText(font,obs,500,8);
-      lines.slice(0,18).forEach(function(line,j){p3.drawText(line,{x:58,y:290-j*14,size:8,font:font,color:black});});
+      lines.slice(0,5).forEach(function(line,j){p3.drawText(line,{x:58,y:700-j*12,size:8,font:font,color:black});});
     }
     if(isRenault){
-      // Renault HS-219-PS : remplacement de la zone de signatures par deux cadres distincts D.A.E / A.A.
-      // On nettoie uniquement la zone de signature du modèle, sans toucher aux observations.
+      // Renault HS-219-PS : deux cadres de signature dans la zone SIGNATURES du modèle.
+      // On reste strictement dans le cadre dédié du PDF.
       const white=PDFLib.rgb(1,1,1);
-      cover(p3,16,545,563,80,white);
-      p3.drawRectangle({x:22,y:548,width:266,height:62,borderColor:black,borderWidth:1});
-      p3.drawRectangle({x:307,y:548,width:266,height:62,borderColor:black,borderWidth:1});
-      centerText(p3,bold,'D.A.E',155,628,9,black);
-      centerText(p3,bold,'A.A',440,628,9,black);
+      // Nettoyage de l'intérieur de la zone de signature (sans toucher aux bordures du modèle).
+      cover(p3,53,728,487,42,white);
+      p3.drawRectangle({x:58,y:730,width:230,height:30,borderColor:black,borderWidth:1});
+      p3.drawRectangle({x:305,y:730,width:230,height:30,borderColor:black,borderWidth:1});
+      centerText(p3,bold,'D.A.E',173,763,9,black);
+      centerText(p3,bold,'A.A',420,763,9,black);
       async function drawRenaultSig(data,x,y,w,h){
         if(!data || data.indexOf('data:image/')!==0)return;
         try{
@@ -11546,8 +11547,8 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
           p3.drawImage(png,{x:x+(w-dw)/2,y:y+(h-dh)/2,width:dw,height:dh});
         }catch(e){console.warn('Signature Renault',e);}
       }
-      await drawRenaultSig(sigDae,28,553,254,52);
-      await drawRenaultSig(sigAa,313,553,254,52);
+      await drawRenaultSig(sigDae,62,733,222,24);
+      await drawRenaultSig(sigAa,309,733,222,24);
     }else if(sig && sig.indexOf('data:image/')===0){
       try{
         const png=await doc.embedPng(sig);
