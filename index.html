@@ -11871,35 +11871,82 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
 })();
 </script>
 
+<style id="sanistock-all-vehicle-clickable">
+#checklistPage .checklistCard,
+#checklistPage .checklistCard *,
+#checklistPage .checklistVehicle,
+#checklistPage .checklistVehicle *{
+  pointer-events:auto !important;
+  cursor:pointer !important;
+}
+#checklistPage .checklistCard, #checklistPage .checklistVehicle{position:relative;z-index:200;}
+</style>
 <script id="sanistock-final-vehicle-click-fix">
 (function(){
-  window.saniOuvrirVehiculeDepuisBouton=function(btn){
-    try{
-      var v=btn&&btn.getAttribute?btn.getAttribute('data-check-veh'):'';
-      var u=String(v||'').toUpperCase();
-      if(!v)return false;
-      if(u.includes('VSL') && typeof window.ouvrirChecklistVslDirect==='function'){
-        return window.ouvrirChecklistVslDirect(v);
-      }
-      if((u.includes('HA-219-PS') || u.includes('RENAULT TRAFIC')) && typeof window.ouvrirChecklistAmbulanceTraficHa219==='function'){
-        window.ouvrirChecklistAmbulanceTraficHa219(v); return false;
-      }
-      if(typeof window.ouvrirChecklistVehiculeFixe==='function'){
-        return window.ouvrirChecklistVehiculeFixe(v) || false;
-      }
-    }catch(err){ console.error('Erreur ouverture véhicule SaniStock',err); }
+  function openCategory(btn){
+    var c=btn && btn.getAttribute ? btn.getAttribute('data-check-cat') : '';
+    if(!c) return false;
+    if(typeof window.ouvrirChecklistVehicules==='function'){
+      window.ouvrirChecklistVehicules(c);
+      return true;
+    }
+    return false;
+  }
+  function openVehicle(btn){
+    var v=btn && btn.getAttribute ? btn.getAttribute('data-check-veh') : '';
+    var u=String(v||'').toUpperCase();
+    if(!v) return false;
+
+    // Chaque type de véhicule possède son ouverture directe.
+    if(u.indexOf('VSL')>=0 && typeof window.ouvrirChecklistVslDirect==='function'){
+      window.ouvrirChecklistVslDirect(v);
+      return true;
+    }
+    if((u.indexOf('HA-219-PS')>=0 || u.indexOf('RENAULT TRAFIC')>=0) && typeof window.ouvrirChecklistAmbulanceTraficHa219==='function'){
+      window.ouvrirChecklistAmbulanceTraficHa219(v);
+      return true;
+    }
+    if((u.indexOf('FZ-349-AT')>=0 || u.indexOf('PEUGEOT BOXER')>=0) && typeof window.ouvrirChecklistAmbulance==='function'){
+      window.ouvrirChecklistAmbulance(v);
+      return true;
+    }
+    if(u.indexOf('TAXI')>=0 && typeof window.ouvrirChecklistVehiculeFixe==='function'){
+      window.ouvrirChecklistVehiculeFixe(v);
+      return true;
+    }
+    if(typeof window.ouvrirChecklistVehiculeFixe==='function'){
+      window.ouvrirChecklistVehiculeFixe(v);
+      return true;
+    }
+    return false;
+  }
+
+  window.saniOuvrirCategorieDepuisBouton=function(btn){
+    try{openCategory(btn);}catch(e){console.error('Ouverture catégorie SaniStock',e);}
     return false;
   };
+  window.saniOuvrirVehiculeDepuisBouton=function(btn){
+    try{openVehicle(btn);}catch(e){console.error('Ouverture véhicule SaniStock',e);}
+    return false;
+  };
+
+  // Capture : le clic fonctionne même si un autre gestionnaire est présent.
   document.addEventListener('click',function(e){
-    var c=e.target&&e.target.closest?e.target.closest('#checklistPage [data-check-cat]'):null;
-    if(c){
-      e.preventDefault(); e.stopImmediatePropagation();
-      return window.saniOuvrirCategorieDepuisBouton(c);
+    var target=e.target;
+    if(!target || !target.closest) return;
+    var card=target.closest('#checklistPage .checklistCard[data-check-cat]');
+    if(card){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      openCategory(card);
+      return;
     }
-    var b=e.target&&e.target.closest?e.target.closest('#checklistPage [data-check-veh]'):null;
-    if(!b)return;
-    e.preventDefault(); e.stopImmediatePropagation();
-    window.saniOuvrirVehiculeDepuisBouton(b);
+    var veh=target.closest('#checklistPage .checklistVehicle[data-check-veh]');
+    if(veh){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      openVehicle(veh);
+    }
   },true);
 })();
 </script>
