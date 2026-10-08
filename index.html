@@ -2069,6 +2069,7 @@ button.settingsAction.secondary:hover,
       <button id="settingsTabDashboard" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('dashboard')">📊 Tableau de bord</button>
       <button id="settingsTabInformations" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('informations')">📢 Informations</button>
       <button id="settingsTabDocuments" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('documents')">📄 Documents</button>
+      <button id="settingsTabHistorique" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('historique')">📜 Historique désinfection</button>
     </div>
 
     <div id="settingsMsg" class="settingsMsg"></div>
@@ -2165,6 +2166,16 @@ button.settingsAction.secondary:hover,
         <div id="documentsMsg" class="documentsMsg" aria-live="polite"></div>
       </div>
       <div id="documentsSettingsList" class="documentsList">Chargement des documents…</div>
+    </section>
+
+    <section id="settingsPaneHistorique" class="settingsPane" role="tabpanel" hidden>
+      <div class="settingsPaneHead">
+        <div><strong>📜 Historique des désinfections</strong><span>Retrouvez les désinfections enregistrées, avec les détails de chaque contrôle.</span></div>
+        <button class="settingsAction" type="button" onclick="chargerHistoriqueParametres()">↻ Actualiser</button>
+      </div>
+      <div id="settingsHistoriqueList">
+        <div class="settingsMsg">Historique non chargé.</div>
+      </div>
     </section>
 
     <div class="settingsAdminBlock">
@@ -3870,6 +3881,11 @@ function ouvrirOngletParametres(onglet){
   const sal=document.getElementById('settingsPaneSalaries');
   const veh=document.getElementById('settingsPaneVehicules');
   const dash=document.getElementById('settingsPaneDashboard');
+  const paneDate=document.getElementById('settingsPaneDates');
+  const paneChecklist=document.getElementById('settingsPaneChecklist');
+  const paneInfo=document.getElementById('settingsPaneInformations');
+  const paneDocs=document.getElementById('settingsPaneDocuments');
+  const paneHist=document.getElementById('settingsPaneHistorique');
   const ts=document.getElementById('settingsTabSalaries');
   const tv=document.getElementById('settingsTabVehicules');
   const td=document.getElementById('settingsTabDashboard');
@@ -3877,7 +3893,7 @@ function ouvrirOngletParametres(onglet){
   const ti=document.getElementById('settingsTabInformations');
   const tdoc=document.getElementById('settingsTabDocuments');
   const tdate=document.getElementById('settingsTabDates');
-  const paneDate=document.getElementById('settingsPaneDates');
+  const thist=document.getElementById('settingsTabHistorique');
 
   const isSal=onglet==='salaries';
   const isDates=onglet==='dates';
@@ -3886,38 +3902,88 @@ function ouvrirOngletParametres(onglet){
   const isChecklist=onglet==='checklist';
   const isInfo=onglet==='informations';
   const isDocs=onglet==='documents';
+  const isHist=onglet==='historique';
 
+  if(!sal||!veh||!dash||!paneDate||!paneChecklist||!paneInfo||!paneDocs||!paneHist) return;
+
+  // On affiche d'abord le bon panneau. Aucun appel réseau ne doit empêcher
+  // l'accès aux autres fonctions des paramètres.
   sal.hidden=!isSal;
   paneDate.hidden=!isDates;
   veh.hidden=!isVeh;
   dash.hidden=!isDash;
-  document.getElementById('settingsPaneChecklist').hidden=!isChecklist;
-  document.getElementById('settingsPaneInformations').hidden=!isInfo;
-  document.getElementById('settingsPaneDocuments').hidden=!isDocs;
+  paneChecklist.hidden=!isChecklist;
+  paneInfo.hidden=!isInfo;
+  paneDocs.hidden=!isDocs;
+  paneHist.hidden=!isHist;
 
-  ts.classList.toggle('active',isSal);
-  tdate.classList.toggle('active',isDates);
-  tv.classList.toggle('active',isVeh);
-  td.classList.toggle('active',isDash);
-  tc.classList.toggle('active',isChecklist);
-  ti.classList.toggle('active',isInfo);
-  tdoc.classList.toggle('active',isDocs);
+  [[ts,isSal],[tdate,isDates],[tv,isVeh],[td,isDash],[tc,isChecklist],[ti,isInfo],[tdoc,isDocs],[thist,isHist]].forEach(function(x){
+    if(x[0]){
+      x[0].classList.toggle('active',x[1]);
+      x[0].setAttribute('aria-selected',String(x[1]));
+      x[0].setAttribute('data-onglet',x[1]?onglet:(x[0].getAttribute('data-onglet')||''));
+    }
+  });
 
-  ts.setAttribute('aria-selected',String(isSal));
-  tdate.setAttribute('aria-selected',String(isDates));
-  tv.setAttribute('aria-selected',String(isVeh));
-  td.setAttribute('aria-selected',String(isDash));
-  tc.setAttribute('aria-selected',String(isChecklist));
-  ti.setAttribute('aria-selected',String(isInfo));
-  tdoc.setAttribute('aria-selected',String(isDocs));
+  try{
+    if(isSal) chargerGestionSalaries();
+    else if(isDates) chargerDatesAnniversaires();
+    else if(isVeh) chargerGestionVehicules();
+    else if(isDash) setTimeout(function(){ if(!dash.hidden) chargerTableauBord(); },0);
+    else if(isChecklist) chargerGestionChecklist();
+    else if(isInfo) chargerInformationsUI();
+    else if(isDocs) chargerDocuments();
+    else if(isHist) chargerHistoriqueParametres();
+  }catch(e){
+    console.error('Ouverture onglet paramètres',e);
+  }
+}
 
-  if(isSal) chargerGestionSalaries();
-  else if(isDates) chargerDatesAnniversaires();
-  else if(isVeh) chargerGestionVehicules();
-  else if(isDash) chargerTableauBord();
-  else if(isChecklist) chargerGestionChecklist();
-  else if(isInfo) chargerInformationsUI();
-  else if(isDocs) chargerDocuments();
+function chargerHistoriqueParametres(){
+  const list=document.getElementById('settingsHistoriqueList');
+  if(!list) return;
+  list.innerHTML='<div class="settingsMsg">Chargement de l’historique…</div>';
+  const runner=(window.google&&google.script&&google.script.run)?google.script.run:null;
+  if(!runner){
+    list.innerHTML='<div class="settingsMsg">📵 Historique indisponible hors connexion.</div>';
+    return;
+  }
+  runner.withSuccessHandler(function(rows){
+    rows=Array.isArray(rows)?rows:[];
+    if(!rows.length){
+      list.innerHTML='<div class="settingsMsg">Aucune désinfection enregistrée.</div>';
+      return;
+    }
+    list.innerHTML=rows.slice(0,50).map(function(r){
+      const sal=r.salarie||r.Salarie||r.salarii||r[1]||'—';
+      const veh=r.vehicule||r.Vehicule||r[2]||'—';
+      const dat=r.date||r.Date||r.dateHeure||r[0]||'';
+      const p=(r.pourcentage??r.Pourcentage??r[3]??100);
+      const amb=typeof isAmbulanceVehicle==='function' && isAmbulanceVehicle(veh);
+      let details='';
+      if(typeof histLine==='function' && typeof boolHist==='function'){
+        if(amb){
+          details+=histLine('Poste de conduite',boolHist(r,['posteConduite','PosteConduite','poste_de_conduite'],4));
+          details+=histLine('Vitrages',boolHist(r,['vitrages','Vitrages'],6));
+          details+=histLine('Aspirateur',boolHist(r,['aspirateur','Aspirateur'],7));
+          details+=histLine('Cellule sanitaire',boolHist(r,['celluleSanitaire','CelluleSanitaire','cellule_sanitaire'],8));
+          details+=histLine('Brancard',boolHist(r,['brancard','Brancard'],9));
+          details+=histLine('Matériel de soins',boolHist(r,['materielSoins','MaterielSoins','materiel_soins'],10));
+          details+=histLine('Lavage extérieur',boolHist(r,['serpilliereCellule','SerpilliereCellule','serpilliere_cellule'],11));
+          details+=histLine(typeof isElectricVehicle==='function' && isElectricVehicle(veh)?'Branchement électrique':'Plein de carburant',boolHist(r,['carburant','Carburant'],12));
+        }else{
+          details+=histLine('Points de contact',boolHist(r,['pointsContact','PointsContact','points_contact'],4));
+          details+=histLine('Lavage des vitrages',boolHist(r,['vitrages','Vitrages'],5));
+          details+=histLine('Aspirateur',boolHist(r,['aspirateur','Aspirateur'],6));
+          details+=histLine(typeof isElectricVehicle==='function' && isElectricVehicle(veh)?'Branchement électrique':'Plein de carburant',boolHist(r,['carburant','Carburant'],7));
+        }
+      }
+      return '<div class="histRow"><b>'+escapeHtml(sal)+'</b><span>'+escapeHtml(veh)+'</span><small>'+escapeHtml(dat)+' · '+escapeHtml(String(p))+'%</small>'+(details?'<div class="histDetails">'+details+'</div>':'')+'</div>';
+    }).join('');
+  }).withFailureHandler(function(err){
+    console.error('Historique paramètres',err);
+    list.innerHTML='<div class="settingsMsg">Impossible de charger l’historique.</div>';
+  }).getHistoriqueDesinfections({limit:50});
 }
 
 function chargerDatesAnniversaires(){
@@ -4823,59 +4889,50 @@ setTimeout(chargerInformationAccueil,6000);
 function chargerTableauBord(){
   const box=document.getElementById('dashboardContent');
   if(!box) return;
-  box.innerHTML='<div class="dashboardLoading">Chargement du tableau de bord…</div>';
+  box.innerHTML='<div class="dashboardLoading">Chargement des données…</div>';
 
-  let stock=[], historique=[], vehicules=[];
-  let pending=3;
-  let erreurs=[];
+  let stock=null, historique=null, vehicules=null, pending=3, failed=false;
 
-  function terminer(nom, valeur, err){
-    if(nom==='stock') stock=Array.isArray(valeur)?valeur:[];
-    if(nom==='historique') historique=Array.isArray(valeur)?valeur:[];
-    if(nom==='vehicules') vehicules=Array.isArray(valeur)?valeur:[];
-    if(err) erreurs.push(nom+': '+(err&&err.message?err.message:String(err)));
+  function done(){
     pending--;
-    if(pending>0) return;
-
-    /* Le tableau de bord doit toujours pouvoir s'ouvrir.
-       Une seule donnée indisponible ne doit plus bloquer les autres. */
-    try{
-      afficherTableauBord(stock,historique,vehicules);
-      if(erreurs.length){
-        const note=document.createElement('div');
-        note.className='dashboardRefreshNote';
-        note.textContent='⚠️ Certaines données n’ont pas pu être actualisées. Le tableau de bord reste disponible.';
-        box.prepend(note);
-      }
-    }catch(e){
-      console.error('Tableau de bord',e);
-      box.innerHTML='<div class="dashboardError">Impossible d’afficher le tableau de bord.<br><small>'+escapeHtml(e&&e.message?e.message:String(e))+'</small></div>';
-    }
+    if(pending>0 || failed) return;
+    afficherTableauBord(stock||[], historique||[], vehicules||[]);
   }
 
+  function fail(err){
+    if(failed) return;
+    failed=true;
+    const msg=err&&err.message?err.message:String(err||'Erreur inconnue');
+    box.innerHTML='<div class="dashboardError">Impossible de charger le tableau de bord.<br><small>'+escapeHtml(msg)+'</small></div>';
+  }
+
+  /*
+     IMPORTANT : le tableau de bord doit fonctionner depuis GitHub Pages.
+     On utilise donc le même pont SaniStock/API que le reste de l'application.
+     Le stock est lu avec getStockData() : le calcul des alertes est fait ici,
+     donc aucun contrôle administrateur supplémentaire n'est nécessaire pour
+     l'affichage du tableau de bord.
+  */
   const runner=(window.google&&google.script&&google.script.run)?google.script.run:null;
   if(!runner){
-    box.innerHTML='<div class="dashboardError">Connexion SaniStock indisponible.<br><small>Rechargez la page puis réessayez.</small></div>';
+    fail({message:'Pont SaniStock indisponible. Rechargez la page.'});
     return;
   }
 
   runner.withSuccessHandler(function(r){
-    terminer('stock',r,null);
-  }).withFailureHandler(function(e){
-    terminer('stock',[],e);
-  }).getStockData();
+    stock=Array.isArray(r)?r:[];
+    done();
+  }).withFailureHandler(fail).getStockData();
 
   runner.withSuccessHandler(function(r){
-    terminer('historique',r,null);
-  }).withFailureHandler(function(e){
-    terminer('historique',[],e);
-  }).getHistoriqueDesinfections(20);
+    historique=Array.isArray(r)?r:[];
+    done();
+  }).withFailureHandler(fail).getHistoriqueDesinfections({limit:20});
 
   runner.withSuccessHandler(function(r){
-    terminer('vehicules',r,null);
-  }).withFailureHandler(function(e){
-    terminer('vehicules',[],e);
-  }).getVehicules();
+    vehicules=Array.isArray(r)?r:[];
+    done();
+  }).withFailureHandler(fail).getVehicules();
 }
 
 function dashboardDate_(value){
@@ -4982,6 +5039,7 @@ function afficherTableauBord(stock,historique,vehicules){
   recentDes.forEach(function(h){
     detailDesinfection+='<div class="dashboardRow"><div class="rowMain"><div class="rowName">🚑 '+escapeHtml(h.vehicule)+'</div><div class="rowMeta">'+escapeHtml(h.salarie)+' • '+escapeHtml(h.dateHeure)+'</div></div><span class="dashboardBadge green">'+escapeHtml(h.pourcentage||'100')+'%</span></div>';
   });
+  detailDesinfection+='<div style="padding:10px 0 0"><button type="button" class="settingsAction" onclick="ouvrirOngletParametres(\'historique\')">📜 Voir l’historique complet</button></div>';
   detailDesinfection+='</div></div>';
   html.push(detailDesinfection);
 
