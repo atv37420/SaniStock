@@ -11575,19 +11575,15 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
       await drawRenaultSig(sigDae,62,733,222,24);
       await drawRenaultSig(sigAa,309,733,222,24);
     }else{
-      // Peugeot Boxer FZ-349-AT : deux cadres de signature dans la zone SIGNATURES.
-      // Les cadres sont placés à l'intérieur de la vraie zone blanche du modèle,
-      // juste sous les libellés D.E.A / A.A.
+      // Peugeot Boxer FZ-349-AT : deux cadres de signature placés dans la zone SIGNATURES
+      // du modèle PDF (en bas de la page 3, juste au-dessus de OBSERVATIONS).
       const white=PDFLib.rgb(1,1,1);
-      // Nettoie uniquement l'intérieur de la zone de signature, sans toucher
-      // au titre SIGNATURES ni à la zone OBSERVATIONS.
-      cover(p3,52,242,491,31,white);
-      // Deux cadres bien séparés, entièrement dans la zone SIGNATURES.
-      p3.drawRectangle({x:55,y:244,width:235,height:27,borderColor:black,borderWidth:1});
-      p3.drawRectangle({x:305,y:244,width:235,height:27,borderColor:black,borderWidth:1});
-      // Libellés demandés par l'utilisateur.
-      centerText(p3,bold,'A.D.E',172.5,275,9,black);
-      centerText(p3,bold,'A.A',422.5,275,9,black);
+      // Nettoie uniquement l'intérieur de la zone réservée aux deux signatures.
+      cover(p3,52,91,491,42,white);
+      p3.drawRectangle({x:55,y:94,width:235,height:27,borderColor:black,borderWidth:1});
+      p3.drawRectangle({x:305,y:94,width:235,height:27,borderColor:black,borderWidth:1});
+      centerText(p3,bold,'A.D.E',172.5,124,9,black);
+      centerText(p3,bold,'A.A',422.5,124,9,black);
       async function drawBoxerSig(data,x,y,w,h){
         if(!data || data.indexOf('data:image/')!==0)return;
         try{
@@ -11597,8 +11593,8 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
           p3.drawImage(png,{x:x+(w-dw)/2,y:y+(h-dh)/2,width:dw,height:dh});
         }catch(e){console.warn('Signature Peugeot Boxer',e);}
       }
-      await drawBoxerSig(sigDae,61,247,223,21);
-      await drawBoxerSig(sigAa,311,247,223,21);
+      await drawBoxerSig(sigDae,61,97,223,21);
+      await drawBoxerSig(sigAa,311,97,223,21);
     }
     const bytes=await doc.save();
     return {blob:new Blob([bytes],{type:'application/pdf'}),filename:'Check-list Ambulance - '+immat+' - '+htmlDateFR(date).replaceAll('/','-')+'.pdf'};
