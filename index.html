@@ -9995,26 +9995,14 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
     try{
       var x=JSON.parse(localStorage.getItem(KEY)||'null');
       if(x&&Array.isArray(x.AMBULANCES)&&Array.isArray(x.TAXIS)&&Array.isArray(x.VSL)){
-        var vus=Object.create(null), changed=false;
+        if(!x.AMBULANCES.some(function(v){return String(v||'').toUpperCase().includes('HS-219-PS');})) x.AMBULANCES.push('HS-219-PS – AMBULANCE RENAULT TRAFIC');
         ['AMBULANCES','TAXIS','VSL'].forEach(function(c){
-          var propres=[];
-          x[c].forEach(function(v){
-            v=String(v==null?'':v).trim();
-            if(!v){changed=true;return;}
-            var cle=v.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[–—]/g,'-').replace(/\s+/g,' ').trim().toUpperCase();
-            if(vus[cle]){changed=true;return;}
-            vus[cle]=true; propres.push(v);
-          });
-          if(propres.length!==x[c].length) changed=true;
-          x[c]=propres;
+          if(!x[c].length) x[c]=clone(DEFAULTS[c]);
         });
-        if(changed) localStorage.setItem(KEY,JSON.stringify(x));
         return x;
       }
     }catch(e){}
-    var def=clone(DEFAULTS);
-    localStorage.setItem(KEY,JSON.stringify(def));
-    return def;
+    return clone(DEFAULTS);
   }
   function save(x){localStorage.setItem(KEY,JSON.stringify(x));window.CHECKLIST_VEHICLES_FIXED=x;}
   function esc(x){return String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
@@ -10061,11 +10049,8 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
 </script>
 <script id="checklist-fixed-js">
 (function(){
-  function getV(){
-    var data=window.getChecklistVehiculesData?window.getChecklistVehiculesData():window.CHECKLIST_VEHICLES_DEFAULTS;
-    window.CHECKLIST_VEHICLES_FIXED=data;
-    return data||{};
-  }
+  const V=(window.getChecklistVehiculesData?window.getChecklistVehiculesData():window.CHECKLIST_VEHICLES_DEFAULTS);
+  window.CHECKLIST_VEHICLES_FIXED=V;
   function esc(x){return String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
   function checklistCategoryLabel(cat){
     var c=String(cat||'').toUpperCase();
@@ -10075,9 +10060,9 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
     return c;
   }
   window.ouvrirChecklistCategories=function(){
+    if(typeof window.showPage==='function') window.showPage('checklistPage');
     var box=document.getElementById('checklistContent'), sub=document.getElementById('checklistSubtitle'); if(!box)return;
     if(sub)sub.textContent='Choisissez une catégorie de véhicule';
-    var V=getV();
     box.innerHTML='<div class="checklistGrid">'+Object.keys(V).map(function(c){
       return '<button type="button" class="checklistCard" data-check-cat="'+esc(c)+'">'
         +'<span class="checklistCardTitle">'+esc(checklistCategoryLabel(c))+'</span>'
@@ -10088,8 +10073,6 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
   };
   window.ouvrirChecklistVehicules=function(c){
     var box=document.getElementById('checklistContent'), sub=document.getElementById('checklistSubtitle'); if(!box)return;
-    var V=getV();
-    if(!Array.isArray(V[c])){window.ouvrirChecklistCategories();return;}
     if(sub)sub.textContent=checklistCategoryLabel(c)+' — choisissez un véhicule';
     box.innerHTML='<button type="button" class="back" id="checklistBackCat">← Catégories</button>'
       +V[c].map(function(v){
