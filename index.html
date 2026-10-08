@@ -645,10 +645,7 @@ body{display:block}
   background:#ff3b45;
   box-shadow:0 0 10px rgba(255,59,69,.9);
 }
-#saniConnection.loading .saniDot{
-  background:#ffad21;
-  animation:saniPulse 1s infinite alternate;
-}
+#saniConnection.loading .saniDot{background:#38e36d !important;box-shadow:0 0 10px rgba(56,227,109,.9) !important;animation:none !important;}
 @keyframes saniPulse{
   from{opacity:.45;transform:scale(.85)}
   to{opacity:1;transform:scale(1.12)}
@@ -3003,66 +3000,32 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
   function etat(type,titre,sousTitre){
     if(!box) return;
     box.className=type;
-    if(title) title.textContent=titre;
-    if(sub) sub.textContent=sousTitre;
+    if(title) title.textContent=(type==='ok' ? 'Connecté à SaniStock' : titre);
+    if(sub) sub.textContent=(type==='ok' ? 'SaniStock connecté' : sousTitre);
     var btn=document.getElementById('homeLogoutBtn');
-    var dot=document.getElementById('homeConnDot');
     var bt=document.getElementById('homeConnTitle');
     if(btn){btn.classList.remove('ok','error','loading');btn.classList.add(type==='ok'?'ok':(type==='error'?'error':'loading'));}
-    if(bt) bt.textContent=titre==='En ligne'?'Connecté à SaniStock':(titre==='Hors ligne'?'Hors ligne':'Connexion...');
+    if(bt) bt.textContent=titre==='Hors ligne'?'Hors ligne':'Connecté à SaniStock';
   }
 
   function afficherStatut(){
     var online=navigator.onLine;
-    var pending=Number(document.documentElement.dataset.sanistockPending||0);
-
     if(!online){
       etat('error','Hors ligne','Actions enregistrées hors ligne');
-    }else if(pending>0){
-      etat('loading','Synchronisation',''+pending+' opération'+(pending>1?'s':'')+' en cours');
     }else{
       etat('ok','En ligne','SaniStock connecté');
     }
   }
 
   window.verifierConnexionSaniStock=function(){
-    if(!navigator.onLine){
-      afficherStatut();
-      return;
-    }
-
-    etat('loading','En ligne','Vérification de la connexion');
-
-    if(typeof google==='undefined' || !google.script || !google.script.run){
-      afficherStatut();
-      return;
-    }
-
-    google.script.run
-      .withSuccessHandler(function(){
-        afficherStatut();
-      })
-      .withFailureHandler(function(){
-        etat('loading','En ligne','Serveur temporairement indisponible');
-      })
-      .getStockData();
-  }
-
-  if(box) box.addEventListener('click',verifierConnexionSaniStock);
-
-  window.addEventListener('load',function(){
-    setTimeout(verifierConnexionSaniStock,700);
-  });
-
-  window.addEventListener('online',function(){
-    setTimeout(afficherStatut,100);
-    setTimeout(verifierConnexionSaniStock,400);
-  });
-
+    afficherStatut();
+  };
+  window.actualiserConnexionSaniStockUI=function(){
+    afficherStatut();
+  };
+  window.addEventListener('online',afficherStatut);
   window.addEventListener('offline',afficherStatut);
-  window.addEventListener('sanistock-status',afficherStatut);
-  window.addEventListener('sanistock-offline-queued',afficherStatut);
-  window.addEventListener('sanistock-sync-complete',afficherStatut);
+  afficherStatut();
 })();
 </script>
 
