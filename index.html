@@ -10080,7 +10080,7 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
     var box=document.getElementById('checklistContent'), sub=document.getElementById('checklistSubtitle'); if(!box)return;
     if(sub)sub.textContent='Choisissez une catégorie de véhicule';
     box.innerHTML='<div class="checklistGrid">'+Object.keys(V).map(function(c){
-      return '<button type="button" class="checklistCard" data-check-cat="'+esc(c)+'">'
+      return '<button type="button" class="checklistCard" data-check-cat="'+esc(c)+'" onclick="return saniOuvrirCategorieDepuisBouton(this);">'
         +'<span class="checklistCardTitle">'+esc(checklistCategoryLabel(c))+'</span>'
         +'<span class="checklistCardDesc">'+V[c].length+' véhicule'+(V[c].length>1?'s':'')+'</span>'
         +'</button>';
@@ -10099,6 +10099,15 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
   window.ouvrirChecklistVehiculeFixe=function(v){alert('Véhicule sélectionné : '+v+'\n\nLa check-list détaillée de ce véhicule sera ajoutée ici.');};
   // Ouverture robuste des véhicules : le bouton appelle directement cette fonction
   // afin de ne pas dépendre uniquement de la délégation du clic document.
+  window.saniOuvrirCategorieDepuisBouton=function(btn){
+    try{
+      var c=btn&&btn.getAttribute?btn.getAttribute('data-check-cat'):'';
+      if(c && typeof window.ouvrirChecklistVehicules==='function'){
+        window.ouvrirChecklistVehicules(c);
+      }
+    }catch(err){console.error('Erreur ouverture catégorie SaniStock',err);}
+    return false;
+  };
   window.saniOuvrirVehiculeDepuisBouton=function(btn){
     try{
       var v=btn&&btn.getAttribute?btn.getAttribute('data-check-veh'):'';
@@ -10229,6 +10238,17 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
 }
 </style>
 
+<script id="sanistock-checklist-auto-date-crew-final">
+(function(){
+  window.saniDateAujourdhui=function(){
+    var d=new Date();
+    return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  };
+  window.saniNomEquipierAutomatique=function(){
+    try{return String(localStorage.getItem("sanistock_employee_name")||"").trim();}catch(e){return "";}
+  };
+})();
+</script>
 <style id="sanistock-checklist-taxi-style">
 #checklistTaxiDetail{display:none;padding-bottom:25px}
 #checklistTaxiDetail.show{display:block}
@@ -10293,7 +10313,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     html += '<div class="taxiInfoTitle">Informations du contrôle</div>';
     html += '<div class="taxiInfoGrid">';
     html += '<div class="taxiField"><label>Équipage :</label><div id="taxiEquipageList" class="taxiCrewList"><div style="color:#71879a;font-size:13px">Chargement des salariés…</div></div><input id="taxiEquipage" type="hidden"></div>';
-    html += '<div class="taxiField"><label>Date :</label><input id="taxiDate" type="date" value="'+new Date().toISOString().slice(0,10)+'"></div>';
+    html += '<div class="taxiField"><label>Date :</label><input id="taxiDate" type="date" value="'+saniDateAujourdhui()+'"></div>';
     html += '<div class="taxiField"><label>Immatriculation :</label><input id="taxiImmatriculation" type="text" value="'+esc(saniImmatriculationAutomatique(vehicle) || vehicle.split(' – ')[0] || '')+'" readonly></div>';
     html += '<div class="taxiField"><label>Kms :</label><input id="taxiKms" type="text" inputmode="numeric" placeholder="Saisir le kilométrage"></div>';
     html += '</div></div>';
@@ -10385,6 +10405,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     if(sub) sub.textContent='TAXI — contrôle du véhicule';
     box.innerHTML=taxiHtml(v);
     chargerEquipageTaxi();
+    setTimeout(function(){ chargerEquipageTaxi(); }, 150);
     const d=document.getElementById('checklistTaxiDetail');
     if(d) d.classList.add('show');
     setTimeout(function(){ initSignatureTaxi(); }, 60);
@@ -11045,7 +11066,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     html+='<h1>🚐 CHECK-LIST VSL</h1><p id="checklistVslSubtitle" style="margin:0 0 14px;color:#64748b">Véhicule : '+esc(vehicle)+'</p>';
     html+='<div class="taxiInfoCard"><div class="taxiInfoTitle">Informations du contrôle</div><div class="taxiInfoGrid">';
     html+='<div class="taxiField"><label>Équipage :</label><div id="vslEquipageList" class="taxiCrewList"><div style="color:#71879a;font-size:13px">Chargement des salariés…</div></div><input id="vslEquipage" type="hidden"></div>';
-    html+='<div class="taxiField"><label>Date :</label><input id="vslDate" type="date" value="'+new Date().toISOString().slice(0,10)+'"></div>';
+    html+='<div class="taxiField"><label>Date :</label><input id="vslDate" type="date" value="'+saniDateAujourdhui()+'"></div>';
     html+='<div class="taxiField"><label>Immatriculation :</label><input id="vslImmatriculation" type="text" value="'+esc(saniImmatriculationAutomatique(vehicle)||vehicle.split(' – ')[0]||'')+'" readonly></div>';
     html+='<div class="taxiField"><label>Kms :</label><input id="vslKms" type="text" inputmode="numeric" placeholder="Saisir le kilométrage"></div></div></div>';
     Object.keys(groups).forEach(function(cat){
@@ -11264,8 +11285,24 @@ window.saniStockGenererVslPdfExact=buildExactPdf;
   window.genererPdfVsl=async function(){const btn=document.querySelector('.vslPdfBtn'),old=btn&&btn.textContent;if(btn){btn.disabled=true;btn.textContent='⏳ GÉNÉRATION DU PDF...';}try{const pdf=await buildExactPdf(),url=URL.createObjectURL(pdf.blob),a=document.createElement('a');a.href=url;a.download=pdf.filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);alert('✅ PDF VSL généré avec la mise en page exacte de la fiche VSL d’origine.');}catch(e){console.error(e);alert('❌ Impossible de générer le PDF VSL : '+(e&&e.message?e.message:e));}finally{if(btn){btn.disabled=false;btn.textContent=old||'📄 GÉNÉRER LE PDF';}}};
   window.envoyerMailVsl=async function(){const btn=document.querySelector('.vslMailBtn'),old=btn&&btn.textContent;if(btn){btn.disabled=true;btn.textContent='⏳ PRÉPARATION DU PDF...';}try{const pdf=await buildExactPdf(),buffer=await pdf.blob.arrayBuffer(),bytes=new Uint8Array(buffer);if(!bytes.length)throw new Error('Le PDF généré est vide.');let binary='',chunk=0x8000;for(let i=0;i<bytes.length;i+=chunk)binary+=String.fromCharCode.apply(null,bytes.subarray(i,Math.min(i+chunk,bytes.length)));const base64=btoa(binary).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');let hash='';if(window.crypto&&window.crypto.subtle){const d=await window.crypto.subtle.digest('SHA-256',buffer),hb=new Uint8Array(d);hash=Array.from(hb).map(x=>x.toString(16).padStart(2,'0')).join('');}let salarie='',code='';try{salarie=String(localStorage.getItem('sanistock_employee_name')||'').trim();code=String(localStorage.getItem('sanistock_employee_code')||'').trim();}catch(e){}if(!salarie||!code)throw new Error('Session salarié introuvable. Reconnectez-vous à SaniStock.');const immat=document.getElementById('vslImmatriculation')?.value||'',date=document.getElementById('vslDate')?.value||'',vehicle=(document.getElementById('checklistVslSubtitle')?.textContent||'').replace(/^Véhicule\s*:\s*/,'').trim(),kms=document.getElementById('vslKms')?.value||'',dateAff=dateFR(date),subject='Check-list VSL - '+immat+' - '+dateAff,body=['Bonjour,','','Veuillez trouver ci-joint la fiche de contrôle et d’entretien mensuel du VSL.','', 'Véhicule : '+vehicle,'Immatriculation : '+immat,'Chauffeur : '+salarie,'Date : '+dateAff,'Kms : '+kms,'','Cordialement,','SaniStock'].join('\n');const api=(window.SANISTOCK_API_URL||'https://script.google.com/macros/s/AKfycbxz5dZkT7FyFx8ohxWmg2Pt23Yqx0LQDMqqJg8LM8bkfN3ulkb37VqUO8m8WvjyuGBqrg/exec'),frame=document.createElement('iframe');frame.name='sanistockVslMail_'+Date.now();frame.style.display='none';document.body.appendChild(frame);const form=document.createElement('form');form.method='POST';form.action=api;form.target=frame.name;form.style.display='none';const input=document.createElement('textarea');input.name='payload';input.value=JSON.stringify({action:'envoyerVslPdf',data:{salarie,code,filename:pdf.filename,base64url:base64,byteLength:bytes.length,sha256:hash,subject,body}});form.appendChild(input);document.body.appendChild(form);form.submit();await new Promise(r=>setTimeout(r,4500));form.remove();frame.remove();alert('✅ La fiche VSL remplie a été envoyée directement par mail avec le PDF en pièce jointe.');}catch(e){console.error(e);alert('❌ Impossible d’envoyer la fiche VSL : '+(e&&e.message?e.message:e));}finally{if(btn){btn.disabled=false;btn.textContent=old||'📧 ENVOYER PAR MAIL';}}};
   window.ouvrirChecklistVehiculeFixeVsl=window.ouvrirChecklistVehiculeFixe;
+  /* Ouverture VSL DIRECTE : ne dépend plus de la chaîne des anciens wrappers. */
+  window.ouvrirChecklistVslDirect=function(v){
+    const box=document.getElementById('checklistContent'),sub=document.getElementById('checklistSubtitle');
+    if(!box)return false;
+    if(sub)sub.textContent='VSL — contrôle du véhicule';
+    box.innerHTML=vslHtml(v);
+    chargerEquipageVsl();
+    setTimeout(function(){ chargerEquipageVsl(); }, 150);
+    const d=document.getElementById('checklistVslDetail');
+    if(d)d.classList.add('show');
+    setTimeout(()=>initSignatureVsl(),60);
+    return false;
+  };
   const previous=window.ouvrirChecklistVehiculeFixe;
-  window.ouvrirChecklistVehiculeFixe=function(v){if(String(v).toUpperCase().includes('VSL')){const box=document.getElementById('checklistContent'),sub=document.getElementById('checklistSubtitle');if(!box)return;if(sub)sub.textContent='VSL — contrôle du véhicule';box.innerHTML=vslHtml(v);chargerEquipageVsl();const d=document.getElementById('checklistVslDetail');if(d)d.classList.add('show');setTimeout(()=>initSignatureVsl(),60);return;}return previous(v);};
+  window.ouvrirChecklistVehiculeFixe=function(v){
+    if(String(v).toUpperCase().includes('VSL')) return window.ouvrirChecklistVslDirect(v);
+    return previous(v);
+  };
   window.fermerChecklistVsl=function(){if(typeof window.ouvrirChecklistVehicules==='function')window.ouvrirChecklistVehicules('VSL');};
 })();
 </script>
@@ -11329,7 +11366,7 @@ window.saniStockGenererVslPdfExact=buildExactPdf;
     html+='<div class="vslInfoGrid ambInfoGrid">';
     html+='<div class="vslField"><label>IMMATRICULATION</label><input id="ambImmatriculation" type="text" value="'+esc(immatDepuisVehicule(vehicle))+'" readonly></div>';
     html+='<div class="vslField"><label>KMS</label><input id="ambKms" type="text" inputmode="numeric" placeholder="Saisir le kilométrage"></div>';
-    html+='<div class="vslField"><label>DATE</label><input id="ambDate" type="date" value="'+new Date().toISOString().slice(0,10)+'"></div>';
+    html+='<div class="vslField"><label>DATE</label><input id="ambDate" type="date" value="'+saniDateAujourdhui()+'"></div>';
     html+='<div class="vslField"><label>ÉQUIPIER 1 — AUTOMATIQUE</label><div id="ambCrew1" class="ambCrewRecognized">Chargement du salarié reconnu…</div></div>';
     html+='</div>';
     html+='<div class="ambCrewGrid">';
@@ -11602,6 +11639,7 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
     box.innerHTML=ambulanceHtml(v);
     buildAmbSections();
     setCrew();
+    setTimeout(function(){ setCrew(); }, 150);
     const d=document.getElementById('checklistAmbulanceDetail');if(d)d.classList.add('show');
     setTimeout(function(){initSignatureAmbulance();},60);
   };
@@ -11714,7 +11752,7 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
     h+='<div class="vslInfoGrid ambInfoGrid">';
     h+='<div class="vslField"><label>IMMATRICULATION</label><input id="ha219Immat" type="text" value="'+esc(saniImmatriculationAutomatique(v)||'HA-219-PS')+'" readonly></div>';
     h+='<div class="vslField"><label>KMS</label><input id="ha219Kms" type="text" inputmode="numeric" placeholder="Saisir le kilométrage"></div>';
-    h+='<div class="vslField"><label>DATE</label><input id="ha219Date" type="date" value="'+new Date().toISOString().slice(0,10)+'"></div>';
+    h+='<div class="vslField"><label>DATE</label><input id="ha219Date" type="date" value="'+saniDateAujourdhui()+'"></div>';
     h+='<div class="vslField"><label>ÉQUIPIER 1 — AUTOMATIQUE</label><div id="ha219Crew1" class="ambCrewRecognized">Chargement du salarié reconnu…</div></div>';
     h+='</div>';
     h+='<div class="ambCrewGrid">';
@@ -11826,10 +11864,43 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
   }
   window.genererPdfHa219=async function(){try{const pdf=await buildPdf();const url=URL.createObjectURL(pdf.blob),a=document.createElement('a');a.href=url;a.download=pdf.filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);alert('✅ PDF HA-219-PS généré avec la fiche fournie.');}catch(e){console.error(e);alert('❌ Impossible de générer le PDF : '+(e&&e.message?e.message:e));}};
   window.envoyerMailHa219=async function(){const btn=document.querySelector('#checklistHa219Detail .vslMailBtn'),old=btn&&btn.textContent;if(btn){btn.disabled=true;btn.textContent='⏳ PRÉPARATION DU PDF...';}try{const pdf=await buildPdf(),buffer=await pdf.blob.arrayBuffer(),bytes=new Uint8Array(buffer);let binary='',chunk=0x8000;for(let i=0;i<bytes.length;i+=chunk)binary+=String.fromCharCode.apply(null,bytes.subarray(i,Math.min(i+chunk,bytes.length)));const base64Url=btoa(binary).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');let salarie='',code='';try{salarie=String(localStorage.getItem('sanistock_employee_name')||'').trim();code=String(localStorage.getItem('sanistock_employee_code')||'').trim();}catch(e){}if(!salarie||!code)throw new Error('Session salarié introuvable. Reconnectez-vous à SaniStock.');const date=String(document.getElementById('ha219Date')?.value||'').trim(),kms=String(document.getElementById('ha219Kms')?.value||'').trim(),dateAff=typeof htmlDateFR==='function'?htmlDateFR(date):date,subject='Check-list Ambulance HA-219-PS - '+dateAff,body=['Bonjour,','',"Veuillez trouver ci-joint la fiche de contrôle et d’entretien du Renault Trafic HA-219-PS.",'','Véhicule : Renault Trafic','Immatriculation : HA-219-PS','Équipier 1 : '+salarie,'Équipier 2 : '+String(document.getElementById('ha219Crew2')?.value||''),'Date : '+dateAff,'Kms : '+kms,'','Cordialement,','SaniStock'].join('\n');const api=(window.SANISTOCK_API_URL||'https://script.google.com/macros/s/AKfycbxz5dZkT7FyFx8ohxWmg2Pt23Yqx0LQDMqqJg8LM8bkfN3ulkb37VqUO8m8WvjyuGBqrg/exec');const frame=document.createElement('iframe');frame.name='sanistockHa219Mail_'+Date.now();frame.style.display='none';document.body.appendChild(frame);const form=document.createElement('form');form.method='POST';form.action=api;form.target=frame.name;form.style.display='none';const input=document.createElement('textarea');input.name='payload';input.value=JSON.stringify({action:'envoyerVslPdf',data:{salarie,code,filename:pdf.filename,base64url:base64Url,byteLength:bytes.length,subject,body}});form.appendChild(input);document.body.appendChild(form);form.submit();await new Promise(r=>setTimeout(r,4500));form.remove();frame.remove();alert('✅ La fiche HA-219-PS a été envoyée par mail avec le PDF en pièce jointe.');}catch(e){console.error(e);alert('❌ Impossible d’envoyer la fiche HA-219-PS : '+(e&&e.message?e.message:e));}finally{if(btn){btn.disabled=false;btn.textContent=old||'📧 ENVOYER PAR MAIL';}}};
-  window.ouvrirChecklistAmbulanceTraficHa219=window.ouvrirChecklistAmbulanceTraficHa219||function(v){const box=document.getElementById('checklistContent'),sub=document.getElementById('checklistSubtitle');if(!box)return;if(sub)sub.textContent='AMBULANCE — RENAULT TRAFIC HA-219-PS';box.innerHTML=html(v||'HA-219-PS – AMBULANCE RENAULT TRAFIC');const d=document.getElementById('checklistHa219Detail');if(d)d.classList.add('show');setCrew();setTimeout(sigInit,60);};
+  window.ouvrirChecklistAmbulanceTraficHa219=window.ouvrirChecklistAmbulanceTraficHa219||function(v){const box=document.getElementById('checklistContent'),sub=document.getElementById('checklistSubtitle');if(!box)return;if(sub)sub.textContent='AMBULANCE — RENAULT TRAFIC HA-219-PS';box.innerHTML=html(v||'HA-219-PS – AMBULANCE RENAULT TRAFIC');const d=document.getElementById('checklistHa219Detail');if(d)d.classList.add('show');setCrew();setTimeout(function(){setCrew();},150);setTimeout(sigInit,60);};
   window.fermerChecklistHa219=function(){if(typeof window.ouvrirChecklistVehicules==='function')window.ouvrirChecklistVehicules('AMBULANCES');};
   const oldOpen=window.ouvrirChecklistVehiculeFixe;
   if(typeof oldOpen==='function')window.ouvrirChecklistVehiculeFixe=function(v){const s=String(v||'').toUpperCase();if(s.includes('HA-219-PS')||s.includes('RENAULT TRAFIC')){window.ouvrirChecklistAmbulanceTraficHa219(v);return;}return oldOpen.apply(this,arguments);};
+})();
+</script>
+
+<script id="sanistock-final-vehicle-click-fix">
+(function(){
+  window.saniOuvrirVehiculeDepuisBouton=function(btn){
+    try{
+      var v=btn&&btn.getAttribute?btn.getAttribute('data-check-veh'):'';
+      var u=String(v||'').toUpperCase();
+      if(!v)return false;
+      if(u.includes('VSL') && typeof window.ouvrirChecklistVslDirect==='function'){
+        return window.ouvrirChecklistVslDirect(v);
+      }
+      if((u.includes('HA-219-PS') || u.includes('RENAULT TRAFIC')) && typeof window.ouvrirChecklistAmbulanceTraficHa219==='function'){
+        window.ouvrirChecklistAmbulanceTraficHa219(v); return false;
+      }
+      if(typeof window.ouvrirChecklistVehiculeFixe==='function'){
+        return window.ouvrirChecklistVehiculeFixe(v) || false;
+      }
+    }catch(err){ console.error('Erreur ouverture véhicule SaniStock',err); }
+    return false;
+  };
+  document.addEventListener('click',function(e){
+    var c=e.target&&e.target.closest?e.target.closest('#checklistPage [data-check-cat]'):null;
+    if(c){
+      e.preventDefault(); e.stopImmediatePropagation();
+      return window.saniOuvrirCategorieDepuisBouton(c);
+    }
+    var b=e.target&&e.target.closest?e.target.closest('#checklistPage [data-check-veh]'):null;
+    if(!b)return;
+    e.preventDefault(); e.stopImmediatePropagation();
+    window.saniOuvrirVehiculeDepuisBouton(b);
+  },true);
 })();
 </script>
 </body>
