@@ -10802,10 +10802,11 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
 
     // Informations générales : on écrit uniquement dans les zones prévues, sans masquer les libellés.
     // Coordonnées calées sur le modèle taxi_template.pdf.
-    drawValue(p1,bold,date,88,716,95,9,black);
-    drawValue(p1,bold,immat,317,716,68,9,black);
-    drawValue(p1,bold,kms,436,716,58,9,black);
-    drawValue(p1,bold,equip,106,702,340,9,black);
+    // Informations générales remontées de 5 points.
+    drawValue(p1,bold,date,88,721,95,9,black);
+    drawValue(p1,bold,immat,317,721,68,9,black);
+    drawValue(p1,bold,kms,436,721,58,9,black);
+    drawValue(p1,bold,equip,106,707,340,9,black);
 
     // Papiers : une seule case par document, exactement comme la fiche d'origine.
     var left=[0,2,4,6,8,10],right=[1,3,5,7,9,11];
