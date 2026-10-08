@@ -11581,12 +11581,13 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
       // de la page 3, entre le titre SIGNATURES et la barre OBSERVATIONS.
       const white=PDFLib.rgb(1,1,1);
       // Nettoie seulement l'intérieur de la zone de signature, en conservant le titre et les bordures.
-      cover(p3,54,46,488,53,white);
-      // Deux cadres distincts, côte à côte, dans la zone de signature existante.
-      p3.drawRectangle({x:59,y:51,width:230,height:43,borderColor:black,borderWidth:1});
-      p3.drawRectangle({x:307,y:51,width:230,height:43,borderColor:black,borderWidth:1});
-      centerText(p3,bold,'A.D.E',174,102,9,black);
-      centerText(p3,bold,'A.A',422,102,9,black);
+      // Cadres remontés pour rester entièrement dans la zone SIGNATURES,
+      // au-dessus de la barre OBSERVATIONS.
+      cover(p3,54,76,488,53,white);
+      p3.drawRectangle({x:59,y:79,width:230,height:43,borderColor:black,borderWidth:1});
+      p3.drawRectangle({x:307,y:79,width:230,height:43,borderColor:black,borderWidth:1});
+      centerText(p3,bold,'A.D.E',174,126,9,black);
+      centerText(p3,bold,'A.A',422,126,9,black);
       async function drawBoxerSig(data,x,y,w,h){
         if(!data || data.indexOf('data:image/')!==0)return;
         try{
@@ -11596,8 +11597,8 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
           p3.drawImage(png,{x:x+(w-dw)/2,y:y+(h-dh)/2,width:dw,height:dh});
         }catch(e){console.warn('Signature Peugeot Boxer',e);}
       }
-      await drawBoxerSig(sigDae,64,54,220,37);
-      await drawBoxerSig(sigAa,312,54,220,37);
+      await drawBoxerSig(sigDae,64,81,220,37);
+      await drawBoxerSig(sigAa,312,81,220,37);
     }
     const bytes=await doc.save();
     return {blob:new Blob([bytes],{type:'application/pdf'}),filename:'Check-list Ambulance - '+immat+' - '+htmlDateFR(date).replaceAll('/','-')+'.pdf'};
