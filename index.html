@@ -201,6 +201,22 @@
     },30000);
   }
 
+  // API commune accessible aux écrans de paramètres et aux checklists.
+  window.saniCallApi = sendJsonp;
+  window.saniSyncVehicleCategories = function(onDone){
+    if(!navigator.onLine || typeof sendJsonp!=='function'){ if(onDone)onDone(false); return; }
+    sendJsonp('getVehicleChecklistCategories',{},function(map){
+      if(map && typeof map==='object'){
+        ['sanistock_vehicules_categories_v1','sanistock_checklist_vehicules_v1'].forEach(function(key){
+          try{localStorage.setItem(key,JSON.stringify(map));}catch(e){}
+        });
+      }
+      if(onDone)onDone(true,map);
+    },function(){if(onDone)onDone(false);});
+  };
+  // Charge les catégories partagées au démarrage ; hors ligne, le cache local reste disponible.
+  setTimeout(function(){ if(window.saniSyncVehicleCategories)window.saniSyncVehicleCategories(); },800);
+
   async function synchroniser(){
     if(!navigator.onLine) return;
 
@@ -4287,7 +4303,9 @@ function modifierVehiculeUI(ligne,ancienNom,ancienneCat){
     const d=_loadVehiculeCategoriesUI();
     Object.keys(d).forEach(function(c){d[c]=d[c].map(function(v){return String(v).toLowerCase()===String(ancienNom).toLowerCase()?nom.trim():v;});});
     _saveVehiculeCategoriesUI(d);
-    messageParametres('✅ Véhicule modifié.'); chargerGestionVehicules(); chargerVehicules();
+    const cat=window.saniGetChecklistCategoryForVehicle(nom.trim())||ancienneCat||'AMBULANCES';
+    if(window.saniCallApi)window.saniCallApi('renameVehicleChecklistCategory',Object.assign({ancienVehicule:ancienNom,nouveauVehicule:nom.trim(),categorie:cat},donneesAccesGestion()),function(){messageParametres('✅ Véhicule modifié et catégorie partagée.');chargerGestionVehicules();chargerVehicules();},function(){messageParametres('⚠️ Véhicule modifié, mais vérifie le partage de sa catégorie.',false);chargerGestionVehicules();chargerVehicules();});
+    else {messageParametres('✅ Véhicule modifié.'); chargerGestionVehicules(); chargerVehicules();}
   }).withFailureHandler(function(e){
     messageParametres('❌ '+(e&&e.message?e.message:e),false);
   }).modifierVehicule(Object.assign({ligne:ligne,vehicule:nom.trim()},donneesAccesGestion()));
