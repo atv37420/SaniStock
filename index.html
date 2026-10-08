@@ -10662,67 +10662,8 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
           (sig&&sig.indexOf('data:image/')===0?'<img src="'+sig+'" alt="Signature">':'')+
         '</div>'+
         '<div class="meta">Véhicule : '+taxiPdfEscape(vehicle)+'</div>'+
-      '</div>
-<script id="sanistock-checklist-open-final-20261008">
-(function(){
-  /* OUVERTURE FINALE DES CHECK-LISTS : TAXI / VSL / BOXER / TRAFIC */
-  function openChecklistVehicle(v){
-    try{
-      var value=String(v||'').trim();
-      var u=value.toUpperCase();
-      if(!value)return false;
-
-      if(u.indexOf('TAXI')>=0){
-        var box=document.getElementById('checklistContent');
-        var sub=document.getElementById('checklistSubtitle');
-        if(!box)return false;
-        if(typeof taxiHtml==='function') box.innerHTML=taxiHtml(value);
-        else if(typeof window.taxiHtml==='function') box.innerHTML=window.taxiHtml(value);
-        else return false;
-        if(sub)sub.textContent='TAXI — contrôle du véhicule';
-        if(typeof window.chargerEquipageTaxi==='function')window.chargerEquipageTaxi();
-        var td=document.getElementById('checklistTaxiDetail'); if(td)td.classList.add('show');
-        if(typeof window.initSignatureTaxi==='function')setTimeout(window.initSignatureTaxi,60);
-        return true;
-      }
-      if(u.indexOf('VSL')>=0 && typeof window.ouvrirChecklistVslDirect==='function'){
-        window.ouvrirChecklistVslDirect(value); return true;
-      }
-      if((u.indexOf('HA-219-PS')>=0 || u.indexOf('RENAULT TRAFIC')>=0) && typeof window.ouvrirChecklistAmbulanceTraficHa219==='function'){
-        window.ouvrirChecklistAmbulanceTraficHa219(value); return true;
-      }
-      if((u.indexOf('FZ-349-AT')>=0 || u.indexOf('PEUGEOT BOXER')>=0) && typeof window.ouvrirChecklistAmbulance==='function'){
-        window.ouvrirChecklistAmbulance(value); return true;
-      }
-    }catch(err){ console.error('SaniStock checklist open',err); }
-    return false;
-  }
-
-  window.saniOuvrirVehiculeDepuisBouton=function(btn){
-    var v=btn&&btn.getAttribute ? btn.getAttribute('data-check-veh') : '';
-    return openChecklistVehicle(v);
-  };
-  window.ouvrirChecklistVehiculeFixe=function(v){ return openChecklistVehicle(v); };
-
-  document.addEventListener('click',function(e){
-    var el=e.target&&e.target.closest ? e.target.closest('#checklistPage [data-check-veh]') : null;
-    if(el){
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      openChecklistVehicle(el.getAttribute('data-check-veh')||'');
-      return;
-    }
-    var cat=e.target&&e.target.closest ? e.target.closest('#checklistPage [data-check-cat]') : null;
-    if(cat){
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      var c=cat.getAttribute('data-check-cat')||'';
-      if(typeof window.ouvrirChecklistVehicules==='function')window.ouvrirChecklistVehicules(c);
-    }
-  },true);
-})();
-</script>
-</body></html>';
+      '</div>'+
+      '</body></html>';
   }
 
 
@@ -11957,9 +11898,18 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
       var v=btn&&btn.getAttribute?btn.getAttribute('data-check-veh'):'';
       var u=String(v||'').toUpperCase();
       if(!v)return false;
-      if(u.indexOf('TAXI')>=0 && typeof window.ouvrirChecklistVehiculeFixe==='function'){
-        /* Le handler Taxi historique sait construire la vraie checklist. */
-        return window.ouvrirChecklistVehiculeFixe(v);
+      if(u.indexOf('TAXI')>=0){
+        var box=document.getElementById('checklistContent'),sub=document.getElementById('checklistSubtitle');
+        if(!box)return false;
+        if(typeof window.taxiHtml==='function') box.innerHTML=window.taxiHtml(v);
+        else if(typeof taxiHtml==='function') box.innerHTML=taxiHtml(v);
+        else return false;
+        if(sub)sub.textContent='TAXI — contrôle du véhicule';
+        if(typeof window.chargerEquipageTaxi==='function')window.chargerEquipageTaxi();
+        setTimeout(function(){if(typeof window.chargerEquipageTaxi==='function')window.chargerEquipageTaxi();},150);
+        var td=document.getElementById('checklistTaxiDetail');if(td)td.classList.add('show');
+        if(typeof window.initSignatureTaxi==='function')setTimeout(window.initSignatureTaxi,60);
+        return false;
       }
       if(u.indexOf('VSL')>=0 && typeof window.ouvrirChecklistVslDirect==='function'){
         return window.ouvrirChecklistVslDirect(v);
