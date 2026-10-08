@@ -1919,6 +1919,11 @@ button.settingsAction.secondary:hover,
 .ambSignatureHint{font-size:13px;color:#64748b;margin:0 0 8px}
 .ambSignatureCanvas{display:block;width:100%;height:180px;box-sizing:border-box;background:#fff;border:2px solid #cbd5e1;border-radius:10px;touch-action:none;cursor:crosshair}
 .ambSignatureActions{display:flex;justify-content:flex-end;margin-top:8px}
+.ambSignatureGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px}
+.ambSignatureBox{border:1px solid #cbd5e1;border-radius:8px;background:#fff;padding:8px;box-sizing:border-box}
+.ambSignatureLabel{text-align:center;font-weight:800;font-size:14px;margin-bottom:6px;color:#334155}
+.ambSignatureCanvasSmall{height:150px!important;border:1px solid #94a3b8!important;border-radius:6px!important}
+@media(max-width:600px){.ambSignatureGrid{grid-template-columns:1fr}.ambSignatureCanvasSmall{height:140px!important}}
 .ambSignatureClear{border:1px solid #cbd5e1;background:#f8fafc;color:#334155;border-radius:8px;padding:8px 12px;font-weight:700;cursor:pointer}
 @media(max-width:600px){.ambSignatureHint,.ambSignatureClear{font-size:11px}.ambSignatureCanvas{height:165px}}
 </style>
@@ -11367,7 +11372,15 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
       });
       html+='</div>';
     });
-    html+='<div class="vslSection ambSignatureSection"><div class="vslSectionTitle">SIGNATURE</div><div class="ambSignatureHint">✍️ Signez dans le cadre avec le doigt ou le stylet.</div><canvas id="ambSignatureCanvas" class="ambSignatureCanvas" width="900" height="260"></canvas><div class="ambSignatureActions"><button type="button" class="ambSignatureClear" onclick="effacerSignatureAmbulance()">🗑️ Effacer la signature</button></div><input id="ambSignature" type="hidden" value=""></div>';
+    const isRenaultUi=String(vehicle||'').toUpperCase().includes('HS-219-PS');
+    if(isRenaultUi){
+      html+='<div class="vslSection ambSignatureSection"><div class="vslSectionTitle">SIGNATURES</div><div class="ambSignatureGrid">';
+      html+='<div class="ambSignatureBox"><div class="ambSignatureLabel">D.A.E</div><canvas id="ambSignatureDaeCanvas" class="ambSignatureCanvas ambSignatureCanvasSmall" width="900" height="260"></canvas></div>';
+      html+='<div class="ambSignatureBox"><div class="ambSignatureLabel">A.A</div><canvas id="ambSignatureAaCanvas" class="ambSignatureCanvas ambSignatureCanvasSmall" width="900" height="260"></canvas></div>';
+      html+='</div><div class="ambSignatureActions"><button type="button" class="ambSignatureClear" onclick="effacerSignatureAmbulance()">🗑️ Effacer les signatures</button></div><input id="ambSignatureDae" type="hidden" value=""><input id="ambSignatureAa" type="hidden" value=""><input id="ambSignature" type="hidden" value=""></div>';
+    }else{
+      html+='<div class="vslSection ambSignatureSection"><div class="vslSectionTitle">SIGNATURE</div><div class="ambSignatureHint">✍️ Signez dans le cadre avec le doigt ou le stylet.</div><canvas id="ambSignatureCanvas" class="ambSignatureCanvas" width="900" height="260"></canvas><div class="ambSignatureActions"><button type="button" class="ambSignatureClear" onclick="effacerSignatureAmbulance()">🗑️ Effacer la signature</button></div><input id="ambSignature" type="hidden" value=""></div>';
+    }
     html+='<div class="vslSection"><div class="vslSectionTitle">OBSERVATIONS</div><textarea id="ambObservations" style="width:100%;min-height:110px;box-sizing:border-box;border:1px solid #cbd8e4;border-radius:10px;padding:10px;font:inherit" placeholder="Saisir les observations"></textarea></div>';
     html+='<div class="vslActions"><button type="button" class="vslValidate" onclick="validerChecklistAmbulance()">✓ TERMINER LE CONTRÔLE</button><button type="button" class="vslMailBtn" onclick="envoyerMailAmbulance()">📧 ENVOYER PAR MAIL</button></div>';
     html+='<div class="ambRequiredNote">Le 1er équipier est reconnu automatiquement depuis la connexion SaniStock. Le 2ᵉ équipier est choisi dans la liste déroulante. Les éléments marron à l’intérieur des kits sont affichés pour vérification et ne nécessitent pas de coche séparée.</div>';
@@ -11450,6 +11463,8 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
     const e2=String(document.getElementById('ambCrew2')?.value||'').trim();
     const obs=String(document.getElementById('ambObservations')?.value||'').trim();
     const sig=String(document.getElementById('ambSignature')?.value||'').trim();
+    const sigDae=String(document.getElementById('ambSignatureDae')?.value||'').trim();
+    const sigAa=String(document.getElementById('ambSignatureAa')?.value||'').trim();
     if(!e1)throw new Error('Le 1er équipier n’est pas reconnu. Reconnectez-vous à SaniStock.');
     if(!immat)throw new Error('Immatriculation non reconnue à partir du véhicule sélectionné.');
     if(!kms)throw new Error('Saisissez les Kms.');
@@ -11513,7 +11528,27 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
       const lines=wrapText(font,obs,500,8);
       lines.slice(0,18).forEach(function(line,j){p3.drawText(line,{x:58,y:290-j*14,size:8,font:font,color:black});});
     }
-    if(sig && sig.indexOf('data:image/')===0){
+    if(isRenault){
+      // Renault HS-219-PS : remplacement de la zone de signatures par deux cadres distincts D.A.E / A.A.
+      // On nettoie uniquement la zone de signature du modèle, sans toucher aux observations.
+      const white=PDFLib.rgb(1,1,1);
+      cover(p3,16,545,563,80,white);
+      p3.drawRectangle({x:22,y:548,width:266,height:62,borderColor:black,borderWidth:1});
+      p3.drawRectangle({x:307,y:548,width:266,height:62,borderColor:black,borderWidth:1});
+      centerText(p3,bold,'D.A.E',155,628,9,black);
+      centerText(p3,bold,'A.A',440,628,9,black);
+      async function drawRenaultSig(data,x,y,w,h){
+        if(!data || data.indexOf('data:image/')!==0)return;
+        try{
+          const png=await doc.embedPng(data);
+          const scale=Math.min(w/png.width,h/png.height);
+          const dw=png.width*scale,dh=png.height*scale;
+          p3.drawImage(png,{x:x+(w-dw)/2,y:y+(h-dh)/2,width:dw,height:dh});
+        }catch(e){console.warn('Signature Renault',e);}
+      }
+      await drawRenaultSig(sigDae,28,553,254,52);
+      await drawRenaultSig(sigAa,313,553,254,52);
+    }else if(sig && sig.indexOf('data:image/')===0){
       try{
         const png=await doc.embedPng(sig);
         const maxW=425,maxH=34;
@@ -11543,23 +11578,29 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
   }
 
   window.initSignatureAmbulance=function(){
-    const canvas=document.getElementById('ambSignatureCanvas'),hidden=document.getElementById('ambSignature');
-    if(!canvas||!hidden||canvas.dataset.ready==='1')return;
-    canvas.dataset.ready='1';
-    const ctx=canvas.getContext('2d',{alpha:true});
-    const ratio=Math.max(2,window.devicePixelRatio||1);
-    const rect=canvas.getBoundingClientRect(),cssW=rect.width||900,cssH=rect.height||180;
-    canvas.width=Math.round(cssW*ratio);canvas.height=Math.round(cssH*ratio);
-    ctx.setTransform(ratio,0,0,ratio,0,0);ctx.lineWidth=2.15;ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle='#111827';ctx.fillStyle='#111827';
-    let drawing=false,hasInk=false,last=null;
-    function pos(e){const r=canvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};}
-    function dot(p){ctx.beginPath();ctx.arc(p.x,p.y,1.25,0,Math.PI*2);ctx.fill();hasInk=true;}
-    function start(e){e.preventDefault();if(e.pointerId!=null)canvas.setPointerCapture(e.pointerId);drawing=true;last=pos(e);dot(last);}
-    function move(e){if(!drawing)return;e.preventDefault();const p=pos(e);ctx.beginPath();ctx.moveTo(last.x,last.y);ctx.lineTo(p.x,p.y);ctx.stroke();last=p;hasInk=true;}
-    function end(e){if(!drawing)return;e.preventDefault();drawing=false;if(e.pointerId!=null){try{canvas.releasePointerCapture(e.pointerId);}catch(_){}}hidden.value=hasInk?canvas.toDataURL('image/png'):'';last=null;}
-    canvas.addEventListener('pointerdown',start,{passive:false});canvas.addEventListener('pointermove',move,{passive:false});canvas.addEventListener('pointerup',end,{passive:false});canvas.addEventListener('pointercancel',end,{passive:false});
+    function initOne(canvas,hidden){
+      if(!canvas||!hidden||canvas.dataset.ready==='1')return;
+      canvas.dataset.ready='1';
+      const ctx=canvas.getContext('2d',{alpha:true});
+      const ratio=Math.max(2,window.devicePixelRatio||1);
+      const rect=canvas.getBoundingClientRect(),cssW=rect.width||900,cssH=rect.height||180;
+      canvas.width=Math.round(cssW*ratio);canvas.height=Math.round(cssH*ratio);
+      ctx.setTransform(ratio,0,0,ratio,0,0);ctx.lineWidth=2.15;ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle='#111827';ctx.fillStyle='#111827';
+      let drawing=false,hasInk=false,last=null;
+      function pos(e){const r=canvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};}
+      function dot(p){ctx.beginPath();ctx.arc(p.x,p.y,1.25,0,Math.PI*2);ctx.fill();hasInk=true;}
+      function start(e){e.preventDefault();if(e.pointerId!=null)canvas.setPointerCapture(e.pointerId);drawing=true;last=pos(e);dot(last);}
+      function move(e){if(!drawing)return;e.preventDefault();const p=pos(e);ctx.beginPath();ctx.moveTo(last.x,last.y);ctx.lineTo(p.x,p.y);ctx.stroke();last=p;hasInk=true;}
+      function end(e){if(!drawing)return;e.preventDefault();drawing=false;if(e.pointerId!=null){try{canvas.releasePointerCapture(e.pointerId);}catch(_){}}hidden.value=hasInk?canvas.toDataURL('image/png'):'';last=null;}
+      canvas.addEventListener('pointerdown',start,{passive:false});canvas.addEventListener('pointermove',move,{passive:false});canvas.addEventListener('pointerup',end,{passive:false});canvas.addEventListener('pointercancel',end,{passive:false});
+    }
+    const dae=document.getElementById('ambSignatureDaeCanvas'),ha=document.getElementById('ambSignatureAaCanvas');
+    if(dae&&ha){initOne(dae,document.getElementById('ambSignatureDae'));initOne(ha,document.getElementById('ambSignatureAa'));return;}
+    initOne(document.getElementById('ambSignatureCanvas'),document.getElementById('ambSignature'));
   };
-  window.effacerSignatureAmbulance=function(){const c=document.getElementById('ambSignatureCanvas'),h=document.getElementById('ambSignature');if(c){const ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);}if(h)h.value='';};
+  window.effacerSignatureAmbulance=function(){
+    [['ambSignatureDaeCanvas','ambSignatureDae'],['ambSignatureAaCanvas','ambSignatureAa'],['ambSignatureCanvas','ambSignature']].forEach(function(pair){const c=document.getElementById(pair[0]),h=document.getElementById(pair[1]);if(c){const ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);}if(h)h.value='';});
+  };
 
   window.validerChecklistAmbulance=function(){
     const vehicle=String(document.getElementById('checklistAmbulanceSubtitle')?.textContent||'');
@@ -11569,7 +11610,7 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
     const paperStates=papers.map(function(p,i){const c=document.querySelector('#checklistAmbulanceDetail .ambPaperRow[data-paper-index="'+i+'"] input:checked');return {element:p.name,present:!!(c&&c.value==='present'),manque:!!(c&&c.value==='manque')};});
     const incomplete=states.some(function(x){return !x.present&&!x.manque})||paperStates.some(function(x){return !x.present&&!x.manque});
     if(incomplete){alert('Merci de valider chaque ligne avec V (OK) ou X (Manque).');return;}
-    localStorage.setItem('sanistock_last_ambulance_checklist',JSON.stringify({immatriculation:document.getElementById('ambImmatriculation')?.value||'',kms:document.getElementById('ambKms')?.value||'',date:document.getElementById('ambDate')?.value||'',equipier1:nomConnecte(),equipier2:document.getElementById('ambCrew2')?.value||'',vehicule:document.getElementById('checklistAmbulanceSubtitle')?.textContent||'',papiers:paperStates,result:states,observations:document.getElementById('ambObservations')?.value||'',signature:document.getElementById('ambSignature')?.value||'',savedAt:new Date().toISOString()}));
+    localStorage.setItem('sanistock_last_ambulance_checklist',JSON.stringify({immatriculation:document.getElementById('ambImmatriculation')?.value||'',kms:document.getElementById('ambKms')?.value||'',date:document.getElementById('ambDate')?.value||'',equipier1:nomConnecte(),equipier2:document.getElementById('ambCrew2')?.value||'',vehicule:document.getElementById('checklistAmbulanceSubtitle')?.textContent||'',papiers:paperStates,result:states,observations:document.getElementById('ambObservations')?.value||'',signature:document.getElementById('ambSignature')?.value||'',signatureDae:document.getElementById('ambSignatureDae')?.value||'',signatureAa:document.getElementById('ambSignatureAa')?.value||'',savedAt:new Date().toISOString()}));
     alert('✅ Contrôle AMBULANCE enregistré sur cet appareil.');
   };
 
