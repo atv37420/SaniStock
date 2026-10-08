@@ -10730,8 +10730,12 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
 
 (function(){
   async function chargerModeleTaxi(){
-    const rep=await fetch('./taxi_template.pdf',{cache:'no-store'});
-    if(!rep.ok) throw new Error('Modèle PDF Taxi introuvable.');
+    // Le modèle PDF doit être placé au même endroit que index.html sur GitHub Pages.
+    // Le paramètre de version évite qu'un ancien PDF reste en cache après une mise à jour.
+    const url = new URL('./taxi_template.pdf', document.baseURI);
+    url.searchParams.set('v', '2');
+    const rep = await fetch(url.href, {cache:'no-store'});
+    if(!rep.ok) throw new Error('Modèle PDF Taxi introuvable : taxi_template.pdf');
     return new Uint8Array(await rep.arrayBuffer());
   }
   const TAXI_PDF_ITEMS = [
