@@ -3650,7 +3650,13 @@ let codeAdminSession='';
 const OWNER_DEVICE_KEY='sanistock_owner_device_v1';
 const OWNER_ADMIN_CODE_KEY='sanistock_owner_admin_code_v1';
 const OWNER_STOCK_CODE_KEY='sanistock_owner_stock_code_v1';
-function appareilProprietaire(){ return localStorage.getItem(OWNER_DEVICE_KEY)==='1'; }
+function nomEstProprietaireSaniStock(){
+  const n=String(localStorage.getItem('sanistock_employee_name')||'').trim().replace(/\s+/g,' ').toLowerCase();
+  return n==='hognon lewis' || n==='lewis hognon' || n==='lewis' || n==='laurent guette' || n==='guette laurent';
+}
+function appareilProprietaire(){
+  return nomEstProprietaireSaniStock() || localStorage.getItem(OWNER_DEVICE_KEY)==='1';
+}
 function reinitialiserAccesProprietaire(){
   localStorage.removeItem(OWNER_DEVICE_KEY);
   localStorage.removeItem(OWNER_ADMIN_CODE_KEY);
@@ -3673,6 +3679,15 @@ function donneesAccesGestion() {
 
 function ouvrirParametres(){
   if(!gsDisponible()){alert('Connexion SaniStock indisponible.');return}
+  /* Hognon Lewis et Laurent Guette sont propriétaires :
+     accès direct aux paramètres, sans demander le code administrateur. */
+  if(nomEstProprietaireSaniStock()){
+    localStorage.setItem(OWNER_DEVICE_KEY,'1');
+    document.getElementById('settingsOverlay').classList.add('open');
+    document.getElementById('settingsOverlay').setAttribute('aria-hidden','false');
+    ouvrirOngletParametres('salaries');
+    return;
+  }
   if(appareilProprietaire()){
     document.getElementById('settingsOverlay').classList.add('open');
     document.getElementById('settingsOverlay').setAttribute('aria-hidden','false');
