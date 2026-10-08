@@ -10039,6 +10039,26 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
     'VSL':['GH-575-RH – CADDY VSL','FF-458-QT – SKODA BREAK VSL','FF-334-SL – SKODA KODIAQ VSL','EN-114-BK – SKODA SUPERB VSL','FC-295-XP – SKODA SUPERB VSL']
   };
   function clone(o){return JSON.parse(JSON.stringify(o));}
+  function vehicleKey(v){
+    var s=String(v||'').trim().toUpperCase().replace(/[–—]/g,'-').replace(/\s+/g,' ');
+    var plate=s.match(/^([A-Z]{2}[- ]?\d{3}[- ]?[A-Z]{2})\b/);
+    return plate ? plate[1].replace(/[- ]/g,'') : s;
+  }
+  function dedupeVehicles(x){
+    var seen=Object.create(null);
+    ['AMBULANCES','TAXIS','VSL'].forEach(function(c){
+      var arr=Array.isArray(x[c])?x[c]:[];
+      x[c]=arr.filter(function(v){
+        var value=String(v||'').trim();
+        if(!value)return false;
+        var key=vehicleKey(value);
+        if(seen[key])return false;
+        seen[key]=true;
+        return true;
+      });
+    });
+    return x;
+  }
   function load(){
     try{
       var x=JSON.parse(localStorage.getItem(KEY)||'null');
@@ -10047,12 +10067,12 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
         ['AMBULANCES','TAXIS','VSL'].forEach(function(c){
           if(!x[c].length) x[c]=clone(DEFAULTS[c]);
         });
-        return x;
+        return dedupeVehicles(x);
       }
     }catch(e){}
-    return clone(DEFAULTS);
+    return dedupeVehicles(clone(DEFAULTS));
   }
-  function save(x){localStorage.setItem(KEY,JSON.stringify(x));window.CHECKLIST_VEHICLES_FIXED=x;}
+  function save(x){x=dedupeVehicles(x);localStorage.setItem(KEY,JSON.stringify(x));window.CHECKLIST_VEHICLES_FIXED=x;}
   function esc(x){return String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
   window.getChecklistVehiculesData=function(){return load();};
   window.chargerGestionChecklist=function(){
