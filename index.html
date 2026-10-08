@@ -4861,7 +4861,7 @@ function chargerTableauBord(){
   runner.withSuccessHandler(function(r){
     historique=Array.isArray(r)?r:[];
     done();
-  }).withFailureHandler(fail).getHistoriqueDesinfections({limit:20});
+  }).withFailureHandler(fail).getHistoriqueDesinfections(20);
 
   runner.withSuccessHandler(function(r){
     vehicules=Array.isArray(r)?r:[];
