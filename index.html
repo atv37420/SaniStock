@@ -4825,23 +4825,37 @@ function chargerTableauBord(){
   function fail(err){
     if(failed) return;
     failed=true;
-    box.innerHTML='<div class="dashboardError">Impossible de charger le tableau de bord.<br><small>'+escapeHtml(err&&err.message?err.message:err)+'</small></div>';
+    const msg=err&&err.message?err.message:String(err||'Erreur inconnue');
+    box.innerHTML='<div class="dashboardError">Impossible de charger le tableau de bord.<br><small>'+escapeHtml(msg)+'</small></div>';
   }
 
-  /* Lecture sécurisée du stock pour le tableau de bord ADMIN.
-     getStockData() masque volontairement les quantités aux employés.
-     Ici, le code administrateur permet de récupérer les vraies valeurs
-     Min / Actuel / Statut / Péremption sans les exposer aux salariés. */
-  google.script.run.withSuccessHandler(function(r){
+  /*
+     IMPORTANT : le tableau de bord doit fonctionner depuis GitHub Pages.
+     On utilise donc le même pont SaniStock/API que le reste de l'application.
+     Le stock est lu avec getStockData() : le calcul des alertes est fait ici,
+     donc aucun contrôle administrateur supplémentaire n'est nécessaire pour
+     l'affichage du tableau de bord.
+  */
+  const runner=(window.google&&google.script&&google.script.run)?google.script.run:null;
+  if(!runner){
+    fail({message:'Connexion SaniStock indisponible'});
+    return;
+  }
+
+  runner.withSuccessHandler(function(r){
     stock=Array.isArray(r)?r:[];
     done();
-  }).withFailureHandler(fail).getStockAlertesAdmin(Object.assign(donneesAccesGestion(),{inclureTous:true}));
+  }).withFailureHandler(fail).getStockData();
 
-  google.script.run.withSuccessHandler(function(r){historique=Array.isArray(r)?r:[];done();})
-    .withFailureHandler(fail).getHistoriqueDesinfections(20);
+  runner.withSuccessHandler(function(r){
+    historique=Array.isArray(r)?r:[];
+    done();
+  }).withFailureHandler(fail).getHistoriqueDesinfections({limit:20});
 
-  google.script.run.withSuccessHandler(function(r){vehicules=Array.isArray(r)?r:[];done();})
-    .withFailureHandler(fail).getVehicules();
+  runner.withSuccessHandler(function(r){
+    vehicules=Array.isArray(r)?r:[];
+    done();
+  }).withFailureHandler(fail).getVehicules();
 }
 
 function dashboardDate_(value){
