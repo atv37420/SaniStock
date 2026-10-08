@@ -10257,6 +10257,14 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     return String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
   }
 
+  function saniImmatriculationAutomatique(vehicle){
+    const s=String(vehicle||'').trim();
+    const m=s.match(/^([A-Z]{2}-\d{3}-[A-Z]{2})\s*[–—-]/i);
+    if(m) return m[1].toUpperCase();
+    const mm=s.match(/\b([A-Z]{2}-\d{3}-[A-Z]{2})\b/i);
+    return mm ? mm[1].toUpperCase() : '';
+  }
+
   function taxiHtml(vehicle){
     const groups = {};
     TAXI_ITEMS.forEach(function(item){
@@ -10275,7 +10283,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     html += '<div class="taxiInfoGrid">';
     html += '<div class="taxiField"><label>Équipage :</label><div id="taxiEquipageList" class="taxiCrewList"><div style="color:#71879a;font-size:13px">Chargement des salariés…</div></div><input id="taxiEquipage" type="hidden"></div>';
     html += '<div class="taxiField"><label>Date :</label><input id="taxiDate" type="date" value="'+new Date().toISOString().slice(0,10)+'"></div>';
-    html += '<div class="taxiField"><label>Immatriculation :</label><input id="taxiImmatriculation" type="text" value="'+esc(vehicle.split(' – ')[0] || '')+'" readonly></div>';
+    html += '<div class="taxiField"><label>Immatriculation :</label><input id="taxiImmatriculation" type="text" value="'+esc(saniImmatriculationAutomatique(vehicle) || vehicle.split(' – ')[0] || '')+'" readonly></div>';
     html += '<div class="taxiField"><label>Kms :</label><input id="taxiKms" type="text" inputmode="numeric" placeholder="Saisir le kilométrage"></div>';
     html += '</div></div>';
 
@@ -11027,7 +11035,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     html+='<div class="taxiInfoCard"><div class="taxiInfoTitle">Informations du contrôle</div><div class="taxiInfoGrid">';
     html+='<div class="taxiField"><label>Équipage :</label><div id="vslEquipageList" class="taxiCrewList"><div style="color:#71879a;font-size:13px">Chargement des salariés…</div></div><input id="vslEquipage" type="hidden"></div>';
     html+='<div class="taxiField"><label>Date :</label><input id="vslDate" type="date" value="'+new Date().toISOString().slice(0,10)+'"></div>';
-    html+='<div class="taxiField"><label>Immatriculation :</label><input id="vslImmatriculation" type="text" value="'+esc(vehicle.split(' – ')[0]||'')+'" readonly></div>';
+    html+='<div class="taxiField"><label>Immatriculation :</label><input id="vslImmatriculation" type="text" value="'+esc(saniImmatriculationAutomatique(vehicle)||vehicle.split(' – ')[0]||'')+'" readonly></div>';
     html+='<div class="taxiField"><label>Kms :</label><input id="vslKms" type="text" inputmode="numeric" placeholder="Saisir le kilométrage"></div></div></div>';
     Object.keys(groups).forEach(function(cat){
       html+='<div class="vslSection"><div class="vslSectionTitle">'+esc(cat)+'</div>';
@@ -11693,7 +11701,7 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
     h+='<div class="vslInfoCard">';
     h+='<div class="vslInfoTitle">Informations du contrôle</div>';
     h+='<div class="vslInfoGrid ambInfoGrid">';
-    h+='<div class="vslField"><label>IMMATRICULATION</label><input id="ha219Immat" type="text" value="HA-219-PS" readonly></div>';
+    h+='<div class="vslField"><label>IMMATRICULATION</label><input id="ha219Immat" type="text" value="'+esc(saniImmatriculationAutomatique(v)||'HA-219-PS')+'" readonly></div>';
     h+='<div class="vslField"><label>KMS</label><input id="ha219Kms" type="text" inputmode="numeric" placeholder="Saisir le kilométrage"></div>';
     h+='<div class="vslField"><label>DATE</label><input id="ha219Date" type="date" value="'+new Date().toISOString().slice(0,10)+'"></div>';
     h+='<div class="vslField"><label>ÉQUIPIER 1 — AUTOMATIQUE</label><div id="ha219Crew1" class="ambCrewRecognized">Chargement du salarié reconnu…</div></div>';
