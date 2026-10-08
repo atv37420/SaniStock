@@ -11517,36 +11517,36 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
 
     const pageItems=isRenault
       ? [[p1,0,18],[p2,18,36]]
-      : [[p1,0,20],[p2,20,36],[p3,36,48]];
-    const pageY=isRenault?AMB_PAGE_Y_RENAULT:AMB_PAGE_Y_PEUGEOT;
+      : [[p1,0,20],[p2,20,34],[p3,34,48]];
+    // Pour le Peugeot Boxer, les centres ont été recalés directement sur les
+    // lignes du modèle PDF : aucune ligne de catégorie n'est traitée comme un
+    // article. On conserve les fonds gris/blanc du modèle sans les repeindre.
+    const pageY=isRenault?AMB_PAGE_Y_RENAULT:{
+      "1":[527.83,513.31,498.89,484.37,469.85,426.29,411.77,368.21,354.05,324.98,295.58,252.02,222.98,193.94,179.42,164.88,150.36,135.84,121.32,77.76],
+      "2":[750.04,735.52,721.06,546.79,430.61,299.90,285.38,270.86,256.34,241.82,227.30,212.78,169.20,96.54],
+      "3":[764.98,750.46,735.94,721.42,705.10,674.26,659.71,645.19,587.11,572.59,543.55,514.51,478.25,456.41]
+    };
     pageItems.forEach(function(group,pi){
       const pg=group[0],start=group[1],end=group[2],ys=pageY[pi+1]||[];
       for(let j=0;j<end-start;j++){
         const i=start+j, item=ambItems[i]||{}, y=ys[j], state=readState(i), missing=String(document.getElementById('ambMissing'+i)?.value||'').trim();
-        const bg=(pi===0?(j%2===0?gray:PDFLib.rgb(1,1,1)):(j%2===0?PDFLib.rgb(1,1,1):gray));
         if(isRenault){
-          // Coordonnées centrées exactement dans les cases du modèle ambulance_template.pdf.
-          // Le modèle est déjà propre : on ne repeint pas les cases, afin de ne pas créer
-          // les blocs gris visibles autour des V/X.
+          // Coordonnées centrées exactement dans les cases du modèle Renault.
           if(state==='present') centerText(pg,bold,'V',381.625,y+1,9,black);
           if(state==='manque') centerText(pg,bold,'X',444.5,y+1,9,black);
-          if(item.optional) {
-            // Le mot "optionnel" est déjà imprimé dans le modèle d'origine.
-          } else if(missing) {
-            centerText(pg,bold,missing,509.0,y+1,8,black);
-          }
+          if(!item.optional && missing) centerText(pg,bold,missing,509.0,y+1,8,black);
         }else{
-          // Coordonnées historiques du Peugeot Boxer : inchangées.
-          cover(pg,339,y-8,14,16,bg);
-          cover(pg,400,y-8,14,16,bg);
-          cover(pg,444,y-8,57,16,bg);
+          // Peugeot Boxer : le PDF contient déjà les bandes grises/blanches.
+          // On ne dessine AUCUN rectangle de fond : cela évite les blocs
+          // décalés et conserve exactement l'alternance gris/blanc du modèle.
           if(state==='present') centerText(pg,bold,'V',346.04,y+1,9,black);
           if(state==='manque') centerText(pg,bold,'X',407.15,y+1,9,black);
-          if(item.optional) centerText(pg,font,'optionnel',472.0,y+1,8,black);
-          else if(missing) centerText(pg,bold,missing,472.0,y+1,8,black);
+          // "optionnel" est déjà imprimé dans le modèle PDF.
+          if(!item.optional && missing) centerText(pg,bold,missing,472.0,y+1,8,black);
         }
       }
     });
+
     if(obs){
       const lines=wrapText(font,obs,500,8);
       lines.slice(0,5).forEach(function(line,j){p3.drawText(line,{x:58,y:700-j*12,size:8,font:font,color:black});});
