@@ -10614,42 +10614,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
           (sig&&sig.indexOf('data:image/')===0?'<img src="'+sig+'" alt="Signature">':'')+
         '</div>'+
         '<div class="meta">Véhicule : '+taxiPdfEscape(vehicle)+'</div>'+
-      '</div><!-- Correctif ciblé : ouverture directe de la checklist VSL sans toucher aux autres véhicules -->
-<script id="sanistock-vsl-access-final-fix">
-(function(){
-  if(window.__saniVslAccessFinalFix) return;
-  window.__saniVslAccessFinalFix=true;
-  function ouvrirVslDirect(v){
-    try{
-      var box=document.getElementById('checklistContent');
-      if(!box || typeof window.vslHtml!=='function') return false;
-      var sub=document.getElementById('checklistSubtitle');
-      if(sub) sub.textContent='VSL — contrôle du véhicule';
-      box.innerHTML=window.vslHtml(v);
-      if(typeof window.chargerEquipageVsl==='function') window.chargerEquipageVsl();
-      var detail=document.getElementById('checklistVslDetail');
-      if(detail) detail.classList.add('show');
-      if(typeof window.showPage==='function') window.showPage('checklistPage');
-      if(typeof window.initSignatureVsl==='function') setTimeout(window.initSignatureVsl,60);
-      return true;
-    }catch(err){ console.error('Ouverture directe checklist VSL',err); return false; }
-  }
-  document.addEventListener('click',function(e){
-    var btn=e.target && e.target.closest ? e.target.closest('[data-check-veh]') : null;
-    if(!btn) return;
-    var v=String(btn.getAttribute('data-check-veh')||'');
-    if(!/\bVSL\b/i.test(v)) return;
-    if(ouvrirVslDirect(v)){
-      e.preventDefault();
-      e.stopPropagation();
-      if(typeof e.stopImmediatePropagation==='function') e.stopImmediatePropagation();
-    }
-  },true);
-  // Point d'entrée stable pour les appels venant des autres boutons de l'application.
-  window.saniOuvrirVslDirect=ouvrirVslDirect;
-})();
-</script>
-</body></html>';
+      '</div></body></html>';
   }
 
 
@@ -11799,6 +11764,31 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
     if(s.includes('HS-219-PS') || s.includes('AMBULANCE RENAULT TRAFIC')){window.ouvrirChecklistAmbulance(v);return;}
     return previousOpen.apply(this,arguments);
   };
+})();
+</script>
+<!-- Correctif ciblé : rétablir l'ouverture des check-lists TAXI et VSL -->
+<script id="sanistock-taxi-vsl-access-final-fix">
+(function(){
+  if (window.__saniTaxiVslAccessFinalFix) return;
+  window.__saniTaxiVslAccessFinalFix = true;
+  document.addEventListener('click', function(e){
+    var btn = e.target && e.target.closest ? e.target.closest('[data-check-veh]') : null;
+    if (!btn) return;
+    var vehicle = String(btn.getAttribute('data-check-veh') || '');
+    var upper = vehicle.toUpperCase();
+    if (upper.indexOf('TAXI') === -1 && upper.indexOf('VSL') === -1) return;
+    if (typeof window.ouvrirChecklistVehiculeFixe !== 'function') return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
+    try {
+      if (typeof window.showPage === 'function') window.showPage('checklistPage');
+      window.ouvrirChecklistVehiculeFixe(vehicle);
+    } catch (err) {
+      console.error('Ouverture checklist TAXI/VSL impossible', err);
+      alert('Impossible d’ouvrir la check-list. Consultez la console pour le détail.');
+    }
+  }, true);
 })();
 </script>
 </body>
