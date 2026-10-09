@@ -11287,10 +11287,10 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
 window.saniStockGenererVslPdfExact=buildExactPdf;
   window.genererPdfVsl=async function(){const btn=document.querySelector('.vslPdfBtn'),old=btn&&btn.textContent;if(btn){btn.disabled=true;btn.textContent='⏳ GÉNÉRATION DU PDF...';}try{const pdf=await buildExactPdf(),url=URL.createObjectURL(pdf.blob),a=document.createElement('a');a.href=url;a.download=pdf.filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);alert('✅ PDF VSL généré avec la mise en page exacte de la fiche VSL d’origine.');}catch(e){console.error(e);alert('❌ Impossible de générer le PDF VSL : '+(e&&e.message?e.message:e));}finally{if(btn){btn.disabled=false;btn.textContent=old||'📄 GÉNÉRER LE PDF';}}};
   window.envoyerMailVsl=async function(){const btn=document.querySelector('.vslMailBtn'),old=btn&&btn.textContent;if(btn){btn.disabled=true;btn.textContent='⏳ PRÉPARATION DU PDF...';}try{const pdf=await buildExactPdf(),buffer=await pdf.blob.arrayBuffer(),bytes=new Uint8Array(buffer);if(!bytes.length)throw new Error('Le PDF généré est vide.');let binary='',chunk=0x8000;for(let i=0;i<bytes.length;i+=chunk)binary+=String.fromCharCode.apply(null,bytes.subarray(i,Math.min(i+chunk,bytes.length)));const base64=btoa(binary).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');let hash='';if(window.crypto&&window.crypto.subtle){const d=await window.crypto.subtle.digest('SHA-256',buffer),hb=new Uint8Array(d);hash=Array.from(hb).map(x=>x.toString(16).padStart(2,'0')).join('');}let salarie='',code='';try{salarie=String(localStorage.getItem('sanistock_employee_name')||'').trim();code=String(localStorage.getItem('sanistock_employee_code')||'').trim();}catch(e){}if(!salarie||!code)throw new Error('Session salarié introuvable. Reconnectez-vous à SaniStock.');const immat=document.getElementById('vslImmatriculation')?.value||'',date=document.getElementById('vslDate')?.value||'',vehicle=(document.getElementById('checklistVslSubtitle')?.textContent||'').replace(/^Véhicule\s*:\s*/,'').trim(),kms=document.getElementById('vslKms')?.value||'',dateAff=dateFR(date),subject='Check-list VSL - '+immat+' - '+dateAff,body=['Bonjour,','','Veuillez trouver ci-joint la fiche de contrôle et d’entretien mensuel du VSL.','', 'Véhicule : '+vehicle,'Immatriculation : '+immat,'Chauffeur : '+salarie,'Date : '+dateAff,'Kms : '+kms,'','Cordialement,','SaniStock'].join('\n');const api=(window.SANISTOCK_API_URL||'https://script.google.com/macros/s/AKfycbxz5dZkT7FyFx8ohxWmg2Pt23Yqx0LQDMqqJg8LM8bkfN3ulkb37VqUO8m8WvjyuGBqrg/exec'),frame=document.createElement('iframe');frame.name='sanistockVslMail_'+Date.now();frame.style.display='none';document.body.appendChild(frame);const form=document.createElement('form');form.method='POST';form.action=api;form.target=frame.name;form.style.display='none';const input=document.createElement('textarea');input.name='payload';input.value=JSON.stringify({action:'envoyerVslPdf',data:{salarie,code,filename:pdf.filename,base64url:base64,byteLength:bytes.length,sha256:hash,subject,body}});form.appendChild(input);document.body.appendChild(form);form.submit();await new Promise(r=>setTimeout(r,4500));form.remove();frame.remove();alert('✅ La fiche VSL remplie a été envoyée directement par mail avec le PDF en pièce jointe.');}catch(e){console.error(e);alert('❌ Impossible d’envoyer la fiche VSL : '+(e&&e.message?e.message:e));}finally{if(btn){btn.disabled=false;btn.textContent=old||'📧 ENVOYER PAR MAIL';}}};
-  window.ouvrirChecklistVehiculeFixeVsl=window.ouvrirChecklistVehiculeFixe;
+  window.saniOuvrirVslDirect=function(v){const box=document.getElementById('checklistContent'),sub=document.getElementById('checklistSubtitle');if(!box)return false;if(sub)sub.textContent='VSL — contrôle du véhicule';box.innerHTML=vslHtml(v);chargerEquipageVsl();const d=document.getElementById('checklistVslDetail');if(d)d.classList.add('show');if(typeof window.showPage==='function')window.showPage('checklistPage');setTimeout(()=>initSignatureVsl(),60);return true;};
+  window.ouvrirChecklistVehiculeFixeVsl=window.saniOuvrirVslDirect;
   const previous=window.ouvrirChecklistVehiculeFixe;
-  window.ouvrirChecklistVehiculeFixe=function(v){if(String(v).toUpperCase().includes('VSL')){const box=document.getElementById('checklistContent'),sub=document.getElementById('checklistSubtitle');if(!box)return;if(sub)sub.textContent='VSL — contrôle du véhicule';box.innerHTML=vslHtml(v);chargerEquipageVsl();const d=document.getElementById('checklistVslDetail');if(d)d.classList.add('show');setTimeout(()=>initSignatureVsl(),60);return;}return previous(v);};
-  window.vslHtml=vslHtml; window.chargerEquipageVsl=chargerEquipageVsl; window.initSignatureVsl=initSignatureVsl;
+  window.ouvrirChecklistVehiculeFixe=function(v){if(String(v).toUpperCase().includes('VSL'))return window.saniOuvrirVslDirect(v);return previous(v);};
   window.fermerChecklistVsl=function(){if(typeof window.ouvrirChecklistVehicules==='function')window.ouvrirChecklistVehicules('VSL');};
 })();
 </script>
@@ -11767,47 +11767,33 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
   };
 })();
 </script>
-<!-- Correctif ciblé : rétablir l'ouverture des check-lists TAXI et VSL -->
-<script id="sanistock-taxi-vsl-access-final-fix">
+<!-- Correctif final ciblé : routage stable des check-lists TAXI / VSL -->
+<script id="sanistock-checklist-taxi-vsl-final-fix">
 (function(){
-  if (window.__saniTaxiVslAccessFinalFixV2) return;
-  window.__saniTaxiVslAccessFinalFixV2 = true;
-  function openVslDirect(vehicle){
-    var box=document.getElementById('checklistContent');
-    var sub=document.getElementById('checklistSubtitle');
-    if(!box || typeof window.vslHtml!=='function'){
-      console.error('VSL: générateur ou conteneur introuvable', !!box, typeof window.vslHtml);
-      alert('La checklist VSL ne peut pas s’ouvrir : composant VSL introuvable.');
+  if(window.__saniTaxiVslFinalFix) return;
+  window.__saniTaxiVslFinalFix=true;
+  const originalOpen=window.ouvrirChecklistVehiculeFixe;
+  window.ouvrirChecklistVehiculeFixe=function(vehicle){
+    const name=String(vehicle||'').toUpperCase();
+    if(name.includes('VSL') && typeof window.saniOuvrirVslDirect==='function'){
+      window.saniOuvrirVslDirect(vehicle);
       return;
     }
-    try {
-      box.innerHTML=window.vslHtml(vehicle);
-      if(sub) sub.textContent='VSL — contrôle du véhicule';
-      if(typeof window.showPage==='function') window.showPage('checklistPage');
-      var detail=document.getElementById('checklistVslDetail');
-      if(detail) detail.classList.add('show');
-      if(typeof window.chargerEquipageVsl==='function') window.chargerEquipageVsl();
-      setTimeout(function(){if(typeof window.chargerEquipageVsl==='function')window.chargerEquipageVsl();},150);
-      if(typeof window.initSignatureVsl==='function')setTimeout(window.initSignatureVsl,60);
-    } catch(err){ console.error('Erreur ouverture checklist VSL',err); alert('Erreur ouverture checklist VSL : '+(err.message||err)); }
-  }
-  document.addEventListener('click',function(e){
-    var btn=e.target && e.target.closest ? e.target.closest('[data-check-veh]') : null;
-    if(!btn) return;
-    var vehicle=String(btn.getAttribute('data-check-veh')||'');
-    var upper=vehicle.toUpperCase();
-    if(upper.indexOf('VSL')>=0){
-      e.preventDefault(); e.stopPropagation();
-      if(e.stopImmediatePropagation)e.stopImmediatePropagation();
-      openVslDirect(vehicle);
-    } else if(upper.indexOf('TAXI')>=0){
-      e.preventDefault(); e.stopPropagation();
-      if(e.stopImmediatePropagation)e.stopImmediatePropagation();
-      if(typeof window.taxiHtml==='function'){
-        var box=document.getElementById('checklistContent'), sub=document.getElementById('checklistSubtitle');
-        if(box){box.innerHTML=window.taxiHtml(vehicle);if(sub)sub.textContent='TAXI — contrôle du véhicule';if(typeof window.showPage==='function')window.showPage('checklistPage');var d=document.getElementById('checklistTaxiDetail');if(d)d.classList.add('show');if(typeof window.chargerEquipageTaxi==='function')window.chargerEquipageTaxi();setTimeout(function(){if(typeof window.chargerEquipageTaxi==='function')window.chargerEquipageTaxi();if(typeof window.initSignatureTaxi==='function')window.initSignatureTaxi();},60);}
-      } else if(typeof window.ouvrirChecklistVehiculeFixe==='function') window.ouvrirChecklistVehiculeFixe(vehicle);
+    if(name.includes('TAXI')){
+      if(typeof originalOpen==='function') originalOpen.call(this,vehicle);
+      return;
     }
+    if(typeof originalOpen==='function') return originalOpen.apply(this,arguments);
+  };
+  document.addEventListener('click',function(event){
+    const button=event.target && event.target.closest && event.target.closest('[data-check-veh]');
+    if(!button) return;
+    const vehicle=button.getAttribute('data-check-veh')||'';
+    const name=vehicle.toUpperCase();
+    if(!name.includes('VSL') && !name.includes('TAXI')) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    window.ouvrirChecklistVehiculeFixe(vehicle);
   },true);
 })();
 </script>
