@@ -11287,9 +11287,26 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
 window.saniStockGenererVslPdfExact=buildExactPdf;
   window.genererPdfVsl=async function(){const btn=document.querySelector('.vslPdfBtn'),old=btn&&btn.textContent;if(btn){btn.disabled=true;btn.textContent='⏳ GÉNÉRATION DU PDF...';}try{const pdf=await buildExactPdf(),url=URL.createObjectURL(pdf.blob),a=document.createElement('a');a.href=url;a.download=pdf.filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);alert('✅ PDF VSL généré avec la mise en page exacte de la fiche VSL d’origine.');}catch(e){console.error(e);alert('❌ Impossible de générer le PDF VSL : '+(e&&e.message?e.message:e));}finally{if(btn){btn.disabled=false;btn.textContent=old||'📄 GÉNÉRER LE PDF';}}};
   window.envoyerMailVsl=async function(){const btn=document.querySelector('.vslMailBtn'),old=btn&&btn.textContent;if(btn){btn.disabled=true;btn.textContent='⏳ PRÉPARATION DU PDF...';}try{const pdf=await buildExactPdf(),buffer=await pdf.blob.arrayBuffer(),bytes=new Uint8Array(buffer);if(!bytes.length)throw new Error('Le PDF généré est vide.');let binary='',chunk=0x8000;for(let i=0;i<bytes.length;i+=chunk)binary+=String.fromCharCode.apply(null,bytes.subarray(i,Math.min(i+chunk,bytes.length)));const base64=btoa(binary).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');let hash='';if(window.crypto&&window.crypto.subtle){const d=await window.crypto.subtle.digest('SHA-256',buffer),hb=new Uint8Array(d);hash=Array.from(hb).map(x=>x.toString(16).padStart(2,'0')).join('');}let salarie='',code='';try{salarie=String(localStorage.getItem('sanistock_employee_name')||'').trim();code=String(localStorage.getItem('sanistock_employee_code')||'').trim();}catch(e){}if(!salarie||!code)throw new Error('Session salarié introuvable. Reconnectez-vous à SaniStock.');const immat=document.getElementById('vslImmatriculation')?.value||'',date=document.getElementById('vslDate')?.value||'',vehicle=(document.getElementById('checklistVslSubtitle')?.textContent||'').replace(/^Véhicule\s*:\s*/,'').trim(),kms=document.getElementById('vslKms')?.value||'',dateAff=dateFR(date),subject='Check-list VSL - '+immat+' - '+dateAff,body=['Bonjour,','','Veuillez trouver ci-joint la fiche de contrôle et d’entretien mensuel du VSL.','', 'Véhicule : '+vehicle,'Immatriculation : '+immat,'Chauffeur : '+salarie,'Date : '+dateAff,'Kms : '+kms,'','Cordialement,','SaniStock'].join('\n');const api=(window.SANISTOCK_API_URL||'https://script.google.com/macros/s/AKfycbxz5dZkT7FyFx8ohxWmg2Pt23Yqx0LQDMqqJg8LM8bkfN3ulkb37VqUO8m8WvjyuGBqrg/exec'),frame=document.createElement('iframe');frame.name='sanistockVslMail_'+Date.now();frame.style.display='none';document.body.appendChild(frame);const form=document.createElement('form');form.method='POST';form.action=api;form.target=frame.name;form.style.display='none';const input=document.createElement('textarea');input.name='payload';input.value=JSON.stringify({action:'envoyerVslPdf',data:{salarie,code,filename:pdf.filename,base64url:base64,byteLength:bytes.length,sha256:hash,subject,body}});form.appendChild(input);document.body.appendChild(form);form.submit();await new Promise(r=>setTimeout(r,4500));form.remove();frame.remove();alert('✅ La fiche VSL remplie a été envoyée directement par mail avec le PDF en pièce jointe.');}catch(e){console.error(e);alert('❌ Impossible d’envoyer la fiche VSL : '+(e&&e.message?e.message:e));}finally{if(btn){btn.disabled=false;btn.textContent=old||'📧 ENVOYER PAR MAIL';}}};
-  window.ouvrirChecklistVehiculeFixeVsl=window.ouvrirChecklistVehiculeFixe;
   const previous=window.ouvrirChecklistVehiculeFixe;
-  window.ouvrirChecklistVehiculeFixe=function(v){if(String(v).toUpperCase().includes('VSL')){const box=document.getElementById('checklistContent'),sub=document.getElementById('checklistSubtitle');if(!box)return;if(sub)sub.textContent='VSL — contrôle du véhicule';box.innerHTML=vslHtml(v);chargerEquipageVsl();const d=document.getElementById('checklistVslDetail');if(d)d.classList.add('show');setTimeout(()=>initSignatureVsl(),60);return;}return previous(v);};
+  // Point d'entrée VSL conservé explicitement pour que les autres correctifs
+  // de véhicules ne puissent pas détourner l'ouverture de cette checklist.
+  window.ouvrirChecklistVehiculeFixeVsl=function(v){
+    const s=String(v||'').toUpperCase();
+    if(s.includes('VSL')){
+      const box=document.getElementById('checklistContent'),sub=document.getElementById('checklistSubtitle');
+      if(!box)return;
+      if(sub)sub.textContent='VSL — contrôle du véhicule';
+      box.innerHTML=vslHtml(v);
+      chargerEquipageVsl();
+      const d=document.getElementById('checklistVslDetail');
+      if(d)d.classList.add('show');
+      if(typeof showPage==='function')showPage('checklistPage');
+      setTimeout(()=>initSignatureVsl(),60);
+      return;
+    }
+    return previous(v);
+  };
+  window.ouvrirChecklistVehiculeFixe=window.ouvrirChecklistVehiculeFixeVsl;
   window.fermerChecklistVsl=function(){if(typeof window.ouvrirChecklistVehicules==='function')window.ouvrirChecklistVehicules('VSL');};
 })();
 </script>
@@ -11764,6 +11781,7 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
   const previousOpen=window.ouvrirChecklistVehiculeFixe;
   window.ouvrirChecklistVehiculeFixe=function(v){
     const s=String(v||'').toUpperCase();
+    if(s.includes('VSL')){return window.ouvrirChecklistVehiculeFixeVsl(v);}
     if(s.includes('FZ-349-AT') || s.includes('AMBULANCE PEUGEOT BOXER')){window.ouvrirChecklistAmbulance(v);return;}
     if(s.includes('HS-219-PS') || s.includes('AMBULANCE RENAULT TRAFIC')){window.ouvrirChecklistAmbulance(v);return;}
     return previousOpen.apply(this,arguments);
