@@ -10678,7 +10678,66 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
         '</div>'+
         '<div class="meta">Véhicule : '+taxiPdfEscape(vehicle)+'</div>'+
       '</div>'+
-      '</body></html>';
+      '<script id="sanistock-final-checklist-access-repair">
+(function(){
+  function openTaxi(v){
+    var box=document.getElementById('checklistContent');
+    var sub=document.getElementById('checklistSubtitle');
+    if(!box || typeof window.taxiHtml!=='function') return false;
+    box.innerHTML=window.taxiHtml(v);
+    if(sub) sub.textContent='TAXI — contrôle du véhicule';
+    if(typeof window.showPage==='function') window.showPage('checklistPage');
+    var d=document.getElementById('checklistTaxiDetail'); if(d)d.classList.add('show');
+    if(typeof window.chargerEquipageTaxi==='function') window.chargerEquipageTaxi();
+    setTimeout(function(){if(typeof window.chargerEquipageTaxi==='function')window.chargerEquipageTaxi();},150);
+    if(typeof window.initSignatureTaxi==='function')setTimeout(window.initSignatureTaxi,60);
+    return false;
+  }
+  function openVsl(v){
+    var box=document.getElementById('checklistContent');
+    var sub=document.getElementById('checklistSubtitle');
+    if(!box || typeof window.vslHtml!=='function') return false;
+    box.innerHTML=window.vslHtml(v);
+    if(sub) sub.textContent='VSL — contrôle du véhicule';
+    if(typeof window.showPage==='function') window.showPage('checklistPage');
+    var d=document.getElementById('checklistVslDetail'); if(d)d.classList.add('show');
+    if(typeof window.chargerEquipageVsl==='function')window.chargerEquipageVsl();
+    setTimeout(function(){if(typeof window.chargerEquipageVsl==='function')window.chargerEquipageVsl();},150);
+    if(typeof window.initSignatureVsl==='function')setTimeout(window.initSignatureVsl,60);
+    return false;
+  }
+  window.saniOuvrirTaxiDirect=openTaxi;
+  window.saniOuvrirVslDirect=openVsl;
+  window.saniOuvrirVehiculeDepuisBouton=function(btn){
+    var v=btn&&btn.getAttribute?btn.getAttribute('data-check-veh'):'';
+    var u=String(v||'').toUpperCase();
+    if(!v)return false;
+    if(u.indexOf('TAXI')>=0)return openTaxi(v);
+    if(u.indexOf('VSL')>=0)return openVsl(v);
+    if((u.indexOf('FZ-349-AT')>=0||u.indexOf('PEUGEOT BOXER')>=0)&&typeof window.ouvrirChecklistAmbulance==='function'){
+      window.ouvrirChecklistAmbulance(v);if(typeof window.showPage==='function')window.showPage('checklistPage');return false;
+    }
+    if((u.indexOf('HA-219-PS')>=0||u.indexOf('RENAULT TRAFIC')>=0)&&typeof window.ouvrirChecklistAmbulanceTraficHa219==='function'){
+      window.ouvrirChecklistAmbulanceTraficHa219(v);if(typeof window.showPage==='function')window.showPage('checklistPage');return false;
+    }
+    return false;
+  };
+  window.ouvrirChecklistVehiculeFixe=function(v){
+    var u=String(v||'').toUpperCase();
+    if(u.indexOf('TAXI')>=0)return openTaxi(v);
+    if(u.indexOf('VSL')>=0)return openVsl(v);
+    if((u.indexOf('FZ-349-AT')>=0||u.indexOf('PEUGEOT BOXER')>=0)&&typeof window.ouvrirChecklistAmbulance==='function'){
+      window.ouvrirChecklistAmbulance(v);if(typeof window.showPage==='function')window.showPage('checklistPage');return false;
+    }
+    if((u.indexOf('HA-219-PS')>=0||u.indexOf('RENAULT TRAFIC')>=0)&&typeof window.ouvrirChecklistAmbulanceTraficHa219==='function'){
+      window.ouvrirChecklistAmbulanceTraficHa219(v);if(typeof window.showPage==='function')window.showPage('checklistPage');return false;
+    }
+    return false;
+  };
+})();
+</script>
+
+</body></html>';
   }
 
 
@@ -12070,5 +12129,64 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
   };
 })();
 </script>
+<script id="sanistock-final-checklist-access-repair">
+(function(){
+  function openTaxi(v){
+    var box=document.getElementById('checklistContent');
+    var sub=document.getElementById('checklistSubtitle');
+    if(!box || typeof window.taxiHtml!=='function') return false;
+    box.innerHTML=window.taxiHtml(v);
+    if(sub) sub.textContent='TAXI — contrôle du véhicule';
+    if(typeof window.showPage==='function') window.showPage('checklistPage');
+    var d=document.getElementById('checklistTaxiDetail'); if(d)d.classList.add('show');
+    if(typeof window.chargerEquipageTaxi==='function') window.chargerEquipageTaxi();
+    setTimeout(function(){if(typeof window.chargerEquipageTaxi==='function')window.chargerEquipageTaxi();},150);
+    if(typeof window.initSignatureTaxi==='function')setTimeout(window.initSignatureTaxi,60);
+    return false;
+  }
+  function openVsl(v){
+    var box=document.getElementById('checklistContent');
+    var sub=document.getElementById('checklistSubtitle');
+    if(!box || typeof window.vslHtml!=='function') return false;
+    box.innerHTML=window.vslHtml(v);
+    if(sub) sub.textContent='VSL — contrôle du véhicule';
+    if(typeof window.showPage==='function') window.showPage('checklistPage');
+    var d=document.getElementById('checklistVslDetail'); if(d)d.classList.add('show');
+    if(typeof window.chargerEquipageVsl==='function')window.chargerEquipageVsl();
+    setTimeout(function(){if(typeof window.chargerEquipageVsl==='function')window.chargerEquipageVsl();},150);
+    if(typeof window.initSignatureVsl==='function')setTimeout(window.initSignatureVsl,60);
+    return false;
+  }
+  window.saniOuvrirTaxiDirect=openTaxi;
+  window.saniOuvrirVslDirect=openVsl;
+  window.saniOuvrirVehiculeDepuisBouton=function(btn){
+    var v=btn&&btn.getAttribute?btn.getAttribute('data-check-veh'):'';
+    var u=String(v||'').toUpperCase();
+    if(!v)return false;
+    if(u.indexOf('TAXI')>=0)return openTaxi(v);
+    if(u.indexOf('VSL')>=0)return openVsl(v);
+    if((u.indexOf('FZ-349-AT')>=0||u.indexOf('PEUGEOT BOXER')>=0)&&typeof window.ouvrirChecklistAmbulance==='function'){
+      window.ouvrirChecklistAmbulance(v);if(typeof window.showPage==='function')window.showPage('checklistPage');return false;
+    }
+    if((u.indexOf('HA-219-PS')>=0||u.indexOf('RENAULT TRAFIC')>=0)&&typeof window.ouvrirChecklistAmbulanceTraficHa219==='function'){
+      window.ouvrirChecklistAmbulanceTraficHa219(v);if(typeof window.showPage==='function')window.showPage('checklistPage');return false;
+    }
+    return false;
+  };
+  window.ouvrirChecklistVehiculeFixe=function(v){
+    var u=String(v||'').toUpperCase();
+    if(u.indexOf('TAXI')>=0)return openTaxi(v);
+    if(u.indexOf('VSL')>=0)return openVsl(v);
+    if((u.indexOf('FZ-349-AT')>=0||u.indexOf('PEUGEOT BOXER')>=0)&&typeof window.ouvrirChecklistAmbulance==='function'){
+      window.ouvrirChecklistAmbulance(v);if(typeof window.showPage==='function')window.showPage('checklistPage');return false;
+    }
+    if((u.indexOf('HA-219-PS')>=0||u.indexOf('RENAULT TRAFIC')>=0)&&typeof window.ouvrirChecklistAmbulanceTraficHa219==='function'){
+      window.ouvrirChecklistAmbulanceTraficHa219(v);if(typeof window.showPage==='function')window.showPage('checklistPage');return false;
+    }
+    return false;
+  };
+})();
+</script>
+
 </body>
 </html>
