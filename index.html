@@ -11809,6 +11809,9 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
     return 'sanistock_monthly_checklist_ack_'+d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
   }
   function showIfNeeded(){
+    // Le rappel mensuel commence le 1er novembre 2026.
+    const debut=new Date(2026,10,1,0,0,0,0);
+    if(new Date()<debut)return;
     try{
       if(localStorage.getItem(monthKey())!=='ok'){
         overlay.classList.add('open');
