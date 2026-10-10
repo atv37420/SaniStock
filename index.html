@@ -10870,7 +10870,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     var presentX=345, manqueX=420, missingX=482;
     function drawMaterialState(idx,y,rowBg){
       var st=getState(idx),miss=getMissing(idx);
-      if(st==='present'){cover(p1,presentX-6,y-6,12,13,rowBg);drawCheck(p1,presentX,y,10,black);}
+      if(st==='present'){drawCheck(p1,presentX,y,10,black);}
       else if(st==='manque'){cover(p1,manqueX-6,y-6,12,13,rowBg);drawX(p1,manqueX,y,10,black);}
       if(miss){cover(p1,missingX-25,y-6,50,13,rowBg);drawValue(p1,bold,miss,missingX-22,y-3,47,8,red);}
     }
@@ -10897,7 +10897,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
 
     // Page 2 : Masque FFP2 puis désinfection, observations et signature.
     var st33=getState(33),miss33=getMissing(33),y33=779,rowBg33=white;
-    if(st33==='present'){cover(p2,presentX-6,y33-6,12,13,rowBg33);drawCheck(p2,presentX,y33,10,black);}
+    if(st33==='present'){drawCheck(p2,presentX,y33,10,black);}
     else if(st33==='manque'){cover(p2,manqueX-6,y33-6,12,13,rowBg33);drawX(p2,manqueX,y33,10,black);}
     if(miss33){cover(p2,missingX-25,y33-6,50,13,rowBg33);drawValue(p2,bold,miss33,missingX-22,y33-3,47,8,red);}
 
