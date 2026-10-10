@@ -11568,10 +11568,9 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
       // Le modèle ambulance_template.pdf est vierge à cet endroit :
       // aucun rectangle de fond n'est ajouté, uniquement le V ou le X.
       // Descendre les marques de 5 points dans la rubrique PAPIERS VEHICULE.
-      // Tous les V de la rubrique PAPIERS VEHICULE sont décalés de 30 points vers la gauche.
-      // Les X restent à leur position d'origine.
+      // Les V et les X de la rubrique PAPIERS VEHICULE sont décalés de 30 points vers la gauche.
       if(state==='present') drawAmbTick(page,it.x-30,it.y-4,black);
-      if(state==='manque') centerText(page,bold,'X',it.x,it.y-4,9,black);
+      if(state==='manque') centerText(page,bold,'X',it.x-30,it.y-4,9,black);
     });
 
     const pageItems=isRenault
