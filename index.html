@@ -10877,7 +10877,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     // Centres de colonnes mesurés sur le modèle taxi_template.pdf.
     // Présent : x=350 pt. Manque : entre les traits x=390 et x=449, donc centre x=419.5.
     // Les X doivent rester au milieu de la colonne Manque, pas sur sa bordure droite.
-    var presentX=350, manqueX=423.5, missingX=482;
+    var presentX=350, manqueX=428.5, missingX=482;
     function drawMaterialState(idx,y,rowBg){
       var st=getState(idx),miss=getMissing(idx);
       if(st==='present'){drawCheck(p1,presentX,y,10,black);}
