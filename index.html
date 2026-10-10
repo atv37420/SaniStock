@@ -10108,7 +10108,7 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
         +'<button type="button" class="checklistVehicle" data-check-veh="'+esc(v)+'">'
         +'<span class="checklistVehicleName">'+esc(v)+'</span><span class="checklistVehicleArrow">›</span></button>'
         +'<div class="monthlyStatus" data-monthly-status="'+esc(key)+'">⏳ Chargement du statut…</div>'
-        +'<button type="button" class="monthlyValidateButton" data-monthly-validate="'+esc(v)+'" data-monthly-cat="'+esc(c)+'">✓ Valider le mois</button></div>';}).join('');
+        +'</div>';}).join('');
     loadMonthlyStatus(c,V[c]);
   };
   window.ouvrirChecklistVehiculeFixe=function(v){alert('Véhicule sélectionné : '+v+'\n\nLa check-list détaillée de ce véhicule sera ajoutée ici.');};
@@ -10830,10 +10830,13 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     return '';
   }
   function getMissing(i){var el=document.getElementById('taxiMissing'+i);return el?String(el.value||'').trim():'';}
-  function drawCheck(page,x,y,sz,color){page.drawLine({start:{x:x-sz*.5,y:y},end:{x:x-sz*.15,y:y-sz*.45},thickness:1.2,color:color});page.drawLine({start:{x:x-sz*.15,y:y-sz*.45},end:{x:x+sz*.55,y:y+sz*.45},thickness:1.2,color:color});}
-  function drawX(page,x,y,sz,color){page.drawLine({start:{x:x-sz*.42,y:y-sz*.42},end:{x:x+sz*.42,y:y+sz*.42},thickness:1.1,color:color});page.drawLine({start:{x:x-sz*.42,y:y+sz*.42},end:{x:x+sz*.42,y:y-sz*.42},thickness:1.1,color:color});}
-  function cover(page,x,y,w,h,white){page.drawRectangle({x:x,y:y,width:w,height:h,color:white,borderWidth:0});}
-  function drawValue(page,font,text,x,y,maxWidth,size,color){if(!text)return;var t=String(text);while(t.length>0&&font.widthOfTextAtSize(t,size)>maxWidth)t=t.slice(0,-1);page.drawText(t,{x:x,y:y,size:size,font:font,color:color});}
+  // Sécurise toutes les coordonnées transmises à PDFLib : une valeur non numérique
+  // ne doit jamais devenir NaN et faire échouer l'envoi de la fiche Taxi.
+  function taxiNum(v, fallback){var n=Number(v);return Number.isFinite(n)?n:fallback;}
+  function drawCheck(page,x,y,sz,color){x=taxiNum(x,0);y=taxiNum(y,0);sz=taxiNum(sz,10);page.drawLine({start:{x:x-sz*.5,y:y},end:{x:x-sz*.15,y:y-sz*.45},thickness:1.2,color:color});page.drawLine({start:{x:x-sz*.15,y:y-sz*.45},end:{x:x+sz*.55,y:y+sz*.45},thickness:1.2,color:color});}
+  function drawX(page,x,y,sz,color){x=taxiNum(x,0);y=taxiNum(y,0);sz=taxiNum(sz,10);page.drawLine({start:{x:x-sz*.42,y:y-sz*.42},end:{x:x+sz*.42,y:y+sz*.42},thickness:1.1,color:color});page.drawLine({start:{x:x-sz*.42,y:y+sz*.42},end:{x:x+sz*.42,y:y-sz*.42},thickness:1.1,color:color});}
+  function cover(page,x,y,w,h,white){x=taxiNum(x,0);y=taxiNum(y,0);w=taxiNum(w,0);h=taxiNum(h,0);if(w<=0||h<=0)return;page.drawRectangle({x:x,y:y,width:w,height:h,color:white,borderWidth:0});}
+  function drawValue(page,font,text,x,y,maxWidth,size,color){if(text===null||text===undefined||String(text)==='')return;x=taxiNum(x,0);y=taxiNum(y,0);maxWidth=taxiNum(maxWidth,0);size=taxiNum(size,9);if(maxWidth<=0||size<=0)return;var t=String(text);while(t.length>0&&font.widthOfTextAtSize(t,size)>maxWidth)t=t.slice(0,-1);if(t)page.drawText(t,{x:x,y:y,size:size,font:font,color:color});}
   function wrapText(font,text,size,maxWidth){var words=String(text||'').split(/\s+/),lines=[],line='';words.forEach(function(w){var test=line?line+' '+w:w;if(font.widthOfTextAtSize(test,size)<=maxWidth)line=test;else{if(line)lines.push(line);line=w;}});if(line)lines.push(line);return lines;}
 
   async function buildExactPdf(){
@@ -10903,7 +10906,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
 
     [34,35,36].forEach(function(idx,k){var st=getState(idx),miss=getMissing(idx),y=[720,706,692][k],rowBg=(k%2===0?white:gray);if(st==='present'){drawCheck(p2,presentX,y,10,black);}else if(st==='manque'){drawX(p2,manqueX,y,10,black);}if(miss){cover(p2,missingX-25,y-6,50,13,rowBg);drawValue(p2,bold,miss,missingX-22,y-3,47,8,red);}});
     // Texte des observations : 10 points à droite et 20 points plus bas.
-    if(obs){var lines=wrapText(font,obs,8,410),yy=645;lines.slice(0,8).forEach(function(line){p2.drawText(line,{x:66,y:yy,size:8,font:font,color:black});yy-=11;});}
+    if(obs){var lines=wrapText(font,obs,8,410),yy=645;lines.slice(0,8).forEach(function(line){if(Number.isFinite(yy))p2.drawText(line,{x:66,y:yy,size:8,font:font,color:black});yy-=11;});}
     if(equip){cover(p2,155,555,170,18,white);drawValue(p2,font,equip,160,559,160,9,black);}
     if(sig&&sig.indexOf('data:image/')===0){
       try{
@@ -10921,8 +10924,15 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
           var crop=document.createElement('canvas');crop.width=cw;crop.height=ch;
           var cx=crop.getContext('2d');cx.drawImage(sc,Math.max(0,minX-pad),Math.max(0,minY-pad),Math.min(sc.width,cw),Math.min(sc.height,ch),0,0,cw,ch);
           var png=await doc.embedPng(crop.toDataURL('image/png'));
-          var maxW=170,maxH=62, scale=Math.min(maxW/png.width,maxH/png.height), dw=png.width*scale, dh=png.height*scale;
-          p2.drawImage(png,{x:140+(maxW-dw)/2,y:528+(maxH-dh)/2,width:dw,height:dh});
+          // Sécurité : ne jamais transmettre de coordonnées NaN à PDFLib.
+          var pw=Number(png&&png.width),ph=Number(png&&png.height);
+          if(Number.isFinite(pw)&&Number.isFinite(ph)&&pw>0&&ph>0){
+            var maxW=170,maxH=62, scale=Math.min(maxW/pw,maxH/ph), dw=pw*scale, dh=ph*scale;
+            var imageX=140+(maxW-dw)/2, imageY=528+(maxH-dh)/2;
+            if([scale,dw,dh,imageX,imageY].every(Number.isFinite)&&dw>0&&dh>0){
+              p2.drawImage(png,{x:imageX,y:imageY,width:dw,height:dh});
+            }
+          }
         }
       }catch(e){console.warn('Signature PDF',e);}
     }
