@@ -10868,7 +10868,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     // Tableau matériel : centres exacts des colonnes Présent / Manque.
     // Présent = centre ~345 pt ; Manque = centre ~420 pt.
     // Les marques sont placées au centre de chaque ligne, jamais dans les barres de section.
-    var presentX=345, manqueX=420, missingX=482;
+    var presentX=350, manqueX=420, missingX=482;
     function drawMaterialState(idx,y,rowBg){
       var st=getState(idx),miss=getMissing(idx);
       if(st==='present'){drawCheck(p1,presentX,y,10,black);}
@@ -11573,14 +11573,14 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
         const i=start+j, item=ambItems[i]||{}, y=ys[j], state=readState(i), missing=String(document.getElementById('ambMissing'+i)?.value||'').trim();
         if(isRenault){
           // Coordonnées centrées exactement dans les cases du modèle Renault.
-          if(state==='present') drawAmbTick(pg,381.625,y+1,black);
+          if(state==='present') drawAmbTick(pg,386.625,y+1,black);
           if(state==='manque') centerText(pg,bold,'X',444.5,y+1,9,black);
           if(!item.optional && missing) centerText(pg,bold,missing,509.0,y+1,8,black);
         }else{
           // Peugeot Boxer : le PDF contient déjà les bandes grises/blanches.
           // On ne dessine AUCUN rectangle de fond : cela évite les blocs
           // décalés et conserve exactement l'alternance gris/blanc du modèle.
-          if(state==='present') drawAmbTick(pg,357.3,y+1,black);
+          if(state==='present') drawAmbTick(pg,362.3,y+1,black);
           if(state==='manque') centerText(pg,bold,'X',407.15,y+1,9,black);
           // "optionnel" est déjà imprimé dans le modèle PDF.
           if(!item.optional && missing) centerText(pg,bold,missing,472.0,y+1,8,black);
