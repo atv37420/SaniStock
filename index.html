@@ -10868,7 +10868,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     // Tableau matériel : centres exacts des colonnes Présent / Manque.
     // Présent = centre ~345 pt ; Manque = centre ~420 pt.
     // Les marques sont placées au centre de chaque ligne, jamais dans les barres de section.
-    var presentX=355, manqueX=420, missingX=482;
+    var presentX=350, manqueX=440, missingX=482;
     function drawMaterialState(idx,y,rowBg){
       var st=getState(idx),miss=getMissing(idx);
       if(st==='present'){drawCheck(p1,presentX,y,10,black);}
