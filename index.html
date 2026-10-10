@@ -10866,9 +10866,9 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     right.forEach(function(idx,r){var st=getState(idx),y=[649,635,621,607,593,578][r]-4;if(st){cover(p1,446,y-6,13,12,gray);st==='present'?drawCheck(p1,452,y,10,black):drawX(p1,452,y,10,black);}});
 
     // Tableau matériel : centres exacts des colonnes Présent / Manque.
-    // Présent = centre ~345 pt ; Manque = centre ~420 pt.
+    // Présent = centre ~350 pt ; Manque = centre ~420 pt.
     // Les marques sont placées au centre de chaque ligne, jamais dans les barres de section.
-    var presentX=350, manqueX=440, missingX=482;
+    var presentX=350, manqueX=420, missingX=482;
     function drawMaterialState(idx,y,rowBg){
       var st=getState(idx),miss=getMissing(idx);
       if(st==='present'){drawCheck(p1,presentX,y,10,black);}
