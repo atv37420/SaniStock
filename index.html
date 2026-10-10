@@ -11212,11 +11212,13 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     // Page = 595.30 x 841.89 pt.
     // Colonnes : Inventaire | Quantité | Présent | Manque | Quantité manquante
     // x = centres exacts des colonnes du modèle.
-    // Informations générales remontées de 10 points : date, immatriculation, kms et équipage.
-    put(p1,date,82,H-110,9,bold);
-    put(p1,immat,301,H-110,9,bold);
-    put(p1,kms,420,H-110,9,bold);
-    put(p1,equip,108,H-125,9,bold);
+    // Informations générales : valeurs alignées sur les libellés du modèle.
+    // Positionnées sur deux lignes distinctes : Date / Immatriculation / Kms,
+    // puis Équipage. Le décalage vertical corrige les valeurs trop hautes.
+    put(p1,date,82,H-122,9,bold);
+    put(p1,immat,301,H-122,9,bold);
+    put(p1,kms,420,H-122,9,bold);
+    put(p1,equip,108,H-137,9,bold);
 
     const X_PRESENT=(413+576)/2/(993/595.333)+14; // coche décalée vers le centre visuel de la colonne Présent
     const X_MANQUE=(576+666)/2/(993/595.333); // centre réel de la colonne Manque
