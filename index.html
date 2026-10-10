@@ -11551,8 +11551,9 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
       const page=p1;
       // Le modèle ambulance_template.pdf est vierge à cet endroit :
       // aucun rectangle de fond n'est ajouté, uniquement le V ou le X.
-      if(state==='present') drawAmbTick(page,it.x,it.y+1,black);
-      if(state==='manque') centerText(page,bold,'X',it.x,it.y+1,9,black);
+      // Descendre les marques de 5 points dans la rubrique PAPIERS VEHICULE.
+      if(state==='present') drawAmbTick(page,it.x,it.y-4,black);
+      if(state==='manque') centerText(page,bold,'X',it.x,it.y-4,9,black);
     });
 
     const pageItems=isRenault
