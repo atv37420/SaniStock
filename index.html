@@ -11270,7 +11270,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
           crop.getContext('2d').drawImage(sc,Math.max(0,minX-pad),Math.max(0,minY-pad),Math.min(sc.width,cw),Math.min(sc.height,ch),0,0,cw,ch);
           const png=await doc.embedPng(crop.toDataURL('image/png'));
           const maxW=180,maxH=45,scale=Math.min(maxW/png.width,maxH/png.height),dw=png.width*scale,dh=png.height*scale;
-          p2.drawImage(png,{x:(W-dw)/2,y:118,width:dw,height:dh});
+          p2.drawImage(png,{x:(W-dw)/2,y:98,width:dw,height:dh});
         }
       }catch(e){console.warn('Signature VSL',e);}
     }
