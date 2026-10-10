@@ -11531,17 +11531,18 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
     if(!e2)throw new Error('Ajoutez le 2ᵉ équipier manuellement.');
     const p1=doc.getPage(0),p2=doc.getPage(1),p3=doc.getPage(2);
 
-    // Informations générales réalignées : valeurs sur la même ligne que leurs libellés.
-    // Les fonds de correction sont limités aux anciennes valeurs afin de ne pas
-    // créer de bande grise qui dépasse du bord droit du document.
-    cover(p1,128,741,112,16,paperBg);
-    cover(p1,302,741,58,16,paperBg);
-    cover(p1,438,741,86,16,paperBg);
-    cover(p1,42,727,300,16,paperBg);
+    // Informations générales : valeurs recadrées dans les zones du modèle.
+    // 1re ligne : Immatriculation / KMS / DATE. 2e ligne : Equipage.
+    cover(p1,130,741,145,16,paperBg);
+    // On efface uniquement les anciennes valeurs, sans recouvrir les libellés KMS / DATE.
+    cover(p1,350,741,62,16,paperBg);
+    cover(p1,480,741,65,16,paperBg);
+    cover(p1,92,727,330,16,paperBg);
     p1.drawText(immat,{x:132,y:746,size:9,font:bold,color:black});
-    p1.drawText(kms,{x:314,y:746,size:9,font:bold,color:black});
-    p1.drawText(htmlDateFR(date),{x:450,y:746,size:9,font:bold,color:black});
-    p1.drawText(e1+' / '+e2,{x:45,y:732,size:9,font:bold,color:black});
+    // KMS, DATE et ÉQUIPAGE décalés de 10 points vers la droite.
+    p1.drawText(kms,{x:324,y:746,size:9,font:bold,color:black});
+    p1.drawText(htmlDateFR(date),{x:460,y:746,size:9,font:bold,color:black});
+    p1.drawText(e1+' / '+e2,{x:106,y:732,size:9,font:bold,color:black});
 
     // Papiers véhicule : V = OK, X = manque. Les anciens petits symboles sont nettoyés.
     ambPapers.forEach(function(it,i){
