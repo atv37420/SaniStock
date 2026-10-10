@@ -10070,17 +10070,51 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
     }).join('')+'</div>';
     if(typeof showPage==='function')showPage('checklistPage');
   };
+  var monthlyChecklistCache={};
+  function monthlyKey(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}
+  function monthlyStatusKey(cat,v){return monthlyKey()+'|'+String(cat||'')+'|'+String(v||'').trim().toLowerCase();}
+  function currentEmployee(){try{return String(localStorage.getItem('sanistock_employee_name')||'').trim();}catch(e){return '';}}
+  function loadMonthlyStatus(cat,vehicles){
+    if(!window.google||!google.script||!google.script.run)return;
+    google.script.run.withSuccessHandler(function(rows){
+      monthlyChecklistCache={};(Array.isArray(rows)?rows:[]).forEach(function(r){monthlyChecklistCache[monthlyStatusKey(r.categorie,r.vehicule)]=r;});
+      var box=document.getElementById('checklistContent');if(!box||!box.querySelector('[data-monthly-category="'+cat+'"]'))return;
+      box.querySelectorAll('[data-monthly-status]').forEach(function(el){var k=el.getAttribute('data-monthly-status'),r=monthlyChecklistCache[k];el.textContent=r?'✅ Effectuée le '+(r.dateAff||r.date||''):'⏳ À effectuer';el.classList.toggle('is-done',!!r);});
+    }).withFailureHandler(function(err){console.warn('Statut mensuel indisponible',err);}).getChecklistMensuelle({mois:monthlyKey()});
+  }
+  window.marquerChecklistMensuelle=function(cat,v,btn){
+    if(!confirm('Confirmer que la check-list mensuelle du véhicule « '+v+' » est effectuée ?'))return;
+    if(btn){btn.disabled=true;btn.textContent='Enregistrement…';}
+    var data={categorie:cat,vehicule:v,mois:monthlyKey(),salarie:currentEmployee()||'Salarié non identifié'};
+    google.script.run.withSuccessHandler(function(){
+      monthlyChecklistCache[monthlyStatusKey(cat,v)]={categorie:cat,vehicule:v,dateAff:new Date().toLocaleDateString('fr-FR'),salarie:data.salarie};
+      var box=document.getElementById('checklistContent');if(box){var st=box.querySelector('[data-monthly-status="'+monthlyStatusKey(cat,v)+'"]');if(st){st.textContent='✅ Effectuée le '+new Date().toLocaleDateString('fr-FR');st.classList.add('is-done');} }
+      if(btn){btn.disabled=false;btn.textContent='✓ Mois validé';btn.classList.add('is-done');}
+      alert('✅ Validation mensuelle enregistrée pour '+v+'. Elle est maintenant visible par tous les salariés.');
+    }).withFailureHandler(function(err){if(btn){btn.disabled=false;btn.textContent='✓ Valider le mois';}alert('❌ Impossible d’enregistrer la validation mensuelle : '+(err&&err.message?err.message:err));}).enregistrerChecklistMensuelle(data);
+  };
+  window.ouvrirHistoriqueChecklistMensuelle=function(){
+    google.script.run.withSuccessHandler(function(rows){
+      var lines=(Array.isArray(rows)?rows:[]).map(function(r){return '<div class="monthlyHistoryRow"><b>'+esc(r.vehicule)+'</b><span>'+esc(r.categorie)+' — '+esc(r.mois)+'</span><small>Effectuée le '+esc(r.dateAff||r.date||'')+' par '+esc(r.salarie||'Non renseigné')+'</small></div>';}).join('');
+      var modal=document.getElementById('saniMonthlyHistory');if(!modal){modal=document.createElement('div');modal.id='saniMonthlyHistory';modal.className='saniMonthlyHistory';document.body.appendChild(modal);}modal.innerHTML='<div class="monthlyHistoryCard"><button type="button" class="monthlyHistoryClose" data-monthly-history-close="1">✕</button><h2>📚 Historique des check-lists mensuelles</h2>'+(lines||'<p>Aucune validation enregistrée.</p>')+'</div>'; 
+    }).withFailureHandler(function(err){alert('Impossible de charger l’historique : '+(err&&err.message?err.message:err));}).getHistoriqueChecklistMensuelle({});
+  };
   window.ouvrirChecklistVehicules=function(c){
     var box=document.getElementById('checklistContent'), sub=document.getElementById('checklistSubtitle'); if(!box)return;
     if(sub)sub.textContent=checklistCategoryLabel(c)+' — choisissez un véhicule';
     box.innerHTML='<button type="button" class="back" id="checklistBackCat">← Catégories</button>'
-      +V[c].map(function(v){
-        return '<button type="button" class="checklistVehicle" data-check-veh="'+esc(v)+'">'
-          +'<span class="checklistVehicleName">'+esc(v)+'</span><span class="checklistVehicleArrow">›</span></button>';
-      }).join('');
+      +'<button type="button" class="monthlyHistoryButton" onclick="ouvrirHistoriqueChecklistMensuelle()">📚 Historique mensuel</button>'
+      +V[c].map(function(v){var key=monthlyStatusKey(c,v);return '<div class="checklistVehicleMonthly" data-monthly-category="'+esc(c)+'">'
+        +'<button type="button" class="checklistVehicle" data-check-veh="'+esc(v)+'">'
+        +'<span class="checklistVehicleName">'+esc(v)+'</span><span class="checklistVehicleArrow">›</span></button>'
+        +'<div class="monthlyStatus" data-monthly-status="'+esc(key)+'">⏳ Chargement du statut…</div>'
+        +'<button type="button" class="monthlyValidateButton" data-monthly-validate="'+esc(v)+'" data-monthly-cat="'+esc(c)+'">✓ Valider le mois</button></div>';}).join('');
+    loadMonthlyStatus(c,V[c]);
   };
   window.ouvrirChecklistVehiculeFixe=function(v){alert('Véhicule sélectionné : '+v+'\n\nLa check-list détaillée de ce véhicule sera ajoutée ici.');};
   document.addEventListener('click',function(e){
+    var closeHistory=e.target.closest && e.target.closest('[data-monthly-history-close]'); if(closeHistory){var history=document.getElementById('saniMonthlyHistory');if(history)history.remove();return;}
+    var monthly=e.target.closest && e.target.closest('[data-monthly-validate]'); if(monthly){e.preventDefault();e.stopPropagation();window.marquerChecklistMensuelle(monthly.getAttribute('data-monthly-cat'),monthly.getAttribute('data-monthly-validate'),monthly);return;}
     var cat=e.target.closest && e.target.closest('[data-check-cat]'); if(cat){window.ouvrirChecklistVehicules(cat.getAttribute('data-check-cat'));return;}
     var veh=e.target.closest && e.target.closest('[data-check-veh]'); if(veh){window.ouvrirChecklistVehiculeFixe(veh.getAttribute('data-check-veh'));return;}
     if(e.target.closest && e.target.closest('#checklistBackCat')){window.ouvrirChecklistCategories();return;}
@@ -11765,6 +11799,24 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
   };
 })();
 </script>
+
+
+<style id="sanistock-checklist-mensuelle">
+#checklistPage .checklistVehicleMonthly{display:grid;grid-template-columns:minmax(0,1fr);gap:5px;margin:10px 0;padding:10px;background:#f7fbff;border:1px solid #d8e7f2;border-radius:15px}
+#checklistPage .checklistVehicleMonthly .checklistVehicle{width:100%;margin:0}
+#checklistPage .monthlyStatus{font-size:12px;font-weight:800;color:#a35d00;padding:4px 7px}
+#checklistPage .monthlyStatus.is-done{color:#168044}
+#checklistPage .monthlyValidateButton,#checklistPage .monthlyHistoryButton{border:0;border-radius:10px;padding:10px 12px;background:#0758a5;color:#fff;font-weight:900;cursor:pointer}
+#checklistPage .monthlyValidateButton.is-done{background:#168044}
+#checklistPage .monthlyValidateButton:disabled{opacity:.65}
+#checklistPage .monthlyHistoryButton{width:100%;margin:10px 0;background:#042349}
+.saniMonthlyHistory{position:fixed;inset:0;z-index:1000002;background:#00152bd9;display:flex;align-items:center;justify-content:center;padding:18px}
+.saniMonthlyHistory .monthlyHistoryCard{position:relative;width:min(94vw,520px);max-height:85vh;overflow:auto;background:#fff;border-radius:20px;padding:22px;color:#042349}
+.saniMonthlyHistory h2{font-size:20px;margin:0 35px 15px 0}
+.monthlyHistoryRow{padding:11px 4px;border-bottom:1px solid #dce7ef}
+.monthlyHistoryRow b,.monthlyHistoryRow span,.monthlyHistoryRow small{display:block}.monthlyHistoryRow span,.monthlyHistoryRow small{font-size:12px;margin-top:4px;color:#60778c}
+.monthlyHistoryClose{position:absolute;right:14px;top:14px;border:0;border-radius:50%;width:32px;height:32px;background:#e6eef5;color:#042349;font-weight:900}
+</style>
 
 <style>
 #saniMonthlyChecklistOverlay{display:none;position:fixed;inset:0;z-index:1000001;background:rgba(0,18,42,.76);align-items:center;justify-content:center;padding:18px}
