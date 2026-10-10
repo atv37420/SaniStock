@@ -11181,10 +11181,11 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     // Informations générales : réponses alignées sur leurs champs, sans chevauchement.
     // Date, immatriculation et Kms restent sur la même ligne ; l'équipage est placé
     // sur la ligne inférieure et commence après son libellé.
-    put(p1,date,92,H-135,9,bold);
-    put(p1,immat,301,H-135,9,bold);
-    put(p1,kms,420,H-135,9,bold);
-    put(p1,equip,112,H-156,9,bold);
+    // Valeurs décalées après leurs libellés pour éviter tout chevauchement.
+    put(p1,date,105,H-135,9,bold);
+    put(p1,immat,310,H-135,9,bold);
+    put(p1,kms,445,H-135,9,bold);
+    put(p1,equip,125,H-156,9,bold);
 
     const X_PRESENT=(413+576)/2/(993/595.333); // centre réel de la colonne Présent
     const X_MANQUE=(576+666)/2/(993/595.333); // centre réel de la colonne Manque
