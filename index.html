@@ -11210,10 +11210,11 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     // dans INFORMATIONS GENERALES ou descendre dans MATERIEL VEHICULE.
     const paperRows=[
       // Cases alignées sur les emplacements de coche de la feuille VSL actuelle.
+      // Décalage horizontal de 10 points vers la droite pour toutes les coches/croix.
       // Gauche : Carte grise, Cartes Leclerc/Carrefour, Carnet, Support PDA, Télécom.
-      [1,233.18,650.2],[3,233.18,635.9],[5,233.18,613.7],[7,233.18,591.4],[9,233.18,576.4],
+      [1,243.18,650.2],[3,243.18,635.9],[5,243.18,613.7],[7,243.18,591.4],[9,243.18,576.4],
       // Droite : Agrément ARS, Assurance, Constat, Cahier entretien, Contrôle technique, Cartes de visite.
-      [0,409.19,664.0],[2,409.19,649.6],[4,409.19,635.1],[6,409.19,613.7],[8,409.19,591.4],[10,409.19,576.4]
+      [0,419.19,664.0],[2,419.19,649.6],[4,419.19,635.1],[6,419.19,613.7],[8,419.19,591.4],[10,419.19,576.4]
     ];
 
     paperRows.forEach(([i,x,y])=>{
