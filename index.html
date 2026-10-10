@@ -10108,7 +10108,7 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
         +'<button type="button" class="checklistVehicle" data-check-veh="'+esc(v)+'">'
         +'<span class="checklistVehicleName">'+esc(v)+'</span><span class="checklistVehicleArrow">›</span></button>'
         +'<div class="monthlyStatus" data-monthly-status="'+esc(key)+'">⏳ Chargement du statut…</div>'
-        +'<button type="button" class="monthlyValidateButton" data-monthly-validate="'+esc(v)+'" data-monthly-cat="'+esc(c)+'">✓ Valider le mois</button></div>';}).join('');
+        +'</div>';}).join('');
     loadMonthlyStatus(c,V[c]);
   };
   window.ouvrirChecklistVehiculeFixe=function(v){alert('Véhicule sélectionné : '+v+'\n\nLa check-list détaillée de ce véhicule sera ajoutée ici.');};
