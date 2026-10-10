@@ -10604,7 +10604,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
       '.sectionTitle{background:#d9d9d9;border:1.3px solid #111;border-bottom:0;color:#52739a;text-decoration:underline;text-align:center;font-weight:800;padding:2.2mm}'+
       '.info,.papers{background:#d9d9d9;border:1.3px solid #111;padding:3mm 4mm}'+
       '.infoGrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:2.5mm 7mm}'+
-      '.wide{grid-column:1/4}.infoLine{white-space:nowrap}.infoLine b{font-weight:800}.equipageShift{transform:translateX(20pt)}'+
+      '.wide{grid-column:1/4}.infoLine{white-space:nowrap}.infoLine b{font-weight:800}'+
       '.paperGrid{display:grid;grid-template-columns:1fr 1fr;gap:0 12mm}.paperRow{display:flex;align-items:center;justify-content:space-between;min-height:6.9mm;padding:1.1mm 0;gap:4mm}'+
       '.mark{display:inline-flex;align-items:center;justify-content:center;flex:0 0 4.6mm;width:4.6mm;height:4.6mm;border:1px solid #222;border-radius:1px;background:#fff;font-weight:900;font-size:8.5pt;line-height:1}'+
       '.mark.present{color:#147a36}.mark.manque{color:#c8202f}'+
@@ -10624,7 +10624,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
           '<div class="infoLine">Date : <b>'+taxiPdfEscape(taxiPdfDate(date))+'</b></div>'+
           '<div class="infoLine">Immatriculation : <b>'+taxiPdfEscape(immat)+'</b></div>'+
           '<div class="infoLine">Kms : <b>'+taxiPdfEscape(kms)+'</b></div>'+
-          '<div class="infoLine wide equipageShift">Equipage : <b>'+taxiPdfEscape(equipage)+'</b></div>'+
+          '<div class="infoLine wide">Equipage : <b>'+taxiPdfEscape(equipage)+'</b></div>'+
         '</div></div>'+
         '<div class="sectionTitle">PAPIERS VEHICULE</div>'+
         '<div class="papers"><div class="paperGrid"><div>'+paperRows(papers.slice(0,half))+'</div><div>'+paperRows(papers.slice(half))+'</div></div></div>'+
@@ -10856,22 +10856,21 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     // Informations générales remontées de 5 points.
     drawValue(p1,bold,date,88,721,95,9,black);
     drawValue(p1,bold,immat,317,721,68,9,black);
-    drawValue(p1,bold,kms,446,721,58,9,black);
+    drawValue(p1,bold,kms,436,721,58,9,black);
     drawValue(p1,bold,equip,106,707,340,9,black);
 
     // Papiers : une seule case par document, exactement comme la fiche d'origine.
     var left=[0,2,4,6,8,10],right=[1,3,5,7,9,11];
-    // Papiers véhicule : coches centrées sur chaque ligne, avec un réglage dédié à la dernière ligne à droite.
-    left.forEach(function(idx,r){var st=getState(idx),y=[649,635,621,607,593][r]-4;if(st){cover(p1,244,y-6,13,12,gray);st==='present'?drawCheck(p1,250,y,10,black):drawX(p1,250,y,10,black);}});
-    right.forEach(function(idx,r){var st=getState(idx),y=[649,635,621,607,593,578][r]-4;if(st){cover(p1,446,y-6,13,12,gray);st==='present'?drawCheck(p1,452,y,10,black):drawX(p1,452,y,10,black);}});
+    left.forEach(function(idx,r){var st=getState(idx),y=[649,635,621,607,593,580][r];if(st){cover(p1,244,y-6,13,12,gray);st==='present'?drawCheck(p1,250,y,10,black):drawX(p1,250,y,10,black);}});
+    right.forEach(function(idx,r){var st=getState(idx),y=[649,635,621,607,593,580][r];if(st){cover(p1,446,y-6,13,12,gray);st==='present'?drawCheck(p1,452,y,10,black):drawX(p1,452,y,10,black);}});
 
     // Tableau matériel : centres exacts des colonnes Présent / Manque.
     // Présent = centre ~345 pt ; Manque = centre ~420 pt.
     // Les marques sont placées au centre de chaque ligne, jamais dans les barres de section.
-    var presentX=350, manqueX=420, missingX=482;
+    var presentX=345, manqueX=420, missingX=482;
     function drawMaterialState(idx,y,rowBg){
       var st=getState(idx),miss=getMissing(idx);
-      if(st==='present'){drawCheck(p1,presentX,y,10,black);}
+      if(st==='present'){cover(p1,presentX-6,y-6,12,13,rowBg);drawCheck(p1,presentX,y,10,black);}
       else if(st==='manque'){cover(p1,manqueX-6,y-6,12,13,rowBg);drawX(p1,manqueX,y,10,black);}
       if(miss){cover(p1,missingX-25,y-6,50,13,rowBg);drawValue(p1,bold,miss,missingX-22,y-3,47,8,red);}
     }
@@ -10898,11 +10897,11 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
 
     // Page 2 : Masque FFP2 puis désinfection, observations et signature.
     var st33=getState(33),miss33=getMissing(33),y33=779,rowBg33=white;
-    if(st33==='present'){drawCheck(p2,presentX,y33,10,black);}
+    if(st33==='present'){cover(p2,presentX-6,y33-6,12,13,rowBg33);drawCheck(p2,presentX,y33,10,black);}
     else if(st33==='manque'){cover(p2,manqueX-6,y33-6,12,13,rowBg33);drawX(p2,manqueX,y33,10,black);}
     if(miss33){cover(p2,missingX-25,y33-6,50,13,rowBg33);drawValue(p2,bold,miss33,missingX-22,y33-3,47,8,red);}
 
-    [34,35,36].forEach(function(idx,k){var st=getState(idx),miss=getMissing(idx),y=[720,706,692][k],rowBg=(k%2===0?white:gray);if(st==='present'){drawCheck(p2,presentX,y,10,black);}else if(st==='manque'){drawX(p2,manqueX,y,10,black);}if(miss){cover(p2,missingX-25,y-6,50,13,rowBg);drawValue(p2,bold,miss,missingX-22,y-3,47,8,red);}});
+    [34,35,36].forEach(function(idx,k){var st=getState(idx),miss=getMissing(idx),y=[720,706,692][k],rowBg=(k%2===0?white:gray);if(st==='present'){cover(p2,presentX-6,y-6,12,13,rowBg);drawCheck(p2,presentX,y,10,black);}else if(st==='manque'){cover(p2,manqueX-6,y-6,12,13,rowBg);drawX(p2,manqueX,y,10,black);}if(miss){cover(p2,missingX-25,y-6,50,13,rowBg);drawValue(p2,bold,miss,missingX-22,y-3,47,8,red);}});
     // Texte des observations : 10 points à droite et 20 points plus bas.
     if(obs){var lines=wrapText(font,obs,8,410),yy=645;lines.slice(0,8).forEach(function(line){p2.drawText(line,{x:66,y:yy,size:8,font:font,color:black});yy-=11;});}
     if(equip){cover(p2,155,555,170,18,white);drawValue(p2,font,equip,160,559,160,9,black);}
@@ -11213,17 +11212,17 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     // Page = 595.30 x 841.89 pt.
     // Colonnes : Inventaire | Quantité | Présent | Manque | Quantité manquante
     // x = centres exacts des colonnes du modèle.
-    // Informations générales : valeurs alignées sur les libellés du modèle.
-    // Positionnées sur deux lignes distinctes : Date / Immatriculation / Kms,
-    // puis Équipage. Le décalage vertical corrige les valeurs trop hautes.
-    put(p1,date,82,H-122,9,bold);
-    put(p1,immat,301,H-122,9,bold);
-    put(p1,kms,420,H-122,9,bold);
-    put(p1,equip,108,H-137,9,bold);
+    put(p1,date,82,H-120,9,bold);
+    put(p1,immat,301,H-120,9,bold);
+    put(p1,kms,420,H-120,9,bold);
+    put(p1,equip,108,H-135,9,bold);
 
-    const X_PRESENT=(413+576)/2/(993/595.333); // centre exact de la colonne Présent
-    const X_MANQUE=(576+666)/2/(993/595.333); // centre réel de la colonne Manque
-    const X_MISSING=(666+887)/2/(993/595.333); // centre réel de la colonne Quantité manquante
+    // Centres mesurés sur le modèle PDF réellement utilisé (page A4 portrait).
+    // Toutes les réponses sont ancrées au centre de leur colonne : Présent, Manque
+    // et Quantité manquante. Les valeurs de quantité saisies utilisent center().
+    const X_PRESENT=352.5;
+    const X_MANQUE=456.0;
+    const X_MISSING=535.0;
 
     // Centres verticaux exacts des lignes du tableau, en coordonnées PDF.
     const rows1=[
@@ -11350,7 +11349,7 @@ window.saniStockGenererVslPdfExact=buildExactPdf;
   const AMBULANCE_ITEMS_PEUGEOT=[{"category":"Relevage / Brancardage","name":"Chariot-brancard-civière","quantity":"1"},{"category":"Relevage / Brancardage","name":"Portoir type cuillère","quantity":"1"},{"category":"Relevage / Brancardage","name":"Matelas à dépression","quantity":"1"},{"category":"Relevage / Brancardage","name":"Chaise portoir pliable","quantity":"1"},{"category":"Relevage / Brancardage","name":"Pompe matelas à dépression double effet","quantity":"1"},{"category":"Immobilisation","name":"Collier cervical (3 tailles adultes ou reglable)","quantity":"1"},{"category":"Immobilisation","name":"Lot pour fracture (2 membres inf + 2 membres sup)","quantity":"1"},{"category":"Ventilation / respiration","name":"Oxygène portable","quantity":"2000l"},{"category":"Ventilation / respiration","name":"Insufflateurs manuels avec masques et canules pour tous les âges","quantity":"1"},{"category":"Ventilation / respiration","name":"Embout de ventilation bouche à masque avec entrée oxygène","quantity":"1"},{"category":"Ventilation / respiration","name":"Aspirateur de mucosité","quantity":"1"},{"category":"Diagnostique","name":"Appareil tension manuel, taille de serrage 10cm- 66cm","quantity":"1"},{"category":"Diagnostique","name":"Appareil tension automatique, taille de serrage 10cm- 66cm","quantity":"1","optional":true},{"category":"Diagnostique","name":"Oxymètre","quantity":"1"},{"category":"Diagnostique","name":"Stéthoscope","quantity":"1"},{"category":"Diagnostique","name":"Thermomètre","quantity":"1"},{"category":"Diagnostique","name":"Appareil à glycémie","quantity":"1"},{"category":"Diagnostique","name":"Lampe diagnostique","quantity":"1"},{"category":"Diagnostique","name":"Multiparamétre","quantity":"1"},{"category":"Réanimation","name":"Défibrillateur","quantity":"1"},{"category":"Bandage et matériels d'hygiéne","name":"Oreiller","quantity":"1"},{"category":"Bandage et matériels d'hygiéne","name":"Couverture bactériostatique","quantity":"1"},{"category":"Bandage et matériels d'hygiéne","name":"Kit plaies et membres sectionnés","quantity":"1","kit":["10 COMPRESSES STERILES 7,5*7,5 OU 10*10","2 PAIRES DE GANTS SERILES","2 BANDES TYPE VELPEAU 5CM ET 10CM","1 ROULEAU DE SPARADRAP 2CM","2 PANSEMENTS ABSORBANTS STERILES (DIT AMERICAIN) 20*40CM","1 PANSEMENT HEMOSTATIQUE D’URGENCE","1 COUVERTURE DE SURVIE","20 DOSETTES DE 5ML D’ANTISEPTIQUE NON IODE","1 PAIRE DE CISEAUX BOUTS RONDS","1 SAC ISOTHERME","2 PACKS DE FROID"]},{"category":"Bandage et matériels d'hygiéne","name":"Kit brûlures","quantity":"1","kit":["2 PAIRES DE GANTS STERILES","1 COUVERTURE DE SURVIE STERILE","2 BANDES VELPEAU 10CM","10 DOSETTES DE SERUM PHYSIOLOGIQUE","1 ROULEAU DE SPARADRAP","5 COMPRESSES STERILES 7,5*7,5 OU 10*10","1 PAIRE DE CISEAUX"]},{"category":"Bandage et matériels d'hygiéne","name":"Kit accouchement","quantity":"1","kit":["2 CHAMPS STERILES 75*90","10 COMPRESSES STERILES 7,5*7,5 OU 10*10","2 PAIRES DE GANTS SERILES","2 MASQUES CHIRURGICAUX","2 CLAMPS DE BAHR STERILES","1 BONNET NOUVEAU-NE","1 COUVERTURE DE SURVIS","1 PAIRE DE CISEAUX STERILES A BOUTS RONDS"]},{"category":"Bandage et matériels d'hygiéne","name":"Haricot","quantity":"1"},{"category":"Bandage et matériels d'hygiéne","name":"Sac vomitoire","quantity":"1"},{"category":"Bandage et matériels d'hygiéne","name":"Bassin","quantity":"1"},{"category":"Bandage et matériels d'hygiéne","name":"Urinal","quantity":"1"},{"category":"Bandage et matériels d'hygiéne","name":"Paires de gants chirurgicaux stériles","quantity":"5"},{"category":"Bandage et matériels d'hygiéne","name":"Gants usage unique","quantity":"100"},{"category":"Bandage et matériels d'hygiéne","name":"Sac poubelle","quantity":"5"},{"category":"Protection individuelle","name":"Kit de protection contre l'infection","quantity":"1","kit":["1 PAIRE DE LUNETTES DE PROTECTION NORME EN166 :2001","1 PAIRE DE SUR-CHAUSSURES DE PROTECTION JETABLES","1 SAC POUR DECHETS A RISQUES INFECTIEUX","2 MASQUES CHIRURGICAUX"]},{"category":"Protection individuelle","name":"Masques de type FFP2","quantity":"2"},{"category":"Matériel de protection et de sauvetage","name":"Détergeant et désinfectant pour matériel médical","quantity":"1"},{"category":"Matériel de protection et de sauvetage","name":"Détergeant et désinfectant pour sol","quantity":"1"},{"category":"Matériel de protection et de sauvetage","name":"Détergeant et désinfectant surface et mobilier","quantity":"1"},{"category":"Matériel de protection et de sauvetage","name":"Solution hydro-alcoolique","quantity":"1"},{"category":"Matériel de protection et de sauvetage","name":"Brise vitre / Coupe ceinture de sécurité dans la boite à gants","quantity":"1"},{"category":"Matériel de protection et de sauvetage","name":"Triangle ou lampe de pré-signalisation","quantity":"1"},{"category":"Matériel de protection et de sauvetage","name":"Extincteur","quantity":"1"},{"category":"Matériel de protection et de sauvetage","name":"Gilet jaune sous le siège passager","quantity":"2"},{"category":"Dispositifs pour le transport de nouveau-nés","name":"Nacelle","quantity":"1"},{"category":"Dispositifs pour le transport de nouveau-nés","name":"Sondes pédiatriques d'aspiration de différentes tailles","quantity":"1"},{"category":"Dispositifs pour le transport de nouveau-nés","name":"Lunettes à oxygène pour nouveau-né et nourrison","quantity":"2"},{"category":"Dispositifs pour le transport de nouveau-nés","name":"B.A.V.U nouveau-né et nourrisson avec masque et canules de diférentes tailles","quantity":"1"},{"category":"Dispositifs pour le transport de nouveau-nés","name":"Jeux attelles pédiatriques membres inf et sup","quantity":"1"},{"category":"Dispositifs pour le transport de nouveau-nés","name":"Matelas à dépression pédiatrique","quantity":"1"}];
   const AMBULANCE_ITEMS_RENAULT=[{"category":"Equipements de relevage et de brancardage du patient","name":"Chariot-brancard-civière","quantity":"1"},{"category":"Equipements de relevage et de brancardage du patient","name":"Matelas à dépression","quantity":"1","optional":true},{"category":"Equipements de relevage et de brancardage du patient","name":"Chaise portoir pliable","quantity":"1"},{"category":"Equipements de relevage et de brancardage du patient","name":"Pompe matelas à dépression","quantity":"1"},{"category":"Equipements de relevage et de brancardage du patient","name":"Support a soluté","quantity":"1"},{"category":"Equipements d'immobilisation","name":"Collier cervical (3 tailles adultes ou reglable)","quantity":"1"},{"category":"Equipements d'immobilisation","name":"Lot pour fracture (2 membres inf + 2 sup)","quantity":"1"},{"category":"Equipements de ventilation / respiration","name":"Insufflateurs manuels avec masques et canules pour tous les âges","quantity":"1"},{"category":"Equipements de ventilation / respiration","name":"Embout de ventilation bouche à masque avec entrée oxygène","quantity":"1"},{"category":"Equipements de ventilation / respiration","name":"Aspirateur de mucosité manuel","quantity":"1"},{"category":"Equipements de ventilation / respiration","name":"Oxygène","quantity":"2000l"},{"category":"Equipement de diagnostic","name":"Appareil tension manuel, taille de serrage 10cm- 66cm","quantity":"1"},{"category":"Equipement de diagnostic","name":"Appareil tension automatique, taille de serrage 10cm- 66cm","quantity":"1","optional":true},{"category":"Equipement de diagnostic","name":"Oxymètre","quantity":"1","optional":true},{"category":"Equipement de diagnostic","name":"Stéthoscope","quantity":"1","optional":true},{"category":"Bandage et matériels d'hygiéne","name":"Oreiller","quantity":"1"},{"category":"Bandage et matériels d'hygiéne","name":"Couverture bactériostatique","quantity":"1"},{"category":"Bandage et matériels d'hygiéne","name":"Kit traitement des plaies","quantity":"1","kit":["2 BANDES DE TYPE VELPEAU 5 ET 10 CM","10 COMPRESSES STERILES 7,5 x 7,5 ou 10 x 10 cm","2 PAIRES DE GANTS STERILES","2 PANSEMENTS ABSORBANTS STERILES 20X40 CM","1 ROULEAU DE SPARADRAP 2 CM","1 PANSEMENT HEMOSTATIQUE D URGENCE (type CHUT)","1 COUVERTURE DE SURVIE","1 PAIRE DE CISEAUX A BOUTS RONDS","20 DOSETTES DE 5 ML ANTISEPTIQUE BACTERICIDE NON IODE"]},{"category":"Bandage et matériels d'hygiéne","name":"Haricot","quantity":"1"},{"category":"Bandage et matériels d'hygiéne","name":"Sac vomitoire","quantity":"1"},{"category":"Bandage et matériels d'hygiéne","name":"Bassin","quantity":"1"},{"category":"Bandage et matériels d'hygiéne","name":"Urinal","quantity":"1"},{"category":"Bandage et matériels d'hygiéne","name":"Paires de gants chirurgicaux stériles","quantity":"2"},{"category":"Bandage et matériels d'hygiéne","name":"Gants usage unique","quantity":"100"},{"category":"Bandage et matériels d'hygiéne","name":"Drap à usage unique pour brancard","quantity":"1"},{"category":"Bandage et matériels d'hygiéne","name":"Sac poubelle","quantity":"5"},{"category":"Bandage et matériels d'hygiéne","name":"Kit accouchement","quantity":"1","kit":["2 CHAMPS STERILES 75*90","10 COMPRESSES STERILES 7,5*7,5 OU 10*10","2 PAIRES DE GANTS SERILES","2 MASQUES CHIRURGICAUX","2 CLAMPS DE BAHR STERILES","1 BONNET NOUVEAU-NE","1 COUVERTURE DE SURVIS","1 PAIRE DE CISEAUX STERILES A BOUTS RONDS"]},{"category":"Protection individuelle","name":"Kit de protection contre l'infection","quantity":"1","kit":["1 PAIRE DE LUNETTES DE PROTECTION NORME EN166 :2001","1 PAIRE DE SUR-CHAUSSURES DE PROTECTION JETABLES","1 SAC POUR DECHETS A RISQUES INFECTIEUX","2 MASQUES CHIRURGICAUX"]},{"category":"Protection individuelle","name":"Masques de type FFP2","quantity":"2"},{"category":"Matériel de protection et de sauvetage","name":"Détergeant et désinfectant pour matériel médical","quantity":"1"},{"category":"Matériel de protection et de sauvetage","name":"Détergeant et désinfectant surface et mobilier et sol","quantity":"1"},{"category":"Matériel de protection et de sauvetage","name":"Solution hydro-alcoolique","quantity":"1"},{"category":"Matériel de protection et de sauvetage","name":"Brise votre / coupe ceinture de sécurité vide poche","quantity":"1"},{"category":"Matériel de protection et de sauvetage","name":"Triangle ou lampe de pré-signalisation","quantity":"1"},{"category":"Matériel de protection et de sauvetage","name":"Extincteur","quantity":"1"},{"category":"Matériel de protection et de sauvetage","name":"Gilet jaunes dans la boite à gants","quantity":"2"}];
   function getAmbItems(vehicle){return String(vehicle||'').toUpperCase().includes('HS-219-PS')?AMBULANCE_ITEMS_RENAULT:AMBULANCE_ITEMS_PEUGEOT;}
-  const AMBULANCE_PAPERS_PEUGEOT=[{"name":"Carte grise :","x":298.0,"y":687.29},{"name":"Carte Leclerc :","x":298.0,"y":673.52},{"name":"BIP Péages","x":298.0,"y":659.74},{"name":"Carnet de désinfection :","x":298.0,"y":645.96},{"name":"Support P.D.A. :","x":298.0,"y":632.19},{"name":"Télécom. Portail :","x":298.0,"y":618.41},{"name":"Certificat de décharge :","x":298.0,"y":604.63},{"name":"Assurance :","x":518.0,"y":687.29},{"name":"Constat :","x":518.0,"y":673.52},{"name":"Cahier du véhicule :","x":518.0,"y":659.74},{"name":"Contrôle technique :","x":518.0,"y":645.96},{"name":"Cartes de visite :","x":518.0,"y":632.19},{"name":"Agrement ARS :","x":518.0,"y":618.41}];
+  const AMBULANCE_PAPERS_PEUGEOT=[{"name":"Carte grise :","x":285.321,"y":687.29},{"name":"Carte Leclerc :","x":285.321,"y":673.52},{"name":"BIP Péages","x":285.321,"y":659.74},{"name":"Carnet de désinfection :","x":285.321,"y":645.96},{"name":"Support P.D.A. :","x":285.321,"y":632.19},{"name":"Télécom. Portail :","x":285.321,"y":618.41},{"name":"Certificat de décharge :","x":285.321,"y":604.63},{"name":"Assurance :","x":472.011,"y":687.29},{"name":"Constat :","x":472.011,"y":673.52},{"name":"Cahier du véhicule :","x":472.011,"y":659.74},{"name":"Contrôle technique :","x":472.011,"y":645.96},{"name":"Cartes de visite :","x":472.011,"y":632.19},{"name":"Agrement ARS :","x":472.011,"y":618.41}];
   const AMBULANCE_PAPERS_RENAULT=[{"name":"Carte grise :","x":285.321,"y":689.89},{"name":"Carte Leclerc :","x":285.321,"y":676.12},{"name":"Carnet de désinfection :","x":285.321,"y":662.35},{"name":"Support P.D.A. :","x":285.321,"y":648.58},{"name":"Télécom. Portail :","x":285.321,"y":634.81},{"name":"Assurance :","x":472.011,"y":689.89},{"name":"Constat :","x":472.011,"y":676.12},{"name":"Cahier du véhicule :","x":472.011,"y":662.35},{"name":"Contrôle technique :","x":472.011,"y":648.58},{"name":"Cartes de visite :","x":472.011,"y":634.81},{"name":"Agrement ARS :","x":472.011,"y":621.04}];
   function getAmbPapers(vehicle){return String(vehicle||'').toUpperCase().includes('HS-219-PS')?AMBULANCE_PAPERS_RENAULT:AMBULANCE_PAPERS_PEUGEOT;}
   const AMB_PAGE_Y_PEUGEOT={"1":[542.42,528.65,514.87,501.1,487.32,445.99,432.21,389.67,367.81,337.82,315.91,267.72,239.54,218.25,204.48,190.7,176.93,163.15,149.37,108.04],"2":[781.07,767.3,753.52,588.2,475.55,351.57,337.79,324.01,310.24,296.46,282.69,268.91,227.58,158.7,96.34,74.71],"3":[773.82,752.19,727.9,703.57,688.69,673.81,617.54,595.06,565.07,535.08,505.09,482.58]};
@@ -11499,7 +11498,6 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
   }
   function b64ToBytes(b64){const bin=atob(b64);const out=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)out[i]=bin.charCodeAt(i);return out;}
   function centerText(page,font,text,cx,y,size,color){const t=String(text??'');if(!t)return;const w=font.widthOfTextAtSize(t,size);page.drawText(t,{x:cx-w/2,y:y-size*0.28,size:size,font:font,color:color});}
-  function drawAmbTick(page,cx,cy,color){page.drawLine({start:{x:cx-4.0,y:cy+0.1},end:{x:cx-1.2,y:cy-2.8},thickness:1.45,color:color});page.drawLine({start:{x:cx-1.2,y:cy-2.8},end:{x:cx+4.4,y:cy+3.8},thickness:1.45,color:color});}
   function cover(page,x,y,w,h,color){page.drawRectangle({x:x,y:y,width:w,height:h,color:color});}
 
   async function buildAmbPdf(){
@@ -11537,7 +11535,7 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
     cover(p1,130,741,145,16,paperBg);
     // On efface uniquement les anciennes valeurs, sans recouvrir les libellés KMS / DATE.
     cover(p1,350,741,62,16,paperBg);
-    cover(p1,480,741,65,16,paperBg);
+    cover(p1,480,741,95,16,paperBg);
     cover(p1,92,727,330,16,paperBg);
     p1.drawText(immat,{x:132,y:746,size:9,font:bold,color:black});
     // KMS et DATE décalés de 20 points vers la droite.
@@ -11551,9 +11549,8 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
       const page=p1;
       // Le modèle ambulance_template.pdf est vierge à cet endroit :
       // aucun rectangle de fond n'est ajouté, uniquement le V ou le X.
-      // Descendre les marques de 5 points dans la rubrique PAPIERS VEHICULE.
-      if(state==='present') drawAmbTick(page,it.x,it.y-4,black);
-      if(state==='manque') centerText(page,bold,'X',it.x,it.y-4,9,black);
+      if(state==='present') centerText(page,bold,'V',it.x,it.y+1,9,black);
+      if(state==='manque') centerText(page,bold,'X',it.x,it.y+1,9,black);
     });
 
     const pageItems=isRenault
@@ -11573,14 +11570,14 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
         const i=start+j, item=ambItems[i]||{}, y=ys[j], state=readState(i), missing=String(document.getElementById('ambMissing'+i)?.value||'').trim();
         if(isRenault){
           // Coordonnées centrées exactement dans les cases du modèle Renault.
-          if(state==='present') drawAmbTick(pg,386.625,y+1,black);
+          if(state==='present') centerText(pg,bold,'V',381.625,y+1,9,black);
           if(state==='manque') centerText(pg,bold,'X',444.5,y+1,9,black);
           if(!item.optional && missing) centerText(pg,bold,missing,509.0,y+1,8,black);
         }else{
           // Peugeot Boxer : le PDF contient déjà les bandes grises/blanches.
           // On ne dessine AUCUN rectangle de fond : cela évite les blocs
           // décalés et conserve exactement l'alternance gris/blanc du modèle.
-          if(state==='present') drawAmbTick(pg,362.3,y+1,black);
+          if(state==='present') centerText(pg,bold,'V',346.04,y+1,9,black);
           if(state==='manque') centerText(pg,bold,'X',407.15,y+1,9,black);
           // "optionnel" est déjà imprimé dans le modèle PDF.
           if(!item.optional && missing) centerText(pg,bold,missing,472.0,y+1,8,black);
