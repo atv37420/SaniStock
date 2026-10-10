@@ -10921,8 +10921,15 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
           var crop=document.createElement('canvas');crop.width=cw;crop.height=ch;
           var cx=crop.getContext('2d');cx.drawImage(sc,Math.max(0,minX-pad),Math.max(0,minY-pad),Math.min(sc.width,cw),Math.min(sc.height,ch),0,0,cw,ch);
           var png=await doc.embedPng(crop.toDataURL('image/png'));
-          var maxW=170,maxH=62, scale=Math.min(maxW/png.width,maxH/png.height), dw=png.width*scale, dh=png.height*scale;
-          p2.drawImage(png,{x:140+(maxW-dw)/2,y:528+(maxH-dh)/2,width:dw,height:dh});
+          // Sécurité : ne jamais transmettre de coordonnées NaN à PDFLib.
+          var pw=Number(png&&png.width),ph=Number(png&&png.height);
+          if(Number.isFinite(pw)&&Number.isFinite(ph)&&pw>0&&ph>0){
+            var maxW=170,maxH=62, scale=Math.min(maxW/pw,maxH/ph), dw=pw*scale, dh=ph*scale;
+            var imageX=140+(maxW-dw)/2, imageY=528+(maxH-dh)/2;
+            if([scale,dw,dh,imageX,imageY].every(Number.isFinite)&&dw>0&&dh>0){
+              p2.drawImage(png,{x:imageX,y:imageY,width:dw,height:dh});
+            }
+          }
         }
       }catch(e){console.warn('Signature PDF',e);}
     }
