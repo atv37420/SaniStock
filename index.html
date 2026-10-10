@@ -11154,7 +11154,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
       // ✓ recentré visuellement dans la case Présent.
       // Le point d'ancrage est légèrement déplacé vers la gauche
       // pour que l'ensemble du V reste bien à l'intérieur de la cellule.
-      const x=cx-2.2;
+      const x=cx-0.4;
       const y=cy;
       pg.drawLine({start:{x:x-4.2,y:y+0.8},end:{x:x-1.1,y:y-3.0},thickness:1.5,color:black});
       pg.drawLine({start:{x:x-1.1,y:y-3.0},end:{x:x+5.0,y:y+5.0},thickness:1.5,color:black});
@@ -11162,7 +11162,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     const checkValise=(pg,cx,cy)=>{
       // VALISE NOIR : une seule coche, centrée exactement dans la ligne.
       // La coche reste entièrement à l'intérieur de la cellule Présent.
-      const x=cx-1.9, y=cy;
+      const x=cx-0.35, y=cy;
       pg.drawLine({start:{x:x-3.3,y:y+0.4},end:{x:x-0.7,y:y-2.4},thickness:1.25,color:black});
       pg.drawLine({start:{x:x-0.7,y:y-2.4},end:{x:x+4.0,y:y+3.9},thickness:1.25,color:black});
     };
@@ -11178,34 +11178,30 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     // Page = 595.30 x 841.89 pt.
     // Colonnes : Inventaire | Quantité | Présent | Manque | Quantité manquante
     // x = centres exacts des colonnes du modèle.
-    put(p1,date,82,H-116,9,bold);
-    put(p1,immat,277,H-116,9,bold);
-    put(p1,kms,374,H-116,9,bold);
-    put(p1,equip,108,H-133,9,bold);
+    put(p1,date,82,H-120,9,bold);
+    put(p1,immat,301,H-120,9,bold);
+    put(p1,kms,420,H-120,9,bold);
+    put(p1,equip,108,H-135,9,bold);
 
-    const X_PRESENT=(262.544+315.464)/2; // 289.004
-    const X_MANQUE=(315.464+357.356)/2;  // 336.410
-    const X_MISSING=(357.356+460.973)/2; // 409.165
+    const X_PRESENT=(413+576)/2/(993/595.333); // centre réel de la colonne Présent
+    const X_MANQUE=(576+666)/2/(993/595.333); // centre réel de la colonne Manque
+    const X_MISSING=(666+887)/2/(993/595.333); // centre réel de la colonne Quantité manquante
 
     // Centres verticaux exacts des lignes du tableau, en coordonnées PDF.
     const rows1=[
-      // Sécurité — 4 lignes.
-      [11,491.2],[12,470.9],[13,450.6],[14,430.2],
-      // Trousse de secours (valise blanche) — 15 lignes.
-      // Centres recalculés directement depuis les lignes du PDF modèle.
-      // 1 seul V, exactement au centre vertical de chaque ligne.
-      [15,362.64],[16,348.54],[17,333.84],[18,304.69],[19,276.14],
-      [20,255.29],[21,227.69],[22,200.69],[23,179.64],[24,165.54],
-      [25,151.44],[26,130.64],[27,109.74],[28,95.64],[29,81.54]
+      // Sécurité : centres verticaux des 4 lignes du modèle actuel.
+      [11,472.99],[12,452.01],[13,433.42],[14,416.33],
+      // Trousse blanche : 15 lignes de la page 1, centres des cases.
+      [15,353.98],[16,339.59],[17,325.21],[18,296.43],[19,267.65],
+      [20,246.37],[21,217.89],[22,189.11],[23,167.83],[24,153.74],
+      [25,139.35],[26,117.77],[27,96.48],[28,82.40],[29,68.01]
     ];
 
     // Page 2 : 5 lignes de trousse puis 7 lignes de Valise noir.
     const rows2=[
-      // Page 2 : positions mesurées sur le modèle PDF, une seule coche par ligne.
-      // 5 lignes de trousse blanche, puis 7 lignes de Valise noir.
-      [30,775.17],[31,755.01],[32,734.85],[33,707.73],[34,687.34],
-      // Valise noir : exactement 1 V dans la colonne Présent pour chacune des 7 lignes.
-      [35,620.14],[36,606.46],[37,592.78],[38,579.34],[39,558.46],[40,528.46],[41,505.90]
+      // Page 2 : 5 lignes de trousse blanche, puis 7 lignes de valise noire.
+      [30,773.65],[31,752.37],[32,731.09],[33,702.31],[34,681.03],
+      [35,608.18],[36,594.09],[37,580.01],[38,565.62],[39,544.63],[40,515.56],[41,493.07]
     ];
 
     // Papiers véhicule : les 11 cases du modèle sont dans la zone PAPIERS.
@@ -11213,13 +11209,11 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     // les ✓ / X restent dans les bonnes cases et ne puissent pas remonter
     // dans INFORMATIONS GENERALES ou descendre dans MATERIEL VEHICULE.
     const paperRows=[
-      // Centres recalés sur les lignes/textes du modèle PDF original.
+      // Cases alignées sur les emplacements de coche de la feuille VSL actuelle.
       // Gauche : Carte grise, Cartes Leclerc/Carrefour, Carnet, Support PDA, Télécom.
-      [1,233.18,657.60],[3,233.18,644.10],[5,233.18,619.84],
-      [7,233.18,599.74],[9,233.18,586.24],
+      [1,233.18,650.2],[3,233.18,635.9],[5,233.18,613.7],[7,233.18,591.4],[9,233.18,576.4],
       // Droite : Agrément ARS, Assurance, Constat, Cahier entretien, Contrôle technique, Cartes de visite.
-      [0,409.19,671.10],[2,409.19,657.60],[4,409.19,644.10],
-      [6,409.19,619.84],[8,409.19,599.74],[10,409.19,586.24]
+      [0,409.19,664.0],[2,409.19,649.6],[4,409.19,635.1],[6,409.19,613.7],[8,409.19,591.4],[10,409.19,576.4]
     ];
 
     paperRows.forEach(([i,x,y])=>{
