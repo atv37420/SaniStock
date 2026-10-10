@@ -11178,11 +11178,13 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     // Page = 595.30 x 841.89 pt.
     // Colonnes : Inventaire | Quantité | Présent | Manque | Quantité manquante
     // x = centres exacts des colonnes du modèle.
-    // Date, immatriculation, kms et équipage descendus de 10 points supplémentaires.
-    put(p1,date,82,H-135,9,bold);
+    // Informations générales : réponses alignées sur leurs champs, sans chevauchement.
+    // Date, immatriculation et Kms restent sur la même ligne ; l'équipage est placé
+    // sur la ligne inférieure et commence après son libellé.
+    put(p1,date,92,H-135,9,bold);
     put(p1,immat,301,H-135,9,bold);
     put(p1,kms,420,H-135,9,bold);
-    put(p1,equip,108,H-150,9,bold);
+    put(p1,equip,112,H-156,9,bold);
 
     const X_PRESENT=(413+576)/2/(993/595.333); // centre réel de la colonne Présent
     const X_MANQUE=(576+666)/2/(993/595.333); // centre réel de la colonne Manque
