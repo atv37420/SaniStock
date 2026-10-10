@@ -11671,7 +11671,11 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
     const sec=document.createElement('div');sec.className='vslSection ambPapersSection';
     let h='<div class="vslSectionTitle">PAPIERS VEHICULE</div>';
     h+='<div class="vslChecklistHead"><div>Document</div><div></div><div>Présent</div><div>Manque</div><div></div></div>';
-    papers.forEach(function(p,i){h+='<div class="vslChecklistRow ambPaperRow" data-paper-index="'+i+'"><div>'+esc(p.name)+'</div><div></div><div class="vslChoice"><input type="radio" name="ambPaper'+i+'" value="present"></div><div class="vslChoice"><input type="radio" name="ambPaper'+i+'" value="manque"></div><div></div></div>';});
+    papers.forEach(function(p,i){
+      // Agrément ARS : coché V (présent) par défaut, tout en restant modifiable en X.
+      const arsPresent=/agr[eé]ment\s+ars/i.test(String(p.name||''));
+      h+='<div class="vslChecklistRow ambPaperRow" data-paper-index="'+i+'"><div>'+esc(p.name)+'</div><div></div><div class="vslChoice"><input type="radio" name="ambPaper'+i+'" value="present"'+(arsPresent?' checked':'')+'></div><div class="vslChoice"><input type="radio" name="ambPaper'+i+'" value="manque"></div><div></div></div>';
+    });
     sec.innerHTML=h;box.insertBefore(sec,anchor);
   }
 
