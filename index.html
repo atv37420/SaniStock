@@ -10871,8 +10871,8 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     // V/X des papiers remontés pour centrer les marques sur les libellés,
     // notamment Facturier et TPE CB qui doivent rester au-dessus de la barre bleue.
     var paperRowsY=[653,639,625,610,596,583];
-    left.forEach(function(idx,r){var st=getState(idx),y=paperRowsY[r]-4;if(st){cover(p1,244,y-6,13,12,gray);st==='present'?drawCheck(p1,250,y,10,black):drawX(p1,250,y,10,black);}});
-    right.forEach(function(idx,r){var st=getState(idx),y=paperRowsY[r]-4;if(st){cover(p1,446,y-6,13,12,gray);st==='present'?drawCheck(p1,452,y,10,black):drawX(p1,452,y,10,black);}});
+    left.forEach(function(idx,r){var st=getState(idx),y=paperRowsY[r]-4;if(st){st==='present'?drawCheck(p1,250,y,10,black):drawX(p1,250,y,10,black);}});
+    right.forEach(function(idx,r){var st=getState(idx),y=paperRowsY[r]-4;if(st){st==='present'?drawCheck(p1,452,y,10,black):drawX(p1,452,y,10,black);}});
 
     // Centres de colonnes mesurés sur le modèle taxi_template.pdf.
     // Présent : x=350 pt. Manque : entre les traits x=390 et x=449, donc centre x=419.5.
@@ -10881,7 +10881,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     function drawMaterialState(idx,y,rowBg){
       var st=getState(idx),miss=getMissing(idx);
       if(st==='present'){drawCheck(p1,presentX,y,10,black);}
-      else if(st==='manque'){cover(p1,manqueX-6,y-6,12,13,rowBg);drawX(p1,manqueX,y,10,black);}
+      else if(st==='manque'){drawX(p1,manqueX,y,10,black);}
       if(miss){cover(p1,missingX-25,y-6,50,13,rowBg);drawValue(p1,bold,miss,missingX-22,y-3,47,8,red);}
     }
 
@@ -10908,10 +10908,10 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     // Page 2 : Masque FFP2 puis désinfection, observations et signature.
     var st33=getState(33),miss33=getMissing(33),y33=779,rowBg33=white;
     if(st33==='present'){drawCheck(p2,presentX,y33,10,black);}
-    else if(st33==='manque'){cover(p2,manqueX-6,y33-6,12,13,rowBg33);drawX(p2,manqueX,y33,10,black);}
+    else if(st33==='manque'){drawX(p2,manqueX,y33,10,black);}
     if(miss33){cover(p2,missingX-25,y33-6,50,13,rowBg33);drawValue(p2,bold,miss33,missingX-22,y33-3,47,8,red);}
 
-    [34,35,36].forEach(function(idx,k){var st=getState(idx),miss=getMissing(idx),y=[720,706,692][k],rowBg=(k%2===0?white:gray);if(st==='present'){drawCheck(p2,presentX,y,10,black);}else if(st==='manque'){cover(p2,manqueX-6,y-6,12,13,rowBg);drawX(p2,manqueX,y,10,black);}if(miss){cover(p2,missingX-25,y-6,50,13,rowBg);drawValue(p2,bold,miss,missingX-22,y-3,47,8,red);}});
+    [34,35,36].forEach(function(idx,k){var st=getState(idx),miss=getMissing(idx),y=[720,706,692][k],rowBg=(k%2===0?white:gray);if(st==='present'){drawCheck(p2,presentX,y,10,black);}else if(st==='manque'){drawX(p2,manqueX,y,10,black);}if(miss){cover(p2,missingX-25,y-6,50,13,rowBg);drawValue(p2,bold,miss,missingX-22,y-3,47,8,red);}});
     // Texte des observations : 10 points à droite et 20 points plus bas.
     if(obs){var lines=wrapText(font,obs,8,410),yy=645;lines.slice(0,8).forEach(function(line){if(Number.isFinite(yy))p2.drawText(line,{x:66,y:yy,size:8,font:font,color:black});yy-=11;});}
     if(equip){cover(p2,155,555,170,18,white);drawValue(p2,font,equip,160,559,160,9,black);}
