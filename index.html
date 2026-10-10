@@ -10856,7 +10856,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     // Informations générales remontées de 5 points.
     drawValue(p1,bold,date,88,721,95,9,black);
     drawValue(p1,bold,immat,317,721,68,9,black);
-    drawValue(p1,bold,kms,436,721,58,9,black);
+    drawValue(p1,bold,kms,446,721,58,9,black);
     drawValue(p1,bold,equip,106,707,340,9,black);
 
     // Papiers : une seule case par document, exactement comme la fiche d'origine.
@@ -11542,7 +11542,7 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
     // KMS et DATE décalés de 20 points vers la droite.
     p1.drawText(kms,{x:314,y:746,size:9,font:bold,color:black});
     p1.drawText(htmlDateFR(date),{x:450,y:746,size:9,font:bold,color:black});
-    p1.drawText(e1+' / '+e2,{x:116,y:732,size:9,font:bold,color:black});
+    p1.drawText(e1+' / '+e2,{x:96,y:732,size:9,font:bold,color:black});
 
     // Papiers véhicule : V = OK, X = manque. Les anciens petits symboles sont nettoyés.
     ambPapers.forEach(function(it,i){
