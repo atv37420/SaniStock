@@ -11568,7 +11568,10 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
       // Le modèle ambulance_template.pdf est vierge à cet endroit :
       // aucun rectangle de fond n'est ajouté, uniquement le V ou le X.
       // Descendre les marques de 5 points dans la rubrique PAPIERS VEHICULE.
-      if(state==='present') drawAmbTick(page,it.x,it.y-4,black);
+      // Le V de l'Agrément ARS est légèrement décalé à droite pour le centrer
+      // dans la zone « Présent » du document, sans déplacer le X éventuel.
+      const isAgrementArs=/agr[eé]ment\s+ars/i.test(String(it.name||''));
+      if(state==='present') drawAmbTick(page,it.x+(isAgrementArs?10:0),it.y-4,black);
       if(state==='manque') centerText(page,bold,'X',it.x,it.y-4,9,black);
     });
 
