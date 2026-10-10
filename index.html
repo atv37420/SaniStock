@@ -11498,6 +11498,7 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
   }
   function b64ToBytes(b64){const bin=atob(b64);const out=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)out[i]=bin.charCodeAt(i);return out;}
   function centerText(page,font,text,cx,y,size,color){const t=String(text??'');if(!t)return;const w=font.widthOfTextAtSize(t,size);page.drawText(t,{x:cx-w/2,y:y-size*0.28,size:size,font:font,color:color});}
+  function drawAmbTick(page,cx,cy,color){page.drawLine({start:{x:cx-4.0,y:cy+0.1},end:{x:cx-1.2,y:cy-2.8},thickness:1.45,color:color});page.drawLine({start:{x:cx-1.2,y:cy-2.8},end:{x:cx+4.4,y:cy+3.8},thickness:1.45,color:color});}
   function cover(page,x,y,w,h,color){page.drawRectangle({x:x,y:y,width:w,height:h,color:color});}
 
   async function buildAmbPdf(){
@@ -11535,7 +11536,7 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
     cover(p1,130,741,145,16,paperBg);
     // On efface uniquement les anciennes valeurs, sans recouvrir les libellés KMS / DATE.
     cover(p1,350,741,62,16,paperBg);
-    cover(p1,480,741,95,16,paperBg);
+    cover(p1,480,741,65,16,paperBg);
     cover(p1,92,727,330,16,paperBg);
     p1.drawText(immat,{x:132,y:746,size:9,font:bold,color:black});
     // KMS et DATE décalés de 20 points vers la droite.
@@ -11549,7 +11550,7 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
       const page=p1;
       // Le modèle ambulance_template.pdf est vierge à cet endroit :
       // aucun rectangle de fond n'est ajouté, uniquement le V ou le X.
-      if(state==='present') centerText(page,bold,'V',it.x,it.y+1,9,black);
+      if(state==='present') drawAmbTick(page,it.x,it.y+1,black);
       if(state==='manque') centerText(page,bold,'X',it.x,it.y+1,9,black);
     });
 
@@ -11570,14 +11571,14 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
         const i=start+j, item=ambItems[i]||{}, y=ys[j], state=readState(i), missing=String(document.getElementById('ambMissing'+i)?.value||'').trim();
         if(isRenault){
           // Coordonnées centrées exactement dans les cases du modèle Renault.
-          if(state==='present') centerText(pg,bold,'V',381.625,y+1,9,black);
+          if(state==='present') drawAmbTick(pg,381.625,y+1,black);
           if(state==='manque') centerText(pg,bold,'X',444.5,y+1,9,black);
           if(!item.optional && missing) centerText(pg,bold,missing,509.0,y+1,8,black);
         }else{
           // Peugeot Boxer : le PDF contient déjà les bandes grises/blanches.
           // On ne dessine AUCUN rectangle de fond : cela évite les blocs
           // décalés et conserve exactement l'alternance gris/blanc du modèle.
-          if(state==='present') centerText(pg,bold,'V',346.04,y+1,9,black);
+          if(state==='present') drawAmbTick(pg,346.04,y+1,black);
           if(state==='manque') centerText(pg,bold,'X',407.15,y+1,9,black);
           // "optionnel" est déjà imprimé dans le modèle PDF.
           if(!item.optional && missing) centerText(pg,bold,missing,472.0,y+1,8,black);
