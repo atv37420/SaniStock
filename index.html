@@ -2185,8 +2185,8 @@ button.settingsAction.secondary:hover,
 </style>
 
 
-<style id="sanistock-1-1-79-entete-sans-megaphone">
-/* Version 1.1.79 : suppression du petit mégaphone; en-tête réduit sans retirer les informations. */
+<style id="sanistock-1-1-80-badge-notifications">
+/* Version 1.1.80 : pastille de notification mieux ancrée dans l’angle du bouton Esprit d’équipe. */
 #newsPage .sanNewsHero, .sanNewsPage .sanNewsHero {
   padding: 6px 9px 7px !important;
   border-radius: 11px !important;
@@ -2213,6 +2213,41 @@ button.settingsAction.secondary:hover,
   width: 54px !important; height: 54px !important; border-width: 8px !important;
   right: -18px !important; top: -23px !important;
 }
+</style>
+
+
+<style id="sanistock-1-1-80-badge-angle-fix">
+/* Pastille discrète directement DANS l’angle supérieur droit du bouton, afin qu’aucun conteneur ne la coupe. */
+.homeButtons4 { overflow: visible !important; }
+.homeButton4.team4 { position: relative !important; overflow: visible !important; }
+.homeButton4.team4 #sanNewsUnreadBadge,
+.homeButton4.team4 .sanNewsUnreadBadge {
+  position: absolute !important;
+  top: 2px !important;
+  right: 2px !important;
+  left: auto !important;
+  bottom: auto !important;
+  transform: none !important;
+  z-index: 99999 !important;
+  width: auto !important;
+  min-width: 17px !important;
+  height: 17px !important;
+  padding: 0 3px !important;
+  box-sizing: border-box !important;
+  border: 1.5px solid #fff !important;
+  border-radius: 999px !important;
+  background: #e32636 !important;
+  color: #fff !important;
+  font-size: 9px !important;
+  line-height: 1 !important;
+  font-weight: 900 !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,.3) !important;
+  pointer-events: none !important;
+}
+.homeButton4.team4 #sanNewsUnreadBadge[hidden],
+.homeButton4.team4 .sanNewsUnreadBadge[hidden] { display: none !important; }
 </style>
 
 </head>
@@ -4377,12 +4412,26 @@ function verifierBadgeActualitesEquipe_(){
   if(document.hidden||!session.salarie||!session.code||!navigator.onLine||!gsDisponible()||window.sanNewsBadgeRequestPending_)return;
   if(page&&page.classList.contains('active'))return;
   window.sanNewsBadgeRequestPending_=true;
-  google.script.run.withSuccessHandler(function(r){
+  try {
+    google.script.run.withSuccessHandler(function(r){
+      window.sanNewsBadgeRequestPending_=false;
+      /* Une erreur métier renvoyée dans le success handler ne doit pas être transformée en liste vide :
+         sinon le compteur se cache, même si des nouveautés avaient déjà été détectées. */
+      if(r && r.success===false){
+        console.warn('Compteur Esprit d’équipe : réponse serveur en erreur.', r.error||'Erreur inconnue');
+        return;
+      }
+      const rows=normaliserActualites_(r);
+      const ouverte=!!(document.getElementById('newsPage')&&document.getElementById('newsPage').classList.contains('active'));
+      synchroniserBadgeActualitesEquipe_(rows,ouverte);
+    }).withFailureHandler(function(err){
+      window.sanNewsBadgeRequestPending_=false;
+      console.warn('Compteur Esprit d’équipe indisponible :',err);
+    }).getPublicationsEquipe(session);
+  } catch(err) {
     window.sanNewsBadgeRequestPending_=false;
-    const rows=normaliserActualites_(r);
-    const ouverte=!!(document.getElementById('newsPage')&&document.getElementById('newsPage').classList.contains('active'));
-    synchroniserBadgeActualitesEquipe_(rows,ouverte);
-  }).withFailureHandler(function(){window.sanNewsBadgeRequestPending_=false;}).getPublicationsEquipe(session);
+    console.warn('Impossible de lancer la vérification du compteur Esprit d’équipe :',err);
+  }
 }
 function initialiserBadgeActualitesEquipe_(){
   window.setInterval(verifierBadgeActualitesEquipe_,5000);
@@ -10705,7 +10754,7 @@ if ("serviceWorker" in navigator) {
 </script>
 
 
-<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.79</div>
+<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.80</div>
 
 <style id="sanistock-connexion-accueil-uniquement">
 #saniConnection.saniConnHomeOnlyHidden{display:none !important;}
