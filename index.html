@@ -1,6 +1,6 @@
 <!-- TAXI PDF FINAL - VALISE NOIR COORDONNEES SEPAREES -->
 <!-- TAXI PDF FINAL INTEGRE : taxi_template(3).pdf -->
-<!-- SaniStock version 1.1.99 : lecteur PDF en lecture seule hors ligne et en ligne -->
+<!-- SaniStock version 1.1.103 : contour bleu de la bulle Actualité de l’équipe -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -2678,7 +2678,7 @@ button.settingsAction.secondary:hover,
     </header>
     <div id="teamPublicationsPane" class="teamToolPane">
     <div class="sanNewsPublishBar" aria-label="Créer une publication">
-      <button type="button" class="sanNewsPublishButton" onclick="togglePublicationEquipe()">À quoi pensez-vous ? Partagez avec l’équipe…</button>
+      <button type="button" class="sanNewsPublishButton" onclick="ouvrirPublicationLibreEquipe_()">À quoi pensez-vous ? Partagez avec l’équipe…</button>
       <div class="sanNewsQuickActions" aria-label="Raccourcis de publication">
         <button type="button" class="sanNewsQuickAction photo" onclick="ouvrirPublicationAvecTypeEquipe_('photo')"><span aria-hidden="true">📷</span> Photo</button>
         <button type="button" class="sanNewsQuickAction question" onclick="ouvrirPublicationAvecTypeEquipe_('question')"><span aria-hidden="true">💬</span> Question</button>
@@ -2688,20 +2688,21 @@ button.settingsAction.secondary:hover,
     </div>
     <section id="sanNewsPublishPanel" class="sanNewsPublishPanel" hidden aria-label="Nouvelle publication">
       <div class="sanNewsPublishHead"><strong>Partager avec l’équipe</strong><button type="button" class="sanNewsCancel" onclick="togglePublicationEquipe(false)" aria-label="Fermer">✕</button></div>
-      <label for="infoType">Type de publication</label>
+      <label for="infoType">Type (facultatif)</label>
       <select id="infoType" class="sanNewsFormControl">
+        <option value="publication" selected>💬 Publication libre</option>
         <option value="annonce">📣 Annonce</option>
         <option value="question">💬 Question</option>
         <option value="idee">💡 Idée</option>
       </select>
-      <label for="infoTitre">Titre</label>
-      <input id="infoTitre" class="sanNewsFormControl" type="text" maxlength="80" placeholder="Donnez un titre clair">
-      <label for="infoMessage">Message</label>
-      <textarea id="infoMessage" class="sanNewsFormControl" maxlength="500" rows="4" placeholder="Écrivez votre message…"></textarea>
+      <label for="infoTitre">Titre (facultatif)</label>
+      <input id="infoTitre" class="sanNewsFormControl" type="text" maxlength="80" placeholder="Ajouter un titre (facultatif)">
+      <label for="infoMessage">Texte</label>
+      <textarea id="infoMessage" class="sanNewsFormControl" maxlength="500" rows="4" placeholder="À quoi pensez-vous ? Écrivez votre message…"></textarea>
       <label for="infoPhoto">Photo à partager (facultatif)</label>
       <input id="infoPhoto" class="sanNewsPhotoPicker" type="file" accept="image/*" multiple onchange="previsualiserPhotoEquipe_(this)">
       <div id="sanNewsPhotoPreview" class="sanNewsPhotoPreview" aria-live="polite"></div>
-      <p class="sanNewsPublishHint">Choisissez une photo et écrivez votre texte : la publication sera visible par toute l’équipe. N’ajoutez pas de photo de patient ni de donnée médicale/personnelle sensible.</p>
+      <p class="sanNewsPublishHint">Publiez simplement un texte et, si vous le souhaitez, ajoutez un titre ou jusqu’à 3 photos. Choisissez une annonce, une question ou une idée seulement si cela vous est utile. N’ajoutez pas de donnée personnelle ou confidentielle.</p>
       <div id="sanNewsAnnouncementOptions">
         <label for="infoPriorite">Priorité de l’annonce</label>
         <select id="infoPriorite" class="sanNewsFormControl"><option value="info">🔵 Information</option><option value="important">🟠 Important</option><option value="urgent">🔴 Urgent</option></select>
@@ -2730,6 +2731,7 @@ button.settingsAction.secondary:hover,
     </section>
     <nav class="sanNewsFilters" aria-label="Filtrer les publications">
       <button type="button" class="sanNewsFilter active" data-news-filter="all" onclick="filtrerActualitesEquipe('all',this)">Toutes</button>
+      <button type="button" class="sanNewsFilter" data-news-filter="publication" onclick="filtrerActualitesEquipe('publication',this)">💬 Publications</button>
       <button type="button" class="sanNewsFilter" data-news-filter="question" onclick="filtrerActualitesEquipe('question',this)">💬 Questions</button>
       <button type="button" class="sanNewsFilter" data-news-filter="idee" onclick="filtrerActualitesEquipe('idee',this)">💡 Idées</button>
       <button type="button" class="sanNewsFilter" data-news-filter="annonce" onclick="filtrerActualitesEquipe('annonce',this)">📣 Annonces</button>
@@ -4101,6 +4103,12 @@ __SANI_PDFJS_SCRIPT_TAG__
 @media(max-width:420px){#newsPage .sanNewsHeroSimple{gap:8px!important;padding:9px 10px!important}#newsPage .sanNewsHeroSimple .sanNewsHeroBubble{flex-basis:27px;width:27px;height:27px;font-size:15px}#newsPage .sanNewsHeroSimple h1{font-size:18px!important}}
 </style>
 
+
+<style id="sanistock-1-1-103-contour-bleu-actualite">
+/* Contour bleu SaniStock autour de la bulle Actualité de l’équipe. */
+#newsPage .sanNewsHeroSimple{border:1.5px solid #175a8e!important;box-shadow:0 0 0 1px rgba(23,90,142,.08),0 1px 3px rgba(20,35,55,.06)!important}
+#newsPage .sanNewsHeroSimple .sanNewsHeroBubble{border:1px solid #175a8e!important;box-sizing:border-box}
+</style>
 </body></html>`;
         function afficherLecteurHtml_(html){
           fenetre.document.open();
@@ -4737,18 +4745,53 @@ function actualiserAffichageBadgeEquipe_(){
   const d=donneesBadgeEquipeDepuisCache_();
   synchroniserBadgeActualitesEquipe_(d.publications,false,d.tchat);
 }
+function rendreMurEquipeSilencieusementPreserveUI_(){
+  const feed=document.getElementById('sanNewsFeed');
+  if(!feed){rendreActualitesEquipe_();return;}
+  const feedScroll=feed.scrollTop;
+  const pageScroll=window.scrollY||0;
+  const ouverts=Array.from(feed.querySelectorAll('details[id][open]')).map(function(el){return el.id;});
+  const textes={};
+  feed.querySelectorAll('textarea[id]').forEach(function(el){textes[el.id]=el.value;});
+  const radios={};
+  feed.querySelectorAll('input[type="radio"][name]:checked').forEach(function(el){radios[el.name]=el.value;});
+  const actif=document.activeElement;
+  const actifId=actif&&actif.id&&feed.contains(actif)?actif.id:'';
+  let selection=null;
+  try{if(actifId&&typeof actif.selectionStart==='number')selection=[actif.selectionStart,actif.selectionEnd];}catch(e){}
+  rendreActualitesEquipe_();
+  ouverts.forEach(function(id){const el=document.getElementById(id);if(el)el.open=true;});
+  Object.keys(textes).forEach(function(id){const el=document.getElementById(id);if(el)el.value=textes[id];});
+  Object.keys(radios).forEach(function(name){const choices=feed.querySelectorAll('input[type="radio"][name]');choices.forEach(function(el){if(el.name===name)el.checked=(el.value===radios[name]);});});
+  feed.scrollTop=feedScroll;
+  try{window.scrollTo(0,pageScroll);}catch(e){}
+  if(actifId){const el=document.getElementById(actifId);if(el){try{el.focus({preventScroll:true});if(selection&&typeof el.setSelectionRange==='function')el.setSelectionRange(selection[0],selection[1]);}catch(e){}}}
+}
+function murActualitesActif_(){
+  const page=document.getElementById('newsPage');
+  return !!(page&&page.classList.contains('active'));
+}
 function verifierBadgeActualitesEquipe_(){
   const session=donneesSessionEquipe_();
   if(document.hidden||!session.salarie||!session.code||!navigator.onLine||!gsDisponible())return;
-  if(window.sanNewsBadgePublicationsPending_)return;
+  if(window.sanNewsBadgePublicationsPending_||actualitesEquipeRequestPending_)return;
   window.sanNewsBadgePublicationsPending_=true;
   try{
     google.script.run.withSuccessHandler(function(r){
       window.sanNewsBadgePublicationsPending_=false;
       if(r&&r.success===false){console.warn('Compteur publications Esprit d’équipe :',r.error||'Erreur inconnue');return;}
-      window.sanNewsBadgeLatestPublications_=normaliserActualites_(r);
+      const nouvellesPublications=normaliserActualites_(r);
+      const signatureAvant=JSON.stringify(actualitesEquipeData_||[]);
+      const signatureApres=JSON.stringify(nouvellesPublications);
+      window.sanNewsBadgeLatestPublications_=nouvellesPublications;
       window.sanNewsBadgeLatestChat_=[];
       actualiserAffichageBadgeEquipe_();
+      if(murActualitesActif_()&&signatureAvant!==signatureApres){
+        actualitesEquipeData_=nouvellesPublications;
+        actualitesEquipeModeHorsLigne_=false;
+        try{localStorage.setItem('sanistock_actualites_cache',JSON.stringify(actualitesEquipeData_));}catch(e){}
+        rendreMurEquipeSilencieusementPreserveUI_();
+      }
     }).withFailureHandler(function(err){
       window.sanNewsBadgePublicationsPending_=false;
       console.warn('Compteur publications Esprit d’équipe indisponible :',err);
@@ -4756,11 +4799,18 @@ function verifierBadgeActualitesEquipe_(){
   }catch(err){window.sanNewsBadgePublicationsPending_=false;console.warn('Impossible de vérifier les publications :',err);}
 }
 function initialiserBadgeActualitesEquipe_(){
-  window.setInterval(verifierBadgeActualitesEquipe_,30000);
+  /* Actualisation silencieuse toutes les 10 secondes, sans écran de chargement répétitif. */
+  window.setInterval(verifierBadgeActualitesEquipe_,10000);
+  window.setInterval(function(){
+    if(document.hidden||!murActualitesActif_()||!navigator.onLine||!gsDisponible())return;
+    const session=donneesSessionEquipe_();
+    if(!session.salarie||!session.code)return;
+    chargerSondagesEquipe(true);
+  },10000);
   window.addEventListener('focus',verifierBadgeActualitesEquipe_);
-  window.addEventListener('pageshow',function(){verifierBadgeActualitesEquipe_();});
-  document.addEventListener('visibilitychange',function(){if(!document.hidden)verifierBadgeActualitesEquipe_();});
-  window.setTimeout(verifierBadgeActualitesEquipe_,3000);
+  window.addEventListener('pageshow',function(){verifierBadgeActualitesEquipe_();if(murActualitesActif_())chargerSondagesEquipe(true);});
+  document.addEventListener('visibilitychange',function(){if(!document.hidden){verifierBadgeActualitesEquipe_();if(murActualitesActif_())chargerSondagesEquipe(true);}});
+  window.setTimeout(function(){verifierBadgeActualitesEquipe_();if(murActualitesActif_())chargerSondagesEquipe(true);},3000);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initialiserBadgeActualitesEquipe_,{once:true});
 else initialiserBadgeActualitesEquipe_();
@@ -4880,7 +4930,7 @@ function ajouterOptionSondageEquipeUI(){
   const input=document.createElement('input');input.className='sanNewsFormControl teamPollOptionInput';input.type='text';input.maxLength=100;input.placeholder='Choix '+(inputs.length+1);box.appendChild(input);input.focus();
   const add=document.getElementById('teamPollAddOption');if(add&&box.querySelectorAll('input').length>=6)add.disabled=true;
 }
-function chargerSondagesEquipe(){
+function chargerSondagesEquipe(silencieux){
   const wallStatus=document.getElementById('teamPollWallStatus');
   const auth=messageEspaceEquipe_();
   if(auth){if(wallStatus)wallStatus.textContent=auth;return;}
@@ -4889,9 +4939,15 @@ function chargerSondagesEquipe(){
   google.script.run.withSuccessHandler(function(r){
     sondagesEquipeRequestPending_=false;
     sondagesEquipeLoaded_=true;
-    sondagesEquipeData_=Array.isArray(r)?r:(r&&Array.isArray(r.sondages)?r.sondages:[]);
+    const nouveauxSondages=Array.isArray(r)?r:(r&&Array.isArray(r.sondages)?r.sondages:[]);
+    const signatureAvant=JSON.stringify(sondagesEquipeData_||[]);
+    const signatureApres=JSON.stringify(nouveauxSondages);
+    sondagesEquipeData_=nouveauxSondages;
     if(wallStatus)wallStatus.textContent='';
-    rendreSondagesEquipe_();
+    if(signatureAvant!==signatureApres){
+      if(silencieux&&murActualitesActif_())rendreMurEquipeSilencieusementPreserveUI_();
+      else rendreSondagesEquipe_();
+    }
   }).withFailureHandler(function(e){
     sondagesEquipeRequestPending_=false;
     if(wallStatus)wallStatus.textContent='Les sondages ne sont pas disponibles pour le moment.';
@@ -5029,14 +5085,17 @@ function envoyerMessageTchatEquipeUI(event){
 
 function typePublicationEquipe_(r){
   const explicite=String((r&&r.type)||'').toLowerCase();
-  if(['question','idee','annonce'].indexOf(explicite)>=0) return explicite;
+  if(['publication','question','idee','annonce'].indexOf(explicite)>=0) return explicite;
   const titre=String((r&&r.titre)||'').trim();
   if(/^\[(QUESTION|QUESTIONS)\]/i.test(titre) || /^QUESTION\s*[-—:]/i.test(titre)) return 'question';
   if(/^\[(ID[ÉE]E|IDEA)\]/i.test(titre) || /^ID[ÉE]E\s*[-—:]/i.test(titre)) return 'idee';
   return 'annonce';
 }
 function titrePublicationEquipe_(r){
-  return String((r&&r.titre)||'Information sans titre').replace(/^\[(QUESTION|QUESTIONS|ID[ÉE]E|IDEA|ANNONCE)\]\s*/i,'').replace(/^(QUESTION|ID[ÉE]E|ANNONCE)\s*[-—:]\s*/i,'').trim() || 'Publication sans titre';
+  const type=String((r&&r.type)||'').toLowerCase();
+  const titre=String((r&&r.titre)||'').replace(/^\[(QUESTION|QUESTIONS|ID[ÉE]E|IDEA|ANNONCE)\]\s*/i,'').replace(/^(QUESTION|ID[ÉE]E|ANNONCE)\s*[-—:]\s*/i,'').trim();
+  if(type==='publication' && (!titre || titre.toLowerCase()==='publication')) return '';
+  return titre || (type==='publication'?'':'Publication sans titre');
 }
 function filtrerActualitesEquipe(filtre,btn){
   actualitesEquipeFiltre_=String(filtre||'all');
@@ -5131,7 +5190,7 @@ function rendreActualitesEquipe_(){
   if(status && !actualitesEquipeModeHorsLigne_) status.textContent=rows.length+' publication(s)'+(actualitesEquipeFiltre_==='all'?' · '+(Array.isArray(sondagesEquipeData_)?sondagesEquipeData_.length:0)+' sondage(s)':'')+' dans le mur.';
   const surveysInWall=actualitesEquipeFiltre_==='all'&&Array.isArray(sondagesEquipeData_)?sondagesEquipeData_:[];
   if(!rows.length&&!surveysInWall.length){
-    feed.innerHTML='<div class="sanNewsEmpty"><span class="sanNewsEmptyIcon">🤝</span><strong>L’espace d’équipe est prêt !</strong><br>Publiez la première question, idée, annonce ou sondage.</div>';
+    feed.innerHTML='<div class="sanNewsEmpty"><span class="sanNewsEmptyIcon">🤝</span><strong>L’espace d’équipe est prêt !</strong><br>Partagez une publication libre, une question, une idée, une annonce ou un sondage.</div>';
     return;
   }
   const offline=actualitesEquipeModeHorsLigne_;
@@ -5144,8 +5203,8 @@ function rendreActualitesEquipe_(){
     const auteur=String(r.auteur||'Équipe SaniStock');
     const initialesAuteur=auteur.trim().split(/\s+/).filter(Boolean).slice(0,2).map(function(part){return Array.from(part)[0]||'';}).join('').toUpperCase()||'É';
     const date=String(r.date||'');
-    const badge=type==='question'?'💬 QUESTION':type==='idee'?'💡 IDÉE':(p==='urgent'?'🔴 ANNONCE URGENTE':p==='important'?'🟠 ANNONCE IMPORTANTE':'📣 ANNONCE');
-    const icon=type==='question'?'💬':type==='idee'?'💡':(p==='urgent'?'🚨':p==='important'?'📌':'📣');
+    const badge=type==='publication'?'💬 PUBLICATION':type==='question'?'💬 QUESTION':type==='idee'?'💡 IDÉE':(p==='urgent'?'🔴 ANNONCE URGENTE':p==='important'?'🟠 ANNONCE IMPORTANTE':'📣 ANNONCE');
+    const icon=(type==='publication'||type==='question')?'💬':type==='idee'?'💡':(p==='urgent'?'🚨':p==='important'?'📌':'📣');
     const classes='sanNewsCard'+(p==='urgent'?' isUrgent':'')+(p==='important'?' isImportant':'');
     const expiration=String(r.expiration||'').trim();
     const photos=Array.isArray(r.photoUrls)?r.photoUrls.filter(Boolean):(r.photoUrl?[String(r.photoUrl)]:[]);
@@ -5179,7 +5238,7 @@ function rendreActualitesEquipe_(){
     }
     return '<article data-wall-timestamp="'+(Number(r.timestamp)||0)+'" id="sanNewsPost_'+id+'" class="'+classes+'">'
       +'<div class="sanNewsCardHead"><span class="sanNewsAvatar" aria-hidden="true">'+escapeHtml(initialesAuteur)+'</span><div class="sanNewsCardMeta"><span class="sanNewsAuthor">'+escapeHtml(auteur)+'</span><span class="sanNewsDate">'+escapeHtml(date)+'</span></div><span class="sanNewsBadge '+p+'">'+badge+'</span>'+(peutSupprimerPublication?'<button type="button" class="sanNewsDeleteBtn" onclick="supprimerPublicationEquipeUI('+id+')" title="Supprimer cette publication" aria-label="Supprimer cette publication">🗑️ Supprimer</button>':'')+'</div>'
-      +'<div class="sanNewsCardBody"><h2 class="sanNewsTitle">'+escapeHtml(titre)+'</h2><p class="sanNewsMessage">'+escapeHtml(r.message||'')+'</p>'
+      +'<div class="sanNewsCardBody">'+(titre?'<h2 class="sanNewsTitle">'+escapeHtml(titre)+'</h2>':'')+(r.message?'<p class="sanNewsMessage">'+escapeHtml(r.message)+'</p>':'')
       +(photos.length?'<div class="sanNewsPhotoGallery">'+photos.slice(0,3).map(function(photoUrl,index){const originalUrl=String(photoUrl||'').trim();return '<a class="sanNewsPhotoLink" href="'+escapeHtml(originalUrl)+'" target="_blank" rel="noopener noreferrer" aria-label="Ouvrir la photo '+(index+1)+'"><img class="sanNewsPhoto" src="'+escapeHtml(urlPhotoEquipeAffichage_(originalUrl))+'" data-original-url="'+escapeHtml(originalUrl)+'" alt="Photo '+(index+1)+' partagée par '+escapeHtml(auteur)+'" loading="lazy" referrerpolicy="no-referrer" onerror="gererErreurPhotoEquipe_(this)"></a>';}).join('')+'</div>':'')
       +(expiration?'<div class="sanNewsExpiry">À consulter avant le : '+escapeHtml(expiration)+'</div>':'')
       +social+'</div></article>';
@@ -5229,10 +5288,18 @@ function marquerActualiteEquipeLue(id){
   rendreActualitesEquipe_();
 }
 
-function ouvrirPublicationAvecTypeEquipe_(type){
-  const mode=String(type||'annonce');
+function ouvrirPublicationLibreEquipe_(){
   const sel=document.getElementById('infoType');
-  if(sel) sel.value=(mode==='question'||mode==='idee')?mode:'annonce';
+  if(sel) sel.value='publication';
+  togglePublicationEquipe(true);
+  const message=document.getElementById('infoMessage');
+  if(message) setTimeout(function(){message.focus();},60);
+}
+
+function ouvrirPublicationAvecTypeEquipe_(type){
+  const mode=String(type||'publication');
+  const sel=document.getElementById('infoType');
+  if(sel) sel.value=['publication','question','idee','annonce'].indexOf(mode)>=0?mode:'publication';
   togglePublicationEquipe(true);
   if(mode==='photo'){
     const photo=document.getElementById('infoPhoto');
@@ -5255,7 +5322,7 @@ function togglePublicationEquipe(force){
     const expiration=document.getElementById('infoExpiration');
     const options=document.getElementById('sanNewsAnnouncementOptions');
     function majOptions(){
-      const isAnnonce=!type||type.value==='annonce';
+      const isAnnonce=!!type&&type.value==='annonce';
       if(options) options.style.display=isAnnonce?'block':'none';
     }
     if(type && !type.dataset.bound){type.addEventListener('change',majOptions);type.dataset.bound='1';}
@@ -5366,7 +5433,7 @@ function publierPublicationEquipePhotoPOST_(payload){
 function terminerPublicationEquipeUI_(res,statusEl,btn){
   if(document.getElementById('infoTitre'))document.getElementById('infoTitre').value='';
   if(document.getElementById('infoMessage'))document.getElementById('infoMessage').value='';
-  const typeEl=document.getElementById('infoType');if(typeEl)typeEl.value='annonce';
+  const typeEl=document.getElementById('infoType');if(typeEl)typeEl.value='publication';
   const prioriteEl=document.getElementById('infoPriorite');if(prioriteEl)prioriteEl.value='info';
   const expirationEl=document.getElementById('infoExpiration');if(expirationEl)expirationEl.value='';
   retirerPhotoEquipe_();
@@ -5378,14 +5445,14 @@ function terminerPublicationEquipeUI_(res,statusEl,btn){
 async function publierInformationUI(){
   const titre=(document.getElementById('infoTitre')?.value||'').trim();
   const message=(document.getElementById('infoMessage')?.value||'').trim();
-  const type=(document.getElementById('infoType')?.value||'annonce');
+  const type=(document.getElementById('infoType')?.value||'publication');
   const priorite=(document.getElementById('infoPriorite')?.value||'info');
   const expiration=(document.getElementById('infoExpiration')?.value||'');
   const photoInput=document.getElementById('infoPhoto');
   const photoFiles=Array.from(photoInput&&photoInput.files||[]).slice(0,3);
   const photoFile=photoFiles.length>0;
   const statusEl=document.getElementById('sanNewsPublishStatus');
-  if(!titre||!message){if(statusEl)statusEl.textContent='Le titre et le texte sont obligatoires.';return;}
+  if(!message&&!photoFiles.length){if(statusEl)statusEl.textContent='Écrivez un texte ou ajoutez une photo avant de publier.';return;}
   const session=donneesSessionEquipe_();
   if(!session.salarie||!session.code){if(statusEl)statusEl.textContent='Reconnectez-vous à SaniStock pour publier avec votre compte salarié.';return;}
   if(photoFile&&!navigator.onLine){if(statusEl)statusEl.textContent='📵 Pour partager une photo avec toute l’équipe, reconnectez-vous à Internet puis réessayez.';return;}
