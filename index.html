@@ -1,6 +1,6 @@
 <!-- TAXI PDF FINAL - VALISE NOIR COORDONNEES SEPAREES -->
 <!-- TAXI PDF FINAL INTEGRE : taxi_template(3).pdf -->
-<!-- SaniStock version 1.1.104 : contour bleu visible de la bulle Actualité de l’équipe -->
+<!-- SaniStock version 1.1.105 : suppression des publications réservée à l’administrateur -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -5153,10 +5153,11 @@ function peutGererSuppressionEquipeUI_(){
 function supprimerPublicationEquipeUI(id){
   id=Number(id||0);
   if(!Number.isInteger(id)||id<=0){alert('Cette publication ne peut pas être supprimée depuis ce mur.');return;}
+  if(!peutGererSuppressionEquipeUI_()){alert('🔒 Seul l’administrateur SaniStock peut supprimer une publication.');return;}
   if(!navigator.onLine){alert('📵 Connectez-vous à Internet avant de supprimer une publication.');return;}
   const publication=actualitesEquipeData_.find(function(p){return Number(p&&p.id)===id;});
   if(!publication||publication.legacy){alert('Cette publication est introuvable ou gérée par les annonces historiques.');return;}
-  if(!confirm('Supprimer définitivement cette publication, ses commentaires et ses réactions ?')) return;
+  if(!confirm('Supprimer définitivement cette publication, ses commentaires et ses réactions ? Cette action est réservée à l’administrateur.')) return;
   const payload=Object.assign({},donneesSessionEquipe_(),donneesAccesGestion(),{id:id});
   const btn=document.querySelector('#sanNewsPost_'+id+' .sanNewsDeleteBtn');
   if(btn){btn.disabled=true;btn.textContent='Suppression…';}
@@ -5210,7 +5211,7 @@ function rendreActualitesEquipe_(){
     const sessionBadgeEquipe=donneesSessionEquipe_();
     const auteurCourantEquipe=normaliserAuteurEquipeBadge_(sessionBadgeEquipe.salarie);
     const proprePublication=!!auteurCourantEquipe && normaliserAuteurEquipeBadge_(auteur)===auteurCourantEquipe;
-    const peutSupprimerPublication=!legacy && !offline && id>0 && (proprePublication || peutGererSuppressionEquipeUI_());
+    const peutSupprimerPublication=!legacy && !offline && id>0 && peutGererSuppressionEquipeUI_();
     let social='';
     if(canInteract){
       const commentItems=comments.length?comments.map(function(c){
@@ -11330,7 +11331,7 @@ if ("serviceWorker" in navigator) {
 </script>
 
 
-<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.99</div>
+<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.105</div>
 
 <style id="sanistock-connexion-accueil-uniquement">
 #saniConnection.saniConnHomeOnlyHidden{display:none !important;}
