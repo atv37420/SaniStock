@@ -1,6 +1,6 @@
 <!-- TAXI PDF FINAL - VALISE NOIR COORDONNEES SEPAREES -->
 <!-- TAXI PDF FINAL INTEGRE : taxi_template(3).pdf -->
-<!-- SaniStock version 1.1.108 : affichage immédiat du mur depuis le cache local -->
+<!-- SaniStock version 1.1.109 : affichage immédiat du mur depuis le cache local -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -4788,12 +4788,17 @@ function verifierBadgeActualitesEquipe_(){
       const signatureAvant=JSON.stringify(actualitesEquipeData_||[]);
       const signatureApres=JSON.stringify(nouvellesPublications);
       window.sanNewsBadgeLatestPublications_=nouvellesPublications;
+      window.sanNewsBadgeLatestUpdatedAt_=Date.now();
       window.sanNewsBadgeLatestChat_=[];
+      /* Réchauffe le cache même sur l'accueil : à l'ouverture du mur, le fil
+         peut être affiché immédiatement sans attendre un nouvel appel serveur. */
+      try{localStorage.setItem('sanistock_actualites_cache',JSON.stringify(nouvellesPublications));}catch(e){}
       actualiserAffichageBadgeEquipe_();
-      if(murActualitesActif_()&&signatureAvant!==signatureApres){
+      const feedBadge=document.getElementById('sanNewsFeed');
+      const feedBadgeADejaContenu=!!(feedBadge&&feedBadge.querySelector('.sanNewsCard,.sanNewsEmpty,.sanNewsError'));
+      if(murActualitesActif_()&&(signatureAvant!==signatureApres||!feedBadgeADejaContenu)){
         actualitesEquipeData_=nouvellesPublications;
         actualitesEquipeModeHorsLigne_=false;
-        try{localStorage.setItem('sanistock_actualites_cache',JSON.stringify(actualitesEquipeData_));}catch(e){}
         rendreMurEquipeSilencieusementPreserveUI_();
       }
     }).withFailureHandler(function(err){
@@ -4824,7 +4829,6 @@ function chargerActualitesEquipe(forcer){
   const status=document.getElementById('sanNewsStatus');
   if(!feed) return;
   if(!sondagesEquipeLoaded_ && !sondagesEquipeRequestPending_ && typeof chargerSondagesEquipe==='function') chargerSondagesEquipe();
-  if(actualitesEquipeRequestPending_) return;
   const session=donneesSessionEquipe_();
   if(status) status.textContent='';
   if(!session.salarie || !session.code){
@@ -4834,7 +4838,13 @@ function chargerActualitesEquipe(forcer){
   /* Affichage immédiat du cache local : on ne fait plus attendre le premier rendu
      le temps que Google Apps Script ouvre le classeur et récupère le mur. */
   let cacheInitial=[];
-  try{cacheInitial=JSON.parse(localStorage.getItem('sanistock_actualites_cache')||'[]');}catch(e){cacheInitial=[];}
+  const cacheMemoire=window.sanNewsBadgeLatestPublications_;
+  const cacheMemoireAge=Date.now()-(Number(window.sanNewsBadgeLatestUpdatedAt_)||0);
+  if(Array.isArray(cacheMemoire)&&Number(window.sanNewsBadgeLatestUpdatedAt_)>0&&cacheMemoireAge<120000){
+    cacheInitial=cacheMemoire.slice();
+  }else{
+    try{cacheInitial=JSON.parse(localStorage.getItem('sanistock_actualites_cache')||'[]');}catch(e){cacheInitial=[];}
+  }
   if(!Array.isArray(cacheInitial)) cacheInitial=[];
   /* Ne jamais effacer un fil déjà affiché lors d'une vérification/réouverture. */
   const contenuDejaAffiche=!!feed.querySelector('.sanNewsCard,.sanNewsEmpty,.sanNewsError');
@@ -4844,7 +4854,13 @@ function chargerActualitesEquipe(forcer){
     rendreActualitesEquipe_();
     if(status) status.textContent='Affichage des dernières publications · actualisation…';
   }else if(!contenuDejaAffiche){
-    feed.innerHTML='<div class="sanNewsLoading"><span class="sanNewsSpinner"></span> Chargement des échanges…</div>';
+    feed.innerHTML='<div class="sanNewsLoading"><span class="sanNewsSpinner"></span> Récupération des dernières publications…</div>';
+  }
+  /* Si un appel de vérification du compteur est déjà parti depuis l'accueil,
+     le cache vient d'être affiché : on ne lance pas une seconde requête en parallèle. */
+  if(actualitesEquipeRequestPending_){
+    if(status&&cacheInitial.length) status.textContent='';
+    return;
   }
   function afficherCache_(message){
     actualitesEquipeData_=cacheInitial;
@@ -13448,4 +13464,4 @@ html+='<div class="ambSectionBulkActions"><button type="button" class="toutCoche
 </body>
 </html>
 
-<!-- SaniStock 1.1.108 : affichage cache-first du mur pour éviter d’attendre la réponse Apps Script. -->
+<!-- SaniStock 1.1.109 : affichage cache-first du mur pour éviter d’attendre la réponse Apps Script. -->
