@@ -17,7 +17,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="SaniStock">
 <meta name="theme-color" content="#0757a0">
-
+a
 
 <script>
 /* ===== PONT GITHUB -> GOOGLE APPS SCRIPT + MODE HORS LIGNE ===== */
@@ -11572,9 +11572,9 @@ html+='<div class="ambSectionBulkActions"><button type="button" class="toutCoche
       const page=p1;
       // Le modèle ambulance_template.pdf est vierge à cet endroit :
       // aucun rectangle de fond n'est ajouté, uniquement le V ou le X.
-      // Les V et les X de la rubrique PAPIERS VEHICULE sont décalés de 100 points vers la gauche au total.
-      if(state==='present') drawAmbTick(page,it.x-100,it.y-4,black);
-      if(state==='manque') centerText(page,bold,'X',it.x-100,it.y-4,9,black);
+      // Les V et les X restent dans la colonne de réponse, à droite des libellés.
+      if(state==='present') drawAmbTick(page,it.x,it.y-4,black);
+      if(state==='manque') centerText(page,bold,'X',it.x,it.y-4,9,black);
     });
 
     const pageItems=isRenault
