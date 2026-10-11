@@ -11552,7 +11552,7 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
     // Les zones effacées restent limitées aux anciennes valeurs : les libellés
     // Immatriculation, KMS, DATE et Equipage du modèle ne sont pas recouverts.
     cover(p1,130,741,112,16,paperBg);
-    cover(p1,350,741,62,16,paperBg);
+    cover(p1,390,741,22,16,paperBg); // Préserve le libellé « DATE » à gauche de la zone effacée.
     cover(p1,480,741,65,16,paperBg);
     cover(p1,130,727,292,16,paperBg); // Efface uniquement la valeur de l’équipage, sans recouvrir le « E » du libellé.
     const headerSize=9.5;
