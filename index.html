@@ -1,6 +1,6 @@
 <!-- TAXI PDF FINAL - VALISE NOIR COORDONNEES SEPAREES -->
 <!-- TAXI PDF FINAL INTEGRE : taxi_template(3).pdf -->
-<!-- SaniStock version 1.1.91 : mur de publications, affichage photo Drive renforcé -->
+<!-- SaniStock version 1.1.92 : suppression sécurisée des publications -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -2005,6 +2005,11 @@ button.settingsAction.secondary:hover,
 .sanNewsCard{overflow:hidden;background:#fff;border:1px solid #dce8f0;border-radius:18px;box-shadow:0 4px 15px rgba(20,60,90,.055)}
 .sanNewsCard.isUrgent{border-color:#f3c3c6}
 .sanNewsCardHead{display:flex;align-items:center;gap:9px;padding:13px 13px 0}
+.sanNewsDeleteBtn{flex:0 0 auto;border:1px solid #fecaca;border-radius:9px;padding:6px 8px;background:#fff1f2;color:#b91c1c;font-size:10px;font-weight:900;cursor:pointer;touch-action:manipulation}
+.sanNewsDeleteBtn:active{transform:scale(.97)}
+.sanNewsDeleteBtn:disabled{opacity:.55;cursor:not-allowed}
+@media(max-width:420px){.sanNewsDeleteBtn{padding:5px 6px;font-size:9px}.sanNewsCardHead{gap:6px}}
+
 .sanNewsSymbol{display:grid;place-items:center;flex:0 0 38px;width:38px;height:38px;border-radius:13px;background:#e8f3fc;font-size:18px}
 .sanNewsCard.isUrgent .sanNewsSymbol{background:#ffebec}
 .sanNewsCard.isImportant .sanNewsSymbol{background:#fff3dc}
@@ -2263,7 +2268,7 @@ button.settingsAction.secondary:hover,
 .teamToolsTab .teamToolsUnreadBadge.has-unread:not([hidden]){display:inline-flex!important;visibility:visible!important;opacity:1!important}
 .teamToolsTab .teamToolsUnreadBadge.has-unread[hidden]{display:none!important}
 </style>
-  <!-- SaniStock 1.1.91 : correction de l’affichage des photos partagées via Google Drive. -->
+  <!-- SaniStock 1.1.92 : suppression de publications par l’auteur ou le responsable autorisé. -->
 
 <style id="sanistock-1-1-91-social-wall">
 /* Mur de publications façon réseau social, limité à la page Actualité de l'équipe. */
@@ -4849,6 +4854,39 @@ function gererErreurPhotoEquipe_(img){
   }
 }
 
+function peutGererSuppressionEquipeUI_(){
+  try{
+    if(typeof appareilProprietaire==='function' && appareilProprietaire()) return true;
+    if(typeof codeAdminSession!=='undefined' && String(codeAdminSession||'').trim()) return true;
+    if(typeof OWNER_ADMIN_CODE_KEY!=='undefined' && localStorage.getItem(OWNER_ADMIN_CODE_KEY)) return true;
+    if(localStorage.getItem('sanistock_owner_admin_code_v1')) return true;
+  }catch(e){}
+  return false;
+}
+function supprimerPublicationEquipeUI(id){
+  id=Number(id||0);
+  if(!Number.isInteger(id)||id<=0){alert('Cette publication ne peut pas être supprimée depuis ce mur.');return;}
+  if(!navigator.onLine){alert('📵 Connectez-vous à Internet avant de supprimer une publication.');return;}
+  const publication=actualitesEquipeData_.find(function(p){return Number(p&&p.id)===id;});
+  if(!publication||publication.legacy){alert('Cette publication est introuvable ou gérée par les annonces historiques.');return;}
+  if(!confirm('Supprimer définitivement cette publication, ses commentaires et ses réactions ?')) return;
+  const payload=Object.assign({},donneesSessionEquipe_(),donneesAccesGestion(),{id:id});
+  const btn=document.querySelector('#sanNewsPost_'+id+' .sanNewsDeleteBtn');
+  if(btn){btn.disabled=true;btn.textContent='Suppression…';}
+  google.script.run.withSuccessHandler(function(res){
+    if(res&&res.success===false){if(btn){btn.disabled=false;btn.textContent='🗑️ Supprimer';}alert(res.error||'La suppression a échoué.');return;}
+    actualitesEquipeData_=actualitesEquipeData_.filter(function(p){return Number(p&&p.id)!==id;});
+    window.sanNewsBadgeLatestPublications_=actualitesEquipeData_.slice();
+    rendreActualitesEquipe_();
+    synchroniserBadgeActualitesEquipe_(actualitesEquipeData_,'none',[]);
+    alert('✅ Publication supprimée.');
+    chargerActualitesEquipe(true);
+  }).withFailureHandler(function(err){
+    if(btn){btn.disabled=false;btn.textContent='🗑️ Supprimer';}
+    alert('Impossible de supprimer la publication : '+(err&&err.message?err.message:err));
+  }).supprimerPublicationEquipe(payload);
+}
+
 function rendreActualitesEquipe_(){
   const feed=document.getElementById('sanNewsFeed');
   const status=document.getElementById('sanNewsStatus');
@@ -4881,6 +4919,10 @@ function rendreActualitesEquipe_(){
     const likes=Number(r.likes||0), loves=Number(r.loves||0);
     const mine=String(r.maReaction||'');
     const canInteract=!legacy && !offline && id>0;
+    const sessionBadgeEquipe=donneesSessionEquipe_();
+    const auteurCourantEquipe=normaliserAuteurEquipeBadge_(sessionBadgeEquipe.salarie);
+    const proprePublication=!!auteurCourantEquipe && normaliserAuteurEquipeBadge_(auteur)===auteurCourantEquipe;
+    const peutSupprimerPublication=!legacy && !offline && id>0 && (proprePublication || peutGererSuppressionEquipeUI_());
     let social='';
     if(canInteract){
       const commentItems=comments.length?comments.map(function(c){
@@ -4901,7 +4943,7 @@ function rendreActualitesEquipe_(){
       social='<div class="sanNewsLegacyNote">'+(navigator.onLine?'⚠️ Mode lecture seule : le serveur de l’espace d’équipe ne répond pas. Vérifie le déploiement Apps Script.':'📵 Hors connexion : reconnecte-toi à Internet pour aimer et commenter. Les interactions sont partagées avec toute l’équipe.')+'</div>';
     }
     return '<article id="sanNewsPost_'+id+'" class="'+classes+'">'
-      +'<div class="sanNewsCardHead"><span class="sanNewsAvatar" aria-hidden="true">'+escapeHtml(initialesAuteur)+'</span><div class="sanNewsCardMeta"><span class="sanNewsAuthor">'+escapeHtml(auteur)+'</span><span class="sanNewsDate">'+escapeHtml(date)+'</span></div><span class="sanNewsBadge '+p+'">'+badge+'</span></div>'
+      +'<div class="sanNewsCardHead"><span class="sanNewsAvatar" aria-hidden="true">'+escapeHtml(initialesAuteur)+'</span><div class="sanNewsCardMeta"><span class="sanNewsAuthor">'+escapeHtml(auteur)+'</span><span class="sanNewsDate">'+escapeHtml(date)+'</span></div><span class="sanNewsBadge '+p+'">'+badge+'</span>'+(peutSupprimerPublication?'<button type="button" class="sanNewsDeleteBtn" onclick="supprimerPublicationEquipeUI('+id+')" title="Supprimer cette publication" aria-label="Supprimer cette publication">🗑️ Supprimer</button>':'')+'</div>'
       +'<div class="sanNewsCardBody"><h2 class="sanNewsTitle">'+escapeHtml(titre)+'</h2><p class="sanNewsMessage">'+escapeHtml(r.message||'')+'</p>'
       +(photos.length?'<div class="sanNewsPhotoGallery">'+photos.slice(0,3).map(function(photoUrl,index){const originalUrl=String(photoUrl||'').trim();return '<a class="sanNewsPhotoLink" href="'+escapeHtml(originalUrl)+'" target="_blank" rel="noopener noreferrer" aria-label="Ouvrir la photo '+(index+1)+'"><img class="sanNewsPhoto" src="'+escapeHtml(urlPhotoEquipeAffichage_(originalUrl))+'" data-original-url="'+escapeHtml(originalUrl)+'" alt="Photo '+(index+1)+' partagée par '+escapeHtml(auteur)+'" loading="lazy" referrerpolicy="no-referrer" onerror="gererErreurPhotoEquipe_(this)"></a>';}).join('')+'</div>':'')
       +(expiration?'<div class="sanNewsExpiry">À consulter avant le : '+escapeHtml(expiration)+'</div>':'')
@@ -10986,7 +11028,7 @@ if ("serviceWorker" in navigator) {
 </script>
 
 
-<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.87</div>
+<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.92</div>
 
 <style id="sanistock-connexion-accueil-uniquement">
 #saniConnection.saniConnHomeOnlyHidden{display:none !important;}
