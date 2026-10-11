@@ -10308,7 +10308,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     Object.keys(groups).forEach(function(cat){
       html += '<div class="taxiSection">';
       html += '<div class="taxiSectionTitle">'+esc(cat)+'</div>';
-      html += '<button type="button" class="toutCocherBtn" onclick="toutCocherSection(this)">✓ TOUT COCHER</button><button type="button" class="toutCocherBtn" onclick="toutDecocherSection(this)">✕ TOUT DÉCOCHER</button>';
+      html += '<div class="ambSectionBulkActions"><button type="button" class="toutCocherBtn" onclick="toutCocherSection(this)">✓ TOUT COCHER</button><button type="button" class="toutCocherBtn" onclick="toutDecocherSection(this)">✕ TOUT DÉCOCHER</button></div>';
       html += '<div class="taxiChecklistHead"><div>Inventaire</div><div>Quantité</div><div>Présent</div><div>Manque</div><div>Quantité manquante</div></div>';
       groups[cat].forEach(function(item){
         const globalIndex=TAXI_ITEMS.indexOf(item);
@@ -11135,7 +11135,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     html+='<div class="ambSectionBulkActions"><button type="button" class="toutCocherBtn" onclick="toutCocherVsl()">✓ TOUT COCHER</button><button type="button" class="toutCocherBtn" onclick="toutDecocherVsl()">✕ TOUT DÉCOCHER</button></div>';
     Object.keys(groups).forEach(function(cat){
       html+='<div class="vslSection"><div class="vslSectionTitle">'+esc(cat)+'</div>';
-      html+='<button type="button" class="toutCocherBtn" onclick="toutCocherSection(this)">✓ TOUT COCHER</button><button type="button" class="toutCocherBtn" onclick="toutDecocherSection(this)">✕ TOUT DÉCOCHER</button>';
+      html+='<div class="ambSectionBulkActions"><button type="button" class="toutCocherBtn" onclick="toutCocherSection(this)">✓ TOUT COCHER</button><button type="button" class="toutCocherBtn" onclick="toutDecocherSection(this)">✕ TOUT DÉCOCHER</button></div>';
       html+='<div class="vslChecklistHead"><div>Inventaire</div><div>Quantité</div><div>Présent</div><div>Manque</div><div>Quantité manquante</div></div>';
       groups[cat].forEach(function(item){const i=VSL_ITEMS.indexOf(item);const id='vslItem'+i;html+='<div class="vslChecklistRow" data-vsl-index="'+i+'"><div>'+esc(item.name)+'</div><div class="vslQty">'+esc(item.quantity)+'</div><div class="vslChoice"><input type="radio" name="'+id+'" value="present" onchange="toggleVslMissing('+i+',false)"></div><div class="vslChoice"><input type="radio" name="'+id+'" value="manque" onchange="toggleVslMissing('+i+',true)"></div><div><input id="vslMissing'+i+'" class="vslMissingQty" type="text" inputmode="numeric" autocomplete="off" placeholder="—"></div></div>';});
       html+='</div>';
