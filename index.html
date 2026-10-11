@@ -1,6 +1,6 @@
 <!-- TAXI PDF FINAL - VALISE NOIR COORDONNEES SEPAREES -->
 <!-- TAXI PDF FINAL INTEGRE : taxi_template(3).pdf -->
-<!-- SaniStock version 1.1.92 : suppression sécurisée des publications -->
+<!-- SaniStock version 1.1.93 : lecteur PDF sans barre d’outils visible -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -2268,7 +2268,7 @@ button.settingsAction.secondary:hover,
 .teamToolsTab .teamToolsUnreadBadge.has-unread:not([hidden]){display:inline-flex!important;visibility:visible!important;opacity:1!important}
 .teamToolsTab .teamToolsUnreadBadge.has-unread[hidden]{display:none!important}
 </style>
-  <!-- SaniStock 1.1.92 : suppression de publications par l’auteur ou le responsable autorisé. -->
+  <!-- SaniStock 1.1.93 : barre d’outils PDF masquée dans la mesure permise par le navigateur ; les fonctions de l’application sont conservées. -->
 
 <style id="sanistock-1-1-91-social-wall">
 /* Mur de publications façon réseau social, limité à la page Actualité de l'équipe. */
@@ -3941,12 +3941,18 @@ function ouvrirDocumentPartage_(doc){
       const binary=atob(d.contenuBase64||'');
       const bytes=new Uint8Array(binary.length);
       for(let i=0;i<binary.length;i++) bytes[i]=binary.charCodeAt(i);
-      const blob=new Blob([bytes],{type:d.mimeType||'application/octet-stream'});
+      const mimeType=String(d.mimeType||'application/octet-stream');
+      const blob=new Blob([bytes],{type:mimeType});
       const url=URL.createObjectURL(blob);
+      // Pour les PDF, masquer la barre d'outils native du lecteur du navigateur
+      // lorsqu'il respecte le fragment #toolbar=0. Cela retire notamment le crayon
+      // d'annotation visible dans certains lecteurs PDF, sans modifier le fichier source.
+      const estPdf=/application\/pdf/i.test(mimeType) || /\.pdf$/i.test(String(d.name||''));
+      const urlAffichage=estPdf ? url+'#toolbar=0&navpanes=0' : url;
       if(fenetre && !fenetre.closed){
-        fenetre.location.href=url;
+        fenetre.location.href=urlAffichage;
       }else{
-        window.open(url,'_blank');
+        window.open(urlAffichage,'_blank');
       }
       setTimeout(function(){URL.revokeObjectURL(url)},60000);
     }catch(e){
@@ -11028,7 +11034,7 @@ if ("serviceWorker" in navigator) {
 </script>
 
 
-<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.92</div>
+<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.93</div>
 
 <style id="sanistock-connexion-accueil-uniquement">
 #saniConnection.saniConnHomeOnlyHidden{display:none !important;}
