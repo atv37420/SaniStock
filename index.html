@@ -1,6 +1,6 @@
 <!-- TAXI PDF FINAL - VALISE NOIR COORDONNEES SEPAREES -->
 <!-- TAXI PDF FINAL INTEGRE : taxi_template(3).pdf -->
-<!-- SaniStock version 1.1.98 : lecteur PDF en lecture seule hors ligne et en ligne -->
+<!-- SaniStock version 1.1.99 : lecteur PDF en lecture seule hors ligne et en ligne -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -2669,8 +2669,12 @@ button.settingsAction.secondary:hover,
 <section id="newsPage" class="screen page sanNewsPage">
   <button type="button" class="back" onclick="sanistockGoBack()">← Retour</button>
   <div class="sanNewsWrap">
-    <header class="sanNewsHero">
-      <h1>Actualité de l’équipe</h1>
+    <header class="sanNewsHero sanNewsHeroSimple">
+      <span class="sanNewsHeroBubble" aria-hidden="true">💬</span>
+      <div class="sanNewsHeroText">
+        <h1>Actualité de l’équipe</h1>
+        <p>Partageons nos questions, nos idées et nos annonces dans le respect de chacun. Veillons à préserver la confidentialité : aucune information personnelle ou confidentielle ne doit être publiée.</p>
+      </div>
     </header>
     <div id="teamPublicationsPane" class="teamToolPane">
     <div class="sanNewsPublishBar" aria-label="Créer une publication">
@@ -4087,7 +4091,17 @@ __SANI_PDFJS_SCRIPT_TAG__
   window.addEventListener('resize',function(){renderPage();});
   window.addEventListener('keydown',function(e){if(e.key==='ArrowLeft'&&pageNum>1){pageNum--;renderPage();}else if(e.key==='ArrowRight'&&pdfDoc&&pageNum<pdfDoc.numPages){pageNum++;renderPage();}else if((e.key==='+'||e.key==='=')&&!e.ctrlKey){zoomFactor=Math.min(2.5,zoomFactor+.15);renderPage();}else if(e.key==='-'&&!e.ctrlKey){zoomFactor=Math.max(.6,zoomFactor-.15);renderPage();}});
 })();
-<\/script></body></html>`;
+<\/script>
+<style id="sanistock-1-1-99-bulle-actualite-respect">
+#newsPage .sanNewsHeroSimple{display:flex!important;align-items:flex-start!important;gap:10px!important;padding:10px 12px!important;background:#fff!important;border:1px solid #e1e6eb!important;border-radius:13px!important;box-shadow:0 1px 3px rgba(20,35,55,.06)!important;margin-bottom:10px!important;color:#15324b!important}
+#newsPage .sanNewsHeroSimple .sanNewsHeroBubble{flex:0 0 30px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:#e7f1ff;color:#175a8e;font-size:16px;line-height:1}
+#newsPage .sanNewsHeroSimple .sanNewsHeroText{flex:1;min-width:0}
+#newsPage .sanNewsHeroSimple h1{margin:1px 0 4px!important;color:#102a43!important;font-size:20px!important;line-height:1.2!important;font-weight:750!important}
+#newsPage .sanNewsHeroSimple p{margin:0!important;color:#536579!important;font-size:12px!important;line-height:1.4!important;max-width:unset!important}
+@media(max-width:420px){#newsPage .sanNewsHeroSimple{gap:8px!important;padding:9px 10px!important}#newsPage .sanNewsHeroSimple .sanNewsHeroBubble{flex-basis:27px;width:27px;height:27px;font-size:15px}#newsPage .sanNewsHeroSimple h1{font-size:18px!important}}
+</style>
+
+</body></html>`;
         function afficherLecteurHtml_(html){
           fenetre.document.open();
           fenetre.document.write(html);
@@ -11255,7 +11269,7 @@ if ("serviceWorker" in navigator) {
 </script>
 
 
-<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.98</div>
+<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.99</div>
 
 <style id="sanistock-connexion-accueil-uniquement">
 #saniConnection.saniConnHomeOnlyHidden{display:none !important;}
