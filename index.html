@@ -1,6 +1,6 @@
 <!-- TAXI PDF FINAL - VALISE NOIR COORDONNEES SEPAREES -->
 <!-- TAXI PDF FINAL INTEGRE : taxi_template(3).pdf -->
-<!-- SaniStock version 1.1.103 : contour bleu de la bulle Actualité de l’équipe -->
+<!-- SaniStock version 1.1.104 : contour bleu visible de la bulle Actualité de l’équipe -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -4103,12 +4103,6 @@ __SANI_PDFJS_SCRIPT_TAG__
 @media(max-width:420px){#newsPage .sanNewsHeroSimple{gap:8px!important;padding:9px 10px!important}#newsPage .sanNewsHeroSimple .sanNewsHeroBubble{flex-basis:27px;width:27px;height:27px;font-size:15px}#newsPage .sanNewsHeroSimple h1{font-size:18px!important}}
 </style>
 
-
-<style id="sanistock-1-1-103-contour-bleu-actualite">
-/* Contour bleu SaniStock autour de la bulle Actualité de l’équipe. */
-#newsPage .sanNewsHeroSimple{border:1.5px solid #175a8e!important;box-shadow:0 0 0 1px rgba(23,90,142,.08),0 1px 3px rgba(20,35,55,.06)!important}
-#newsPage .sanNewsHeroSimple .sanNewsHeroBubble{border:1px solid #175a8e!important;box-sizing:border-box}
-</style>
 </body></html>`;
         function afficherLecteurHtml_(html){
           fenetre.document.open();
@@ -13405,5 +13399,11 @@ html+='<div class="ambSectionBulkActions"><button type="button" class="toutCoche
 </script>
 
 <!-- SaniStock 1.1.87 : publications et sondages uniquement -->
+
+<style id="sanistock-1-1-104-contour-bleu-visible-actualite">
+/* Contour bleu SaniStock appliqué au vrai en-tête Actualité de l’équipe. */
+#newsPage .sanNewsHeroSimple{border:2px solid #175a8e!important;box-shadow:0 0 0 1px rgba(23,90,142,.12),0 1px 3px rgba(20,35,55,.06)!important}
+#newsPage .sanNewsHeroSimple .sanNewsHeroBubble{border:2px solid #175a8e!important;box-sizing:border-box;background:#e7f1ff!important;color:#175a8e!important}
+</style>
 </body>
 </html>
