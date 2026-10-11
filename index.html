@@ -1,6 +1,6 @@
 <!-- TAXI PDF FINAL - VALISE NOIR COORDONNEES SEPAREES -->
 <!-- TAXI PDF FINAL INTEGRE : taxi_template(3).pdf -->
-<!-- SaniStock version 1.1.93 : lecteur PDF sans barre d’outils visible -->
+<!-- SaniStock version 1.1.95 : lecture seule avec repli hors connexion -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -2268,7 +2268,7 @@ button.settingsAction.secondary:hover,
 .teamToolsTab .teamToolsUnreadBadge.has-unread:not([hidden]){display:inline-flex!important;visibility:visible!important;opacity:1!important}
 .teamToolsTab .teamToolsUnreadBadge.has-unread[hidden]{display:none!important}
 </style>
-  <!-- SaniStock 1.1.93 : barre d’outils PDF masquée dans la mesure permise par le navigateur ; les fonctions de l’application sont conservées. -->
+  <!-- SaniStock 1.1.95 : lecteur intégré en ligne et repli hors ligne vers le PDF local, barre masquée. -->
 
 <style id="sanistock-1-1-91-social-wall">
 /* Mur de publications façon réseau social, limité à la page Actualité de l'équipe. */
@@ -3932,28 +3932,141 @@ function synchroniserDocumentsHorsLigne_(docs){
 }
 
 function ouvrirDocumentPartage_(doc){
-  // On ouvre immédiatement une fenêtre pour éviter le blocage des navigateurs après un appel asynchrone.
+  // Ouvre une fenêtre contrôlée par SaniStock. Les PDF seront rendus sur un canvas
+  // en lecture seule, au lieu du lecteur PDF natif qui affiche le crayon d’annotation.
   let fenetre=null;
   try{fenetre=window.open('about:blank','_blank');}catch(e){}
 
   function afficherDepuisBase64(d){
     try{
+      const mimeType=String(d.mimeType||'application/octet-stream');
+      const estPdf=/application\/pdf/i.test(mimeType) || /\.pdf$/i.test(String(d.name||''));
+
+      if(estPdf){
+        if(!fenetre || fenetre.closed){
+          try{fenetre=window.open('about:blank','_blank');}catch(e){}
+        }
+        if(!fenetre){
+          alert('Autorisez les fenêtres pop-up pour consulter le document.');
+          return;
+        }
+
+        // Le mode hors connexion de SaniStock conserve déjà les documents consultés dans IndexedDB.
+        // Sans réseau, on ouvre cette copie locale directement, sans dépendre de PDF.js sur un CDN.
+        function ouvrirPdfNatifSansBarre(){
+          try{
+            const binaire=atob(String(d.contenuBase64||''));
+            const octets=new Uint8Array(binaire.length);
+            for(let i=0;i<binaire.length;i++) octets[i]=binaire.charCodeAt(i);
+            const urlLocale=URL.createObjectURL(new Blob([octets],{type:'application/pdf'}));
+            fenetre.location.replace(urlLocale+'#toolbar=0&navpanes=0');
+            // Laisser au lecteur natif le temps de charger le blob avant de libérer l’URL.
+            setTimeout(function(){try{URL.revokeObjectURL(urlLocale);}catch(e){}},5*60*1000);
+            return true;
+          }catch(e){return false;}
+        }
+        if(!navigator.onLine){
+          if(!ouvrirPdfNatifSansBarre()) alert('Impossible d’ouvrir la copie hors connexion de ce PDF.');
+          return;
+        }
+
+        const htmlLectureSeule = `<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Document partagé — lecture seule</title>
+<style>
+:root{color-scheme:light}*{box-sizing:border-box}html,body{margin:0;padding:0;min-height:100%;font-family:Arial,Helvetica,sans-serif;background:#e8edf3;color:#193047}
+.toolbar{position:sticky;top:0;z-index:3;display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#fff;border-bottom:1px solid #d4dde7;padding:10px 12px;box-shadow:0 2px 7px rgba(0,0,0,.08)}
+#docTitle{flex:1;min-width:150px;font-weight:700;font-size:14px;overflow-wrap:anywhere}.toolbar button{border:0;border-radius:8px;padding:8px 11px;background:#e8eef5;color:#173553;font-weight:700;cursor:pointer}.toolbar button:disabled{opacity:.4;cursor:default}.toolbar .close{background:#153e66;color:#fff}
+#pageLabel,#zoomLabel{font-size:12px;color:#52677c;white-space:nowrap}main{padding:16px;display:flex;justify-content:center;align-items:flex-start;min-height:calc(100vh - 58px);overflow:auto}#pageWrap{max-width:100%;box-shadow:0 2px 14px rgba(16,35,55,.22);background:white}canvas{display:block;max-width:none;background:white}#status{margin:8vh auto 0;max-width:620px;padding:18px;border-radius:12px;background:white;text-align:center;color:#43586d;line-height:1.5}
+@media(max-width:600px){.toolbar{gap:5px;padding:8px}.toolbar button{padding:8px;font-size:12px}#docTitle{flex-basis:100%;font-size:13px}main{padding:8px}}
+</style></head><body>
+<header class="toolbar"><div id="docTitle">Document partagé</div>
+<button id="prev" type="button" disabled>◀</button><span id="pageLabel">Chargement…</span><button id="next" type="button" disabled>▶</button>
+<button id="zoomOut" type="button" aria-label="Réduire le zoom">−</button><span id="zoomLabel">100 %</span><button id="zoomIn" type="button" aria-label="Agrandir le zoom">+</button><button class="close" type="button" onclick="window.close()">Fermer</button></header>
+<main><div id="status">Préparation du document…</div><div id="pageWrap" hidden><canvas id="pageCanvas" aria-label="Page du document en lecture seule"></canvas></div></main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"><\/script>
+<script>
+(function(){
+  var pdfDoc=null,pageNum=1,zoomFactor=1,renderTask=null,renderSeq=0;
+  var canvas=document.getElementById('pageCanvas'),ctx=canvas.getContext('2d');
+  var statusEl=document.getElementById('status'),wrap=document.getElementById('pageWrap');
+  var pageLabel=document.getElementById('pageLabel'),zoomLabel=document.getElementById('zoomLabel');
+  var prev=document.getElementById('prev'),next=document.getElementById('next');
+  function msg(t){statusEl.hidden=false;statusEl.textContent=t;wrap.hidden=true;}
+  async function renderPage(){
+    if(!pdfDoc)return;
+    var seq=++renderSeq;
+    try{
+      if(renderTask){try{renderTask.cancel();}catch(e){}renderTask=null;}
+      var page=await pdfDoc.getPage(pageNum);
+      if(seq!==renderSeq)return;
+      var base=page.getViewport({scale:1});
+      var available=Math.max(260,(document.querySelector('main').clientWidth||window.innerWidth)-24);
+      var fit=Math.min(1,available/base.width);
+      var cssScale=fit*zoomFactor;
+      var cssViewport=page.getViewport({scale:cssScale});
+      var dpr=Math.min(window.devicePixelRatio||1,2);
+      var pixelViewport=page.getViewport({scale:cssScale*dpr});
+      canvas.width=Math.ceil(pixelViewport.width);canvas.height=Math.ceil(pixelViewport.height);
+      canvas.style.width=Math.ceil(cssViewport.width)+'px';canvas.style.height=Math.ceil(cssViewport.height)+'px';
+      statusEl.hidden=true;wrap.hidden=false;
+      renderTask=page.render({canvasContext:ctx,viewport:pixelViewport});
+      await renderTask.promise;
+      if(seq!==renderSeq)return;
+      pageLabel.textContent='Page '+pageNum+' / '+pdfDoc.numPages;
+      zoomLabel.textContent=Math.round(zoomFactor*100)+' %';
+      prev.disabled=pageNum<=1;next.disabled=pageNum>=pdfDoc.numPages;
+    }catch(e){if(e&&e.name==='RenderingCancelledException')return;msg('Impossible d’afficher cette page. Fermez puis rouvrez le document.');}
+  }
+  window.startSaniReadOnlyPdf=function(base64,title){
+    document.getElementById('docTitle').textContent=String(title||'Document PDF');
+    document.title=String(title||'Document PDF')+' — lecture seule';
+    if(!window.pdfjsLib){msg('Le lecteur sécurisé ne peut pas être chargé. Vérifiez votre connexion puis rouvrez le document.');return;}
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    try{
+      var raw=atob(String(base64||''));var bytes=new Uint8Array(raw.length);
+      for(var i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);
+      msg('Chargement du document…');
+      window.pdfjsLib.getDocument({data:bytes}).promise.then(function(pdf){
+        pdfDoc=pdf;pageNum=1;prev.disabled=true;next.disabled=pdfDoc.numPages<=1;
+        return renderPage();
+      }).catch(function(){msg('Ce PDF ne peut pas être affiché. Vérifiez que le fichier n’est pas endommagé.');});
+    }catch(e){msg('Impossible de lire ce document PDF.');}
+  };
+  prev.addEventListener('click',function(){if(pageNum>1){pageNum--;renderPage();}});
+  next.addEventListener('click',function(){if(pdfDoc&&pageNum<pdfDoc.numPages){pageNum++;renderPage();}});
+  document.getElementById('zoomOut').addEventListener('click',function(){zoomFactor=Math.max(.6,zoomFactor-.15);renderPage();});
+  document.getElementById('zoomIn').addEventListener('click',function(){zoomFactor=Math.min(2.5,zoomFactor+.15);renderPage();});
+  window.addEventListener('resize',function(){renderPage();});
+  window.addEventListener('keydown',function(e){if(e.key==='ArrowLeft'&&pageNum>1){pageNum--;renderPage();}else if(e.key==='ArrowRight'&&pdfDoc&&pageNum<pdfDoc.numPages){pageNum++;renderPage();}else if((e.key==='+'||e.key==='=')&&!e.ctrlKey){zoomFactor=Math.min(2.5,zoomFactor+.15);renderPage();}else if(e.key==='-'&&!e.ctrlKey){zoomFactor=Math.max(.6,zoomFactor-.15);renderPage();}});
+})();
+<\/script></body></html>`;
+        fenetre.document.open();
+        fenetre.document.write(htmlLectureSeule);
+        fenetre.document.close();
+        let tentatives=0;
+        function lancerLecteur(){
+          if(!fenetre||fenetre.closed)return;
+          if(typeof fenetre.startSaniReadOnlyPdf==='function' && fenetre.pdfjsLib){
+            fenetre.startSaniReadOnlyPdf(String(d.contenuBase64||''),String(d.name||'Document PDF'));
+            return;
+          }
+          // Si le CDN est inaccessible malgré navigator.onLine, basculer sur la copie PDF locale.
+          if(tentatives++<25){fenetre.setTimeout(lancerLecteur,100);return;}
+          if(!ouvrirPdfNatifSansBarre()){
+            try{const st=fenetre.document.getElementById('status');if(st)st.textContent='Le lecteur hors ligne n’a pas pu ouvrir ce document. Vérifiez que le PDF est bien enregistré sur cet appareil.';}catch(e){}
+          }
+        }
+        fenetre.setTimeout(lancerLecteur,100);
+        return;
+      }
+
       const binary=atob(d.contenuBase64||'');
       const bytes=new Uint8Array(binary.length);
-      for(let i=0;i<binary.length;i++) bytes[i]=binary.charCodeAt(i);
-      const mimeType=String(d.mimeType||'application/octet-stream');
+      for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
       const blob=new Blob([bytes],{type:mimeType});
       const url=URL.createObjectURL(blob);
-      // Pour les PDF, masquer la barre d'outils native du lecteur du navigateur
-      // lorsqu'il respecte le fragment #toolbar=0. Cela retire notamment le crayon
-      // d'annotation visible dans certains lecteurs PDF, sans modifier le fichier source.
-      const estPdf=/application\/pdf/i.test(mimeType) || /\.pdf$/i.test(String(d.name||''));
-      const urlAffichage=estPdf ? url+'#toolbar=0&navpanes=0' : url;
-      if(fenetre && !fenetre.closed){
-        fenetre.location.href=urlAffichage;
-      }else{
-        window.open(urlAffichage,'_blank');
-      }
+      if(fenetre && !fenetre.closed){fenetre.location.href=url;}else{window.open(url,'_blank');}
       setTimeout(function(){URL.revokeObjectURL(url)},60000);
     }catch(e){
       if(fenetre && !fenetre.closed) fenetre.close();
@@ -4008,10 +4121,12 @@ function ouvrirDocumentPartage_(doc){
     google.script.run.withSuccessHandler(function(result){
       const d=convertirDoc_(result&&result.document?result.document:result);
       enregistrerDocumentHorsLigne_(d).then(function(){afficherDepuisBase64(d)});
+    }).withFailureHandler(function(){
+      if(fenetre && !fenetre.closed) fenetre.close();
+      alert('❌ Impossible de récupérer le document.');
     }).getDocumentPartage({id:doc.id});
   });
 }
-
 function preparerDocumentPourEnvoi_(file){
   return new Promise(function(resolve,reject){
     if(!file) return reject(new Error('Aucun document sélectionné.'));
@@ -11034,7 +11149,7 @@ if ("serviceWorker" in navigator) {
 </script>
 
 
-<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.93</div>
+<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.95</div>
 
 <style id="sanistock-connexion-accueil-uniquement">
 #saniConnection.saniConnHomeOnlyHidden{display:none !important;}
