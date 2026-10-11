@@ -2262,6 +2262,7 @@ button.settingsAction.secondary:hover,
 .teamToolsTab .teamToolsUnreadBadge.has-unread:not([hidden]){display:inline-flex!important;visibility:visible!important;opacity:1!important}
 .teamToolsTab .teamToolsUnreadBadge.has-unread[hidden]{display:none!important}
 </style>
+  <!-- SaniStock 1.1.88 : texte des règles intégré à l’en-tête Actualité de l’équipe; encart inférieur retiré. -->
 </head>
 <body>
 
@@ -2565,7 +2566,7 @@ button.settingsAction.secondary:hover,
   <div class="sanNewsWrap">
     <header class="sanNewsHero">
       <h1>Actualité de l’équipe</h1>
-      <p>Posez vos questions, partagez vos idées et publiez les annonces utiles à toute l’équipe, dans les règles et le respect.</p>
+      <p>Posez vos questions, partagez vos idées et publiez les annonces utiles à toute l’équipe. Échangez avec courtoisie, respectez vos collègues et évitez les insultes, le spam ainsi que le partage d’informations personnelles ou confidentielles.</p>
       <button type="button" class="sanNewsRefresh" onclick="chargerActualitesEquipe(true)">↻ Actualiser les publications</button>
     </header>
     <nav class="teamToolsNav" aria-label="Espaces de l’équipe">
@@ -2618,10 +2619,6 @@ button.settingsAction.secondary:hover,
     <div id="sanNewsStatus" class="sanNewsStatus" aria-live="polite"></div>
     <div id="sanNewsFeed" class="sanNewsFeed">
       <div class="sanNewsLoading"><span class="sanNewsSpinner"></span> Chargement des actualités…</div>
-    </div>
-    <div class="sanNewsAdminNote">
-      <span aria-hidden="true">📝</span>
-      <div><strong>Les règles et le respect</strong><p>Restez courtois, respectez vos collègues, publiez des messages utiles et évitez les insultes, le spam ainsi que les informations confidentielles ou personnelles.</p></div>
     </div>
     </div><!-- /teamPublicationsPane -->
     <section id="teamPollsPane" class="teamToolPane" hidden aria-label="Sondages de l’équipe">
