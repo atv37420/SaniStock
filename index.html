@@ -1,6 +1,6 @@
 <!-- TAXI PDF FINAL - VALISE NOIR COORDONNEES SEPAREES -->
 <!-- TAXI PDF FINAL INTEGRE : taxi_template(3).pdf -->
-<!-- SaniStock version 1.1.97 : lecteur PDF en lecture seule hors ligne et en ligne -->
+<!-- SaniStock version 1.1.98 : lecteur PDF en lecture seule hors ligne et en ligne -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -2276,7 +2276,8 @@ button.settingsAction.secondary:hover,
 #newsPage .sanNewsWrap{width:min(100%,720px);margin:0 auto;padding:4px 0 18px}
 #newsPage .sanNewsHero{position:relative;overflow:hidden;padding:11px 14px 12px;border-radius:13px;background:#fff!important;color:#15324b!important;border:1px solid #e1e6eb;box-shadow:0 1px 3px rgba(20,35,55,.06);margin-bottom:11px}
 #newsPage .sanNewsHero:after{display:none!important}
-#newsPage .sanNewsHero h1{margin:0 0 5px!important;color:#102a43!important;font-size:22px!important;line-height:1.18}
+#newsPage .sanNewsHero{padding:10px 14px!important;margin-bottom:10px!important}
+#newsPage .sanNewsHero h1{margin:0!important;color:#102a43!important;font-size:22px!important;line-height:1.18}
 #newsPage .sanNewsHero p{margin:0;color:#536579!important;font-size:12px;line-height:1.45;max-width:unset}
 #newsPage .sanNewsRefresh{margin-top:8px;padding:7px 10px;border:1px solid #d9e5f0;border-radius:9px;background:#eef4fa;color:#175a8e;font-size:11px;box-shadow:none}
 #newsPage .teamToolsNav{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:0 0 11px;padding:4px;background:#e4e8ed;border-radius:13px}
@@ -2286,13 +2287,22 @@ button.settingsAction.secondary:hover,
 #newsPage .sanNewsPublishButton{display:flex;align-items:center;gap:10px;width:100%;min-height:42px;border:1px solid #e0e5ea;border-radius:24px;padding:10px 14px;background:#f0f2f5;color:#596579;text-align:left;font-size:13px;font-weight:600;box-shadow:none}
 #newsPage .sanNewsPublishButton:before{content:'✍️';display:grid;place-items:center;flex:0 0 28px;width:28px;height:28px;border-radius:50%;background:#dceaf8;font-size:15px}
 #newsPage .sanNewsPublishButton:active{transform:none;background:#e6ebf0}
-#newsPage .sanNewsQuickActions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin-top:9px;padding-top:8px;border-top:1px solid #edf0f3}
+#newsPage .sanNewsQuickActions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin-top:9px;padding-top:8px;border-top:1px solid #edf0f3}
 #newsPage .sanNewsQuickAction{display:flex;align-items:center;justify-content:center;gap:5px;min-width:0;padding:9px 3px;border:0;border-radius:8px;background:#fff;color:#4b5a6c;font-size:11px;font-weight:800;cursor:pointer;touch-action:manipulation}
 #newsPage .sanNewsQuickAction:active{background:#f0f2f5}
 #newsPage .sanNewsQuickAction span{font-size:16px}
 #newsPage .sanNewsQuickAction.photo span{color:#2a9d68}
 #newsPage .sanNewsQuickAction.question span{color:#2474c8}
 #newsPage .sanNewsQuickAction.annonce span{color:#c67d16}
+#newsPage .sanNewsQuickAction.poll span{color:#8b5cc7}
+.teamPollCreatePanel[hidden]{display:none!important}
+#newsPage .teamPollCreatePanel{margin:0 0 12px;padding:14px;border:1px solid #e0e5ea;border-radius:13px;box-shadow:0 1px 3px rgba(20,35,55,.06)}
+.teamPollCreateHead{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.teamPollCreateHead h3{margin:0 0 8px;color:#102a43;font-size:16px}
+.teamPollCloseButton{border:0;border-radius:8px;padding:6px 9px;background:#eef2f6;color:#475569;font-weight:800}
+.teamPollWallHead{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.teamPollWallTag{background:#eee7fb;color:#6541a5;border-radius:999px;padding:4px 8px;font-size:10px;font-weight:900;letter-spacing:.2px}
+.teamPollWallDate{font-size:10px;color:#8692a0}
 #newsPage .sanNewsTip{display:none!important}
 #newsPage .sanNewsFilters{padding:3px 0 10px;gap:6px}
 #newsPage .sanNewsFilter{padding:8px 11px;border-color:#d9e0e7;background:#fff;color:#536274;font-size:11px;box-shadow:none}
@@ -2661,13 +2671,7 @@ button.settingsAction.secondary:hover,
   <div class="sanNewsWrap">
     <header class="sanNewsHero">
       <h1>Actualité de l’équipe</h1>
-      <p>Posez vos questions, partagez vos idées et publiez les annonces utiles à toute l’équipe. Échangez avec courtoisie, respectez vos collègues et évitez les insultes, le spam ainsi que le partage d’informations personnelles ou confidentielles.</p>
-      <button type="button" class="sanNewsRefresh" onclick="chargerActualitesEquipe(true)">↻ Actualiser les publications</button>
     </header>
-    <nav class="teamToolsNav" aria-label="Espaces de l’équipe">
-      <button type="button" class="teamToolsTab active" data-team-view="publications" onclick="ouvrirOngletEquipe('publications')">📣 Publications <span id="teamPublicationsUnreadBadge" class="teamToolsUnreadBadge" hidden aria-label="Publications et réponses non lues">1</span></button>
-      <button type="button" class="teamToolsTab" data-team-view="sondages" onclick="ouvrirOngletEquipe('sondages')">📊 Sondages</button>
-    </nav>
     <div id="teamPublicationsPane" class="teamToolPane">
     <div class="sanNewsPublishBar" aria-label="Créer une publication">
       <button type="button" class="sanNewsPublishButton" onclick="togglePublicationEquipe()">À quoi pensez-vous ? Partagez avec l’équipe…</button>
@@ -2675,6 +2679,7 @@ button.settingsAction.secondary:hover,
         <button type="button" class="sanNewsQuickAction photo" onclick="ouvrirPublicationAvecTypeEquipe_('photo')"><span aria-hidden="true">📷</span> Photo</button>
         <button type="button" class="sanNewsQuickAction question" onclick="ouvrirPublicationAvecTypeEquipe_('question')"><span aria-hidden="true">💬</span> Question</button>
         <button type="button" class="sanNewsQuickAction annonce" onclick="ouvrirPublicationAvecTypeEquipe_('annonce')"><span aria-hidden="true">📣</span> Annonce</button>
+        <button type="button" class="sanNewsQuickAction poll" onclick="toggleSondageEquipeUI()"><span aria-hidden="true">📊</span> Sondage</button>
       </div>
     </div>
     <section id="sanNewsPublishPanel" class="sanNewsPublishPanel" hidden aria-label="Nouvelle publication">
@@ -2706,10 +2711,19 @@ button.settingsAction.secondary:hover,
     <div id="teamAnnouncementAdmin" class="sanNewsAdminTools" hidden>
       <details><summary>⚙️ Gérer les publications (responsable)</summary><div id="informationSettingsList" class="sanNewsAdminList">Chargement…</div></details>
     </div>
-    <div class="sanNewsTip">
-      <span class="sanNewsTipIcon" aria-hidden="true">🤝</span>
-      <div><strong>Un espace pour toute l’équipe</strong><span>Partagez une annonce, posez une question ou proposez une idée au même endroit.</span></div>
-    </div>
+    <section id="teamPollCreatePanel" class="teamToolCard teamPollCreatePanel" hidden aria-label="Créer un sondage">
+      <div class="teamPollCreateHead"><h3>📊 Créer un sondage</h3><button type="button" class="teamPollCloseButton" onclick="toggleSondageEquipeUI(false)" aria-label="Fermer le formulaire">✕</button></div>
+      <label for="teamPollQuestion">Question</label>
+      <input id="teamPollQuestion" class="sanNewsFormControl" type="text" maxlength="200" placeholder="Ex. Quel jour pour le repas d’équipe ?">
+      <label>Choix possibles (2 à 6)</label>
+      <div id="teamPollOptionList" class="teamPollOptionList">
+        <input class="sanNewsFormControl teamPollOptionInput" type="text" maxlength="100" placeholder="Choix 1">
+        <input class="sanNewsFormControl teamPollOptionInput" type="text" maxlength="100" placeholder="Choix 2">
+      </div>
+      <button type="button" class="teamToolSecondaryButton" id="teamPollAddOption" onclick="ajouterOptionSondageEquipeUI()">＋ Ajouter un choix</button>
+      <div id="teamPollCreateStatus" class="teamToolStatus" aria-live="polite"></div>
+      <button type="button" class="sanNewsPublishSubmit" id="teamPollCreateButton" onclick="creerSondageEquipeUI()">Créer le sondage</button>
+    </section>
     <nav class="sanNewsFilters" aria-label="Filtrer les publications">
       <button type="button" class="sanNewsFilter active" data-news-filter="all" onclick="filtrerActualitesEquipe('all',this)">Toutes</button>
       <button type="button" class="sanNewsFilter" data-news-filter="question" onclick="filtrerActualitesEquipe('question',this)">💬 Questions</button>
@@ -2717,28 +2731,12 @@ button.settingsAction.secondary:hover,
       <button type="button" class="sanNewsFilter" data-news-filter="annonce" onclick="filtrerActualitesEquipe('annonce',this)">📣 Annonces</button>
     </nav>
     <div id="sanNewsStatus" class="sanNewsStatus" aria-live="polite"></div>
+    <div id="teamPollWallStatus" class="sanNewsStatus" aria-live="polite"></div>
+    <div id="teamPollList" hidden aria-hidden="true"></div>
     <div id="sanNewsFeed" class="sanNewsFeed">
       <div class="sanNewsLoading"><span class="sanNewsSpinner"></span> Chargement des actualités…</div>
     </div>
     </div><!-- /teamPublicationsPane -->
-    <section id="teamPollsPane" class="teamToolPane" hidden aria-label="Sondages de l’équipe">
-      <div class="teamToolIntro"><h2>📊 Sondages de l’équipe</h2><p>Posez une question, proposez plusieurs choix et votez. Vous pouvez modifier votre vote.</p></div>
-      <div class="teamToolCard">
-        <h3>＋ Créer un sondage</h3>
-        <label for="teamPollQuestion">Question</label>
-        <input id="teamPollQuestion" class="sanNewsFormControl" type="text" maxlength="200" placeholder="Ex. Quel jour pour le repas d’équipe ?">
-        <label>Choix possibles (2 à 6)</label>
-        <div id="teamPollOptionList" class="teamPollOptionList">
-          <input class="sanNewsFormControl teamPollOptionInput" type="text" maxlength="100" placeholder="Choix 1">
-          <input class="sanNewsFormControl teamPollOptionInput" type="text" maxlength="100" placeholder="Choix 2">
-        </div>
-        <button type="button" class="teamToolSecondaryButton" id="teamPollAddOption" onclick="ajouterOptionSondageEquipeUI()">＋ Ajouter un choix</button>
-        <div id="teamPollCreateStatus" class="teamToolStatus" aria-live="polite"></div>
-        <button type="button" class="sanNewsPublishSubmit" id="teamPollCreateButton" onclick="creerSondageEquipeUI()">Créer le sondage</button>
-      </div>
-      <div class="teamToolSectionHead"><h3>Les sondages</h3><button type="button" class="teamToolSecondaryButton" onclick="chargerSondagesEquipe()">↻ Actualiser</button></div>
-      <div id="teamPollList" class="teamPollList"><div class="sanNewsLoading">Chargement des sondages…</div></div>
-    </section>
   </div>
 </section>
 
@@ -2993,7 +2991,7 @@ function showPage(id){
  window.scrollTo(0,0);
  if(id==='stockPage') chargerStock();
  if(id==='homePage' && typeof verifierBadgeActualitesEquipe_==='function') setTimeout(function(){verifierBadgeActualitesEquipe_();},700);
- if(id==='newsPage' && typeof chargerActualitesEquipe==='function'){ chargerActualitesEquipe(); if(typeof actualiserOutilsPublicationEquipe==='function') actualiserOutilsPublicationEquipe(); }
+ if(id==='newsPage' && typeof chargerActualitesEquipe==='function'){ chargerActualitesEquipe(); if(typeof chargerSondagesEquipe==='function') chargerSondagesEquipe(); if(typeof actualiserOutilsPublicationEquipe==='function') actualiserOutilsPublicationEquipe(); }
  if(id==='medicationPage') setTimeout(function(){ if(typeof renderMedicationMemo==='function') renderMedicationMemo(); },0);
 
  setTimeout(function(){
@@ -4756,6 +4754,7 @@ function chargerActualitesEquipe(forcer){
   const feed=document.getElementById('sanNewsFeed');
   const status=document.getElementById('sanNewsStatus');
   if(!feed) return;
+  if(!sondagesEquipeLoaded_ && !sondagesEquipeRequestPending_ && typeof chargerSondagesEquipe==='function') chargerSondagesEquipe();
   if(actualitesEquipeRequestPending_) return;
   if(status) status.textContent='';
   /* Ne jamais effacer un fil déjà affiché lors d'une vérification/réouverture. */
@@ -4816,6 +4815,8 @@ function chargerActualitesEquipe(forcer){
 }
 /* ===== SONDAGES ET TCHAT PARTAGÉS — ESPRIT D'ÉQUIPE ===== */
 let sondagesEquipeData_ = [];
+let sondagesEquipeRequestPending_ = false;
+let sondagesEquipeLoaded_ = false;
 let tchatEquipeData_ = [];
 let tchatEquipeRefreshTimer_ = null;
 let tchatEquipeEnvoiEnCours_ = false;
@@ -4832,13 +4833,26 @@ function fusionnerMessagesTchatEquipe_(anciennes, nouvelles){
   }).slice(-200);
 }
 function ouvrirOngletEquipe(onglet){
-  const choisi=['publications','sondages'].indexOf(String(onglet))>=0?String(onglet):'publications';
-  document.querySelectorAll('.teamToolsTab').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-team-view')===choisi);});
-  const panes={publications:document.getElementById('teamPublicationsPane'),sondages:document.getElementById('teamPollsPane')};
-  Object.keys(panes).forEach(function(k){if(panes[k])panes[k].hidden=k!==choisi;});
-  if(choisi==='publications') chargerActualitesEquipe(true);
-  if(choisi==='sondages') chargerSondagesEquipe();
+  const choisi=String(onglet||'publications');
+  const pane=document.getElementById('teamPublicationsPane');
+  if(pane)pane.hidden=false;
+  if(choisi==='sondages') toggleSondageEquipeUI(true);
+  else toggleSondageEquipeUI(false);
+  if(!sondagesEquipeLoaded_)chargerSondagesEquipe();
+  if(choisi!=='sondages')chargerActualitesEquipe(true);
   if(tchatEquipeRefreshTimer_){clearInterval(tchatEquipeRefreshTimer_);tchatEquipeRefreshTimer_=null;}
+}
+function toggleSondageEquipeUI(force){
+  const panel=document.getElementById('teamPollCreatePanel');
+  if(!panel)return;
+  const ouvrir=typeof force==='boolean'?force:panel.hidden;
+  panel.hidden=!ouvrir;
+  if(ouvrir){
+    const publicationPanel=document.getElementById('sanNewsPublishPanel');
+    if(publicationPanel)publicationPanel.hidden=true;
+    const question=document.getElementById('teamPollQuestion');
+    if(question)setTimeout(function(){question.focus();},50);
+  }
 }
 function messageEspaceEquipe_(){
   const s=donneesSessionEquipe_();
@@ -4853,26 +4867,37 @@ function ajouterOptionSondageEquipeUI(){
   const add=document.getElementById('teamPollAddOption');if(add&&box.querySelectorAll('input').length>=6)add.disabled=true;
 }
 function chargerSondagesEquipe(){
-  const list=document.getElementById('teamPollList');if(!list)return;
-  const status=document.getElementById('teamPollCreateStatus');
+  const wallStatus=document.getElementById('teamPollWallStatus');
   const auth=messageEspaceEquipe_();
-  if(auth){list.innerHTML='<div class="sanNewsError">'+escapeHtml(auth)+'</div>';return;}
-  list.innerHTML='<div class="sanNewsLoading">Chargement des sondages…</div>';
+  if(auth){if(wallStatus)wallStatus.textContent=auth;return;}
+  if(sondagesEquipeRequestPending_)return;
+  sondagesEquipeRequestPending_=true;
   google.script.run.withSuccessHandler(function(r){
+    sondagesEquipeRequestPending_=false;
+    sondagesEquipeLoaded_=true;
     sondagesEquipeData_=Array.isArray(r)?r:(r&&Array.isArray(r.sondages)?r.sondages:[]);
+    if(wallStatus)wallStatus.textContent='';
     rendreSondagesEquipe_();
-  }).withFailureHandler(function(e){list.innerHTML='<div class="sanNewsError">Impossible de charger les sondages : '+escapeHtml(e&&e.message||e||'erreur inconnue')+'</div>';})
-    .getSondagesEquipe(donneesSessionEquipe_());
+  }).withFailureHandler(function(e){
+    sondagesEquipeRequestPending_=false;
+    if(wallStatus)wallStatus.textContent='Les sondages ne sont pas disponibles pour le moment.';
+    console.warn('Impossible de charger les sondages :',e);
+  }).getSondagesEquipe(donneesSessionEquipe_());
 }
 function rendreSondagesEquipe_(){
-  const list=document.getElementById('teamPollList');if(!list)return;
-  if(!sondagesEquipeData_.length){list.innerHTML='<div class="teamChatEmpty">Aucun sondage pour le moment. Crée le premier ! 📊</div>';return;}
-  const moi=normaliserAuteurEquipeBadge_(donneesSessionEquipe_().salarie);
-  list.innerHTML=sondagesEquipeData_.map(function(p){
-    const id=Number(p.id)||0,options=Array.isArray(p.options)?p.options:[],vote=Number.isInteger(Number(p.monVote))?Number(p.monVote):-1,total=Number(p.totalVotes)||0,already=vote>=0;
-    const choices=options.map(function(o,i){const text=typeof o==='string'?o:String(o.texte||o.option||'');const votes=Number(o.votes)||0;const pct=total?Math.round(votes*100/total):0;return '<label class="teamPollChoice"><input type="radio" name="teamPoll_'+id+'" value="'+i+'" '+(vote===i?'checked':'')+'><span>'+escapeHtml(text)+'</span></label>'+(already?'<div class="teamPollResultItem"><div class="teamPollChoiceResult"><span>'+escapeHtml(text)+(vote===i?' ✓':'')+'</span><strong>'+pct+'% · '+votes+'</strong></div><div class="teamPollBar"><span style="width:'+pct+'%"></span></div></div>':'');}).join('');
-    return '<article class="teamPollCard"><div class="teamPollMeta">'+escapeHtml(p.auteur||'Collègue')+' · '+escapeHtml(p.date||'')+'</div><div class="teamPollQuestion">'+escapeHtml(p.question||'Sondage')+'</div><div class="teamPollChoices">'+choices+'</div><div class="teamPollFooter"><span>'+total+' vote'+(total===1?'':'s')+(already?' · Votre vote est enregistré':'')+'</span><button type="button" class="teamPollVoteButton" onclick="voterSondageEquipeUI('+id+')">'+(already?'Modifier mon vote':'Voter')+'</button></div></article>';
+  const list=document.getElementById('teamPollList');
+  if(list)list.innerHTML='';
+  rendreActualitesEquipe_();
+}
+function rendreSondageCarteMurEquipe_(p){
+  const id=Number(p.id)||0,options=Array.isArray(p.options)?p.options:[],vote=Number.isInteger(Number(p.monVote))?Number(p.monVote):-1,total=Number(p.totalVotes)||0,already=vote>=0;
+  const choices=options.map(function(o,i){
+    const text=typeof o==='string'?o:String(o.texte||o.option||'');
+    const votes=Number(o.votes)||0,pct=total?Math.round(votes*100/total):0;
+    return '<label class="teamPollChoice"><input type="radio" name="teamPoll_'+id+'" value="'+i+'" '+(vote===i?'checked':'')+'><span>'+escapeHtml(text)+'</span></label>'+(already?'<div class="teamPollResultItem"><div class="teamPollChoiceResult"><span>'+escapeHtml(text)+(vote===i?' ✓':'')+'</span><strong>'+pct+'% · '+votes+'</strong></div><div class="teamPollBar"><span style="width:'+pct+'%"></span></div></div>':'');
   }).join('');
+  const ts=Number(p.timestamp)||0;
+  return '<article class="teamPollCard sanNewsWallPoll" data-wall-timestamp="'+ts+'"><div class="teamPollWallHead"><span class="teamPollWallTag">📊 SONDAGE</span><span class="teamPollWallDate">'+escapeHtml(p.auteur||'Collègue')+' · '+escapeHtml(p.date||'')+'</span></div><div class="teamPollQuestion">'+escapeHtml(p.question||'Sondage')+'</div><div class="teamPollChoices">'+choices+'</div><div class="teamPollFooter"><span>'+total+' vote'+(total===1?'':'s')+(already?' · Votre vote est enregistré':'')+'</span><button type="button" class="teamPollVoteButton" onclick="voterSondageEquipeUI('+id+')">'+(already?'Modifier mon vote':'Voter')+'</button></div></article>';
 }
 function creerSondageEquipeUI(){
   const auth=messageEspaceEquipe_(),status=document.getElementById('teamPollCreateStatus'),btn=document.getElementById('teamPollCreateButton');
@@ -4889,7 +4914,7 @@ function creerSondageEquipeUI(){
     const q=document.getElementById('teamPollQuestion');if(q)q.value='';
     const box=document.getElementById('teamPollOptionList');if(box)box.innerHTML='<input class="sanNewsFormControl teamPollOptionInput" type="text" maxlength="100" placeholder="Choix 1"><input class="sanNewsFormControl teamPollOptionInput" type="text" maxlength="100" placeholder="Choix 2">';
     const add=document.getElementById('teamPollAddOption');if(add)add.disabled=false;
-    if(status)status.textContent='✅ Sondage partagé avec toute l’équipe.';chargerSondagesEquipe();
+    if(status)status.textContent='✅ Sondage partagé avec toute l’équipe.';toggleSondageEquipeUI(false);sondagesEquipeLoaded_=false;chargerSondagesEquipe();
   }).withFailureHandler(function(e){if(btn){btn.disabled=false;btn.textContent='Créer le sondage';}if(status)status.textContent='Impossible de créer le sondage : '+String(e&&e.message||e||'erreur inconnue');})
     .creerSondageEquipe(Object.assign({},donneesSessionEquipe_(),{question:question,options:options,requestId:equipeRequestId_()}));
 }
@@ -5089,9 +5114,10 @@ function rendreActualitesEquipe_(){
   let rows=actualitesEquipeData_.slice();
   rows.sort(function(a,b){return Number(b.timestamp||0)-Number(a.timestamp||0)||Number(b.id||0)-Number(a.id||0);});
   if(actualitesEquipeFiltre_!=='all') rows=rows.filter(function(r){return typePublicationEquipe_(r)===actualitesEquipeFiltre_;});
-  if(status && !actualitesEquipeModeHorsLigne_) status.textContent=rows.length+' publication(s) • questions, idées et annonces partagées.';
-  if(!rows.length){
-    feed.innerHTML='<div class="sanNewsEmpty"><span class="sanNewsEmptyIcon">🤝</span><strong>L’espace d’équipe est prêt !</strong><br>Publiez la première question, idée ou annonce.</div>';
+  if(status && !actualitesEquipeModeHorsLigne_) status.textContent=rows.length+' publication(s)'+(actualitesEquipeFiltre_==='all'?' · '+(Array.isArray(sondagesEquipeData_)?sondagesEquipeData_.length:0)+' sondage(s)':'')+' dans le mur.';
+  const surveysInWall=actualitesEquipeFiltre_==='all'&&Array.isArray(sondagesEquipeData_)?sondagesEquipeData_:[];
+  if(!rows.length&&!surveysInWall.length){
+    feed.innerHTML='<div class="sanNewsEmpty"><span class="sanNewsEmptyIcon">🤝</span><strong>L’espace d’équipe est prêt !</strong><br>Publiez la première question, idée, annonce ou sondage.</div>';
     return;
   }
   const offline=actualitesEquipeModeHorsLigne_;
@@ -5137,13 +5163,19 @@ function rendreActualitesEquipe_(){
     } else {
       social='<div class="sanNewsLegacyNote">'+(navigator.onLine?'⚠️ Mode lecture seule : le serveur de l’espace d’équipe ne répond pas. Vérifie le déploiement Apps Script.':'📵 Hors connexion : reconnecte-toi à Internet pour aimer et commenter. Les interactions sont partagées avec toute l’équipe.')+'</div>';
     }
-    return '<article id="sanNewsPost_'+id+'" class="'+classes+'">'
+    return '<article data-wall-timestamp="'+(Number(r.timestamp)||0)+'" id="sanNewsPost_'+id+'" class="'+classes+'">'
       +'<div class="sanNewsCardHead"><span class="sanNewsAvatar" aria-hidden="true">'+escapeHtml(initialesAuteur)+'</span><div class="sanNewsCardMeta"><span class="sanNewsAuthor">'+escapeHtml(auteur)+'</span><span class="sanNewsDate">'+escapeHtml(date)+'</span></div><span class="sanNewsBadge '+p+'">'+badge+'</span>'+(peutSupprimerPublication?'<button type="button" class="sanNewsDeleteBtn" onclick="supprimerPublicationEquipeUI('+id+')" title="Supprimer cette publication" aria-label="Supprimer cette publication">🗑️ Supprimer</button>':'')+'</div>'
       +'<div class="sanNewsCardBody"><h2 class="sanNewsTitle">'+escapeHtml(titre)+'</h2><p class="sanNewsMessage">'+escapeHtml(r.message||'')+'</p>'
       +(photos.length?'<div class="sanNewsPhotoGallery">'+photos.slice(0,3).map(function(photoUrl,index){const originalUrl=String(photoUrl||'').trim();return '<a class="sanNewsPhotoLink" href="'+escapeHtml(originalUrl)+'" target="_blank" rel="noopener noreferrer" aria-label="Ouvrir la photo '+(index+1)+'"><img class="sanNewsPhoto" src="'+escapeHtml(urlPhotoEquipeAffichage_(originalUrl))+'" data-original-url="'+escapeHtml(originalUrl)+'" alt="Photo '+(index+1)+' partagée par '+escapeHtml(auteur)+'" loading="lazy" referrerpolicy="no-referrer" onerror="gererErreurPhotoEquipe_(this)"></a>';}).join('')+'</div>':'')
       +(expiration?'<div class="sanNewsExpiry">À consulter avant le : '+escapeHtml(expiration)+'</div>':'')
       +social+'</div></article>';
   }).join('');
+  if(surveysInWall.length){
+    feed.insertAdjacentHTML('beforeend',surveysInWall.map(rendreSondageCarteMurEquipe_).join(''));
+    const cards=Array.from(feed.children).filter(function(el){return el.hasAttribute('data-wall-timestamp');});
+    cards.sort(function(a,b){return (Number(b.getAttribute('data-wall-timestamp'))||0)-(Number(a.getAttribute('data-wall-timestamp'))||0);});
+    cards.forEach(function(el){feed.appendChild(el);});
+  }
 }
 
 function basculerReactionEquipeUI(id,reaction){
@@ -11223,7 +11255,7 @@ if ("serviceWorker" in navigator) {
 </script>
 
 
-<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.97</div>
+<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.98</div>
 
 <style id="sanistock-connexion-accueil-uniquement">
 #saniConnection.saniConnHomeOnlyHidden{display:none !important;}
