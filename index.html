@@ -11683,7 +11683,7 @@ html+='<div class="ambSectionBulkActions"><button type="button" class="toutCoche
     const papers=getAmbPapers(vehicle);
     const sec=document.createElement('div');sec.className='vslSection ambPapersSection';
     let h='<div class="vslSectionTitle">INFORMATIONS GÉNÉRALES — PAPIERS VÉHICULE</div>';
-    h+='<div class="ambSectionBulkActions"><button type="button" class="toutCocherBtn" onclick="toutCocherAmbulancePapiers()">✓ TOUT COCHER</button><button type="button" class="toutDecocherBtn" onclick="toutDecocherAmbulancePapiers()">✕ TOUT DÉCOCHER</button></div>';
+    h+='<div class="ambSectionBulkActions"><button type="button" class="toutCocherBtn" onclick="toutCocherAmbulancePapiers()">✓ TOUT COCHER</button><button type="button" class="toutCocherBtn" onclick="toutDecocherAmbulancePapiers()">✕ TOUT DÉCOCHER</button></div>';
     h+='<div class="vslChecklistHead"><div>Document</div><div></div><div>Présent</div><div>Manque</div><div></div></div>';
     papers.forEach(function(p,i){
       // Agrément ARS : coché V (présent) par défaut, tout en restant modifiable en X.
