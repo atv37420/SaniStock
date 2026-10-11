@@ -1,6 +1,6 @@
 <!-- TAXI PDF FINAL - VALISE NOIR COORDONNEES SEPAREES -->
 <!-- TAXI PDF FINAL INTEGRE : taxi_template(3).pdf -->
-<!-- SaniStock version 1.1.107 : notifications Actualité de l’équipe corrigées -->
+<!-- SaniStock version 1.1.108 : affichage immédiat du mur depuis le cache local -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -4825,22 +4825,32 @@ function chargerActualitesEquipe(forcer){
   if(!feed) return;
   if(!sondagesEquipeLoaded_ && !sondagesEquipeRequestPending_ && typeof chargerSondagesEquipe==='function') chargerSondagesEquipe();
   if(actualitesEquipeRequestPending_) return;
-  if(status) status.textContent='';
-  /* Ne jamais effacer un fil déjà affiché lors d'une vérification/réouverture. */
-  const contenuDejaAffiche=!!feed.querySelector('.sanNewsCard,.sanNewsEmpty,.sanNewsError');
-  if(!contenuDejaAffiche) feed.innerHTML='<div class="sanNewsLoading"><span class="sanNewsSpinner"></span> Chargement des échanges…</div>';
   const session=donneesSessionEquipe_();
-  function afficherCache_(message){
-    let cache=[];
-    try{cache=JSON.parse(localStorage.getItem('sanistock_actualites_cache')||'[]');}catch(e){cache=[];}
-    actualitesEquipeData_=Array.isArray(cache)?cache:[];
-    actualitesEquipeModeHorsLigne_=true;
-    if(status) status.textContent=message||'Hors connexion • les réactions et commentaires nécessitent une connexion.';
-    rendreActualitesEquipe_();
-  }
+  if(status) status.textContent='';
   if(!session.salarie || !session.code){
     feed.innerHTML='<div class="sanNewsError"><span class="sanNewsEmptyIcon">🔐</span><strong>Connexion nécessaire</strong><br>Reconnectez-vous à SaniStock pour publier, réagir et commenter avec votre compte salarié.</div>';
     return;
+  }
+  /* Affichage immédiat du cache local : on ne fait plus attendre le premier rendu
+     le temps que Google Apps Script ouvre le classeur et récupère le mur. */
+  let cacheInitial=[];
+  try{cacheInitial=JSON.parse(localStorage.getItem('sanistock_actualites_cache')||'[]');}catch(e){cacheInitial=[];}
+  if(!Array.isArray(cacheInitial)) cacheInitial=[];
+  /* Ne jamais effacer un fil déjà affiché lors d'une vérification/réouverture. */
+  const contenuDejaAffiche=!!feed.querySelector('.sanNewsCard,.sanNewsEmpty,.sanNewsError');
+  if(!contenuDejaAffiche && cacheInitial.length){
+    actualitesEquipeData_=cacheInitial;
+    actualitesEquipeModeHorsLigne_=false;
+    rendreActualitesEquipe_();
+    if(status) status.textContent='Affichage des dernières publications · actualisation…';
+  }else if(!contenuDejaAffiche){
+    feed.innerHTML='<div class="sanNewsLoading"><span class="sanNewsSpinner"></span> Chargement des échanges…</div>';
+  }
+  function afficherCache_(message){
+    actualitesEquipeData_=cacheInitial;
+    actualitesEquipeModeHorsLigne_=true;
+    if(status) status.textContent=message||'Hors connexion • les réactions et commentaires nécessitent une connexion.';
+    rendreActualitesEquipe_();
   }
   if(!navigator.onLine || !gsDisponible()){
     afficherCache_('Hors connexion • les publications sont consultables depuis le cache, mais les réactions ne sont pas disponibles.');
@@ -13438,4 +13448,4 @@ html+='<div class="ambSectionBulkActions"><button type="button" class="toutCoche
 </body>
 </html>
 
-<!-- SaniStock 1.1.107 : compteur préservé lors des vérifications en arrière-plan ; lecture consommée seulement quand Actualité de l’équipe est active et visible. -->
+<!-- SaniStock 1.1.108 : affichage cache-first du mur pour éviter d’attendre la réponse Apps Script. -->
