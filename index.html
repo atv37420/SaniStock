@@ -11579,9 +11579,9 @@ html+='<div class="ambSectionBulkActions"><button type="button" class="toutCoche
     cover(p1,150,727,272,16,paperBg); // Commence après le libellé « Equipage » pour ne pas le couper.
     const headerSize=9.5;
     p1.drawText(immat,{x:132,y:746,size:headerSize,font:bold,color:black});
-    p1.drawText(kms,{x:346,y:746,size:headerSize,font:bold,color:black}); // Valeur KMS décalée de 20 points supplémentaires vers la droite.
-    p1.drawText(htmlDateFR(date),{x:450,y:746,size:headerSize,font:bold,color:black});
-    p1.drawText(e1+' / '+e2,{x:122,y:732,size:headerSize,font:bold,color:black});
+    p1.drawText(kms,{x:356,y:746,size:headerSize,font:bold,color:black}); // Valeur KMS légèrement décalée vers la droite.
+    p1.drawText(htmlDateFR(date),{x:460,y:746,size:headerSize,font:bold,color:black});
+    p1.drawText(e1+' / '+e2,{x:132,y:732,size:headerSize,font:bold,color:black});
 
     // Papiers véhicule : V = OK, X = manque. Les anciens petits symboles sont nettoyés.
     ambPapers.forEach(function(it,i){
