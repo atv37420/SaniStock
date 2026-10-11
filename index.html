@@ -2262,7 +2262,7 @@ button.settingsAction.secondary:hover,
 .teamToolsTab .teamToolsUnreadBadge.has-unread:not([hidden]){display:inline-flex!important;visibility:visible!important;opacity:1!important}
 .teamToolsTab .teamToolsUnreadBadge.has-unread[hidden]{display:none!important}
 </style>
-  <!-- SaniStock 1.1.88 : texte des règles intégré à l’en-tête Actualité de l’équipe; encart inférieur retiré. -->
+  <!-- SaniStock 1.1.89 : vérification des notifications espacée à 30 secondes; texte des règles intégré à l’en-tête Actualité de l’équipe; encart inférieur retiré. -->
 </head>
 <body>
 
@@ -4449,7 +4449,7 @@ function verifierBadgeActualitesEquipe_(){
   }catch(err){window.sanNewsBadgePublicationsPending_=false;console.warn('Impossible de vérifier les publications :',err);}
 }
 function initialiserBadgeActualitesEquipe_(){
-  window.setInterval(verifierBadgeActualitesEquipe_,5000);
+  window.setInterval(verifierBadgeActualitesEquipe_,30000);
   window.addEventListener('focus',verifierBadgeActualitesEquipe_);
   window.addEventListener('pageshow',function(){verifierBadgeActualitesEquipe_();});
   document.addEventListener('visibilitychange',function(){if(!document.hidden)verifierBadgeActualitesEquipe_();});
