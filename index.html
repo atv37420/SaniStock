@@ -11434,7 +11434,7 @@ window.saniStockGenererVslPdfExact=buildExactPdf;
     html+='<div class="ambCrewBox"><label>ÉQUIPIER 2</label><select id="ambCrew2" class="ambCrewInput"><option value="">Sélectionner le 2ᵉ équipier</option></select></div>';
     html+='</div></div>';
 
-    html+='<button type="button" class="toutCocherBtn" onclick="toutCocherAmbulance()">✓ TOUT COCHER</button><button type="button" class="toutCocherBtn" onclick="toutDecocherAmbulance()">✕ TOUT DÉCOCHER</button>';
+    html+='<div class="ambSectionBulkActions"><button type="button" class="toutCocherBtn" onclick="toutCocherAmbulance()">✓ TOUT COCHER</button><button type="button" class="toutCocherBtn" onclick="toutDecocherAmbulance()">✕ TOUT DÉCOCHER</button></div>';
     Object.keys(groups).forEach(function(cat){
       html+='<div class="vslSection">';
       html+='<div class="vslSectionTitle">'+esc(cat)+'</div>';
