@@ -1,6 +1,6 @@
 <!-- TAXI PDF FINAL - VALISE NOIR COORDONNEES SEPAREES -->
 <!-- TAXI PDF FINAL INTEGRE : taxi_template(3).pdf -->
-<!-- SaniStock version 1.1.79 : suppression du mégaphone et en-tête encore plus compact, informations conservées -->
+<!-- SaniStock version 1.1.91 : mur de publications, affichage photo Drive renforcé -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -1975,6 +1975,7 @@ button.settingsAction.secondary:hover,
 .sanNewsPhotoPreview span{font-size:11px;line-height:1.4;color:#49667c;overflow-wrap:anywhere}
 .sanNewsPhotoPreview button{margin-left:auto;border:0;border-radius:8px;padding:8px;background:#fee2e2;color:#991b1b;font-weight:800;flex-shrink:0}
 .sanNewsPhotoGallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:12px 0 3px}
+.sanNewsPhotoUnavailable{display:flex!important;min-height:100px;align-items:center;justify-content:center;padding:12px;background:#f1f5f9;border:1px dashed #94a3b8;border-radius:10px;color:#334155;font-size:12px;text-align:center;text-decoration:none}
 .sanNewsPhoto{display:block;width:100%;height:190px;max-height:none;object-fit:cover;margin:0;border-radius:12px;background:#eef3f7;border:1px solid #dbe6ee}
 .sanNewsPublishSubmit{width:100%;margin-top:14px;border:0;border-radius:12px;padding:13px;background:#15934b;color:#fff;font-weight:900;font-size:14px}
 .sanNewsPublishHint{font-size:10px;line-height:1.45;color:#75899a;margin:10px 0 0}
@@ -2262,9 +2263,9 @@ button.settingsAction.secondary:hover,
 .teamToolsTab .teamToolsUnreadBadge.has-unread:not([hidden]){display:inline-flex!important;visibility:visible!important;opacity:1!important}
 .teamToolsTab .teamToolsUnreadBadge.has-unread[hidden]{display:none!important}
 </style>
-  <!-- SaniStock 1.1.90 : mur Publications façon réseau social; filtres, photos, réactions et commentaires conservés. -->
+  <!-- SaniStock 1.1.91 : correction de l’affichage des photos partagées via Google Drive. -->
 
-<style id="sanistock-1-1-90-social-wall">
+<style id="sanistock-1-1-91-social-wall">
 /* Mur de publications façon réseau social, limité à la page Actualité de l'équipe. */
 #newsPage.sanNewsPage{padding:10px 10px 28px!important;background:#f0f2f5!important;min-height:100vh}
 #newsPage .sanNewsWrap{width:min(100%,720px);margin:0 auto;padding:4px 0 18px}
@@ -2312,6 +2313,7 @@ button.settingsAction.secondary:hover,
 #newsPage .sanNewsMessage{color:#263747;font-size:14px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}
 #newsPage .sanNewsPhotoGallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:4px;margin-top:12px;overflow:hidden;border-radius:10px}
 #newsPage .sanNewsPhotoGallery a{display:block;min-width:0}
+#newsPage .sanNewsPhotoGallery a.sanNewsPhotoUnavailable{display:flex;align-items:center;justify-content:center;min-height:120px;padding:12px;background:#f1f5f9;border:1px dashed #94a3b8;color:#334155;text-decoration:none;font-size:12px;text-align:center}
 #newsPage .sanNewsPhoto{display:block;width:100%;max-height:360px;aspect-ratio:4/3;object-fit:cover;border-radius:5px}
 #newsPage .sanNewsSocial{margin-top:12px;padding-top:10px;border-top:1px solid #e9edf1}
 #newsPage .sanNewsSocialButtons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
@@ -4804,6 +4806,49 @@ function filtrerActualitesEquipe(filtre,btn){
   });
   rendreActualitesEquipe_();
 }
+/* Images de publication : Google Drive peut renvoyer une page de prévisualisation au lieu du fichier image.
+   On utilise d'abord son endpoint miniature, puis deux URL de secours pour préserver l'affichage. */
+function extraireIdPhotoDriveEquipe_(url){
+  const u=String(url||'').trim();
+  if(!/drive\.google\.com|googleusercontent\.com/i.test(u))return '';
+  const formats=[/[?&]id=([A-Za-z0-9_-]+)/i,/\/file\/d\/([A-Za-z0-9_-]+)/i,/\/d\/([A-Za-z0-9_-]+)/i,/googleusercontent\.com\/d\/([A-Za-z0-9_-]+)/i];
+  for(let i=0;i<formats.length;i++){const m=u.match(formats[i]);if(m&&m[1])return m[1];}
+  return '';
+}
+function urlPhotoEquipeAffichage_(url){
+  const original=String(url||'').trim();
+  const id=extraireIdPhotoDriveEquipe_(original);
+  if(id&&/drive\.google\.com/i.test(original))return 'https://drive.google.com/thumbnail?id='+encodeURIComponent(id)+'&sz=w1600';
+  if(id&&/googleusercontent\.com/i.test(original))return original;
+  return original;
+}
+function gererErreurPhotoEquipe_(img){
+  if(!img)return;
+  const original=String(img.getAttribute('data-original-url')||'').trim();
+  const id=extraireIdPhotoDriveEquipe_(original);
+  const step=Number(img.getAttribute('data-fallback-step')||0);
+  const fallbacks=id?[
+    'https://drive.google.com/uc?export=view&id='+encodeURIComponent(id),
+    'https://drive.google.com/uc?export=download&id='+encodeURIComponent(id),
+    'https://lh3.googleusercontent.com/d/'+encodeURIComponent(id)
+  ]:(original&&img.src!==original?[original]:[]);
+  if(step<fallbacks.length){
+    img.setAttribute('data-fallback-step',String(step+1));
+    if(fallbacks[step]!==img.src){img.src=fallbacks[step];return;}
+  }
+  img.onerror=null;
+  img.style.display='none';
+  const link=img.closest('a');
+  if(link){
+    link.classList.add('sanNewsPhotoUnavailable');
+    link.href=original||link.href;
+    link.target='_blank';
+    link.rel='noopener noreferrer';
+    link.innerHTML='<span aria-label="Photo non affichée">📷 Photo indisponible — ouvrir le lien</span>';
+    link.title='La photo ne se charge pas directement. Ouvrir le lien pour vérifier l’accès Google Drive.';
+  }
+}
+
 function rendreActualitesEquipe_(){
   const feed=document.getElementById('sanNewsFeed');
   const status=document.getElementById('sanNewsStatus');
@@ -4858,7 +4903,7 @@ function rendreActualitesEquipe_(){
     return '<article id="sanNewsPost_'+id+'" class="'+classes+'">'
       +'<div class="sanNewsCardHead"><span class="sanNewsAvatar" aria-hidden="true">'+escapeHtml(initialesAuteur)+'</span><div class="sanNewsCardMeta"><span class="sanNewsAuthor">'+escapeHtml(auteur)+'</span><span class="sanNewsDate">'+escapeHtml(date)+'</span></div><span class="sanNewsBadge '+p+'">'+badge+'</span></div>'
       +'<div class="sanNewsCardBody"><h2 class="sanNewsTitle">'+escapeHtml(titre)+'</h2><p class="sanNewsMessage">'+escapeHtml(r.message||'')+'</p>'
-      +(photos.length?'<div class="sanNewsPhotoGallery">'+photos.slice(0,3).map(function(photoUrl,index){return '<a href="'+escapeHtml(photoUrl)+'" target="_blank" rel="noopener noreferrer" aria-label="Ouvrir la photo '+(index+1)+'"><img class="sanNewsPhoto" src="'+escapeHtml(photoUrl)+'" alt="Photo '+(index+1)+' partagée par '+escapeHtml(auteur)+'" loading="lazy"></a>';}).join('')+'</div>':'')
+      +(photos.length?'<div class="sanNewsPhotoGallery">'+photos.slice(0,3).map(function(photoUrl,index){const originalUrl=String(photoUrl||'').trim();return '<a class="sanNewsPhotoLink" href="'+escapeHtml(originalUrl)+'" target="_blank" rel="noopener noreferrer" aria-label="Ouvrir la photo '+(index+1)+'"><img class="sanNewsPhoto" src="'+escapeHtml(urlPhotoEquipeAffichage_(originalUrl))+'" data-original-url="'+escapeHtml(originalUrl)+'" alt="Photo '+(index+1)+' partagée par '+escapeHtml(auteur)+'" loading="lazy" referrerpolicy="no-referrer" onerror="gererErreurPhotoEquipe_(this)"></a>';}).join('')+'</div>':'')
       +(expiration?'<div class="sanNewsExpiry">À consulter avant le : '+escapeHtml(expiration)+'</div>':'')
       +social+'</div></article>';
   }).join('');
