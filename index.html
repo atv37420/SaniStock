@@ -10300,6 +10300,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     html += '<div class="taxiField"><label>Immatriculation :</label><input id="taxiImmatriculation" type="text" value="'+esc(vehicle.split(' – ')[0] || '')+'" readonly></div>';
     html += '<div class="taxiField"><label>Kms :</label><input id="taxiKms" type="text" inputmode="numeric" placeholder="Saisir le kilométrage"></div>';
     html += '</div></div>';
+    html += '<div class="ambSectionBulkActions"><button type="button" class="toutCocherBtn" onclick="toutCocherTaxi()">✓ TOUT COCHER</button><button type="button" class="toutCocherBtn" onclick="toutDecocherTaxi()">✕ TOUT DÉCOCHER</button></div>';
 
     Object.keys(groups).forEach(function(cat){
       html += '<div class="taxiSection">';
@@ -11128,6 +11129,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     html+='<div class="taxiField"><label>Date :</label><input id="vslDate" type="date" value="'+new Date().toISOString().slice(0,10)+'"></div>';
     html+='<div class="taxiField"><label>Immatriculation :</label><input id="vslImmatriculation" type="text" value="'+esc(vehicle.split(' – ')[0]||'')+'" readonly></div>';
     html+='<div class="taxiField"><label>Kms :</label><input id="vslKms" type="text" inputmode="numeric" placeholder="Saisir le kilométrage"></div></div></div>';
+    html+='<div class="ambSectionBulkActions"><button type="button" class="toutCocherBtn" onclick="toutCocherVsl()">✓ TOUT COCHER</button><button type="button" class="toutCocherBtn" onclick="toutDecocherVsl()">✕ TOUT DÉCOCHER</button></div>';
     Object.keys(groups).forEach(function(cat){
       html+='<div class="vslSection"><div class="vslSectionTitle">'+esc(cat)+'</div>';
       html+='<button type="button" class="toutCocherBtn" onclick="toutCocherSection(this)">✓ TOUT COCHER</button><button type="button" class="toutCocherBtn" onclick="toutDecocherSection(this)">✕ TOUT DÉCOCHER</button>';
@@ -11154,6 +11156,10 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     section.querySelectorAll('input[type="radio"]').forEach(function(r){r.checked=false;});
     section.querySelectorAll('input[type="text"]').forEach(function(q){q.value='';});
   };
+  window.toutCocherTaxi=function(){const root=document.getElementById('checklistTaxiDetail');if(!root)return;root.querySelectorAll('.taxiChecklistRow input[type="radio"][value="present"]').forEach(function(r){r.checked=true;r.dispatchEvent(new Event('change',{bubbles:true}));});};
+  window.toutDecocherTaxi=function(){const root=document.getElementById('checklistTaxiDetail');if(!root)return;root.querySelectorAll('.taxiChecklistRow input[type="radio"]').forEach(function(r){r.checked=false;});root.querySelectorAll('.taxiMissingQty').forEach(function(q){q.value='';});};
+  window.toutCocherVsl=function(){const root=document.getElementById('checklistVslDetail');if(!root)return;root.querySelectorAll('.vslChecklistRow input[type="radio"][value="present"]').forEach(function(r){r.checked=true;r.dispatchEvent(new Event('change',{bubbles:true}));});};
+  window.toutDecocherVsl=function(){const root=document.getElementById('checklistVslDetail');if(!root)return;root.querySelectorAll('.vslChecklistRow input[type="radio"]').forEach(function(r){r.checked=false;});root.querySelectorAll('.vslMissingQty').forEach(function(q){q.value='';});};
   function chargerEquipageVsl(){
     const box=document.getElementById('vslEquipageList'),hidden=document.getElementById('vslEquipage');if(!box||!hidden)return;
     let nom='';try{nom=String(localStorage.getItem('sanistock_employee_name')||'').trim();}catch(e){}
