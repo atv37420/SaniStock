@@ -1,6 +1,6 @@
 <!-- TAXI PDF FINAL - VALISE NOIR COORDONNEES SEPAREES -->
 <!-- TAXI PDF FINAL INTEGRE : taxi_template(3).pdf -->
-<!-- SaniStock version 1.1.105 : suppression des publications réservée à l’administrateur -->
+<!-- SaniStock version 1.1.107 : notifications Actualité de l’équipe corrigées -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -4689,13 +4689,20 @@ function synchroniserBadgeActualitesEquipe_(rows, modeLecture, chatRows){
     window.sanNewsBadgeSeenMemory={key:key,values:snapshot};
     if(storageOK){try{localStorage.setItem(key,JSON.stringify(snapshot));}catch(e){}}
   }
-  /* Au premier usage, afficher les nouveautés présentes plutôt que les déclarer lues. */
-  if(raw===null){vus=[];sauvegarderVus_([]);raw='[]';}
+  /* Premier lancement : enregistrer l'existant comme référence, sans afficher toutes les anciennes publications comme nouvelles. */
+  if(raw===null){
+    vus=marqueursPublications.slice();
+    sauvegarderVus_(vus);
+    raw='[]';
+  }
   const mode=(modeLecture===true?'publications':modeLecture);
-  if(mode==='publications'){
+  /* Une activité n'est marquée comme lue que lorsque le mur est réellement ouvert et visible.
+     Cela évite qu'un chargement d'arrière-plan efface le compteur. */
+  const consultationVisible=(typeof murActualitesActif_==='function' && murActualitesActif_() && !document.hidden);
+  if(mode==='publications' && consultationVisible){
     vus=Array.from(new Set(vus.concat(marqueursPublications)));
     sauvegarderVus_(vus);
-  }else if(mode==='tout'){
+  }else if(mode==='tout' && consultationVisible){
     vus=Array.from(new Set(vus.concat(marqueurs)));
     sauvegarderVus_(vus);
   }
@@ -4737,7 +4744,10 @@ function donneesBadgeEquipeDepuisCache_(){
 }
 function actualiserAffichageBadgeEquipe_(){
   const d=donneesBadgeEquipeDepuisCache_();
-  synchroniserBadgeActualitesEquipe_(d.publications,false,d.tchat);
+  /* Si l'utilisateur lit actuellement le mur, les éléments visibles sont considérés lus.
+     Depuis l'accueil, le rafraîchissement silencieux ne consomme jamais les nouveautés. */
+  const modeLecture=(murActualitesActif_() && !document.hidden)?'publications':false;
+  synchroniserBadgeActualitesEquipe_(d.publications,modeLecture,d.tchat);
 }
 function rendreMurEquipeSilencieusementPreserveUI_(){
   const feed=document.getElementById('sanNewsFeed');
@@ -4802,6 +4812,7 @@ function initialiserBadgeActualitesEquipe_(){
     chargerSondagesEquipe(true);
   },10000);
   window.addEventListener('focus',verifierBadgeActualitesEquipe_);
+  window.addEventListener('online',verifierBadgeActualitesEquipe_);
   window.addEventListener('pageshow',function(){verifierBadgeActualitesEquipe_();if(murActualitesActif_())chargerSondagesEquipe(true);});
   document.addEventListener('visibilitychange',function(){if(!document.hidden){verifierBadgeActualitesEquipe_();if(murActualitesActif_())chargerSondagesEquipe(true);}});
   window.setTimeout(function(){verifierBadgeActualitesEquipe_();if(murActualitesActif_())chargerSondagesEquipe(true);},3000);
@@ -4847,8 +4858,9 @@ function chargerActualitesEquipe(forcer){
     actualitesEquipeModeHorsLigne_=false;
     try{localStorage.setItem('sanistock_actualites_cache',JSON.stringify(actualitesEquipeData_));}catch(e){}
     window.sanNewsBadgeLatestPublications_=actualitesEquipeData_;
-    const publicationsPane=document.getElementById('teamPublicationsPane');
-    const modeLecturePublications=(!publicationsPane||!publicationsPane.hidden)?'publications':false;
+    /* Le mur n'utilise plus l'ancien conteneur teamPublicationsPane. Ne pas se baser sur son absence :
+       la page newsPage doit être réellement active pour marquer les nouveautés comme lues. */
+    const modeLecturePublications=(murActualitesActif_() && !document.hidden)?'publications':false;
     synchroniserBadgeActualitesEquipe_(actualitesEquipeData_,modeLecturePublications,window.sanNewsBadgeLatestChat_||[]);
     rendreActualitesEquipe_();
   }).withFailureHandler(function(err){
@@ -11331,7 +11343,7 @@ if ("serviceWorker" in navigator) {
 </script>
 
 
-<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.106</div>
+<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.107</div>
 
 <style id="sanistock-connexion-accueil-uniquement">
 #saniConnection.saniConnHomeOnlyHidden{display:none !important;}
@@ -13425,3 +13437,5 @@ html+='<div class="ambSectionBulkActions"><button type="button" class="toutCoche
 </style>
 </body>
 </html>
+
+<!-- SaniStock 1.1.107 : compteur préservé lors des vérifications en arrière-plan ; lecture consommée seulement quand Actualité de l’équipe est active et visible. -->
