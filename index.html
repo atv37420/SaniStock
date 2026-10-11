@@ -1,6 +1,6 @@
 <!-- TAXI PDF FINAL - VALISE NOIR COORDONNEES SEPAREES -->
 <!-- TAXI PDF FINAL INTEGRE : taxi_template(3).pdf -->
-<!-- SaniStock version 1.1.72 : ordre des espaces Esprit d’équipe — Tchat, Publications, Sondages; compteur toutes les 5 secondes -->
+<!-- SaniStock version 1.1.73 : carré bleu réduit au minimum en conservant les informations; ordre Tchat, Publications, Sondages; compteur toutes les 5 secondes -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -2121,6 +2121,15 @@ button.settingsAction.secondary:hover,
 @media(max-width:420px){.teamToolsNav{gap:4px;padding:4px}.teamToolsTab{font-size:12px;padding:10px 3px}.teamToolCard,.teamPollCard{padding:12px}.teamChatMessage{max-width:98%}}
 </style>
 
+
+<style id="sanistock-1-1-73-mini-entete-equipe">
+/* 1.1.73 : réduire au minimum la tuile bleue du mégaphone, sans masquer le texte ou les actions de l'en-tête. */
+#sanNewsPage .sanNewsHeroIcon, .sanNewsPage .sanNewsHeroIcon, .sanNewsHero .sanNewsHeroIcon {
+  width:14px !important; height:14px !important; min-width:14px !important; min-height:14px !important;
+  font-size:8px !important; line-height:1 !important; border-radius:4px !important;
+  margin-bottom:4px !important; padding:0 !important; box-sizing:border-box !important;
+}
+</style>
 </head>
 <body>
 
