@@ -11331,7 +11331,7 @@ if ("serviceWorker" in navigator) {
 </script>
 
 
-<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.105</div>
+<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.106</div>
 
 <style id="sanistock-connexion-accueil-uniquement">
 #saniConnection.saniConnHomeOnlyHidden{display:none !important;}
@@ -13405,6 +13405,23 @@ html+='<div class="ambSectionBulkActions"><button type="button" class="toutCoche
 /* Contour bleu SaniStock appliqué au vrai en-tête Actualité de l’équipe. */
 #newsPage .sanNewsHeroSimple{border:2px solid #175a8e!important;box-shadow:0 0 0 1px rgba(23,90,142,.12),0 1px 3px rgba(20,35,55,.06)!important}
 #newsPage .sanNewsHeroSimple .sanNewsHeroBubble{border:2px solid #175a8e!important;box-sizing:border-box;background:#e7f1ff!important;color:#175a8e!important}
+</style>
+
+<style id="sanistock-1-1-106-bulle-actualite-sans-cadre">
+/* Retire uniquement le petit cadre autour de l’icône, en gardant le contour bleu de l’en-tête. */
+#newsPage .sanNewsHeroSimple .sanNewsHeroBubble{
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  background:transparent!important;
+  border-radius:0!important;
+  width:auto!important;
+  height:auto!important;
+  flex:0 0 auto!important;
+  padding:0!important;
+  margin:0!important;
+}
+@media(max-width:420px){#newsPage .sanNewsHeroSimple .sanNewsHeroBubble{flex-basis:auto!important;width:auto!important;height:auto!important}}
 </style>
 </body>
 </html>
