@@ -1,6 +1,6 @@
 <!-- TAXI PDF FINAL - VALISE NOIR COORDONNEES SEPAREES -->
 <!-- TAXI PDF FINAL INTEGRE : taxi_template(3).pdf -->
-<!-- SaniStock version 1.1.65 : carré réduit dans Esprit d’équipe -->
+<!-- SaniStock version 1.1.66 : sondages et tchat d’équipe -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -2064,6 +2064,53 @@ button.settingsAction.secondary:hover,
 }
 @media(prefers-reduced-motion:reduce){.sanNewsSpinner{animation:none}.sanNewsRefresh:active{transform:none}}
 </style>
+
+<style id="sanistock-team-tools-style">
+.teamToolsNav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 16px;padding:5px;background:#edf2f7;border-radius:15px}
+.teamToolsTab{appearance:none;border:1px solid transparent;border-radius:11px;background:transparent;color:#334155;padding:11px 6px;font-weight:800;font-size:13px;cursor:pointer;min-width:0;touch-action:manipulation}
+.teamToolsTab.active{background:#fff2b3;border-color:#e9c943;color:#263238;box-shadow:0 2px 7px rgba(15,23,42,.08)}
+.teamToolPane[hidden]{display:none!important}
+.teamToolIntro{margin:6px 0 14px}
+.teamToolIntro h2{font-size:21px;line-height:1.25;margin:0 0 6px;color:#102a43}
+.teamToolIntro p{margin:0;color:#64748b;font-size:14px;line-height:1.5}
+.teamToolCard,.teamChatCard{background:#fff;border:1px solid #dbe4ee;border-radius:16px;padding:15px;margin:0 0 18px;box-shadow:0 4px 14px rgba(15,23,42,.05)}
+.teamToolCard h3,.teamToolSectionHead h3{margin:0 0 13px;color:#102a43;font-size:17px}
+.teamToolCard label,.teamChatComposer label{display:block;font-size:13px;font-weight:800;color:#334155;margin:12px 0 6px}
+.teamPollOptionList{display:grid;gap:8px}
+.teamToolSecondaryButton{border:1px solid #cbd5e1;background:#f8fafc;color:#334155;border-radius:10px;padding:8px 11px;font-size:13px;font-weight:800;cursor:pointer;touch-action:manipulation}
+#teamPollAddOption{margin-top:10px}
+.teamToolStatus{color:#475569;font-size:13px;line-height:1.45;margin:8px 0}
+.teamToolSectionHead,.teamChatToolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:16px 0 10px}
+.teamPollList{display:grid;gap:12px}
+.teamPollCard{background:#fff;border:1px solid #dbe4ee;border-radius:16px;padding:15px;box-shadow:0 4px 14px rgba(15,23,42,.04)}
+.teamPollMeta{font-size:12px;color:#64748b;margin-bottom:7px}
+.teamPollQuestion{font-weight:850;font-size:17px;color:#102a43;line-height:1.4;margin-bottom:12px;overflow-wrap:anywhere}
+.teamPollChoice{display:flex;gap:9px;align-items:flex-start;padding:10px;border:1px solid #dbe4ee;border-radius:10px;margin:7px 0;cursor:pointer;font-size:14px;color:#334155}
+.teamPollChoice input{margin-top:3px;accent-color:#d4a900}
+.teamPollBar{height:7px;background:#e2e8f0;border-radius:99px;overflow:hidden;margin-top:7px}
+.teamPollBar span{display:block;height:100%;background:#f2cf3a;border-radius:99px}
+.teamPollChoiceResult{font-size:13px;color:#475569;display:flex;justify-content:space-between;gap:8px;margin-top:2px}
+.teamPollFooter{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap;color:#64748b;font-size:12px}
+.teamPollVoteButton{border:0;background:#f2cf3a;color:#263238;border-radius:10px;padding:10px 14px;font-weight:850;cursor:pointer}
+.teamPollVoteButton:disabled{opacity:.55;cursor:not-allowed}
+.teamChatCard{padding:0;overflow:hidden}
+.teamChatToolbar{margin:0;padding:14px;border-bottom:1px solid #e2e8f0}
+.teamChatMessages{display:flex;flex-direction:column;gap:10px;padding:13px;max-height:52vh;min-height:180px;overflow-y:auto;background:#f8fafc}
+.teamChatEmpty{margin:auto;text-align:center;color:#64748b;padding:25px 8px;font-size:14px}
+.teamChatMessage{max-width:92%;align-self:flex-start;background:#fff;border:1px solid #e2e8f0;border-radius:13px 13px 13px 4px;padding:10px 12px;overflow-wrap:anywhere;box-shadow:0 1px 3px rgba(15,23,42,.04)}
+.teamChatMessage.mine{align-self:flex-end;background:#fff6c9;border-color:#f1db76;border-radius:13px 13px 4px 13px}
+.teamChatMessageHead{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+.teamChatAuthor{font-size:12px;font-weight:850;color:#174a73}
+.teamChatDate{font-size:10px;color:#64748b}
+.teamChatMessageBody{font-size:14px;line-height:1.45;white-space:pre-wrap;color:#1e293b}
+.teamChatComposer{padding:13px;border-top:1px solid #e2e8f0;background:#fff}
+.teamChatComposerBottom{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px}
+.teamChatComposerBottom small{color:#64748b;font-size:11px}
+.teamChatComposer .sanNewsPublishSubmit{margin:0;min-width:100px}
+.teamChatGuidance{font-size:12px;line-height:1.45;color:#64748b;margin:12px 2px}
+@media(max-width:420px){.teamToolsNav{gap:4px;padding:4px}.teamToolsTab{font-size:12px;padding:10px 3px}.teamToolCard,.teamPollCard{padding:12px}.teamChatMessage{max-width:98%}}
+</style>
+
 </head>
 <body>
 
@@ -2372,6 +2419,12 @@ button.settingsAction.secondary:hover,
       <p>Posez vos questions, partagez vos idées et publiez les annonces utiles à toute l’équipe.</p>
       <button type="button" class="sanNewsRefresh" onclick="chargerActualitesEquipe(true)">↻ Actualiser les publications</button>
     </header>
+    <nav class="teamToolsNav" aria-label="Espaces de l’équipe">
+      <button type="button" class="teamToolsTab active" data-team-view="publications" onclick="ouvrirOngletEquipe('publications')">📣 Publications</button>
+      <button type="button" class="teamToolsTab" data-team-view="sondages" onclick="ouvrirOngletEquipe('sondages')">📊 Sondages</button>
+      <button type="button" class="teamToolsTab" data-team-view="tchat" onclick="ouvrirOngletEquipe('tchat')">💬 Tchat</button>
+    </nav>
+    <div id="teamPublicationsPane" class="teamToolPane">
     <div class="sanNewsPublishBar">
       <button type="button" class="sanNewsPublishButton" onclick="togglePublicationEquipe()">＋ Nouvelle publication</button>
     </div>
@@ -2422,6 +2475,39 @@ button.settingsAction.secondary:hover,
       <span aria-hidden="true">📝</span>
       <div><strong>Gardons les échanges utiles</strong><p>Questions, idées et annonces : échangez avec respect et évitez les informations confidentielles concernant les patients.</p></div>
     </div>
+    </div><!-- /teamPublicationsPane -->
+    <section id="teamPollsPane" class="teamToolPane" hidden aria-label="Sondages de l’équipe">
+      <div class="teamToolIntro"><h2>📊 Sondages de l’équipe</h2><p>Posez une question, proposez plusieurs choix et votez. Vous pouvez modifier votre vote.</p></div>
+      <div class="teamToolCard">
+        <h3>＋ Créer un sondage</h3>
+        <label for="teamPollQuestion">Question</label>
+        <input id="teamPollQuestion" class="sanNewsFormControl" type="text" maxlength="200" placeholder="Ex. Quel jour pour le repas d’équipe ?">
+        <label>Choix possibles (2 à 6)</label>
+        <div id="teamPollOptionList" class="teamPollOptionList">
+          <input class="sanNewsFormControl teamPollOptionInput" type="text" maxlength="100" placeholder="Choix 1">
+          <input class="sanNewsFormControl teamPollOptionInput" type="text" maxlength="100" placeholder="Choix 2">
+        </div>
+        <button type="button" class="teamToolSecondaryButton" id="teamPollAddOption" onclick="ajouterOptionSondageEquipeUI()">＋ Ajouter un choix</button>
+        <div id="teamPollCreateStatus" class="teamToolStatus" aria-live="polite"></div>
+        <button type="button" class="sanNewsPublishSubmit" id="teamPollCreateButton" onclick="creerSondageEquipeUI()">Créer le sondage</button>
+      </div>
+      <div class="teamToolSectionHead"><h3>Les sondages</h3><button type="button" class="teamToolSecondaryButton" onclick="chargerSondagesEquipe()">↻ Actualiser</button></div>
+      <div id="teamPollList" class="teamPollList"><div class="sanNewsLoading">Chargement des sondages…</div></div>
+    </section>
+    <section id="teamChatPane" class="teamToolPane" hidden aria-label="Tchat de l’équipe">
+      <div class="teamToolIntro"><h2>💬 Tchat de l’équipe</h2><p>Un espace libre pour discuter entre collègues. Les messages sont partagés avec toute l’équipe.</p></div>
+      <div class="teamChatCard">
+        <div class="teamChatToolbar"><strong>Discussion générale</strong><button type="button" class="teamToolSecondaryButton" onclick="chargerTchatEquipe(true)">↻ Actualiser</button></div>
+        <div id="teamChatStatus" class="teamToolStatus" aria-live="polite"></div>
+        <div id="teamChatMessages" class="teamChatMessages" aria-live="polite"><div class="sanNewsLoading">Chargement du tchat…</div></div>
+        <form class="teamChatComposer" onsubmit="envoyerMessageTchatEquipeUI(event)">
+          <label for="teamChatInput">Votre message</label>
+          <textarea id="teamChatInput" class="sanNewsFormControl" rows="3" maxlength="1000" placeholder="Écrivez à toute l’équipe…"></textarea>
+          <div class="teamChatComposerBottom"><small>1000 caractères maximum</small><button type="submit" id="teamChatSendButton" class="sanNewsPublishSubmit">Envoyer ↗</button></div>
+        </form>
+      </div>
+      <p class="teamChatGuidance">Échangez librement et avec respect. Évitez de publier des informations confidentielles ou des données personnelles.</p>
+    </section>
   </div>
 </section>
 
@@ -4220,6 +4306,117 @@ function chargerActualitesEquipe(forcer){
     }
   }).getPublicationsEquipe(session);
 }
+/* ===== SONDAGES ET TCHAT PARTAGÉS — ESPRIT D'ÉQUIPE ===== */
+let sondagesEquipeData_ = [];
+let tchatEquipeData_ = [];
+let tchatEquipeRefreshTimer_ = null;
+let tchatEquipeEnvoiEnCours_ = false;
+function ouvrirOngletEquipe(onglet){
+  const choisi=['publications','sondages','tchat'].indexOf(String(onglet))>=0?String(onglet):'publications';
+  document.querySelectorAll('.teamToolsTab').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-team-view')===choisi);});
+  const panes={publications:document.getElementById('teamPublicationsPane'),sondages:document.getElementById('teamPollsPane'),tchat:document.getElementById('teamChatPane')};
+  Object.keys(panes).forEach(function(k){if(panes[k])panes[k].hidden=k!==choisi;});
+  if(choisi==='publications') chargerActualitesEquipe(true);
+  if(choisi==='sondages') chargerSondagesEquipe();
+  if(choisi==='tchat'){
+    chargerTchatEquipe(true);
+    if(tchatEquipeRefreshTimer_)clearInterval(tchatEquipeRefreshTimer_);
+    tchatEquipeRefreshTimer_=setInterval(function(){const p=document.getElementById('teamChatPane');if(p&&!p.hidden&&document.visibilityState!=='hidden'&&navigator.onLine)chargerTchatEquipe(false);},15000);
+  }else if(tchatEquipeRefreshTimer_){clearInterval(tchatEquipeRefreshTimer_);tchatEquipeRefreshTimer_=null;}
+}
+function messageEspaceEquipe_(){
+  const s=donneesSessionEquipe_();
+  if(!s.salarie||!s.code)return 'Reconnectez-vous à SaniStock pour participer avec votre compte salarié.';
+  if(!navigator.onLine)return 'Connexion Internet nécessaire pour partager avec l’équipe.';
+  return '';
+}
+function ajouterOptionSondageEquipeUI(){
+  const box=document.getElementById('teamPollOptionList');if(!box)return;
+  const inputs=box.querySelectorAll('input');if(inputs.length>=6){const s=document.getElementById('teamPollCreateStatus');if(s)s.textContent='Un sondage peut contenir au maximum 6 choix.';return;}
+  const input=document.createElement('input');input.className='sanNewsFormControl teamPollOptionInput';input.type='text';input.maxLength=100;input.placeholder='Choix '+(inputs.length+1);box.appendChild(input);input.focus();
+  const add=document.getElementById('teamPollAddOption');if(add&&box.querySelectorAll('input').length>=6)add.disabled=true;
+}
+function chargerSondagesEquipe(){
+  const list=document.getElementById('teamPollList');if(!list)return;
+  const status=document.getElementById('teamPollCreateStatus');
+  const auth=messageEspaceEquipe_();
+  if(auth){list.innerHTML='<div class="sanNewsError">'+escapeHtml(auth)+'</div>';return;}
+  list.innerHTML='<div class="sanNewsLoading">Chargement des sondages…</div>';
+  google.script.run.withSuccessHandler(function(r){
+    sondagesEquipeData_=Array.isArray(r)?r:(r&&Array.isArray(r.sondages)?r.sondages:[]);
+    rendreSondagesEquipe_();
+  }).withFailureHandler(function(e){list.innerHTML='<div class="sanNewsError">Impossible de charger les sondages : '+escapeHtml(e&&e.message||e||'erreur inconnue')+'</div>';})
+    .getSondagesEquipe(donneesSessionEquipe_());
+}
+function rendreSondagesEquipe_(){
+  const list=document.getElementById('teamPollList');if(!list)return;
+  if(!sondagesEquipeData_.length){list.innerHTML='<div class="teamChatEmpty">Aucun sondage pour le moment. Crée le premier ! 📊</div>';return;}
+  const moi=normaliserAuteurEquipeBadge_(donneesSessionEquipe_().salarie);
+  list.innerHTML=sondagesEquipeData_.map(function(p){
+    const id=Number(p.id)||0,options=Array.isArray(p.options)?p.options:[],vote=Number.isInteger(Number(p.monVote))?Number(p.monVote):-1,total=Number(p.totalVotes)||0,already=vote>=0;
+    const choices=options.map(function(o,i){const text=typeof o==='string'?o:String(o.texte||o.option||'');const votes=Number(o.votes)||0;const pct=total?Math.round(votes*100/total):0;return '<label class="teamPollChoice"><input type="radio" name="teamPoll_'+id+'" value="'+i+'" '+(vote===i?'checked':'')+'><span>'+escapeHtml(text)+'</span></label>'+(already?'<div class="teamPollResultItem"><div class="teamPollChoiceResult"><span>'+escapeHtml(text)+(vote===i?' ✓':'')+'</span><strong>'+pct+'% · '+votes+'</strong></div><div class="teamPollBar"><span style="width:'+pct+'%"></span></div></div>':'');}).join('');
+    return '<article class="teamPollCard"><div class="teamPollMeta">'+escapeHtml(p.auteur||'Collègue')+' · '+escapeHtml(p.date||'')+'</div><div class="teamPollQuestion">'+escapeHtml(p.question||'Sondage')+'</div><div class="teamPollChoices">'+choices+'</div><div class="teamPollFooter"><span>'+total+' vote'+(total===1?'':'s')+(already?' · Votre vote est enregistré':'')+'</span><button type="button" class="teamPollVoteButton" onclick="voterSondageEquipeUI('+id+')">'+(already?'Modifier mon vote':'Voter')+'</button></div></article>';
+  }).join('');
+}
+function creerSondageEquipeUI(){
+  const auth=messageEspaceEquipe_(),status=document.getElementById('teamPollCreateStatus'),btn=document.getElementById('teamPollCreateButton');
+  if(auth){if(status)status.textContent=auth;return;}
+  const question=(document.getElementById('teamPollQuestion')?.value||'').trim();
+  const options=Array.from(document.querySelectorAll('#teamPollOptionList input')).map(function(i){return String(i.value||'').trim();}).filter(Boolean);
+  if(!question){if(status)status.textContent='Écris une question avant de créer le sondage.';return;}
+  if(options.length<2){if(status)status.textContent='Ajoute au moins deux choix.';return;}
+  if(options.length>6){if(status)status.textContent='Six choix maximum.';return;}
+  if(new Set(options.map(function(x){return x.toLocaleLowerCase();})).size!==options.length){if(status)status.textContent='Chaque choix doit être différent.';return;}
+  if(btn){btn.disabled=true;btn.textContent='Création…';}if(status)status.textContent='Enregistrement du sondage…';
+  google.script.run.withSuccessHandler(function(){
+    if(btn){btn.disabled=false;btn.textContent='Créer le sondage';}
+    const q=document.getElementById('teamPollQuestion');if(q)q.value='';
+    const box=document.getElementById('teamPollOptionList');if(box)box.innerHTML='<input class="sanNewsFormControl teamPollOptionInput" type="text" maxlength="100" placeholder="Choix 1"><input class="sanNewsFormControl teamPollOptionInput" type="text" maxlength="100" placeholder="Choix 2">';
+    const add=document.getElementById('teamPollAddOption');if(add)add.disabled=false;
+    if(status)status.textContent='✅ Sondage partagé avec toute l’équipe.';chargerSondagesEquipe();
+  }).withFailureHandler(function(e){if(btn){btn.disabled=false;btn.textContent='Créer le sondage';}if(status)status.textContent='Impossible de créer le sondage : '+String(e&&e.message||e||'erreur inconnue');})
+    .creerSondageEquipe(Object.assign({},donneesSessionEquipe_(),{question:question,options:options,requestId:equipeRequestId_()}));
+}
+function voterSondageEquipeUI(id){
+  const poll=sondagesEquipeData_.find(function(p){return Number(p.id)===Number(id);});
+  if(!poll)return;
+  const radios=document.querySelectorAll('input[name="teamPoll_'+Number(id)+'"]:checked');
+  if(!radios.length){alert('Choisis une réponse avant de voter.');return;}
+  const optionIndex=Number(radios[0].value);
+  google.script.run.withSuccessHandler(function(){chargerSondagesEquipe();})
+    .withFailureHandler(function(e){alert('Vote impossible : '+String(e&&e.message||e||'erreur inconnue'));})
+    .voterSondageEquipe(Object.assign({},donneesSessionEquipe_(),{sondageId:Number(id),optionIndex:optionIndex}));
+}
+function chargerTchatEquipe(forcer){
+  const list=document.getElementById('teamChatMessages'),status=document.getElementById('teamChatStatus');if(!list)return;
+  const auth=messageEspaceEquipe_();if(auth){list.innerHTML='<div class="teamChatEmpty">'+escapeHtml(auth)+'</div>';return;}
+  if(forcer||!tchatEquipeData_.length)list.innerHTML='<div class="sanNewsLoading">Chargement du tchat…</div>';
+  google.script.run.withSuccessHandler(function(r){
+    const rows=Array.isArray(r)?r:(r&&Array.isArray(r.messages)?r.messages:[]);
+    const oldBottom=list.scrollHeight-list.scrollTop-list.clientHeight<70;
+    tchatEquipeData_=rows;
+    if(!rows.length){list.innerHTML='<div class="teamChatEmpty">Aucun message pour le moment. Lance la discussion ! 👋</div>';return;}
+    const moi=normaliserAuteurEquipeBadge_(donneesSessionEquipe_().salarie);
+    list.innerHTML=rows.map(function(m){const mine=normaliserAuteurEquipeBadge_(m.auteur)===moi;return '<article class="teamChatMessage'+(mine?' mine':'')+'"><div class="teamChatMessageHead"><span class="teamChatAuthor">'+escapeHtml(m.auteur||'Collègue')+'</span><span class="teamChatDate">'+escapeHtml(m.date||'')+'</span></div><div class="teamChatMessageBody">'+escapeHtml(m.message||'')+'</div></article>';}).join('');
+    if(oldBottom||forcer)list.scrollTop=list.scrollHeight;
+    if(status)status.textContent='Actualisé · '+rows.length+' message'+(rows.length===1?'':'s')+' affiché'+(rows.length===1?'':'s');
+  }).withFailureHandler(function(e){if(status)status.textContent='Erreur de chargement : '+String(e&&e.message||e||'erreur inconnue');if(!tchatEquipeData_.length)list.innerHTML='<div class="teamChatEmpty">Le tchat est momentanément indisponible.</div>';})
+    .getMessagesTchatEquipe(donneesSessionEquipe_());
+}
+function envoyerMessageTchatEquipeUI(event){
+  if(event)event.preventDefault();
+  if(tchatEquipeEnvoiEnCours_)return;
+  const auth=messageEspaceEquipe_(),input=document.getElementById('teamChatInput'),status=document.getElementById('teamChatStatus'),btn=document.getElementById('teamChatSendButton');
+  const message=String(input&&input.value||'').trim();
+  if(auth){if(status)status.textContent=auth;return;}
+  if(!message){if(status)status.textContent='Écris un message avant de l’envoyer.';return;}
+  tchatEquipeEnvoiEnCours_=true;if(btn){btn.disabled=true;btn.textContent='Envoi…';}if(status)status.textContent='Envoi du message…';
+  google.script.run.withSuccessHandler(function(){
+    tchatEquipeEnvoiEnCours_=false;if(btn){btn.disabled=false;btn.textContent='Envoyer ↗';}if(input)input.value='';chargerTchatEquipe(true);
+  }).withFailureHandler(function(e){tchatEquipeEnvoiEnCours_=false;if(btn){btn.disabled=false;btn.textContent='Envoyer ↗';}if(status)status.textContent='Impossible d’envoyer : '+String(e&&e.message||e||'erreur inconnue');})
+    .envoyerMessageTchatEquipe(Object.assign({},donneesSessionEquipe_(),{message:message,requestId:equipeRequestId_()}));
+}
+
 function typePublicationEquipe_(r){
   const explicite=String((r&&r.type)||'').toLowerCase();
   if(['question','idee','annonce'].indexOf(explicite)>=0) return explicite;
@@ -10358,7 +10555,7 @@ if ("serviceWorker" in navigator) {
 </script>
 
 
-<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.65</div>
+<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.66</div>
 
 <style id="sanistock-connexion-accueil-uniquement">
 #saniConnection.saniConnHomeOnlyHidden{display:none !important;}
