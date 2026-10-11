@@ -1,6 +1,6 @@
 <!-- TAXI PDF FINAL - VALISE NOIR COORDONNEES SEPAREES -->
 <!-- TAXI PDF FINAL INTEGRE : taxi_template(3).pdf -->
-<!-- SaniStock version 1.1.67 : réactions emoji dans le tchat -->
+<!-- SaniStock version 1.1.69 : actualisation du compteur Esprit d’équipe toutes les 5 secondes -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -730,6 +730,10 @@ body{display:block}
 /* Badge rouge discret : nouvelle publication ou réponse dans Esprit d’équipe */
 .homeButton4 .sanNewsUnreadBadge{position:absolute;top:6px;right:6px;z-index:20;min-width:23px;height:23px;padding:0 5px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;border-radius:999px;background:#e32636;color:#fff;border:2px solid #fff;font-size:12px;line-height:1;font-weight:1000;box-shadow:0 2px 7px rgba(0,0,0,.25);pointer-events:none;animation:sanNewsBadgePulse 1.8s ease-in-out infinite}
 .homeButton4 .sanNewsUnreadBadge[hidden]{display:none!important}
+/* Correctif 1.1.69 : la pastille du bouton Esprit d’équipe reste visible au-dessus du carré et le compteur est actualisé toutes les 5 secondes. */
+.homeButton4.team4{overflow:visible!important}
+.homeButton4.team4 .sanNewsUnreadBadge{top:-7px!important;right:-7px!important;z-index:100!important;min-width:25px;height:25px;padding:0 6px;border-width:2px;font-size:12px;display:flex!important}
+.homeButton4.team4 .sanNewsUnreadBadge[hidden]{display:none!important}
 @keyframes sanNewsBadgePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
 .homeButton4 .octobreRoseRibbon{
   position:absolute;
@@ -2767,6 +2771,7 @@ function showPage(id){
 
  window.scrollTo(0,0);
  if(id==='stockPage') chargerStock();
+ if(id==='homePage' && typeof verifierBadgeActualitesEquipe_==='function') setTimeout(function(){verifierBadgeActualitesEquipe_();},700);
  if(id==='newsPage' && typeof chargerActualitesEquipe==='function'){ chargerActualitesEquipe(); if(typeof actualiserOutilsPublicationEquipe==='function') actualiserOutilsPublicationEquipe(); }
  if(id==='medicationPage') setTimeout(function(){ if(typeof renderMedicationMemo==='function') renderMedicationMemo(); },0);
 
@@ -4185,8 +4190,10 @@ function idsActualitesLues_(){
 }
 function normaliserActualites_(r){
   if(Array.isArray(r)) return r.filter(x=>x && x.titre);
+  if(r && Array.isArray(r.publications)) return r.publications.filter(x=>x && x.titre);
   if(r && Array.isArray(r.informations)) return r.informations.filter(x=>x && x.titre);
   if(r && Array.isArray(r.rows)) return r.rows.filter(x=>x && x.titre);
+  if(r && Array.isArray(r.data)) return r.data.filter(x=>x && x.titre);
   if(r && r.titre) return [r];
   return [];
 }
@@ -4230,11 +4237,20 @@ function synchroniserBadgeActualitesEquipe_(rows, toutMarquerLu){
   if(!badge)return;
   const key=cleBadgeActualitesEquipe_();
   const marqueurs=marqueursActiviteEquipeBadge_(rows);
-  let raw=null, vus=[];
-  try{raw=localStorage.getItem(key);vus=raw?JSON.parse(raw):[];if(!Array.isArray(vus))vus=[];}catch(e){raw=null;vus=[];}
+  let raw=null, vus=[], storageOK=true;
+  try{raw=localStorage.getItem(key);vus=raw?JSON.parse(raw):[];if(!Array.isArray(vus))vus=[];}catch(e){storageOK=false;raw=null;vus=[];}
+  /* Si le stockage est indisponible, conserver les marqueurs en mémoire plutôt que réinitialiser le compteur à chaque contrôle. */
+  if(raw===null && window.sanNewsBadgeSeenMemory && window.sanNewsBadgeSeenMemory.key===key){
+    raw='__memory__';vus=window.sanNewsBadgeSeenMemory.values||[];
+  }
+  function sauvegarderVus_(valeurs){
+    const snapshot=valeurs.slice(-800);
+    window.sanNewsBadgeSeenMemory={key:key,values:snapshot};
+    if(storageOK){try{localStorage.setItem(key,JSON.stringify(snapshot));}catch(e){}}
+  }
   /* À la première vérification, l’historique existant sert de référence pour éviter une fausse alerte générale. */
   if(toutMarquerLu||raw===null){
-    try{localStorage.setItem(key,JSON.stringify(marqueurs.slice(-800)));}catch(e){}
+    sauvegarderVus_(marqueurs);
     badge.hidden=true;
     return;
   }
@@ -4249,7 +4265,7 @@ function synchroniserBadgeActualitesEquipe_(rows, toutMarquerLu){
 function verifierBadgeActualitesEquipe_(){
   const session=donneesSessionEquipe_();
   const page=document.getElementById('newsPage');
-  if(!session.salarie||!session.code||!navigator.onLine||!gsDisponible()||window.sanNewsBadgeRequestPending_)return;
+  if(document.hidden||!session.salarie||!session.code||!navigator.onLine||!gsDisponible()||window.sanNewsBadgeRequestPending_)return;
   if(page&&page.classList.contains('active'))return;
   window.sanNewsBadgeRequestPending_=true;
   google.script.run.withSuccessHandler(function(r){
@@ -4260,8 +4276,9 @@ function verifierBadgeActualitesEquipe_(){
   }).withFailureHandler(function(){window.sanNewsBadgeRequestPending_=false;}).getPublicationsEquipe(session);
 }
 function initialiserBadgeActualitesEquipe_(){
-  window.setInterval(verifierBadgeActualitesEquipe_,60000);
+  window.setInterval(verifierBadgeActualitesEquipe_,5000);
   window.addEventListener('focus',verifierBadgeActualitesEquipe_);
+  window.addEventListener('pageshow',function(){verifierBadgeActualitesEquipe_();});
   document.addEventListener('visibilitychange',function(){if(!document.hidden)verifierBadgeActualitesEquipe_();});
   window.setTimeout(verifierBadgeActualitesEquipe_,3000);
 }
@@ -5111,6 +5128,7 @@ function changerCodeAdminUI(){
     if(logoutBtn) logoutBtn.style.display='flex';
     setTimeout(chargerInformationAccueil,120);
     setTimeout(verifierAnniversaireConnecte,900);
+    setTimeout(function(){if(typeof verifierBadgeActualitesEquipe_==='function')verifierBadgeActualitesEquipe_();},1800);
     const s1=document.getElementById('stockEmployee');
     const s2=document.getElementById('employee');
     function appliquerSalarieConnecte(){
@@ -10578,7 +10596,7 @@ if ("serviceWorker" in navigator) {
 </script>
 
 
-<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.67</div>
+<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.69</div>
 
 <style id="sanistock-connexion-accueil-uniquement">
 #saniConnection.saniConnHomeOnlyHidden{display:none !important;}
