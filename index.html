@@ -11619,7 +11619,7 @@ html+='<div class="ambSectionBulkActions"><button type="button" class="toutCoche
           // On ne dessine AUCUN rectangle de fond : cela évite les blocs
           // décalés et conserve exactement l'alternance gris/blanc du modèle.
           if(state==='present') drawAmbTick(pg,374.625,y+1,black); // V recentré 12 points vers la gauche dans la colonne « Présent ».
-          if(state==='manque') centerText(pg,bold,'X',415.0,y+1,9,black); // Boxer Peugeot : X centré dans la colonne « Manque » (alignement corrigé).
+          if(state==='manque') centerText(pg,bold,'X',418.0,y+1,9,black); // X recentré dans la colonne « Manque » du Peugeot Boxer.
           // "optionnel" est déjà imprimé dans le modèle PDF.
           if(!item.optional && missing) centerText(pg,bold,missing,472.0,y+1,8,black);
         }
