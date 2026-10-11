@@ -11552,7 +11552,7 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
     // Les zones effacées restent limitées aux anciennes valeurs : les libellés
     // Immatriculation, KMS, DATE et Equipage du modèle ne sont pas recouverts.
     cover(p1,130,741,112,16,paperBg);
-    cover(p1,390,741,22,16,paperBg); // Préserve le libellé « DATE » à gauche de la zone effacée.
+    cover(p1,438,741,40,16,paperBg); // Efface uniquement l’ancienne valeur, sans recouvrir le libellé « DATE ».
     cover(p1,480,741,65,16,paperBg);
     cover(p1,130,727,292,16,paperBg); // Efface uniquement la valeur de l’équipage, sans recouvrir le « E » du libellé.
     const headerSize=9.5;
@@ -11589,14 +11589,14 @@ html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+
         const i=start+j, item=ambItems[i]||{}, y=ys[j], state=readState(i), missing=String(document.getElementById('ambMissing'+i)?.value||'').trim();
         if(isRenault){
           // Coordonnées centrées exactement dans les cases du modèle Renault.
-          if(state==='present') drawAmbTick(pg,386.625,y+1,black);
+          if(state==='present') drawAmbTick(pg,374.625,y+1,black);
           if(state==='manque') centerText(pg,bold,'X',444.5,y+1,9,black);
           if(!item.optional && missing) centerText(pg,bold,missing,509.0,y+1,8,black);
         }else{
           // Peugeot Boxer : le PDF contient déjà les bandes grises/blanches.
           // On ne dessine AUCUN rectangle de fond : cela évite les blocs
           // décalés et conserve exactement l'alternance gris/blanc du modèle.
-          if(state==='present') drawAmbTick(pg,362.3,y+1,black);
+          if(state==='present') drawAmbTick(pg,374.625,y+1,black); // V recentré 12 points vers la gauche dans la colonne « Présent ».
           if(state==='manque') centerText(pg,bold,'X',435.0,y+1,9,black); // X centré dans la colonne « Manque ».
           // "optionnel" est déjà imprimé dans le modèle PDF.
           if(!item.optional && missing) centerText(pg,bold,missing,472.0,y+1,8,black);
