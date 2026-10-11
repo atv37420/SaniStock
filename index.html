@@ -1,6 +1,6 @@
 <!-- TAXI PDF FINAL - VALISE NOIR COORDONNEES SEPAREES -->
 <!-- TAXI PDF FINAL INTEGRE : taxi_template(3).pdf -->
-<!-- SaniStock version 1.1.71 : compteur initialisé correctement dans l’angle du bouton Esprit d’équipe; actualisation toutes les 5 secondes -->
+<!-- SaniStock version 1.1.72 : ordre des espaces Esprit d’équipe — Tchat, Publications, Sondages; compteur toutes les 5 secondes -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -2430,9 +2430,9 @@ button.settingsAction.secondary:hover,
       <button type="button" class="sanNewsRefresh" onclick="chargerActualitesEquipe(true)">↻ Actualiser les publications</button>
     </header>
     <nav class="teamToolsNav" aria-label="Espaces de l’équipe">
+      <button type="button" class="teamToolsTab" data-team-view="tchat" onclick="ouvrirOngletEquipe('tchat')">💬 Tchat</button>
       <button type="button" class="teamToolsTab active" data-team-view="publications" onclick="ouvrirOngletEquipe('publications')">📣 Publications</button>
       <button type="button" class="teamToolsTab" data-team-view="sondages" onclick="ouvrirOngletEquipe('sondages')">📊 Sondages</button>
-      <button type="button" class="teamToolsTab" data-team-view="tchat" onclick="ouvrirOngletEquipe('tchat')">💬 Tchat</button>
     </nav>
     <div id="teamPublicationsPane" class="teamToolPane">
     <div class="sanNewsPublishBar">
