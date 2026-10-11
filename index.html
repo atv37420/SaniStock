@@ -1,6 +1,6 @@
 <!-- TAXI PDF FINAL - VALISE NOIR COORDONNEES SEPAREES -->
 <!-- TAXI PDF FINAL INTEGRE : taxi_template(3).pdf -->
-<!-- SaniStock version 1.1.95 : lecture seule avec repli hors connexion -->
+<!-- SaniStock version 1.1.96 : lecture seule avec repli hors connexion -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -3966,7 +3966,34 @@ function ouvrirDocumentPartage_(doc){
           }catch(e){return false;}
         }
         if(!navigator.onLine){
-          if(!ouvrirPdfNatifSansBarre()) alert('Impossible d’ouvrir la copie hors connexion de ce PDF.');
+          // Hors connexion : conserver la consultation PDF, mais masquer le bouton
+          // d’annotation flottant du lecteur natif en le couvrant dans une fenêtre
+          // enveloppe. Le fichier reste une copie locale/blob et n'est pas modifié sur Drive.
+          try{
+            const base64HorsLigne = JSON.stringify(String(d.contenuBase64||''));
+            const titreHorsLigne = JSON.stringify(String(d.name||'Document PDF'));
+            const htmlPdfHorsLigne = `<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Document partagé — lecture seule</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#e8edf3;font-family:Arial,Helvetica,sans-serif}
+#pdfLocal{position:fixed;inset:0;width:100%;height:100%;border:0;background:#e8edf3}
+#titreLocal{position:fixed;top:8px;left:8px;z-index:20;max-width:calc(100% - 112px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:rgba(255,255,255,.94);color:#193047;border-radius:7px;padding:6px 9px;font-size:12px;box-shadow:0 1px 4px rgba(0,0,0,.18);pointer-events:none}
+#masqueCrayon{position:fixed;right:0;bottom:0;z-index:2147483647;width:90px;height:84px;background:#e8edf3;border-top-left-radius:12px;display:flex;align-items:flex-end;justify-content:flex-end;padding:8px;color:#53677b;font-size:10px;font-weight:700;pointer-events:auto;user-select:none}
+</style></head><body><div id="titreLocal"></div><iframe id="pdfLocal" title="Document PDF en lecture seule"></iframe><div id="masqueCrayon" aria-label="Lecture seule">LECTURE SEULE</div>
+<script>(function(){
+var titre=${titreHorsLigne};document.getElementById('titreLocal').textContent=titre;document.title=titre+' — lecture seule';
+var raw=atob(${base64HorsLigne}),bytes=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);
+var u=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));document.getElementById('pdfLocal').src=u+'#toolbar=0&navpanes=0';
+window.addEventListener('beforeunload',function(){try{URL.revokeObjectURL(u)}catch(e){}});
+})();<\/script></body></html>`;
+            fenetre.document.open();
+            fenetre.document.write(htmlPdfHorsLigne);
+            fenetre.document.close();
+          }catch(e){
+            // Ne pas ouvrir le lecteur natif de secours hors ligne : il réafficherait le crayon.
+            alert('Impossible d’ouvrir ce PDF en lecture seule hors connexion sur ce navigateur. Reconnectez-vous puis rouvrez le document.');
+          }
           return;
         }
 
@@ -11149,7 +11176,7 @@ if ("serviceWorker" in navigator) {
 </script>
 
 
-<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.95</div>
+<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.96</div>
 
 <style id="sanistock-connexion-accueil-uniquement">
 #saniConnection.saniConnHomeOnlyHidden{display:none !important;}
