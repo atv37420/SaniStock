@@ -1,6 +1,6 @@
 <!-- TAXI PDF FINAL - VALISE NOIR COORDONNEES SEPAREES -->
 <!-- TAXI PDF FINAL INTEGRE : taxi_template(3).pdf -->
-<!-- SaniStock version 1.1.96 : lecture seule avec repli hors connexion -->
+<!-- SaniStock version 1.1.97 : lecteur PDF en lecture seule hors ligne et en ligne -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -3539,6 +3539,7 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
     afficherStatut();
   };
   window.addEventListener('online',afficherStatut);
+  window.addEventListener('online',function(){prechargerPDFJSHorsLigne_().catch(function(){});});
   window.addEventListener('offline',afficherStatut);
   afficherStatut();
 })();
@@ -3550,9 +3551,57 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
 const SANISTOCK_DOC_DB='sanistock_documents_v1';
 const SANISTOCK_DOC_STORE='documents';
 
+/* Cache local du lecteur PDF.js et de son worker pour le mode hors connexion. */
+const SANISTOCK_PDFJS_DB='sanistock_pdfjs_offline_v1';
+const SANISTOCK_PDFJS_ASSETS={
+  pdfjs:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
+  worker:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'
+};
+function ouvrirCachePDFJS_(){
+  return new Promise(function(resolve,reject){
+    if(!window.indexedDB){reject(new Error('Stockage local indisponible.'));return;}
+    const req=indexedDB.open(SANISTOCK_PDFJS_DB,1);
+    req.onupgradeneeded=function(){if(!req.result.objectStoreNames.contains('assets'))req.result.createObjectStore('assets',{keyPath:'id'});};
+    req.onsuccess=function(){resolve(req.result);};
+    req.onerror=function(){reject(req.error||new Error('Cache du lecteur PDF indisponible.'));};
+  });
+}
+function lireAssetPDFJS_(id){
+  return ouvrirCachePDFJS_().then(function(db){return new Promise(function(resolve,reject){
+    const tx=db.transaction('assets','readonly'),req=tx.objectStore('assets').get(id);
+    req.onsuccess=function(){const row=req.result;db.close();resolve(row&&row.source?row.source:'');};
+    req.onerror=function(){db.close();reject(req.error||new Error('Lecture du lecteur PDF impossible.'));};
+  });}).catch(function(){return '';});
+}
+function enregistrerAssetPDFJS_(id,source){
+  return ouvrirCachePDFJS_().then(function(db){return new Promise(function(resolve,reject){
+    const tx=db.transaction('assets','readwrite');
+    tx.objectStore('assets').put({id:id,source:source,savedAt:Date.now()});
+    tx.oncomplete=function(){db.close();resolve(true);};
+    tx.onerror=function(){db.close();reject(tx.error||new Error('Enregistrement du lecteur PDF impossible.'));};
+  });});
+}
+async function prechargerPDFJSHorsLigne_(){
+  if(!navigator.onLine||!window.fetch)return false;
+  const ids=['pdfjs','worker'];
+  for(const id of ids){
+    const old=await lireAssetPDFJS_(id);
+    if(old && old.length>50000)continue;
+    try{
+      const response=await fetch(SANISTOCK_PDFJS_ASSETS[id],{mode:'cors',cache:'force-cache'});
+      if(!response.ok)continue;
+      const source=await response.text();
+      if(source&&source.length>50000)await enregistrerAssetPDFJS_(id,source);
+    }catch(e){}
+  }
+  const pdf=await lireAssetPDFJS_('pdfjs'),worker=await lireAssetPDFJS_('worker');
+  return !!(pdf&&worker);
+}
+
 function ouvrirDocuments(){
   showPage('documentsPage');
   chargerDocuments();
+  if(navigator.onLine) prechargerPDFJSHorsLigne_().catch(function(){});
 }
 
 function ouvrirBaseDocuments_(){
@@ -3965,38 +4014,6 @@ function ouvrirDocumentPartage_(doc){
             return true;
           }catch(e){return false;}
         }
-        if(!navigator.onLine){
-          // Hors connexion : conserver la consultation PDF, mais masquer le bouton
-          // d’annotation flottant du lecteur natif en le couvrant dans une fenêtre
-          // enveloppe. Le fichier reste une copie locale/blob et n'est pas modifié sur Drive.
-          try{
-            const base64HorsLigne = JSON.stringify(String(d.contenuBase64||''));
-            const titreHorsLigne = JSON.stringify(String(d.name||'Document PDF'));
-            const htmlPdfHorsLigne = `<!doctype html>
-<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Document partagé — lecture seule</title>
-<style>
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#e8edf3;font-family:Arial,Helvetica,sans-serif}
-#pdfLocal{position:fixed;inset:0;width:100%;height:100%;border:0;background:#e8edf3}
-#titreLocal{position:fixed;top:8px;left:8px;z-index:20;max-width:calc(100% - 112px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:rgba(255,255,255,.94);color:#193047;border-radius:7px;padding:6px 9px;font-size:12px;box-shadow:0 1px 4px rgba(0,0,0,.18);pointer-events:none}
-#masqueCrayon{position:fixed;right:0;bottom:0;z-index:2147483647;width:90px;height:84px;background:#e8edf3;border-top-left-radius:12px;display:flex;align-items:flex-end;justify-content:flex-end;padding:8px;color:#53677b;font-size:10px;font-weight:700;pointer-events:auto;user-select:none}
-</style></head><body><div id="titreLocal"></div><iframe id="pdfLocal" title="Document PDF en lecture seule"></iframe><div id="masqueCrayon" aria-label="Lecture seule">LECTURE SEULE</div>
-<script>(function(){
-var titre=${titreHorsLigne};document.getElementById('titreLocal').textContent=titre;document.title=titre+' — lecture seule';
-var raw=atob(${base64HorsLigne}),bytes=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);
-var u=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));document.getElementById('pdfLocal').src=u+'#toolbar=0&navpanes=0';
-window.addEventListener('beforeunload',function(){try{URL.revokeObjectURL(u)}catch(e){}});
-})();<\/script></body></html>`;
-            fenetre.document.open();
-            fenetre.document.write(htmlPdfHorsLigne);
-            fenetre.document.close();
-          }catch(e){
-            // Ne pas ouvrir le lecteur natif de secours hors ligne : il réafficherait le crayon.
-            alert('Impossible d’ouvrir ce PDF en lecture seule hors connexion sur ce navigateur. Reconnectez-vous puis rouvrez le document.');
-          }
-          return;
-        }
-
         const htmlLectureSeule = `<!doctype html>
 <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Document partagé — lecture seule</title>
@@ -4011,7 +4028,7 @@ window.addEventListener('beforeunload',function(){try{URL.revokeObjectURL(u)}cat
 <button id="prev" type="button" disabled>◀</button><span id="pageLabel">Chargement…</span><button id="next" type="button" disabled>▶</button>
 <button id="zoomOut" type="button" aria-label="Réduire le zoom">−</button><span id="zoomLabel">100 %</span><button id="zoomIn" type="button" aria-label="Agrandir le zoom">+</button><button class="close" type="button" onclick="window.close()">Fermer</button></header>
 <main><div id="status">Préparation du document…</div><div id="pageWrap" hidden><canvas id="pageCanvas" aria-label="Page du document en lecture seule"></canvas></div></main>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"><\/script>
+__SANI_PDFJS_SCRIPT_TAG__
 <script>
 (function(){
   var pdfDoc=null,pageNum=1,zoomFactor=1,renderTask=null,renderSeq=0;
@@ -4049,7 +4066,12 @@ window.addEventListener('beforeunload',function(){try{URL.revokeObjectURL(u)}cat
     document.getElementById('docTitle').textContent=String(title||'Document PDF');
     document.title=String(title||'Document PDF')+' — lecture seule';
     if(!window.pdfjsLib){msg('Le lecteur sécurisé ne peut pas être chargé. Vérifiez votre connexion puis rouvrez le document.');return;}
-    window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    if(window.__SANI_PDF_WORKER_SOURCE){
+      if(!window.__SANI_PDF_WORKER_URL) window.__SANI_PDF_WORKER_URL=URL.createObjectURL(new Blob([window.__SANI_PDF_WORKER_SOURCE],{type:'text/javascript'}));
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc=window.__SANI_PDF_WORKER_URL;
+    }else{
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
     try{
       var raw=atob(String(base64||''));var bytes=new Uint8Array(raw.length);
       for(var i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);
@@ -4068,23 +4090,48 @@ window.addEventListener('beforeunload',function(){try{URL.revokeObjectURL(u)}cat
   window.addEventListener('keydown',function(e){if(e.key==='ArrowLeft'&&pageNum>1){pageNum--;renderPage();}else if(e.key==='ArrowRight'&&pdfDoc&&pageNum<pdfDoc.numPages){pageNum++;renderPage();}else if((e.key==='+'||e.key==='=')&&!e.ctrlKey){zoomFactor=Math.min(2.5,zoomFactor+.15);renderPage();}else if(e.key==='-'&&!e.ctrlKey){zoomFactor=Math.max(.6,zoomFactor-.15);renderPage();}});
 })();
 <\/script></body></html>`;
-        fenetre.document.open();
-        fenetre.document.write(htmlLectureSeule);
-        fenetre.document.close();
-        let tentatives=0;
-        function lancerLecteur(){
-          if(!fenetre||fenetre.closed)return;
-          if(typeof fenetre.startSaniReadOnlyPdf==='function' && fenetre.pdfjsLib){
-            fenetre.startSaniReadOnlyPdf(String(d.contenuBase64||''),String(d.name||'Document PDF'));
-            return;
+        function afficherLecteurHtml_(html){
+          fenetre.document.open();
+          fenetre.document.write(html);
+          fenetre.document.close();
+          let tentatives=0;
+          function lancerLecteur(){
+            if(!fenetre||fenetre.closed)return;
+            if(typeof fenetre.startSaniReadOnlyPdf==='function' && fenetre.pdfjsLib){
+              fenetre.startSaniReadOnlyPdf(String(d.contenuBase64||''),String(d.name||'Document PDF'));
+              return;
+            }
+            if(tentatives++<40){fenetre.setTimeout(lancerLecteur,100);return;}
+            if(!ouvrirPdfNatifSansBarre()){
+              try{const st=fenetre.document.getElementById('status');if(st)st.textContent='Le lecteur PDF n’a pas pu s’initialiser.';}catch(e){}
+            }
           }
-          // Si le CDN est inaccessible malgré navigator.onLine, basculer sur la copie PDF locale.
-          if(tentatives++<25){fenetre.setTimeout(lancerLecteur,100);return;}
-          if(!ouvrirPdfNatifSansBarre()){
-            try{const st=fenetre.document.getElementById('status');if(st)st.textContent='Le lecteur hors ligne n’a pas pu ouvrir ce document. Vérifiez que le PDF est bien enregistré sur cet appareil.';}catch(e){}
-          }
+          fenetre.setTimeout(lancerLecteur,50);
         }
-        fenetre.setTimeout(lancerLecteur,100);
+
+        if(!navigator.onLine){
+          // Hors connexion : insérer la copie locale de PDF.js et son worker dans le lecteur.
+          // Le rendu canvas et les commandes (pages/zoom) sont ainsi identiques au mode en ligne.
+          Promise.all([lireAssetPDFJS_('pdfjs'),lireAssetPDFJS_('worker')]).then(function(assets){
+            const pdfSource=assets[0],workerSource=assets[1];
+            if(pdfSource&&workerSource){
+              const pdfJsSecurise=pdfSource.replace(/<\/script/gi,'<\\/script');
+              const workerJson=JSON.stringify(workerSource).replace(/</g,'\\u003c');
+              const scripts='<script>window.__SANI_PDF_WORKER_SOURCE='+workerJson+';<\/script><script>'+pdfJsSecurise+'<\/script>';
+              const htmlHorsLigne=htmlLectureSeule.replace('__SANI_PDFJS_SCRIPT_TAG__',scripts);
+              afficherLecteurHtml_(htmlHorsLigne);
+            }else{
+              // Ultime secours : essayer le lecteur PDF natif local si PDF.js n’a pas encore été mis en cache.
+              if(!ouvrirPdfNatifSansBarre()) alert('Le lecteur hors connexion n’est pas encore enregistré sur cet appareil. Reconnectez-vous, ouvrez Documents partagés une fois, puis réessayez.');
+            }
+          }).catch(function(){
+            if(!ouvrirPdfNatifSansBarre()) alert('Le lecteur hors connexion n’est pas encore prêt. Reconnectez-vous et ouvrez Documents partagés une fois.');
+          });
+          return;
+        }
+
+        const htmlEnLigne=htmlLectureSeule.replace('__SANI_PDFJS_SCRIPT_TAG__','<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"><\/script>');
+        afficherLecteurHtml_(htmlEnLigne);
         return;
       }
 
@@ -11176,7 +11223,7 @@ if ("serviceWorker" in navigator) {
 </script>
 
 
-<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.96</div>
+<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.97</div>
 
 <style id="sanistock-connexion-accueil-uniquement">
 #saniConnection.saniConnHomeOnlyHidden{display:none !important;}
