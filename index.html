@@ -2262,7 +2262,95 @@ button.settingsAction.secondary:hover,
 .teamToolsTab .teamToolsUnreadBadge.has-unread:not([hidden]){display:inline-flex!important;visibility:visible!important;opacity:1!important}
 .teamToolsTab .teamToolsUnreadBadge.has-unread[hidden]{display:none!important}
 </style>
-  <!-- SaniStock 1.1.89 : vérification des notifications espacée à 30 secondes; texte des règles intégré à l’en-tête Actualité de l’équipe; encart inférieur retiré. -->
+  <!-- SaniStock 1.1.90 : mur Publications façon réseau social; filtres, photos, réactions et commentaires conservés. -->
+
+<style id="sanistock-1-1-90-social-wall">
+/* Mur de publications façon réseau social, limité à la page Actualité de l'équipe. */
+#newsPage.sanNewsPage{padding:10px 10px 28px!important;background:#f0f2f5!important;min-height:100vh}
+#newsPage .sanNewsWrap{width:min(100%,720px);margin:0 auto;padding:4px 0 18px}
+#newsPage .sanNewsHero{position:relative;overflow:hidden;padding:11px 14px 12px;border-radius:13px;background:#fff!important;color:#15324b!important;border:1px solid #e1e6eb;box-shadow:0 1px 3px rgba(20,35,55,.06);margin-bottom:11px}
+#newsPage .sanNewsHero:after{display:none!important}
+#newsPage .sanNewsHero h1{margin:0 0 5px!important;color:#102a43!important;font-size:22px!important;line-height:1.18}
+#newsPage .sanNewsHero p{margin:0;color:#536579!important;font-size:12px;line-height:1.45;max-width:unset}
+#newsPage .sanNewsRefresh{margin-top:8px;padding:7px 10px;border:1px solid #d9e5f0;border-radius:9px;background:#eef4fa;color:#175a8e;font-size:11px;box-shadow:none}
+#newsPage .teamToolsNav{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:0 0 11px;padding:4px;background:#e4e8ed;border-radius:13px}
+#newsPage .teamToolsTab{background:transparent;border-radius:9px;padding:10px 7px;font-size:13px}
+#newsPage .teamToolsTab.active{background:#fff;border-color:#d7e0e8;color:#183c5d;box-shadow:0 1px 3px rgba(15,23,42,.07)}
+#newsPage .sanNewsPublishBar{margin:0 0 11px;padding:11px;background:#fff;border:1px solid #e0e5ea;border-radius:14px;box-shadow:0 1px 3px rgba(20,35,55,.05)}
+#newsPage .sanNewsPublishButton{display:flex;align-items:center;gap:10px;width:100%;min-height:42px;border:1px solid #e0e5ea;border-radius:24px;padding:10px 14px;background:#f0f2f5;color:#596579;text-align:left;font-size:13px;font-weight:600;box-shadow:none}
+#newsPage .sanNewsPublishButton:before{content:'✍️';display:grid;place-items:center;flex:0 0 28px;width:28px;height:28px;border-radius:50%;background:#dceaf8;font-size:15px}
+#newsPage .sanNewsPublishButton:active{transform:none;background:#e6ebf0}
+#newsPage .sanNewsQuickActions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin-top:9px;padding-top:8px;border-top:1px solid #edf0f3}
+#newsPage .sanNewsQuickAction{display:flex;align-items:center;justify-content:center;gap:5px;min-width:0;padding:9px 3px;border:0;border-radius:8px;background:#fff;color:#4b5a6c;font-size:11px;font-weight:800;cursor:pointer;touch-action:manipulation}
+#newsPage .sanNewsQuickAction:active{background:#f0f2f5}
+#newsPage .sanNewsQuickAction span{font-size:16px}
+#newsPage .sanNewsQuickAction.photo span{color:#2a9d68}
+#newsPage .sanNewsQuickAction.question span{color:#2474c8}
+#newsPage .sanNewsQuickAction.annonce span{color:#c67d16}
+#newsPage .sanNewsTip{display:none!important}
+#newsPage .sanNewsFilters{padding:3px 0 10px;gap:6px}
+#newsPage .sanNewsFilter{padding:8px 11px;border-color:#d9e0e7;background:#fff;color:#536274;font-size:11px;box-shadow:none}
+#newsPage .sanNewsFilter.active{background:#dceafa;border-color:#bfd5ee;color:#174c7b;box-shadow:none}
+#newsPage .sanNewsStatus{padding:0 2px;margin-bottom:8px;color:#718093;font-size:11px}
+#newsPage .sanNewsFeed{gap:10px}
+#newsPage .sanNewsCard{border:1px solid #e0e5ea;border-radius:13px;background:#fff;box-shadow:0 1px 3px rgba(20,35,55,.06)}
+#newsPage .sanNewsCard.isUrgent{border-color:#e8aeb5;box-shadow:0 0 0 1px rgba(214,64,82,.04)}
+#newsPage .sanNewsCard.isImportant{border-color:#ead2a4}
+#newsPage .sanNewsCardHead{gap:10px;padding:13px 14px 0;align-items:center}
+#newsPage .sanNewsAvatar{display:grid;place-items:center;flex:0 0 39px;width:39px;height:39px;border-radius:50%;background:linear-gradient(145deg,#dcecff,#b8d5f4);color:#164b7a;font-size:13px;font-weight:900;letter-spacing:.2px;border:1px solid #c9dced}
+#newsPage .sanNewsCard.isUrgent .sanNewsAvatar{background:#ffe7e9;color:#a51e30;border-color:#f3c6cb}
+#newsPage .sanNewsCard.isImportant .sanNewsAvatar{background:#fff1d8;color:#86540a;border-color:#f0dfbc}
+#newsPage .sanNewsCardMeta{flex:1;min-width:0}
+#newsPage .sanNewsAuthor{margin:0;color:#22364a;font-size:13px;font-weight:850;line-height:1.25}
+#newsPage .sanNewsDate{margin-top:3px;color:#8692a0;font-size:10px}
+#newsPage .sanNewsBadge{flex:0 0 auto;max-width:45%;white-space:normal;text-align:right;padding:4px 7px;font-size:9px;line-height:1.2;letter-spacing:0}
+#newsPage .sanNewsBadge.info{background:#edf4fb;color:#396182}
+#newsPage .sanNewsBadge.important{background:#fff1d8;color:#895b11}
+#newsPage .sanNewsBadge.urgent{background:#ffe7e9;color:#a51e30}
+#newsPage .sanNewsCardBody{padding:10px 14px 13px}
+#newsPage .sanNewsTitle{margin:0 0 7px;color:#1c2b3a;font-size:17px;line-height:1.3;font-weight:800}
+#newsPage .sanNewsMessage{color:#263747;font-size:14px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}
+#newsPage .sanNewsPhotoGallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:4px;margin-top:12px;overflow:hidden;border-radius:10px}
+#newsPage .sanNewsPhotoGallery a{display:block;min-width:0}
+#newsPage .sanNewsPhoto{display:block;width:100%;max-height:360px;aspect-ratio:4/3;object-fit:cover;border-radius:5px}
+#newsPage .sanNewsSocial{margin-top:12px;padding-top:10px;border-top:1px solid #e9edf1}
+#newsPage .sanNewsSocialButtons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+#newsPage .sanNewsReactBtn{border:0;border-radius:8px;padding:10px 6px;background:#fff;color:#596879;font-size:12px;font-weight:750}
+#newsPage .sanNewsReactBtn:hover{background:#f0f2f5}
+#newsPage .sanNewsReactBtn.active{background:#e8f2ff;color:#175fa4}
+#newsPage .sanNewsReactBtn.love.active{background:#fff0f2;color:#b91c3a}
+#newsPage .sanNewsComments{margin-top:7px;border:0;border-radius:10px;background:#f6f7f9}
+#newsPage .sanNewsComments summary{padding:10px 12px;color:#536477;font-size:12px}
+#newsPage .sanNewsCommentList{padding:0 10px 10px}
+#newsPage .sanNewsComment{border:0;border-radius:12px;background:#e8edf2;padding:10px 12px}
+#newsPage .sanNewsCommentHead{color:#2b3d4f;font-size:11px}
+#newsPage .sanNewsCommentText{color:#293a4a;font-size:12px}
+#newsPage .sanNewsCommentForm textarea{border-radius:17px;background:#fff;padding:10px 12px}
+#newsPage .sanNewsCommentSend{border-radius:9px;padding:9px 13px;background:#1767a5}
+#newsPage .sanNewsEmpty,#newsPage .sanNewsLoading,#newsPage .sanNewsError{border:1px solid #e0e5ea;border-radius:13px;box-shadow:0 1px 3px rgba(20,35,55,.04)}
+#newsPage .teamToolIntro{margin:6px 0 13px}
+#newsPage .teamToolCard,#newsPage .teamPollCard{border-color:#e0e5ea;border-radius:13px;box-shadow:0 1px 3px rgba(20,35,55,.06)}
+#newsPage .teamPollCard{padding:15px}
+#newsPage .teamPollVoteButton{background:#f6d65b;color:#263238}
+@media(max-width:600px){
+ #newsPage.sanNewsPage{padding:7px 7px 22px!important}
+ #newsPage .sanNewsHero{padding:10px 11px;border-radius:11px}
+ #newsPage .sanNewsHero h1{font-size:20px!important}
+ #newsPage .sanNewsHero p{font-size:11px;line-height:1.4}
+ #newsPage .sanNewsRefresh{margin-top:7px;padding:7px 9px;font-size:10px}
+ #newsPage .teamToolsNav{margin-bottom:8px}
+ #newsPage .sanNewsPublishBar{padding:9px;border-radius:12px}
+ #newsPage .sanNewsQuickAction{font-size:10px;padding:8px 2px}
+ #newsPage .sanNewsCardHead{padding:11px 11px 0;gap:8px}
+ #newsPage .sanNewsAvatar{width:35px;height:35px;flex-basis:35px}
+ #newsPage .sanNewsBadge{max-width:44%;font-size:8px}
+ #newsPage .sanNewsCardBody{padding:9px 11px 11px}
+ #newsPage .sanNewsTitle{font-size:15px}
+ #newsPage .sanNewsMessage{font-size:13px}
+ #newsPage .sanNewsPhotoGallery{grid-template-columns:repeat(auto-fit,minmax(115px,1fr))}
+}
+</style>
+
 </head>
 <body>
 
@@ -2574,8 +2662,13 @@ button.settingsAction.secondary:hover,
       <button type="button" class="teamToolsTab" data-team-view="sondages" onclick="ouvrirOngletEquipe('sondages')">📊 Sondages</button>
     </nav>
     <div id="teamPublicationsPane" class="teamToolPane">
-    <div class="sanNewsPublishBar">
-      <button type="button" class="sanNewsPublishButton" onclick="togglePublicationEquipe()">＋ Nouvelle publication</button>
+    <div class="sanNewsPublishBar" aria-label="Créer une publication">
+      <button type="button" class="sanNewsPublishButton" onclick="togglePublicationEquipe()">À quoi pensez-vous ? Partagez avec l’équipe…</button>
+      <div class="sanNewsQuickActions" aria-label="Raccourcis de publication">
+        <button type="button" class="sanNewsQuickAction photo" onclick="ouvrirPublicationAvecTypeEquipe_('photo')"><span aria-hidden="true">📷</span> Photo</button>
+        <button type="button" class="sanNewsQuickAction question" onclick="ouvrirPublicationAvecTypeEquipe_('question')"><span aria-hidden="true">💬</span> Question</button>
+        <button type="button" class="sanNewsQuickAction annonce" onclick="ouvrirPublicationAvecTypeEquipe_('annonce')"><span aria-hidden="true">📣</span> Annonce</button>
+      </div>
     </div>
     <section id="sanNewsPublishPanel" class="sanNewsPublishPanel" hidden aria-label="Nouvelle publication">
       <div class="sanNewsPublishHead"><strong>Partager avec l’équipe</strong><button type="button" class="sanNewsCancel" onclick="togglePublicationEquipe(false)" aria-label="Fermer">✕</button></div>
@@ -4731,6 +4824,7 @@ function rendreActualitesEquipe_(){
     const legacy=!!r.legacy || id<0;
     const titre=titrePublicationEquipe_(r);
     const auteur=String(r.auteur||'Équipe SaniStock');
+    const initialesAuteur=auteur.trim().split(/\s+/).filter(Boolean).slice(0,2).map(function(part){return Array.from(part)[0]||'';}).join('').toUpperCase()||'É';
     const date=String(r.date||'');
     const badge=type==='question'?'💬 QUESTION':type==='idee'?'💡 IDÉE':(p==='urgent'?'🔴 ANNONCE URGENTE':p==='important'?'🟠 ANNONCE IMPORTANTE':'📣 ANNONCE');
     const icon=type==='question'?'💬':type==='idee'?'💡':(p==='urgent'?'🚨':p==='important'?'📌':'📣');
@@ -4762,7 +4856,7 @@ function rendreActualitesEquipe_(){
       social='<div class="sanNewsLegacyNote">'+(navigator.onLine?'⚠️ Mode lecture seule : le serveur de l’espace d’équipe ne répond pas. Vérifie le déploiement Apps Script.':'📵 Hors connexion : reconnecte-toi à Internet pour aimer et commenter. Les interactions sont partagées avec toute l’équipe.')+'</div>';
     }
     return '<article id="sanNewsPost_'+id+'" class="'+classes+'">'
-      +'<div class="sanNewsCardHead"><span class="sanNewsSymbol" aria-hidden="true">'+icon+'</span><div class="sanNewsCardMeta"><span class="sanNewsBadge '+p+'">'+badge+'</span><span class="sanNewsAuthor">'+escapeHtml(auteur)+'</span><span class="sanNewsDate">'+escapeHtml(date)+'</span></div></div>'
+      +'<div class="sanNewsCardHead"><span class="sanNewsAvatar" aria-hidden="true">'+escapeHtml(initialesAuteur)+'</span><div class="sanNewsCardMeta"><span class="sanNewsAuthor">'+escapeHtml(auteur)+'</span><span class="sanNewsDate">'+escapeHtml(date)+'</span></div><span class="sanNewsBadge '+p+'">'+badge+'</span></div>'
       +'<div class="sanNewsCardBody"><h2 class="sanNewsTitle">'+escapeHtml(titre)+'</h2><p class="sanNewsMessage">'+escapeHtml(r.message||'')+'</p>'
       +(photos.length?'<div class="sanNewsPhotoGallery">'+photos.slice(0,3).map(function(photoUrl,index){return '<a href="'+escapeHtml(photoUrl)+'" target="_blank" rel="noopener noreferrer" aria-label="Ouvrir la photo '+(index+1)+'"><img class="sanNewsPhoto" src="'+escapeHtml(photoUrl)+'" alt="Photo '+(index+1)+' partagée par '+escapeHtml(auteur)+'" loading="lazy"></a>';}).join('')+'</div>':'')
       +(expiration?'<div class="sanNewsExpiry">À consulter avant le : '+escapeHtml(expiration)+'</div>':'')
@@ -4805,6 +4899,21 @@ function marquerActualiteEquipeLue(id){
   try{localStorage.setItem(key,JSON.stringify(lus));}catch(e){}
   if(typeof fermerInformationAccueilSilencieux==='function') fermerInformationAccueilSilencieux();
   rendreActualitesEquipe_();
+}
+
+function ouvrirPublicationAvecTypeEquipe_(type){
+  const mode=String(type||'annonce');
+  const sel=document.getElementById('infoType');
+  if(sel) sel.value=(mode==='question'||mode==='idee')?mode:'annonce';
+  togglePublicationEquipe(true);
+  if(mode==='photo'){
+    const photo=document.getElementById('infoPhoto');
+    /* Appelé directement depuis le clic de l’utilisateur pour ouvrir le sélecteur photo. */
+    if(photo) photo.click();
+  }else{
+    const message=document.getElementById('infoMessage');
+    if(message) setTimeout(function(){message.focus();},60);
+  }
 }
 
 function togglePublicationEquipe(force){
