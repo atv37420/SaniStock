@@ -4359,78 +4359,111 @@ function marqueursActiviteEquipeBadge_(rows){
   });
   return Array.from(new Set(markers));
 }
-function synchroniserBadgeActualitesEquipe_(rows, toutMarquerLu){
+function marqueursMessagesTchatEquipeBadge_(rows){
+  const moi=normaliserAuteurEquipeBadge_(donneesSessionEquipe_().salarie);
+  const markers=[];
+  (Array.isArray(rows)?rows:[]).forEach(function(m){
+    if(!m||!m.id||Number(m.id)<=0)return;
+    const auteur=normaliserAuteurEquipeBadge_(m.auteur);
+    if(auteur&&auteur!==moi)markers.push('t:'+String(m.id));
+  });
+  return Array.from(new Set(markers));
+}
+function synchroniserBadgeActualitesEquipe_(rows, modeLecture, chatRows){
   const badge=document.getElementById('sanNewsUnreadBadge');
   if(!badge)return;
   const key=cleBadgeActualitesEquipe_();
-  const marqueurs=marqueursActiviteEquipeBadge_(rows);
+  const marqueursPublications=marqueursActiviteEquipeBadge_(rows);
+  const marqueursTchat=marqueursMessagesTchatEquipeBadge_(chatRows);
+  const marqueurs=Array.from(new Set(marqueursPublications.concat(marqueursTchat)));
   let raw=null, vus=[], storageOK=true;
   try{raw=localStorage.getItem(key);vus=raw?JSON.parse(raw):[];if(!Array.isArray(vus))vus=[];}catch(e){storageOK=false;raw=null;vus=[];}
-  /* Si le stockage est indisponible, conserver les marqueurs en mémoire plutôt que réinitialiser le compteur à chaque contrôle. */
+  /* Si le stockage local est indisponible, conserver les marqueurs en mémoire. */
   if(raw===null && window.sanNewsBadgeSeenMemory && window.sanNewsBadgeSeenMemory.key===key){
     raw='__memory__';vus=window.sanNewsBadgeSeenMemory.values||[];
   }
   function sauvegarderVus_(valeurs){
-    const snapshot=valeurs.slice(-800);
+    const snapshot=Array.from(new Set(valeurs)).slice(-1200);
     window.sanNewsBadgeSeenMemory={key:key,values:snapshot};
     if(storageOK){try{localStorage.setItem(key,JSON.stringify(snapshot));}catch(e){}}
   }
-  /* Première installation : ne pas marquer silencieusement toutes les publications existantes comme lues.
-     On initialise la liste des éléments vus à vide afin que la pastille s'affiche immédiatement.
-     L'ouverture d'Esprit d'équipe les marquera ensuite comme lus. */
-  if(raw===null){
-    vus=[];
-    sauvegarderVus_([]);
-    raw='[]';
-  }
-  if(toutMarquerLu){
-    sauvegarderVus_(marqueurs);
-    badge.hidden=true;
-    badge.textContent='';
-    return;
+  /* Au premier usage, ne pas marquer les nouveautés comme lues automatiquement. */
+  if(raw===null){vus=[];sauvegarderVus_([]);raw='[]';}
+  /* La consultation des Publications marque seulement publications/commentaires comme lus. */
+  const mode=(modeLecture===true?'publications':modeLecture);
+  if(mode==='publications'){
+    vus=Array.from(new Set(vus.concat(marqueursPublications)));
+    sauvegarderVus_(vus);
+  }else if(mode==='tchat'){
+    vus=Array.from(new Set(vus.concat(marqueursTchat)));
+    sauvegarderVus_(vus);
+  }else if(mode==='tout'){
+    vus=Array.from(new Set(vus.concat(marqueurs)));
+    sauvegarderVus_(vus);
   }
   const nonLus=marqueurs.filter(function(m){return vus.indexOf(m)<0;}).length;
-  /* Affiche le nombre réel de publications et réponses non lues, avec un plafond visuel à 99+. */
   badge.textContent=nonLus>99?'99+':String(nonLus);
   badge.hidden=(nonLus===0);
   if(nonLus>0){
-    badge.style.display='flex';
-    badge.style.visibility='visible';
-    badge.style.opacity='1';
+    badge.style.display='flex';badge.style.visibility='visible';badge.style.opacity='1';
   }else{
-    badge.style.removeProperty('display');
-    badge.style.removeProperty('visibility');
-    badge.style.removeProperty('opacity');
+    badge.style.removeProperty('display');badge.style.removeProperty('visibility');badge.style.removeProperty('opacity');
   }
   const libelle=nonLus===1?'1 nouveauté non lue':nonLus+' nouveautés non lues';
-  badge.setAttribute('aria-label',nonLus?libelle+' dans Esprit d’équipe':'Aucune nouvelle publication ou réponse');
+  badge.setAttribute('aria-label',nonLus?libelle+' dans Esprit d’équipe':'Aucune nouveauté non lue');
   badge.title=nonLus?libelle+' dans Esprit d’équipe':'';
+}
+function lignesTchatPourBadgeEquipe_(r){
+  if(Array.isArray(r))return r;
+  if(r&&Array.isArray(r.messages))return r.messages;
+  if(r&&r.success===false)return null;
+  return [];
+}
+function donneesBadgeEquipeDepuisCache_(){
+  let publications=window.sanNewsBadgeLatestPublications_;
+  if(!Array.isArray(publications)){
+    try{publications=JSON.parse(localStorage.getItem('sanistock_actualites_cache')||'[]');}catch(e){publications=[];}
+  }
+  const tchat=Array.isArray(window.sanNewsBadgeLatestChat_)?window.sanNewsBadgeLatestChat_:[];
+  return {publications:Array.isArray(publications)?publications:[],tchat:tchat};
+}
+function actualiserAffichageBadgeEquipe_(){
+  const d=donneesBadgeEquipeDepuisCache_();
+  synchroniserBadgeActualitesEquipe_(d.publications,false,d.tchat);
 }
 function verifierBadgeActualitesEquipe_(){
   const session=donneesSessionEquipe_();
   const page=document.getElementById('newsPage');
-  if(document.hidden||!session.salarie||!session.code||!navigator.onLine||!gsDisponible()||window.sanNewsBadgeRequestPending_)return;
+  if(document.hidden||!session.salarie||!session.code||!navigator.onLine||!gsDisponible())return;
   if(page&&page.classList.contains('active'))return;
-  window.sanNewsBadgeRequestPending_=true;
-  try {
-    google.script.run.withSuccessHandler(function(r){
-      window.sanNewsBadgeRequestPending_=false;
-      /* Une erreur métier renvoyée dans le success handler ne doit pas être transformée en liste vide :
-         sinon le compteur se cache, même si des nouveautés avaient déjà été détectées. */
-      if(r && r.success===false){
-        console.warn('Compteur Esprit d’équipe : réponse serveur en erreur.', r.error||'Erreur inconnue');
-        return;
-      }
-      const rows=normaliserActualites_(r);
-      const ouverte=!!(document.getElementById('newsPage')&&document.getElementById('newsPage').classList.contains('active'));
-      synchroniserBadgeActualitesEquipe_(rows,ouverte);
-    }).withFailureHandler(function(err){
-      window.sanNewsBadgeRequestPending_=false;
-      console.warn('Compteur Esprit d’équipe indisponible :',err);
-    }).getPublicationsEquipe(session);
-  } catch(err) {
-    window.sanNewsBadgeRequestPending_=false;
-    console.warn('Impossible de lancer la vérification du compteur Esprit d’équipe :',err);
+  if(!window.sanNewsBadgePublicationsPending_){
+    window.sanNewsBadgePublicationsPending_=true;
+    try{
+      google.script.run.withSuccessHandler(function(r){
+        window.sanNewsBadgePublicationsPending_=false;
+        if(r&&r.success===false){console.warn('Compteur publications Esprit d’équipe :',r.error||'Erreur inconnue');return;}
+        window.sanNewsBadgeLatestPublications_=normaliserActualites_(r);
+        actualiserAffichageBadgeEquipe_();
+      }).withFailureHandler(function(err){
+        window.sanNewsBadgePublicationsPending_=false;
+        console.warn('Compteur publications Esprit d’équipe indisponible :',err);
+      }).getPublicationsEquipe(session);
+    }catch(err){window.sanNewsBadgePublicationsPending_=false;console.warn('Impossible de vérifier les publications :',err);}
+  }
+  if(!window.sanNewsBadgeTchatPending_){
+    window.sanNewsBadgeTchatPending_=true;
+    try{
+      google.script.run.withSuccessHandler(function(r){
+        window.sanNewsBadgeTchatPending_=false;
+        const rows=lignesTchatPourBadgeEquipe_(r);
+        if(rows===null){console.warn('Compteur tchat Esprit d’équipe :',r.error||'Erreur inconnue');return;}
+        window.sanNewsBadgeLatestChat_=rows;
+        actualiserAffichageBadgeEquipe_();
+      }).withFailureHandler(function(err){
+        window.sanNewsBadgeTchatPending_=false;
+        console.warn('Compteur tchat Esprit d’équipe indisponible :',err);
+      }).getMessagesTchatEquipe(session);
+    }catch(err){window.sanNewsBadgeTchatPending_=false;console.warn('Impossible de vérifier le tchat :',err);}
   }
 }
 function initialiserBadgeActualitesEquipe_(){
@@ -4469,7 +4502,8 @@ function chargerActualitesEquipe(forcer){
     actualitesEquipeData_=normaliserActualites_(r);
     actualitesEquipeModeHorsLigne_=false;
     try{localStorage.setItem('sanistock_actualites_cache',JSON.stringify(actualitesEquipeData_));}catch(e){}
-    synchroniserBadgeActualitesEquipe_(actualitesEquipeData_,true);
+    window.sanNewsBadgeLatestPublications_=actualitesEquipeData_;
+    synchroniserBadgeActualitesEquipe_(actualitesEquipeData_,'publications',window.sanNewsBadgeLatestChat_||[]);
     rendreActualitesEquipe_();
   }).withFailureHandler(function(err){
     let cache=[];
@@ -4576,6 +4610,12 @@ function chargerTchatEquipe(forcer){
     const rows=Array.isArray(r)?r:(r&&Array.isArray(r.messages)?r.messages:[]);
     const oldBottom=list.scrollHeight-list.scrollTop-list.clientHeight<70;
     tchatEquipeData_=rows;
+    window.sanNewsBadgeLatestChat_=rows;
+    const chatPane=document.getElementById('teamChatPane');
+    if(chatPane&&!chatPane.hidden){
+      const pubRows=Array.isArray(window.sanNewsBadgeLatestPublications_)?window.sanNewsBadgeLatestPublications_:actualitesEquipeData_;
+      synchroniserBadgeActualitesEquipe_(pubRows,'tchat',rows);
+    }
     if(!rows.length){list.innerHTML='<div class="teamChatEmpty">Aucun message pour le moment. Lance la discussion ! 👋</div>';return;}
     const moi=normaliserAuteurEquipeBadge_(donneesSessionEquipe_().salarie);
     const emojisTchat=['👍','❤️','😂','👏','🚑','🎉'];
@@ -10754,7 +10794,7 @@ if ("serviceWorker" in navigator) {
 </script>
 
 
-<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.80</div>
+<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.81</div>
 
 <style id="sanistock-connexion-accueil-uniquement">
 #saniConnection.saniConnHomeOnlyHidden{display:none !important;}
