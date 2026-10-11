@@ -1927,6 +1927,11 @@ button.settingsAction.secondary:hover,
 .ambSignatureClear{border:1px solid #cbd5e1;background:#f8fafc;color:#334155;border-radius:8px;padding:8px 12px;font-weight:700;cursor:pointer}
 @media(max-width:600px){.ambSignatureHint,.ambSignatureClear{font-size:11px}.ambSignatureCanvas{height:165px}}
 </style>
+
+<style id="sanistock-amb-section-bulk-actions">
+#checklistAmbulanceDetail .ambSectionBulkActions{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 10px}
+#checklistAmbulanceDetail .ambSectionBulkActions .toutCocherBtn{flex:1 1 140px;margin:0;min-height:38px}
+</style>
 </head>
 <body>
 
@@ -11424,7 +11429,7 @@ window.saniStockGenererVslPdfExact=buildExactPdf;
     Object.keys(groups).forEach(function(cat){
       html+='<div class="vslSection">';
       html+='<div class="vslSectionTitle">'+esc(cat)+'</div>';
-html+='<button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+'">✓ TOUT COCHER LA SECTION</button><button type="button" class="toutCocherBtn" onclick="toutDecocherAmbulanceSection(this,\''+esc(cat)+'\')">✕ TOUT DÉCOCHER LA SECTION</button>';
+html+='<div class="ambSectionBulkActions"><button type="button" class="toutCocherBtn" data-amb-section="'+esc(cat)+'">✓ TOUT COCHER</button><button type="button" class="toutCocherBtn" onclick="toutDecocherAmbulanceSection(this,\''+esc(cat)+'\')">✕ TOUT DÉCOCHER</button></div>';
       html+='<div class="vslChecklistHead"><div>Inventaire</div><div>Quantité</div><div>Présent</div><div>Manque</div><div>Quantité manquante</div></div>';
       groups[cat].forEach(function(pair){
         const item=pair[0], i=pair[1];
