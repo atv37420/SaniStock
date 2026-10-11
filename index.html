@@ -2253,6 +2253,15 @@ button.settingsAction.secondary:hover,
 .homeButton4.team4 .sanNewsUnreadBadge[hidden] { display: none !important; }
 </style>
 
+
+<style id="sanistock-1-1-86-badges-refresh-fix">
+/* 1.1.86 : pastilles explicites et rafraîchissement silencieux. */
+.homeButtons4,.homeButton4.team4{overflow:visible!important}
+.homeButton4.team4 #sanNewsUnreadBadge.has-unread:not([hidden]){display:flex!important;visibility:visible!important;opacity:1!important}
+.homeButton4.team4 #sanNewsUnreadBadge.has-unread[hidden]{display:none!important}
+.teamToolsTab .teamToolsUnreadBadge.has-unread:not([hidden]){display:inline-flex!important;visibility:visible!important;opacity:1!important}
+.teamToolsTab .teamToolsUnreadBadge.has-unread[hidden]{display:none!important}
+</style>
 </head>
 <body>
 
@@ -4305,6 +4314,7 @@ function fermerMessageAnniversaire(){
 
 /* ===== ACTUALITÉS ÉQUIPE — s'appuie sur les annonces déjà gérées par SaniStock ===== */
 let actualitesEquipeData_ = [];
+let actualitesEquipeRequestPending_ = false;
 let actualitesEquipeFiltre_ = 'all';
 let actualitesEquipeModeHorsLigne_ = false;
 
@@ -4374,14 +4384,12 @@ function marqueursMessagesTchatEquipeBadge_(rows){
 }
 function synchroniserBadgeActualitesEquipe_(rows, modeLecture, chatRows){
   const badge=document.getElementById('sanNewsUnreadBadge');
-  if(!badge)return;
-  const key=cleBadgeActualitesEquipe_();
   const marqueursPublications=marqueursActiviteEquipeBadge_(rows);
   const marqueursTchat=marqueursMessagesTchatEquipeBadge_(chatRows);
   const marqueurs=Array.from(new Set(marqueursPublications.concat(marqueursTchat)));
+  const key=cleBadgeActualitesEquipe_();
   let raw=null, vus=[], storageOK=true;
   try{raw=localStorage.getItem(key);vus=raw?JSON.parse(raw):[];if(!Array.isArray(vus))vus=[];}catch(e){storageOK=false;raw=null;vus=[];}
-  /* Si le stockage local est indisponible, conserver les marqueurs en mémoire. */
   if(raw===null && window.sanNewsBadgeSeenMemory && window.sanNewsBadgeSeenMemory.key===key){
     raw='__memory__';vus=window.sanNewsBadgeSeenMemory.values||[];
   }
@@ -4390,9 +4398,8 @@ function synchroniserBadgeActualitesEquipe_(rows, modeLecture, chatRows){
     window.sanNewsBadgeSeenMemory={key:key,values:snapshot};
     if(storageOK){try{localStorage.setItem(key,JSON.stringify(snapshot));}catch(e){}}
   }
-  /* Au premier usage, ne pas marquer les nouveautés comme lues automatiquement. */
+  /* Au premier usage, afficher les nouveautés présentes plutôt que les déclarer lues. */
   if(raw===null){vus=[];sauvegarderVus_([]);raw='[]';}
-  /* La consultation des Publications marque seulement publications/commentaires comme lus. */
   const mode=(modeLecture===true?'publications':modeLecture);
   if(mode==='publications'){
     vus=Array.from(new Set(vus.concat(marqueursPublications)));
@@ -4411,21 +4418,22 @@ function synchroniserBadgeActualitesEquipe_(rows, modeLecture, chatRows){
     const el=document.getElementById(id);if(!el)return;
     el.textContent=nombre>99?'99+':String(nombre);
     el.hidden=nombre===0;
-    el.setAttribute('aria-label',nombre?(nombre===1?'1 nouveauté non lue':' '+nombre+' nouveautés non lues')+' — '+label:'Aucune nouveauté non lue — '+label);
-    el.title=nombre?(nombre+' nouveauté(s) non lue(s) — '+label):'';
+    el.classList.toggle('has-unread',nombre>0);
+    el.setAttribute('aria-label',nombre?(nombre===1?'1 nouveauté non lue':nombre+' nouveautés non lues')+' — '+label:'Aucune nouveauté non lue — '+label);
+    el.title=nombre?nombre+' nouveauté(s) non lue(s) — '+label:'';
   }
   afficherBadgeRubrique_('teamPublicationsUnreadBadge',nonLusPublications,'Publications et réponses');
   afficherBadgeRubrique_('teamChatUnreadBadge',nonLusTchat,'Tchat');
-  badge.textContent=nonLus>99?'99+':String(nonLus);
-  badge.hidden=(nonLus===0);
-  if(nonLus>0){
-    badge.style.display='flex';badge.style.visibility='visible';badge.style.opacity='1';
-  }else{
-    badge.style.removeProperty('display');badge.style.removeProperty('visibility');badge.style.removeProperty('opacity');
+  if(badge){
+    badge.textContent=nonLus>99?'99+':String(nonLus);
+    badge.hidden=(nonLus===0);
+    badge.classList.toggle('has-unread',nonLus>0);
+    if(nonLus>0){badge.style.display='flex';badge.style.visibility='visible';badge.style.opacity='1';}
+    else{badge.style.removeProperty('display');badge.style.removeProperty('visibility');badge.style.removeProperty('opacity');}
+    const libelle=nonLus===1?'1 nouveauté non lue':nonLus+' nouveautés non lues';
+    badge.setAttribute('aria-label',nonLus?libelle+' dans Esprit d’équipe':'Aucune nouveauté non lue');
+    badge.title=nonLus?libelle+' dans Esprit d’équipe':'';
   }
-  const libelle=nonLus===1?'1 nouveauté non lue':nonLus+' nouveautés non lues';
-  badge.setAttribute('aria-label',nonLus?libelle+' dans Esprit d’équipe':'Aucune nouveauté non lue');
-  badge.title=nonLus?libelle+' dans Esprit d’équipe':'';
 }
 function lignesTchatPourBadgeEquipe_(r){
   if(Array.isArray(r))return r;
@@ -4447,9 +4455,13 @@ function actualiserAffichageBadgeEquipe_(){
 }
 function verifierBadgeActualitesEquipe_(){
   const session=donneesSessionEquipe_();
-  const page=document.getElementById('newsPage');
   if(document.hidden||!session.salarie||!session.code||!navigator.onLine||!gsDisponible())return;
-  if(page&&page.classList.contains('active'))return;
+  const page=document.getElementById('newsPage');
+  const pageEquipeOuverte=!!(page&&page.classList.contains('active'));
+  const chatPane=document.getElementById('teamChatPane');
+  const tchatDejaActualiseParSonPropreTimer=pageEquipeOuverte&&chatPane&&!chatPane.hidden;
+  /* Le fil des publications est lu séparément : on le vérifie même si le tchat est ouvert,
+     afin de pouvoir afficher sa pastille sans recharger les messages à l’écran. */
   if(!window.sanNewsBadgePublicationsPending_){
     window.sanNewsBadgePublicationsPending_=true;
     try{
@@ -4464,7 +4476,8 @@ function verifierBadgeActualitesEquipe_(){
       }).getPublicationsEquipe(session);
     }catch(err){window.sanNewsBadgePublicationsPending_=false;console.warn('Impossible de vérifier les publications :',err);}
   }
-  if(!window.sanNewsBadgeTchatPending_){
+  /* Si le tchat est ouvert, son rafraîchissement silencieux dédié gère déjà ses messages. */
+  if(!tchatDejaActualiseParSonPropreTimer&&!window.sanNewsBadgeTchatPending_){
     window.sanNewsBadgeTchatPending_=true;
     try{
       google.script.run.withSuccessHandler(function(r){
@@ -4493,8 +4506,11 @@ function chargerActualitesEquipe(forcer){
   const feed=document.getElementById('sanNewsFeed');
   const status=document.getElementById('sanNewsStatus');
   if(!feed) return;
+  if(actualitesEquipeRequestPending_) return;
   if(status) status.textContent='';
-  feed.innerHTML='<div class="sanNewsLoading"><span class="sanNewsSpinner"></span> Chargement des échanges…</div>';
+  /* Ne jamais effacer un fil déjà affiché lors d'une vérification/réouverture. */
+  const contenuDejaAffiche=!!feed.querySelector('.sanNewsCard,.sanNewsEmpty,.sanNewsError');
+  if(!contenuDejaAffiche) feed.innerHTML='<div class="sanNewsLoading"><span class="sanNewsSpinner"></span> Chargement des échanges…</div>';
   const session=donneesSessionEquipe_();
   function afficherCache_(message){
     let cache=[];
@@ -4512,14 +4528,24 @@ function chargerActualitesEquipe(forcer){
     afficherCache_('Hors connexion • les publications sont consultables depuis le cache, mais les réactions ne sont pas disponibles.');
     return;
   }
+  actualitesEquipeRequestPending_=true;
   google.script.run.withSuccessHandler(function(r){
+    actualitesEquipeRequestPending_=false;
+    if(r&&r.success===false){
+      if(status) status.textContent='Les échanges n’ont pas pu être actualisés. Les messages déjà affichés sont conservés.';
+      console.warn('Actualités Esprit d’équipe :',r.error||'Erreur inconnue');
+      return;
+    }
     actualitesEquipeData_=normaliserActualites_(r);
     actualitesEquipeModeHorsLigne_=false;
     try{localStorage.setItem('sanistock_actualites_cache',JSON.stringify(actualitesEquipeData_));}catch(e){}
     window.sanNewsBadgeLatestPublications_=actualitesEquipeData_;
-    const publicationsPane=document.getElementById('teamPublicationsPane'); const modeLecturePublications=(!publicationsPane||!publicationsPane.hidden)?'publications':false; synchroniserBadgeActualitesEquipe_(actualitesEquipeData_,modeLecturePublications,window.sanNewsBadgeLatestChat_||[]);
+    const publicationsPane=document.getElementById('teamPublicationsPane');
+    const modeLecturePublications=(!publicationsPane||!publicationsPane.hidden)?'publications':false;
+    synchroniserBadgeActualitesEquipe_(actualitesEquipeData_,modeLecturePublications,window.sanNewsBadgeLatestChat_||[]);
     rendreActualitesEquipe_();
   }).withFailureHandler(function(err){
+    actualitesEquipeRequestPending_=false;
     let cache=[];
     try{cache=JSON.parse(localStorage.getItem('sanistock_actualites_cache')||'[]');}catch(e){cache=[];}
     const detail=String(err&&err.message?err.message:err||'Erreur inconnue');
@@ -4527,11 +4553,14 @@ function chargerActualitesEquipe(forcer){
       actualitesEquipeData_=cache;
       actualitesEquipeModeHorsLigne_=true;
       if(status) status.textContent=navigator.onLine
-        ? 'Le serveur des actualités a refusé la demande. Affichage du cache en lecture seule ; vérifie que le dernier Code.gs a été déployé dans Apps Script. ('+detail+')'
+        ? 'Le serveur des actualités ne répond pas. Les derniers échanges affichés sont conservés. ('+detail+')'
         : 'Hors connexion • affichage des derniers échanges enregistrés sur cet appareil.';
       rendreActualitesEquipe_();
     }else{
-      feed.innerHTML='<div class="sanNewsError"><span class="sanNewsEmptyIcon">⚠️</span><strong>Échanges indisponibles</strong><br>'+escapeHtml(detail)+'<br><br>'+(navigator.onLine?'Vérifie que le Code.gs contenant les fonctions Esprit d’équipe a été enregistré puis redéployé.':'Reconnecte-toi à Internet pour charger les échanges partagés.')+'</div>';
+      /* Si un fil existe déjà dans le DOM, ne pas le remplacer par un écran de chargement/erreur. */
+      if(!feed.querySelector('.sanNewsCard,.sanNewsEmpty')){
+        feed.innerHTML='<div class="sanNewsError"><span class="sanNewsEmptyIcon">⚠️</span><strong>Échanges indisponibles</strong><br>'+escapeHtml(detail)+'<br><br>'+(navigator.onLine?'Vérifie le déploiement Apps Script.':'Reconnecte-toi à Internet pour charger les échanges partagés.')+'</div>';
+      }
     }
   }).getPublicationsEquipe(session);
 }
@@ -4541,6 +4570,7 @@ let tchatEquipeData_ = [];
 let tchatEquipeRefreshTimer_ = null;
 let tchatEquipeEnvoiEnCours_ = false;
 let tchatEquipeLoaded_ = false;
+let tchatEquipeRequestPending_ = false;
 let tchatEquipeRenderedSignature_ = '';
 function fusionnerMessagesTchatEquipe_(anciennes, nouvelles){
   const byId=new Map();
@@ -4628,44 +4658,65 @@ function voterSondageEquipeUI(id){
     .voterSondageEquipe(Object.assign({},donneesSessionEquipe_(),{sondageId:Number(id),optionIndex:optionIndex}));
 }
 function chargerTchatEquipe(forcer, silencieux){
-  const list=document.getElementById('teamChatMessages'),status=document.getElementById('teamChatStatus');if(!list)return;
-  const auth=messageEspaceEquipe_();if(auth){list.innerHTML='<div class="teamChatEmpty">'+escapeHtml(auth)+'</div>';return;}
-  /* Le spinner ne s'affiche qu'à l'ouverture ou lors d'un rafraîchissement manuel. */
-  if(forcer||!tchatEquipeLoaded_)list.innerHTML='<div class="sanNewsLoading">Chargement du tchat…</div>';
-  google.script.run.withSuccessHandler(function(r){
-    const incoming=Array.isArray(r)?r:(r&&Array.isArray(r.messages)?r.messages:[]);
-    const rows=fusionnerMessagesTchatEquipe_(tchatEquipeData_,incoming);
-    const signature=JSON.stringify(rows);
-    const oldBottom=list.scrollHeight-list.scrollTop-list.clientHeight<70;
-    const oldScrollTop=list.scrollTop;
-    tchatEquipeLoaded_=true;
-    tchatEquipeData_=rows;
-    window.sanNewsBadgeLatestChat_=rows;
-    const chatPane=document.getElementById('teamChatPane');
-    if(chatPane&&!chatPane.hidden){
-      const pubRows=Array.isArray(window.sanNewsBadgeLatestPublications_)?window.sanNewsBadgeLatestPublications_:actualitesEquipeData_;
-      synchroniserBadgeActualitesEquipe_(pubRows,'tchat',rows);
-    }
-    /* Si rien n'a changé, ne touche pas au DOM : pas de clignotement, pas de faux chargement. */
-    if(!forcer&&signature===tchatEquipeRenderedSignature_)return;
-    tchatEquipeRenderedSignature_=signature;
-    if(!rows.length){list.innerHTML='<div class="teamChatEmpty">Aucun message pour le moment. Lance la discussion ! 👋</div>';if(!silencieux&&status)status.textContent='';return;}
-    const moi=normaliserAuteurEquipeBadge_(donneesSessionEquipe_().salarie);
-    const emojisTchat=['👍','❤️','😂','👏','🚑','🎉'];
-    list.innerHTML=rows.map(function(m){
-      const mine=normaliserAuteurEquipeBadge_(m.auteur)===moi;
-      const reactions=Array.isArray(m.reactions)?m.reactions:[];
-      const byEmoji={};reactions.forEach(function(r){byEmoji[String(r.emoji||'')]=r;});
-      const reactionButtons=emojisTchat.map(function(emoji){const r=byEmoji[emoji]||{count:0,active:false};return '<button type="button" class="teamChatReactionBtn '+(r.active?'active':'')+'" aria-label="Réagir avec '+emoji+'" aria-pressed="'+(r.active?'true':'false')+'" onclick="basculerReactionTchatEquipeUI('+Number(m.id)+',\''+emoji+'\',this)"><b>'+emoji+'</b><span>'+(Number(r.count)||0)+'</span></button>';}).join('');
-      return '<article id="teamChatMessage_'+Number(m.id)+'" class="teamChatMessage'+(mine?' mine':'')+'"><div class="teamChatMessageHead"><span class="teamChatAuthor">'+escapeHtml(m.auteur||'Collègue')+'</span><span class="teamChatDate">'+escapeHtml(m.date||'')+'</span></div><div class="teamChatMessageBody">'+escapeHtml(m.message||'')+'</div><div class="teamChatReactions" aria-label="Réactions au message">'+reactionButtons+'</div></article>';
-    }).join('');
-    if(oldBottom||forcer)list.scrollTop=list.scrollHeight;else list.scrollTop=oldScrollTop;
-    if(!silencieux&&status)status.textContent='Actualisé · '+rows.length+' message'+(rows.length===1?'':'s')+' affiché'+(rows.length===1?'':'s');
-  }).withFailureHandler(function(e){
-    tchatEquipeLoaded_=true;
-    if(!silencieux&&status)status.textContent='Erreur de chargement : '+String(e&&e.message||e||'erreur inconnue');
-    if(!tchatEquipeData_.length)list.innerHTML='<div class="teamChatEmpty">Le tchat est momentanément indisponible.</div>';
-  }).getMessagesTchatEquipe(donneesSessionEquipe_());
+  const list=document.getElementById('teamChatMessages'),status=document.getElementById('teamChatStatus');
+  if(!list)return;
+  const auth=messageEspaceEquipe_();
+  if(auth){list.innerHTML='<div class="teamChatEmpty">'+escapeHtml(auth)+'</div>';return;}
+  /* Un seul appel réseau à la fois : pas de spinner réaffiché si Apps Script met du temps. */
+  if(tchatEquipeRequestPending_)return;
+  const dejaDuContenu=!!list.querySelector('.teamChatMessage,.teamChatEmpty');
+  if(!tchatEquipeLoaded_&&!dejaDuContenu)list.innerHTML='<div class="sanNewsLoading">Chargement du tchat…</div>';
+  tchatEquipeRequestPending_=true;
+  let runner;
+  try{
+    runner=google.script.run.withSuccessHandler(function(r){
+      tchatEquipeRequestPending_=false;
+      if(r&&r.success===false){
+        if(!silencieux&&status)status.textContent='Le tchat ne peut pas être actualisé pour le moment.';
+        return; /* Ne pas remplacer les messages existants par une réponse d’erreur. */
+      }
+      const validArray=Array.isArray(r)||(r&&Array.isArray(r.messages));
+      if(!validArray){if(!silencieux&&status)status.textContent='Réponse du tchat invalide ; les messages affichés sont conservés.';return;}
+      const incoming=Array.isArray(r)?r:r.messages;
+      const rows=fusionnerMessagesTchatEquipe_(tchatEquipeData_,incoming);
+      const signature=JSON.stringify(rows.map(function(m){
+        return [m.id,m.auteur,m.date,m.message,(Array.isArray(m.reactions)?m.reactions:[]).map(function(re){return [re.emoji,Number(re.count)||0,!!re.active];})];
+      }));
+      const oldBottom=list.scrollHeight-list.scrollTop-list.clientHeight<70;
+      const oldScrollTop=list.scrollTop;
+      tchatEquipeLoaded_=true;
+      tchatEquipeData_=rows;
+      window.sanNewsBadgeLatestChat_=rows;
+      const chatPane=document.getElementById('teamChatPane');
+      if(chatPane&&!chatPane.hidden){
+        const pubRows=Array.isArray(window.sanNewsBadgeLatestPublications_)?window.sanNewsBadgeLatestPublications_:actualitesEquipeData_;
+        synchroniserBadgeActualitesEquipe_(pubRows,'tchat',rows);
+      }
+      /* Si le contenu n’a pas changé, on ne touche pas au DOM : ni clignotement ni chargement. */
+      if(!forcer&&signature===tchatEquipeRenderedSignature_)return;
+      tchatEquipeRenderedSignature_=signature;
+      if(!rows.length){list.innerHTML='<div class="teamChatEmpty">Aucun message pour le moment. Lance la discussion ! 👋</div>';if(!silencieux&&status)status.textContent='';return;}
+      const moi=normaliserAuteurEquipeBadge_(donneesSessionEquipe_().salarie);
+      const emojisTchat=['👍','❤️','😂','👏','🚑','🎉'];
+      list.innerHTML=rows.map(function(m){
+        const mine=normaliserAuteurEquipeBadge_(m.auteur)===moi;
+        const reactions=Array.isArray(m.reactions)?m.reactions:[];
+        const byEmoji={};reactions.forEach(function(re){byEmoji[String(re.emoji||'')]=re;});
+        const reactionButtons=emojisTchat.map(function(emoji){const re=byEmoji[emoji]||{count:0,active:false};return '<button type="button" class="teamChatReactionBtn '+(re.active?'active':'')+'" aria-label="Réagir avec '+emoji+'" aria-pressed="'+(re.active?'true':'false')+'" onclick="basculerReactionTchatEquipeUI('+Number(m.id)+',\''+emoji+'\',this)"><b>'+emoji+'</b><span>'+(Number(re.count)||0)+'</span></button>';}).join('');
+        return '<article id="teamChatMessage_'+Number(m.id)+'" class="teamChatMessage'+(mine?' mine':'')+'"><div class="teamChatMessageHead"><span class="teamChatAuthor">'+escapeHtml(m.auteur||'Collègue')+'</span><span class="teamChatDate">'+escapeHtml(m.date||'')+'</span></div><div class="teamChatMessageBody">'+escapeHtml(m.message||'')+'</div><div class="teamChatReactions" aria-label="Réactions au message">'+reactionButtons+'</div></article>';
+      }).join('');
+      if(oldBottom||forcer)list.scrollTop=list.scrollHeight;else list.scrollTop=oldScrollTop;
+      if(!silencieux&&status)status.textContent='Actualisé · '+rows.length+' message'+(rows.length===1?'':'s')+' affiché'+(rows.length===1?'':'s');
+    }).withFailureHandler(function(e){
+      tchatEquipeRequestPending_=false;
+      if(!silencieux&&status)status.textContent='Erreur de chargement : '+String(e&&e.message||e||'erreur inconnue');
+      if(!tchatEquipeData_.length&&!list.querySelector('.teamChatEmpty'))list.innerHTML='<div class="teamChatEmpty">Le tchat est momentanément indisponible.</div>';
+    });
+    runner.getMessagesTchatEquipe(donneesSessionEquipe_());
+  }catch(err){
+    tchatEquipeRequestPending_=false;
+    if(!silencieux&&status)status.textContent='Erreur de chargement : '+String(err&&err.message||err||'erreur inconnue');
+  }
 }
 function basculerReactionTchatEquipeUI(messageId, emoji, button){
   const auth=messageEspaceEquipe_();
@@ -10830,7 +10881,7 @@ if ("serviceWorker" in navigator) {
 </script>
 
 
-<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.82</div>
+<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.86</div>
 
 <style id="sanistock-connexion-accueil-uniquement">
 #saniConnection.saniConnHomeOnlyHidden{display:none !important;}
@@ -12917,5 +12968,6 @@ html+='<div class="ambSectionBulkActions"><button type="button" class="toutCoche
 })();
 </script>
 
+<!-- SaniStock 1.1.86 : compteur par rubrique + rafraîchissement silencieux sans clignotement -->
 </body>
 </html>
