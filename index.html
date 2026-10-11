@@ -2569,7 +2569,6 @@ button.settingsAction.secondary:hover,
       <button type="button" class="sanNewsRefresh" onclick="chargerActualitesEquipe(true)">↻ Actualiser les publications</button>
     </header>
     <nav class="teamToolsNav" aria-label="Espaces de l’équipe">
-      <button type="button" class="teamToolsTab" data-team-view="tchat" onclick="ouvrirOngletEquipe('tchat')">💬 Tchat <span id="teamChatUnreadBadge" class="teamToolsUnreadBadge" hidden aria-label="Messages du tchat non lus">1</span></button>
       <button type="button" class="teamToolsTab active" data-team-view="publications" onclick="ouvrirOngletEquipe('publications')">📣 Publications <span id="teamPublicationsUnreadBadge" class="teamToolsUnreadBadge" hidden aria-label="Publications et réponses non lues">1</span></button>
       <button type="button" class="teamToolsTab" data-team-view="sondages" onclick="ouvrirOngletEquipe('sondages')">📊 Sondages</button>
     </nav>
@@ -2642,20 +2641,6 @@ button.settingsAction.secondary:hover,
       </div>
       <div class="teamToolSectionHead"><h3>Les sondages</h3><button type="button" class="teamToolSecondaryButton" onclick="chargerSondagesEquipe()">↻ Actualiser</button></div>
       <div id="teamPollList" class="teamPollList"><div class="sanNewsLoading">Chargement des sondages…</div></div>
-    </section>
-    <section id="teamChatPane" class="teamToolPane" hidden aria-label="Tchat de l’équipe">
-      <div class="teamToolIntro"><h2>💬 Tchat de l’équipe</h2><p>Un espace libre pour discuter entre collègues. Les messages sont partagés avec toute l’équipe.</p></div>
-      <div class="teamChatCard">
-        <div class="teamChatToolbar"><strong>Discussion générale</strong><button type="button" class="teamToolSecondaryButton" onclick="chargerTchatEquipe(true)">↻ Actualiser</button></div>
-        <div id="teamChatStatus" class="teamToolStatus" aria-live="polite"></div>
-        <div id="teamChatMessages" class="teamChatMessages" aria-live="polite"><div class="sanNewsLoading">Chargement du tchat…</div></div>
-        <form class="teamChatComposer" onsubmit="envoyerMessageTchatEquipeUI(event)">
-          <label for="teamChatInput">Votre message</label>
-          <textarea id="teamChatInput" class="sanNewsFormControl" rows="3" maxlength="1000" placeholder="Écrivez à toute l’équipe…"></textarea>
-          <div class="teamChatComposerBottom"><small>1000 caractères maximum</small><button type="submit" id="teamChatSendButton" class="sanNewsPublishSubmit">Envoyer ↗</button></div>
-        </form>
-      </div>
-      <p class="teamChatGuidance">Échangez librement et avec respect. Évitez de publier des informations confidentielles ou des données personnelles.</p>
     </section>
   </div>
 </section>
@@ -4385,8 +4370,8 @@ function marqueursMessagesTchatEquipeBadge_(rows){
 function synchroniserBadgeActualitesEquipe_(rows, modeLecture, chatRows){
   const badge=document.getElementById('sanNewsUnreadBadge');
   const marqueursPublications=marqueursActiviteEquipeBadge_(rows);
-  const marqueursTchat=marqueursMessagesTchatEquipeBadge_(chatRows);
-  const marqueurs=Array.from(new Set(marqueursPublications.concat(marqueursTchat)));
+  const marqueursTchat=[];
+  const marqueurs=marqueursPublications;
   const key=cleBadgeActualitesEquipe_();
   let raw=null, vus=[], storageOK=true;
   try{raw=localStorage.getItem(key);vus=raw?JSON.parse(raw):[];if(!Array.isArray(vus))vus=[];}catch(e){storageOK=false;raw=null;vus=[];}
@@ -4404,16 +4389,13 @@ function synchroniserBadgeActualitesEquipe_(rows, modeLecture, chatRows){
   if(mode==='publications'){
     vus=Array.from(new Set(vus.concat(marqueursPublications)));
     sauvegarderVus_(vus);
-  }else if(mode==='tchat'){
-    vus=Array.from(new Set(vus.concat(marqueursTchat)));
-    sauvegarderVus_(vus);
   }else if(mode==='tout'){
     vus=Array.from(new Set(vus.concat(marqueurs)));
     sauvegarderVus_(vus);
   }
   const nonLusPublications=marqueursPublications.filter(function(m){return vus.indexOf(m)<0;}).length;
-  const nonLusTchat=marqueursTchat.filter(function(m){return vus.indexOf(m)<0;}).length;
-  const nonLus=nonLusPublications+nonLusTchat;
+  const nonLusTchat=0;
+  const nonLus=nonLusPublications;
   function afficherBadgeRubrique_(id,nombre,label){
     const el=document.getElementById(id);if(!el)return;
     el.textContent=nombre>99?'99+':String(nombre);
@@ -4423,7 +4405,6 @@ function synchroniserBadgeActualitesEquipe_(rows, modeLecture, chatRows){
     el.title=nombre?nombre+' nouveauté(s) non lue(s) — '+label:'';
   }
   afficherBadgeRubrique_('teamPublicationsUnreadBadge',nonLusPublications,'Publications et réponses');
-  afficherBadgeRubrique_('teamChatUnreadBadge',nonLusTchat,'Tchat');
   if(badge){
     badge.textContent=nonLus>99?'99+':String(nonLus);
     badge.hidden=(nonLus===0);
@@ -4446,8 +4427,7 @@ function donneesBadgeEquipeDepuisCache_(){
   if(!Array.isArray(publications)){
     try{publications=JSON.parse(localStorage.getItem('sanistock_actualites_cache')||'[]');}catch(e){publications=[];}
   }
-  const tchat=Array.isArray(window.sanNewsBadgeLatestChat_)?window.sanNewsBadgeLatestChat_:[];
-  return {publications:Array.isArray(publications)?publications:[],tchat:tchat};
+  return {publications:Array.isArray(publications)?publications:[],tchat:[]};
 }
 function actualiserAffichageBadgeEquipe_(){
   const d=donneesBadgeEquipeDepuisCache_();
@@ -4456,42 +4436,20 @@ function actualiserAffichageBadgeEquipe_(){
 function verifierBadgeActualitesEquipe_(){
   const session=donneesSessionEquipe_();
   if(document.hidden||!session.salarie||!session.code||!navigator.onLine||!gsDisponible())return;
-  const page=document.getElementById('newsPage');
-  const pageEquipeOuverte=!!(page&&page.classList.contains('active'));
-  const chatPane=document.getElementById('teamChatPane');
-  const tchatDejaActualiseParSonPropreTimer=pageEquipeOuverte&&chatPane&&!chatPane.hidden;
-  /* Le fil des publications est lu séparément : on le vérifie même si le tchat est ouvert,
-     afin de pouvoir afficher sa pastille sans recharger les messages à l’écran. */
-  if(!window.sanNewsBadgePublicationsPending_){
-    window.sanNewsBadgePublicationsPending_=true;
-    try{
-      google.script.run.withSuccessHandler(function(r){
-        window.sanNewsBadgePublicationsPending_=false;
-        if(r&&r.success===false){console.warn('Compteur publications Esprit d’équipe :',r.error||'Erreur inconnue');return;}
-        window.sanNewsBadgeLatestPublications_=normaliserActualites_(r);
-        actualiserAffichageBadgeEquipe_();
-      }).withFailureHandler(function(err){
-        window.sanNewsBadgePublicationsPending_=false;
-        console.warn('Compteur publications Esprit d’équipe indisponible :',err);
-      }).getPublicationsEquipe(session);
-    }catch(err){window.sanNewsBadgePublicationsPending_=false;console.warn('Impossible de vérifier les publications :',err);}
-  }
-  /* Si le tchat est ouvert, son rafraîchissement silencieux dédié gère déjà ses messages. */
-  if(!tchatDejaActualiseParSonPropreTimer&&!window.sanNewsBadgeTchatPending_){
-    window.sanNewsBadgeTchatPending_=true;
-    try{
-      google.script.run.withSuccessHandler(function(r){
-        window.sanNewsBadgeTchatPending_=false;
-        const rows=lignesTchatPourBadgeEquipe_(r);
-        if(rows===null){console.warn('Compteur tchat Esprit d’équipe :',r.error||'Erreur inconnue');return;}
-        window.sanNewsBadgeLatestChat_=rows;
-        actualiserAffichageBadgeEquipe_();
-      }).withFailureHandler(function(err){
-        window.sanNewsBadgeTchatPending_=false;
-        console.warn('Compteur tchat Esprit d’équipe indisponible :',err);
-      }).getMessagesTchatEquipe(session);
-    }catch(err){window.sanNewsBadgeTchatPending_=false;console.warn('Impossible de vérifier le tchat :',err);}
-  }
+  if(window.sanNewsBadgePublicationsPending_)return;
+  window.sanNewsBadgePublicationsPending_=true;
+  try{
+    google.script.run.withSuccessHandler(function(r){
+      window.sanNewsBadgePublicationsPending_=false;
+      if(r&&r.success===false){console.warn('Compteur publications Esprit d’équipe :',r.error||'Erreur inconnue');return;}
+      window.sanNewsBadgeLatestPublications_=normaliserActualites_(r);
+      window.sanNewsBadgeLatestChat_=[];
+      actualiserAffichageBadgeEquipe_();
+    }).withFailureHandler(function(err){
+      window.sanNewsBadgePublicationsPending_=false;
+      console.warn('Compteur publications Esprit d’équipe indisponible :',err);
+    }).getPublicationsEquipe(session);
+  }catch(err){window.sanNewsBadgePublicationsPending_=false;console.warn('Impossible de vérifier les publications :',err);}
 }
 function initialiserBadgeActualitesEquipe_(){
   window.setInterval(verifierBadgeActualitesEquipe_,5000);
@@ -4582,17 +4540,13 @@ function fusionnerMessagesTchatEquipe_(anciennes, nouvelles){
   }).slice(-200);
 }
 function ouvrirOngletEquipe(onglet){
-  const choisi=['publications','sondages','tchat'].indexOf(String(onglet))>=0?String(onglet):'publications';
+  const choisi=['publications','sondages'].indexOf(String(onglet))>=0?String(onglet):'publications';
   document.querySelectorAll('.teamToolsTab').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-team-view')===choisi);});
-  const panes={publications:document.getElementById('teamPublicationsPane'),sondages:document.getElementById('teamPollsPane'),tchat:document.getElementById('teamChatPane')};
+  const panes={publications:document.getElementById('teamPublicationsPane'),sondages:document.getElementById('teamPollsPane')};
   Object.keys(panes).forEach(function(k){if(panes[k])panes[k].hidden=k!==choisi;});
   if(choisi==='publications') chargerActualitesEquipe(true);
   if(choisi==='sondages') chargerSondagesEquipe();
-  if(choisi==='tchat'){
-    chargerTchatEquipe(true);
-    if(tchatEquipeRefreshTimer_)clearInterval(tchatEquipeRefreshTimer_);
-    tchatEquipeRefreshTimer_=setInterval(function(){const p=document.getElementById('teamChatPane');if(p&&!p.hidden&&document.visibilityState!=='hidden'&&navigator.onLine)chargerTchatEquipe(false,true);},5000);
-  }else if(tchatEquipeRefreshTimer_){clearInterval(tchatEquipeRefreshTimer_);tchatEquipeRefreshTimer_=null;}
+  if(tchatEquipeRefreshTimer_){clearInterval(tchatEquipeRefreshTimer_);tchatEquipeRefreshTimer_=null;}
 }
 function messageEspaceEquipe_(){
   const s=donneesSessionEquipe_();
@@ -10881,7 +10835,7 @@ if ("serviceWorker" in navigator) {
 </script>
 
 
-<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.86</div>
+<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.87</div>
 
 <style id="sanistock-connexion-accueil-uniquement">
 #saniConnection.saniConnHomeOnlyHidden{display:none !important;}
@@ -12874,27 +12828,19 @@ html+='<div class="ambSectionBulkActions"><button type="button" class="toutCoche
 .sanEquipeNotificationTarget{outline:3px solid #f59e0b!important;outline-offset:3px!important;box-shadow:0 0 0 6px rgba(245,158,11,.17)!important;animation:sanEquipeNotificationPulse 1.1s ease-in-out 3!important;scroll-margin:100px 0 35px!important;border-radius:12px}
 @keyframes sanEquipeNotificationPulse{0%,100%{outline-color:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,.12)}50%{outline-color:#e32636;box-shadow:0 0 0 7px rgba(227,38,54,.19)}}
 </style>
-<script id="sanistock-1-1-84-notification-jump">
-/* Ouverture intelligente : le bouton Esprit d'équipe emmène vers la nouveauté non lue et la surligne. */
+<script id="sanistock-1-1-87-notification-jump">
+/* Le bouton Esprit d’équipe mène à la dernière publication ou réponse non lue. */
 (function(){
   function seenMarkers_(){
-    var seen=[];
-    try{var raw=localStorage.getItem(cleBadgeActualitesEquipe_());seen=raw?JSON.parse(raw):[];if(!Array.isArray(seen))seen=[];}
-    catch(e){seen=(window.sanNewsBadgeSeenMemory&&window.sanNewsBadgeSeenMemory.key===cleBadgeActualitesEquipe_())?(window.sanNewsBadgeSeenMemory.values||[]):[];}
-    return seen;
+    try{var v=JSON.parse(localStorage.getItem(cleBadgeActualitesEquipe_())||'[]');return Array.isArray(v)?v:[];}catch(e){return [];}
   }
   function eventTime_(obj,fallback){
     var n=Number(obj&&obj.timestamp);if(Number.isFinite(n)&&n>0)return n;
     n=Number(obj&&obj.createdAt);if(Number.isFinite(n)&&n>0)return n;
     var d=Date.parse(String(obj&&obj.date||''));return Number.isFinite(d)?d:(fallback||0);
   }
-  function findUnreadDestination_(publications,chat){
-    var seen=seenMarkers_(),seenSet=new Set(seen),me=normaliserAuteurEquipeBadge_(donneesSessionEquipe_().salarie),candidates=[];
-    (Array.isArray(chat)?chat:[]).forEach(function(m){
-      if(!m||!m.id||Number(m.id)<=0)return;
-      var author=normaliserAuteurEquipeBadge_(m.auteur),marker='t:'+String(m.id);
-      if(author&&author!==me&&!seenSet.has(marker))candidates.push({kind:'tchat',id:String(m.id),marker:marker,time:eventTime_(m,0),tie:0});
-    });
+  function findUnreadDestination_(publications){
+    var seenSet=new Set(seenMarkers_()),me=normaliserAuteurEquipeBadge_(donneesSessionEquipe_().salarie),candidates=[];
     (Array.isArray(publications)?publications:[]).forEach(function(p){
       if(!p||p.legacy||Number(p.id)<=0)return;
       var pid=String(p.id),pt=eventTime_(p,0),author=normaliserAuteurEquipeBadge_(p.auteur),pm='p:'+pid;
@@ -12913,8 +12859,7 @@ html+='<div class="ambSectionBulkActions"><button type="button" class="toutCoche
     if(!jump)return;
     essai=Number(essai)||0;
     var target=null;
-    if(jump.kind==='tchat')target=document.getElementById('teamChatMessage_'+jump.id);
-    else if(jump.kind==='commentaire'){
+    if(jump.kind==='commentaire'){
       var details=document.getElementById('sanNewsComments_'+jump.parentId);
       if(details)details.open=true;
       target=document.getElementById('sanNewsComment_'+jump.id);
@@ -12930,44 +12875,34 @@ html+='<div class="ambSectionBulkActions"><button type="button" class="toutCoche
   window.ouvrirEspritEquipeNotification_=function(){
     var session=donneesSessionEquipe_();
     var pubPane=document.getElementById('teamPublicationsPane');
-    /* Ne marque pas les publications comme lues pendant qu'on cherche une nouveauté dans le tchat. */
     if(pubPane)pubPane.hidden=true;
     if(typeof showPage==='function')showPage('newsPage');
-    if(!session.salarie||!session.code||!navigator.onLine||!gsDisponible()){
+    function terminer_(publications){
       var cached=donneesBadgeEquipeDepuisCache_();
-      window.sanEquipePendingJump_=findUnreadDestination_(cached.publications,cached.tchat);
-      setTimeout(function(){var j=window.sanEquipePendingJump_;ouvrirOngletEquipe(j&&j.kind==='tchat'?'tchat':'publications');setTimeout(function(){window.appliquerSautNotificationEquipe_(0);},120);},40);
-      return;
-    }
-    var pubResult=null,chatResult=null,pubDone=false,chatDone=false,finished=false;
-    function finish_(){
-      if(finished||!pubDone||!chatDone)return;finished=true;
-      var cached=donneesBadgeEquipeDepuisCache_();
-      var pubs=Array.isArray(pubResult)?pubResult:cached.publications;
-      var chats=Array.isArray(chatResult)?chatResult:cached.tchat;
+      var pubs=Array.isArray(publications)?publications:cached.publications;
       window.sanNewsBadgeLatestPublications_=pubs;
-      window.sanNewsBadgeLatestChat_=chats;
-      var jump=findUnreadDestination_(pubs,chats);
-      window.sanEquipePendingJump_=jump;
+      window.sanNewsBadgeLatestChat_=[];
+      window.sanEquipePendingJump_=findUnreadDestination_(pubs);
       setTimeout(function(){
-        ouvrirOngletEquipe(jump&&jump.kind==='tchat'?'tchat':'publications');
+        ouvrirOngletEquipe('publications');
         setTimeout(function(){window.appliquerSautNotificationEquipe_(0);},120);
       },40);
     }
+    if(!session.salarie||!session.code||!navigator.onLine||!gsDisponible()){
+      terminer_(null);return;
+    }
+    var fini=false;
     try{
-      google.script.run.withSuccessHandler(function(r){pubResult=(r&&r.success===false)?null:normaliserActualites_(r);pubDone=true;finish_();})
-        .withFailureHandler(function(){pubResult=null;pubDone=true;finish_();}).getPublicationsEquipe(session);
-      google.script.run.withSuccessHandler(function(r){chatResult=lignesTchatPourBadgeEquipe_(r);chatDone=true;finish_();})
-        .withFailureHandler(function(){chatResult=null;chatDone=true;finish_();}).getMessagesTchatEquipe(session);
-    }catch(e){pubDone=true;chatDone=true;finish_();}
-    setTimeout(function(){
-      if(finished)return;
-      pubDone=true;chatDone=true;pubResult=null;chatResult=null;finish_();
-    },2400);
+      google.script.run.withSuccessHandler(function(r){
+        if(fini)return;fini=true;
+        terminer_((r&&r.success===false)?null:normaliserActualites_(r));
+      }).withFailureHandler(function(){if(fini)return;fini=true;terminer_(null);}).getPublicationsEquipe(session);
+    }catch(e){if(!fini){fini=true;terminer_(null);}}
+    setTimeout(function(){if(fini)return;fini=true;terminer_(null);},2400);
   };
 })();
 </script>
 
-<!-- SaniStock 1.1.86 : compteur par rubrique + rafraîchissement silencieux sans clignotement -->
+<!-- SaniStock 1.1.87 : publications et sondages uniquement -->
 </body>
 </html>
