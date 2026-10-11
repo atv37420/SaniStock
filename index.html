@@ -1,6 +1,6 @@
 <!-- TAXI PDF FINAL - VALISE NOIR COORDONNEES SEPAREES -->
 <!-- TAXI PDF FINAL INTEGRE : taxi_template(3).pdf -->
-<!-- SaniStock version 1.1.70 : petite pastille chiffrée dans l’angle du bouton Esprit d’équipe; actualisation toutes les 5 secondes -->
+<!-- SaniStock version 1.1.71 : compteur initialisé correctement dans l’angle du bouton Esprit d’équipe; actualisation toutes les 5 secondes -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -730,7 +730,7 @@ body{display:block}
 /* Badge rouge discret : nouvelle publication ou réponse dans Esprit d’équipe */
 .homeButton4 .sanNewsUnreadBadge{position:absolute;top:6px;right:6px;z-index:20;min-width:23px;height:23px;padding:0 5px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;border-radius:999px;background:#e32636;color:#fff;border:2px solid #fff;font-size:12px;line-height:1;font-weight:1000;box-shadow:0 2px 7px rgba(0,0,0,.25);pointer-events:none;animation:sanNewsBadgePulse 1.8s ease-in-out infinite}
 .homeButton4 .sanNewsUnreadBadge[hidden]{display:none!important}
-/* Correctif 1.1.70 : petite pastille chiffrée, discrète, placée dans l’angle supérieur droit du bouton Esprit d’équipe. */
+/* Correctif 1.1.71 : petite pastille chiffrée, discrète, placée dans l’angle supérieur droit du bouton Esprit d’équipe. */
 .homeButton4.team4{overflow:visible!important}
 .homeButton4.team4 .sanNewsUnreadBadge{top:-4px!important;right:-4px!important;z-index:100!important;min-width:18px;height:18px;padding:0 3px;border-width:1.5px;font-size:10px;line-height:1;display:flex;align-items:center;justify-content:center;box-sizing:border-box}
 .homeButton4.team4 .sanNewsUnreadBadge[hidden]{display:none!important}
@@ -4213,7 +4213,7 @@ function equipeRequestId_(){
 function cleBadgeActualitesEquipe_(){
   const session=donneesSessionEquipe_();
   const nom=String(session.salarie||'visiteur').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'')||'visiteur';
-  return 'sanistock_esprit_equipe_activites_vues_v1_'+nom;
+  return 'sanistock_esprit_equipe_activites_v2_'+nom;
 }
 function normaliserAuteurEquipeBadge_(v){
   return String(v||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ');
@@ -4248,16 +4248,33 @@ function synchroniserBadgeActualitesEquipe_(rows, toutMarquerLu){
     window.sanNewsBadgeSeenMemory={key:key,values:snapshot};
     if(storageOK){try{localStorage.setItem(key,JSON.stringify(snapshot));}catch(e){}}
   }
-  /* À la première vérification, l’historique existant sert de référence pour éviter une fausse alerte générale. */
-  if(toutMarquerLu||raw===null){
+  /* Première installation : ne pas marquer silencieusement toutes les publications existantes comme lues.
+     On initialise la liste des éléments vus à vide afin que la pastille s'affiche immédiatement.
+     L'ouverture d'Esprit d'équipe les marquera ensuite comme lus. */
+  if(raw===null){
+    vus=[];
+    sauvegarderVus_([]);
+    raw='[]';
+  }
+  if(toutMarquerLu){
     sauvegarderVus_(marqueurs);
     badge.hidden=true;
+    badge.textContent='';
     return;
   }
   const nonLus=marqueurs.filter(function(m){return vus.indexOf(m)<0;}).length;
   /* Affiche le nombre réel de publications et réponses non lues, avec un plafond visuel à 99+. */
   badge.textContent=nonLus>99?'99+':String(nonLus);
-  badge.hidden=nonLus===0;
+  badge.hidden=(nonLus===0);
+  if(nonLus>0){
+    badge.style.display='flex';
+    badge.style.visibility='visible';
+    badge.style.opacity='1';
+  }else{
+    badge.style.removeProperty('display');
+    badge.style.removeProperty('visibility');
+    badge.style.removeProperty('opacity');
+  }
   const libelle=nonLus===1?'1 nouveauté non lue':nonLus+' nouveautés non lues';
   badge.setAttribute('aria-label',nonLus?libelle+' dans Esprit d’équipe':'Aucune nouvelle publication ou réponse');
   badge.title=nonLus?libelle+' dans Esprit d’équipe':'';
