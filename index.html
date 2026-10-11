@@ -1,6 +1,6 @@
 <!-- TAXI PDF FINAL - VALISE NOIR COORDONNEES SEPAREES -->
 <!-- TAXI PDF FINAL INTEGRE : taxi_template(3).pdf -->
-<!-- SaniStock version 1.1.62 : Esprit d’équipe collaboratif avec photos; production -->
+<!-- SaniStock version 1.1.64 : compteur de nouveautés Esprit d’équipe -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -727,6 +727,10 @@ body{display:block}
 
 /* ===== OCTOBRE ROSE — LOGO FOURNI PAR LE CLIENT ===== */
 .homeButton4{position:relative}
+/* Badge rouge discret : nouvelle publication ou réponse dans Esprit d’équipe */
+.homeButton4 .sanNewsUnreadBadge{position:absolute;top:6px;right:6px;z-index:20;min-width:23px;height:23px;padding:0 5px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;border-radius:999px;background:#e32636;color:#fff;border:2px solid #fff;font-size:12px;line-height:1;font-weight:1000;box-shadow:0 2px 7px rgba(0,0,0,.25);pointer-events:none;animation:sanNewsBadgePulse 1.8s ease-in-out infinite}
+.homeButton4 .sanNewsUnreadBadge[hidden]{display:none!important}
+@keyframes sanNewsBadgePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
 .homeButton4 .octobreRoseRibbon{
   position:absolute;
   top:2px;
@@ -2275,6 +2279,7 @@ button.settingsAction.secondary:hover,
       <span class="homeButtonIcon" aria-hidden="true">🤝</span>
       <span class="homeButtonTitle">ESPRIT D’ÉQUIPE</span>
       <span class="homeButtonDesc">Actualités et vie d’équipe</span>
+      <span id="sanNewsUnreadBadge" class="sanNewsUnreadBadge" hidden aria-label="Nouvelles publications ou réponses">1</span>
     </button>
   </div>
 </div>
@@ -4105,6 +4110,71 @@ function donneesSessionEquipe_(){
 function equipeRequestId_(){
   return 'equipe_'+Date.now()+'_'+Math.random().toString(36).slice(2,11);
 }
+/* Notifications locales par salarié : une pastille apparaît si une autre personne publie ou répond. */
+function cleBadgeActualitesEquipe_(){
+  const session=donneesSessionEquipe_();
+  const nom=String(session.salarie||'visiteur').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'')||'visiteur';
+  return 'sanistock_esprit_equipe_activites_vues_v1_'+nom;
+}
+function normaliserAuteurEquipeBadge_(v){
+  return String(v||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ');
+}
+function marqueursActiviteEquipeBadge_(rows){
+  const moi=normaliserAuteurEquipeBadge_(donneesSessionEquipe_().salarie);
+  const markers=[];
+  (Array.isArray(rows)?rows:[]).forEach(function(p){
+    if(!p||p.legacy||Number(p.id)<=0)return;
+    const auteur=normaliserAuteurEquipeBadge_(p.auteur);
+    if(auteur&&auteur!==moi)markers.push('p:'+String(p.id));
+    (Array.isArray(p.commentaires)?p.commentaires:[]).forEach(function(c){
+      const ca=normaliserAuteurEquipeBadge_(c&&c.auteur);
+      if(c&&c.id&&ca&&ca!==moi)markers.push('c:'+String(c.id));
+    });
+  });
+  return Array.from(new Set(markers));
+}
+function synchroniserBadgeActualitesEquipe_(rows, toutMarquerLu){
+  const badge=document.getElementById('sanNewsUnreadBadge');
+  if(!badge)return;
+  const key=cleBadgeActualitesEquipe_();
+  const marqueurs=marqueursActiviteEquipeBadge_(rows);
+  let raw=null, vus=[];
+  try{raw=localStorage.getItem(key);vus=raw?JSON.parse(raw):[];if(!Array.isArray(vus))vus=[];}catch(e){raw=null;vus=[];}
+  /* À la première vérification, l’historique existant sert de référence pour éviter une fausse alerte générale. */
+  if(toutMarquerLu||raw===null){
+    try{localStorage.setItem(key,JSON.stringify(marqueurs.slice(-800)));}catch(e){}
+    badge.hidden=true;
+    return;
+  }
+  const nonLus=marqueurs.filter(function(m){return vus.indexOf(m)<0;}).length;
+  /* Affiche le nombre réel de publications et réponses non lues, avec un plafond visuel à 99+. */
+  badge.textContent=nonLus>99?'99+':String(nonLus);
+  badge.hidden=nonLus===0;
+  const libelle=nonLus===1?'1 nouveauté non lue':nonLus+' nouveautés non lues';
+  badge.setAttribute('aria-label',nonLus?libelle+' dans Esprit d’équipe':'Aucune nouvelle publication ou réponse');
+  badge.title=nonLus?libelle+' dans Esprit d’équipe':'';
+}
+function verifierBadgeActualitesEquipe_(){
+  const session=donneesSessionEquipe_();
+  const page=document.getElementById('newsPage');
+  if(!session.salarie||!session.code||!navigator.onLine||!gsDisponible()||window.sanNewsBadgeRequestPending_)return;
+  if(page&&page.classList.contains('active'))return;
+  window.sanNewsBadgeRequestPending_=true;
+  google.script.run.withSuccessHandler(function(r){
+    window.sanNewsBadgeRequestPending_=false;
+    const rows=normaliserActualites_(r);
+    const ouverte=!!(document.getElementById('newsPage')&&document.getElementById('newsPage').classList.contains('active'));
+    synchroniserBadgeActualitesEquipe_(rows,ouverte);
+  }).withFailureHandler(function(){window.sanNewsBadgeRequestPending_=false;}).getPublicationsEquipe(session);
+}
+function initialiserBadgeActualitesEquipe_(){
+  window.setInterval(verifierBadgeActualitesEquipe_,60000);
+  window.addEventListener('focus',verifierBadgeActualitesEquipe_);
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)verifierBadgeActualitesEquipe_();});
+  window.setTimeout(verifierBadgeActualitesEquipe_,3000);
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initialiserBadgeActualitesEquipe_,{once:true});
+else initialiserBadgeActualitesEquipe_();
 function chargerActualitesEquipe(forcer){
   const feed=document.getElementById('sanNewsFeed');
   const status=document.getElementById('sanNewsStatus');
@@ -4132,6 +4202,7 @@ function chargerActualitesEquipe(forcer){
     actualitesEquipeData_=normaliserActualites_(r);
     actualitesEquipeModeHorsLigne_=false;
     try{localStorage.setItem('sanistock_actualites_cache',JSON.stringify(actualitesEquipeData_));}catch(e){}
+    synchroniserBadgeActualitesEquipe_(actualitesEquipeData_,true);
     rendreActualitesEquipe_();
   }).withFailureHandler(function(err){
     let cache=[];
@@ -10287,7 +10358,7 @@ if ("serviceWorker" in navigator) {
 </script>
 
 
-<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.62</div>
+<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.64</div>
 
 <style id="sanistock-connexion-accueil-uniquement">
 #saniConnection.saniConnHomeOnlyHidden{display:none !important;}
