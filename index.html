@@ -1,6 +1,6 @@
 <!-- TAXI PDF FINAL - VALISE NOIR COORDONNEES SEPAREES -->
 <!-- TAXI PDF FINAL INTEGRE : taxi_template(3).pdf -->
-<!-- SaniStock version 1.1.111 : ouverture immédiate du mur, actualisation en arrière-plan -->
+<!-- SaniStock version 1.1.112 : notifications pour les réactions J’aime -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -4649,6 +4649,14 @@ function cleBadgeActualitesEquipe_(){
 function normaliserAuteurEquipeBadge_(v){
   return String(v||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ');
 }
+function marqueurReactionEquipeBadge_(publicationId,re){
+  if(!re)return '';
+  const auteur=normaliserAuteurEquipeBadge_(re.auteur);
+  const eventId=String(re.eventId||'').trim();
+  if(!auteur||!eventId)return '';
+  // Seules les réactions enregistrées avec l'identifiant d'événement par le nouveau serveur déclenchent une notification.
+  return 'r:'+String(publicationId)+':'+encodeURIComponent(auteur)+':'+eventId;
+}
 function marqueursActiviteEquipeBadge_(rows){
   const moi=normaliserAuteurEquipeBadge_(donneesSessionEquipe_().salarie);
   const markers=[];
@@ -4659,6 +4667,12 @@ function marqueursActiviteEquipeBadge_(rows){
     (Array.isArray(p.commentaires)?p.commentaires:[]).forEach(function(c){
       const ca=normaliserAuteurEquipeBadge_(c&&c.auteur);
       if(c&&c.id&&ca&&ca!==moi)markers.push('c:'+String(c.id));
+    });
+    // Un J’aime / cœur posé par un collègue constitue aussi une nouveauté pour les autres comptes.
+    (Array.isArray(p.reactionEvents)?p.reactionEvents:[]).forEach(function(re){
+      const ra=normaliserAuteurEquipeBadge_(re&&re.auteur);
+      const marker=marqueurReactionEquipeBadge_(p.id,re);
+      if(re&&ra&&ra!==moi&&marker)markers.push(marker);
     });
   });
   return Array.from(new Set(markers));
@@ -4691,7 +4705,9 @@ function synchroniserBadgeActualitesEquipe_(rows, modeLecture, chatRows){
   }
   /* Premier lancement : enregistrer l'existant comme référence, sans afficher toutes les anciennes publications comme nouvelles. */
   if(raw===null){
-    vus=marqueursPublications.slice();
+    // Ne pas notifier toutes les publications/commentaires historiques au premier passage.
+    // Les réactions dotées d'un nouvel EventID sont récentes et doivent rester non lues.
+    vus=marqueursPublications.filter(function(m){return String(m).indexOf('r:')!==0;});
     sauvegarderVus_(vus);
     raw='[]';
   }
@@ -13394,6 +13410,11 @@ html+='<div class="ambSectionBulkActions"><button type="button" class="toutCoche
         var ca=normaliserAuteurEquipeBadge_(c.auteur),cm='c:'+String(c.id);
         if(ca&&ca!==me&&!seenSet.has(cm))candidates.push({kind:'commentaire',id:String(c.id),parentId:pid,marker:cm,time:eventTime_(c,pt),tie:1});
       });
+      (Array.isArray(p.reactionEvents)?p.reactionEvents:[]).forEach(function(re){
+        if(!re)return;
+        var ra=normaliserAuteurEquipeBadge_(re.auteur),rm=marqueurReactionEquipeBadge_(pid,re);
+        if(ra&&ra!==me&&rm&&!seenSet.has(rm))candidates.push({kind:'reaction',id:pid,parentId:pid,marker:rm,time:eventTime_(re,pt),tie:0});
+      });
     });
     candidates.sort(function(a,b){return (b.time-a.time)||(a.tie-b.tie);});
     return candidates.length?candidates[0]:null;
@@ -13411,7 +13432,7 @@ html+='<div class="ambSectionBulkActions"><button type="button" class="toutCoche
       if(details)details.open=true;
       target=document.getElementById('sanNewsComment_'+jump.id);
       if(!target&&jump.parentId)target=document.getElementById('sanNewsPost_'+jump.parentId);
-    }else if(jump.kind==='publication')target=document.getElementById('sanNewsPost_'+jump.id);
+    }else if(jump.kind==='publication'||jump.kind==='reaction')target=document.getElementById('sanNewsPost_'+jump.id);
     if(!target&&essai<50){setTimeout(function(){window.appliquerSautNotificationEquipe_(essai+1);},160);return;}
     if(!target){window.sanEquipePendingJump_=null;return;}
     window.sanEquipePendingJump_=null;
@@ -13479,6 +13500,6 @@ html+='<div class="ambSectionBulkActions"><button type="button" class="toutCoche
 </body>
 </html>
 
-<!-- SaniStock 1.1.111 : ouverture immédiate du mur depuis le cache ; actualisation en arrière-plan. -->
+<!-- SaniStock 1.1.112 : notifications partagées des réactions J’aime. -->
 
 <style id="sanistock-1-1-111-mur-immediate">#newsPage .sanNewsLoadingFast{min-height:78px;margin:8px 0;padding:20px 12px;text-align:center;border:1px solid #d6e6f4;border-radius:14px;background:#fff;color:#175a8e}#newsPage .sanNewsLoadingFast .sanNewsEmptyIcon{display:block;margin-bottom:5px;font-size:20px}</style>
