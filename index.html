@@ -1,6 +1,6 @@
 <!-- TAXI PDF FINAL - VALISE NOIR COORDONNEES SEPAREES -->
 <!-- TAXI PDF FINAL INTEGRE : taxi_template(3).pdf -->
-<!-- SaniStock version 1.1.115 : appui long et glissement pour choisir une réaction -->
+<!-- SaniStock version 1.1.116 : mur unique, publications mélangées -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -2296,7 +2296,7 @@ button.settingsAction.secondary:hover,
 #newsPage .sanNewsPublishButton{display:flex;align-items:center;gap:10px;width:100%;min-height:42px;border:1px solid #e0e5ea;border-radius:24px;padding:10px 14px;background:#f0f2f5;color:#596579;text-align:left;font-size:13px;font-weight:600;box-shadow:none}
 #newsPage .sanNewsPublishButton:before{content:'✍️';display:grid;place-items:center;flex:0 0 28px;width:28px;height:28px;border-radius:50%;background:#dceaf8;font-size:15px}
 #newsPage .sanNewsPublishButton:active{transform:none;background:#e6ebf0}
-#newsPage .sanNewsQuickActions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin-top:9px;padding-top:8px;border-top:1px solid #edf0f3}
+#newsPage .sanNewsQuickActions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;margin-top:9px;padding-top:8px;border-top:1px solid #edf0f3}
 #newsPage .sanNewsQuickAction{display:flex;align-items:center;justify-content:center;gap:5px;min-width:0;padding:9px 3px;border:0;border-radius:8px;background:#fff;color:#4b5a6c;font-size:11px;font-weight:800;cursor:pointer;touch-action:manipulation}
 #newsPage .sanNewsQuickAction:active{background:#f0f2f5}
 #newsPage .sanNewsQuickAction span{font-size:16px}
@@ -2690,20 +2690,12 @@ button.settingsAction.secondary:hover,
       <button type="button" class="sanNewsPublishButton" onclick="ouvrirPublicationLibreEquipe_()">À quoi pensez-vous ? Partagez avec l’équipe…</button>
       <div class="sanNewsQuickActions" aria-label="Raccourcis de publication">
         <button type="button" class="sanNewsQuickAction photo" onclick="ouvrirPublicationAvecTypeEquipe_('photo')"><span aria-hidden="true">📷</span> Photo</button>
-        <button type="button" class="sanNewsQuickAction question" onclick="ouvrirPublicationAvecTypeEquipe_('question')"><span aria-hidden="true">💬</span> Question</button>
-        <button type="button" class="sanNewsQuickAction annonce" onclick="ouvrirPublicationAvecTypeEquipe_('annonce')"><span aria-hidden="true">📣</span> Annonce</button>
         <button type="button" class="sanNewsQuickAction poll" onclick="toggleSondageEquipeUI()"><span aria-hidden="true">📊</span> Sondage</button>
       </div>
     </div>
     <section id="sanNewsPublishPanel" class="sanNewsPublishPanel" hidden aria-label="Nouvelle publication">
       <div class="sanNewsPublishHead"><strong>Partager avec l’équipe</strong><button type="button" class="sanNewsCancel" onclick="togglePublicationEquipe(false)" aria-label="Fermer">✕</button></div>
-      <label for="infoType">Type (facultatif)</label>
-      <select id="infoType" class="sanNewsFormControl">
-        <option value="publication" selected>💬 Publication libre</option>
-        <option value="annonce">📣 Annonce</option>
-        <option value="question">💬 Question</option>
-        <option value="idee">💡 Idée</option>
-      </select>
+      <input type="hidden" id="infoType" value="publication">
       <label for="infoTitre">Titre (facultatif)</label>
       <input id="infoTitre" class="sanNewsFormControl" type="text" maxlength="80" placeholder="Ajouter un titre (facultatif)">
       <label for="infoMessage">Texte</label>
@@ -2711,13 +2703,7 @@ button.settingsAction.secondary:hover,
       <label for="infoPhoto">Photo à partager (facultatif)</label>
       <input id="infoPhoto" class="sanNewsPhotoPicker" type="file" accept="image/*" multiple onchange="previsualiserPhotoEquipe_(this)">
       <div id="sanNewsPhotoPreview" class="sanNewsPhotoPreview" aria-live="polite"></div>
-      <p class="sanNewsPublishHint">Publiez simplement un texte et, si vous le souhaitez, ajoutez un titre ou jusqu’à 3 photos. Choisissez une annonce, une question ou une idée seulement si cela vous est utile. N’ajoutez pas de donnée personnelle ou confidentielle.</p>
-      <div id="sanNewsAnnouncementOptions">
-        <label for="infoPriorite">Priorité de l’annonce</label>
-        <select id="infoPriorite" class="sanNewsFormControl"><option value="info">🔵 Information</option><option value="important">🟠 Important</option><option value="urgent">🔴 Urgent</option></select>
-        <label for="infoExpiration">Date d’expiration (facultatif)</label>
-        <input id="infoExpiration" class="sanNewsFormControl" type="date">
-      </div>
+      <p class="sanNewsPublishHint">Partagez librement un message, une idée, une question ou une information, avec un titre facultatif et jusqu’à 3 photos. Les sondages peuvent aussi être publiés directement dans le mur. Respectez les collègues et la confidentialité.</p>
       <div id="sanNewsPublishStatus" class="sanNewsPublishStatus" aria-live="polite"></div>
       <button type="button" class="sanNewsPublishSubmit" onclick="publierInformationUI()">Publier</button>
       <p class="sanNewsPublishHint">Les publications, réactions et commentaires sont partagés avec toute l’équipe lorsque le téléphone est connecté.</p>
@@ -2738,13 +2724,6 @@ button.settingsAction.secondary:hover,
       <div id="teamPollCreateStatus" class="teamToolStatus" aria-live="polite"></div>
       <button type="button" class="sanNewsPublishSubmit" id="teamPollCreateButton" onclick="creerSondageEquipeUI()">Créer le sondage</button>
     </section>
-    <nav class="sanNewsFilters" aria-label="Filtrer les publications">
-      <button type="button" class="sanNewsFilter active" data-news-filter="all" onclick="filtrerActualitesEquipe('all',this)">Toutes</button>
-      <button type="button" class="sanNewsFilter" data-news-filter="publication" onclick="filtrerActualitesEquipe('publication',this)">💬 Publications</button>
-      <button type="button" class="sanNewsFilter" data-news-filter="question" onclick="filtrerActualitesEquipe('question',this)">💬 Questions</button>
-      <button type="button" class="sanNewsFilter" data-news-filter="idee" onclick="filtrerActualitesEquipe('idee',this)">💡 Idées</button>
-      <button type="button" class="sanNewsFilter" data-news-filter="annonce" onclick="filtrerActualitesEquipe('annonce',this)">📣 Annonces</button>
-    </nav>
     <div id="sanNewsStatus" class="sanNewsStatus" aria-live="polite"></div>
     <div id="teamPollWallStatus" class="sanNewsStatus" aria-live="polite"></div>
     <div id="teamPollList" hidden aria-hidden="true"></div>
@@ -5213,8 +5192,8 @@ function typePublicationEquipe_(r){
 function titrePublicationEquipe_(r){
   const type=String((r&&r.type)||'').toLowerCase();
   const titre=String((r&&r.titre)||'').replace(/^\[(QUESTION|QUESTIONS|ID[ÉE]E|IDEA|ANNONCE)\]\s*/i,'').replace(/^(QUESTION|ID[ÉE]E|ANNONCE)\s*[-—:]\s*/i,'').trim();
-  if(type==='publication' && (!titre || titre.toLowerCase()==='publication')) return '';
-  return titre || (type==='publication'?'':'Publication sans titre');
+  if(!titre || titre.toLowerCase()==='publication' || titre.toLowerCase()==='publication sans titre') return '';
+  return titre;
 }
 function filtrerActualitesEquipe(filtre,btn){
   actualitesEquipeFiltre_=String(filtre||'all');
@@ -5306,11 +5285,10 @@ function rendreActualitesEquipe_(){
   if(!feed) return;
   let rows=actualitesEquipeData_.slice();
   rows.sort(function(a,b){return Number(b.timestamp||0)-Number(a.timestamp||0)||Number(b.id||0)-Number(a.id||0);});
-  if(actualitesEquipeFiltre_!=='all') rows=rows.filter(function(r){return typePublicationEquipe_(r)===actualitesEquipeFiltre_;});
   if(status && !actualitesEquipeModeHorsLigne_) status.textContent=rows.length+' publication(s)'+(actualitesEquipeFiltre_==='all'?' · '+(Array.isArray(sondagesEquipeData_)?sondagesEquipeData_.length:0)+' sondage(s)':'')+' dans le mur.';
-  const surveysInWall=actualitesEquipeFiltre_==='all'&&Array.isArray(sondagesEquipeData_)?sondagesEquipeData_:[];
+  const surveysInWall=Array.isArray(sondagesEquipeData_)?sondagesEquipeData_:[];
   if(!rows.length&&!surveysInWall.length){
-    feed.innerHTML='<div class="sanNewsEmpty"><span class="sanNewsEmptyIcon">🤝</span><strong>L’espace d’équipe est prêt !</strong><br>Partagez une publication libre, une question, une idée, une annonce ou un sondage.</div>';
+    feed.innerHTML='<div class="sanNewsEmpty"><span class="sanNewsEmptyIcon">🤝</span><strong>Le mur de l’équipe est prêt !</strong><br>Partagez librement un message, une photo ou un sondage avec vos collègues.</div>';
     return;
   }
   const offline=actualitesEquipeModeHorsLigne_;
@@ -5323,8 +5301,7 @@ function rendreActualitesEquipe_(){
     const auteur=String(r.auteur||'Équipe SaniStock');
     const initialesAuteur=auteur.trim().split(/\s+/).filter(Boolean).slice(0,2).map(function(part){return Array.from(part)[0]||'';}).join('').toUpperCase()||'É';
     const date=String(r.date||'');
-    const badge=type==='publication'?'💬 PUBLICATION':type==='question'?'💬 QUESTION':type==='idee'?'💡 IDÉE':(p==='urgent'?'🔴 ANNONCE URGENTE':p==='important'?'🟠 ANNONCE IMPORTANTE':'📣 ANNONCE');
-    const icon=(type==='publication'||type==='question')?'💬':type==='idee'?'💡':(p==='urgent'?'🚨':p==='important'?'📌':'📣');
+    const badge=p==='urgent'?'🔴 URGENT':p==='important'?'🟠 IMPORTANT':'';
     const classes='sanNewsCard'+(p==='urgent'?' isUrgent':'')+(p==='important'?' isImportant':'');
     const expiration=String(r.expiration||'').trim();
     const photos=Array.isArray(r.photoUrls)?r.photoUrls.filter(Boolean):(r.photoUrl?[String(r.photoUrl)]:[]);
@@ -5365,7 +5342,7 @@ function rendreActualitesEquipe_(){
       social='<div class="sanNewsLegacyNote">'+(navigator.onLine?'⚠️ Mode lecture seule : le serveur de l’espace d’équipe ne répond pas. Vérifie le déploiement Apps Script.':'📵 Hors connexion : reconnecte-toi à Internet pour aimer et commenter. Les interactions sont partagées avec toute l’équipe.')+'</div>';
     }
     return '<article data-wall-timestamp="'+(Number(r.timestamp)||0)+'" id="sanNewsPost_'+id+'" class="'+classes+'">'
-      +'<div class="sanNewsCardHead"><span class="sanNewsAvatar" aria-hidden="true">'+escapeHtml(initialesAuteur)+'</span><div class="sanNewsCardMeta"><span class="sanNewsAuthor">'+escapeHtml(auteur)+'</span><span class="sanNewsDate">'+escapeHtml(date)+'</span></div><span class="sanNewsBadge '+p+'">'+badge+'</span>'+(peutSupprimerPublication?'<button type="button" class="sanNewsDeleteBtn" onclick="supprimerPublicationEquipeUI('+id+')" title="Supprimer cette publication" aria-label="Supprimer cette publication">🗑️ Supprimer</button>':'')+'</div>'
+      +'<div class="sanNewsCardHead"><span class="sanNewsAvatar" aria-hidden="true">'+escapeHtml(initialesAuteur)+'</span><div class="sanNewsCardMeta"><span class="sanNewsAuthor">'+escapeHtml(auteur)+'</span><span class="sanNewsDate">'+escapeHtml(date)+'</span></div>'+(badge?'<span class="sanNewsBadge '+p+'">'+badge+'</span>':'')+(peutSupprimerPublication?'<button type="button" class="sanNewsDeleteBtn" onclick="supprimerPublicationEquipeUI('+id+')" title="Supprimer cette publication" aria-label="Supprimer cette publication">🗑️ Supprimer</button>':'')+'</div>'
       +'<div class="sanNewsCardBody">'+(titre?'<h2 class="sanNewsTitle">'+escapeHtml(titre)+'</h2>':'')+(r.message?'<p class="sanNewsMessage">'+escapeHtml(r.message)+'</p>':'')
       +(photos.length?'<div class="sanNewsPhotoGallery">'+photos.slice(0,3).map(function(photoUrl,index){const originalUrl=String(photoUrl||'').trim();return '<a class="sanNewsPhotoLink" href="'+escapeHtml(originalUrl)+'" target="_blank" rel="noopener noreferrer" aria-label="Ouvrir la photo '+(index+1)+'"><img class="sanNewsPhoto" src="'+escapeHtml(urlPhotoEquipeAffichage_(originalUrl))+'" data-original-url="'+escapeHtml(originalUrl)+'" alt="Photo '+(index+1)+' partagée par '+escapeHtml(auteur)+'" loading="lazy" referrerpolicy="no-referrer" onerror="gererErreurPhotoEquipe_(this)"></a>';}).join('')+'</div>':'')
       +(expiration?'<div class="sanNewsExpiry">À consulter avant le : '+escapeHtml(expiration)+'</div>':'')
@@ -11545,7 +11522,7 @@ if ("serviceWorker" in navigator) {
 </script>
 
 
-<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.115</div>
+<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.116</div>
 
 <style id="sanistock-connexion-accueil-uniquement">
 #saniConnection.saniConnHomeOnlyHidden{display:none !important;}
