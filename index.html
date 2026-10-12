@@ -1,6 +1,6 @@
 <!-- TAXI PDF FINAL - VALISE NOIR COORDONNEES SEPAREES -->
 <!-- TAXI PDF FINAL INTEGRE : taxi_template(3).pdf -->
-<!-- SaniStock version 1.1.118 : mur unique, publications mélangées -->
+<!-- SaniStock version 1.1.119 : pastille de notification agrandie -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -2413,6 +2413,31 @@ button.settingsAction.secondary:hover,
 }
 .homeButton4.team4 .sanNewsUnreadBadge[hidden] { display: none !important; }
 </style>
+
+<style id="sanistock-1-1-119-badge-notification-tres-grosse">
+/* Version 1.1.119 : pastille nettement agrandie sur le bouton Esprit d’équipe. */
+.homeButton4.team4 { position: relative !important; overflow: visible !important; }
+.homeButton4.team4 .sanNewsUnreadBadge {
+  top: -11px !important;
+  right: -11px !important;
+  z-index: 10000 !important;
+  min-width: 38px !important;
+  height: 38px !important;
+  padding: 0 7px !important;
+  box-sizing: border-box !important;
+  border: 2px solid #fff !important;
+  border-radius: 999px !important;
+  font-size: 20px !important;
+  line-height: 1 !important;
+  font-weight: 1000 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 3px 10px rgba(0,0,0,.35) !important;
+}
+.homeButton4.team4 .sanNewsUnreadBadge[hidden] { display: none !important; }
+</style>
+
 </head>
 <body>
 
@@ -11594,7 +11619,7 @@ if ("serviceWorker" in navigator) {
 </script>
 
 
-<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.118</div>
+<div id="sanistock-version-footer" style="position:fixed;bottom:8px;left:0;right:0;text-align:center;font-size:12px;color:#000;z-index:9999;pointer-events:none;">SaniStock - version 1.1.119</div>
 
 <style id="sanistock-connexion-accueil-uniquement">
 #saniConnection.saniConnHomeOnlyHidden{display:none !important;}
