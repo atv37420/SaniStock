@@ -4768,24 +4768,76 @@ function actualiserAffichageBadgeEquipe_(){
 function rendreMurEquipeSilencieusementPreserveUI_(){
   const feed=document.getElementById('sanNewsFeed');
   if(!feed){rendreActualitesEquipe_();return;}
-  const feedScroll=feed.scrollTop;
-  const pageScroll=window.scrollY||0;
+  /* Une actualisation silencieuse ne doit jamais faire sauter l'écran.
+     On mémorise le contenu en cours, les défilements de tous les conteneurs,
+     ainsi que la carte visible qui sert de repère après le rendu. */
+  const pageScrollX=window.scrollX||0, pageScrollY=window.scrollY||0;
+  const scrollNodes=[];
+  let node=feed;
+  while(node && node.nodeType===1){
+    try{
+      const st=getComputedStyle(node);
+      if(node===document.scrollingElement || node.scrollHeight>node.clientHeight+2 && /(auto|scroll|overlay)/.test(st.overflowY+' '+st.overflow)){
+        scrollNodes.push({el:node,top:node.scrollTop,left:node.scrollLeft});
+      }
+    }catch(e){}
+    node=node.parentElement;
+  }
+  const cards=Array.from(feed.querySelectorAll('article[id^="sanNewsPost_"],article[id^="teamPollPost_"]'));
+  let anchor=null;
+  for(const card of cards){
+    const rect=card.getBoundingClientRect();
+    if(rect.bottom>2 && rect.top<window.innerHeight-2){anchor={id:card.id,top:rect.top};break;}
+  }
   const ouverts=Array.from(feed.querySelectorAll('details[id][open]')).map(function(el){return el.id;});
-  const textes={};
-  feed.querySelectorAll('textarea[id]').forEach(function(el){textes[el.id]=el.value;});
+  const valeurs={};
+  feed.querySelectorAll('textarea[id],input[id]').forEach(function(el){
+    if(el.type==='radio'||el.type==='checkbox')return;
+    valeurs[el.id]={value:el.value,start:typeof el.selectionStart==='number'?el.selectionStart:null,end:typeof el.selectionEnd==='number'?el.selectionEnd:null};
+  });
   const radios={};
   feed.querySelectorAll('input[type="radio"][name]:checked').forEach(function(el){radios[el.name]=el.value;});
-  const actif=document.activeElement;
-  const actifId=actif&&actif.id&&feed.contains(actif)?actif.id:'';
-  let selection=null;
-  try{if(actifId&&typeof actif.selectionStart==='number')selection=[actif.selectionStart,actif.selectionEnd];}catch(e){}
+  const actifs=document.activeElement;
+  const actifId=actifs&&actifs.id&&feed.contains(actifs)?actifs.id:'';
+  const oldAnchorBehavior=feed.style.overflowAnchor;
+  feed.style.overflowAnchor='none';
   rendreActualitesEquipe_();
   ouverts.forEach(function(id){const el=document.getElementById(id);if(el)el.open=true;});
-  Object.keys(textes).forEach(function(id){const el=document.getElementById(id);if(el)el.value=textes[id];});
-  Object.keys(radios).forEach(function(name){const choices=feed.querySelectorAll('input[type="radio"][name]');choices.forEach(function(el){if(el.name===name)el.checked=(el.value===radios[name]);});});
-  feed.scrollTop=feedScroll;
-  try{window.scrollTo(0,pageScroll);}catch(e){}
-  if(actifId){const el=document.getElementById(actifId);if(el){try{el.focus({preventScroll:true});if(selection&&typeof el.setSelectionRange==='function')el.setSelectionRange(selection[0],selection[1]);}catch(e){}}}
+  Object.keys(valeurs).forEach(function(id){
+    const el=document.getElementById(id),v=valeurs[id];if(!el)return;el.value=v.value;
+    try{if(v.start!==null&&typeof el.setSelectionRange==='function')el.setSelectionRange(v.start,v.end);}catch(e){}
+  });
+  Object.keys(radios).forEach(function(name){
+    feed.querySelectorAll('input[type="radio"][name]').forEach(function(el){if(el.name===name)el.checked=(el.value===radios[name]);});
+  });
+  const restaurer=function(){
+    /* Restaure d'abord les scrollers internes, puis le viewport de la page. */
+    scrollNodes.slice().reverse().forEach(function(st){if(st.el&&st.el!==document.scrollingElement){st.el.scrollTop=st.top;st.el.scrollLeft=st.left;}});
+    window.scrollTo(pageScrollX,pageScrollY);
+    if(anchor&&anchor.id){
+      const replacement=document.getElementById(anchor.id);
+      if(replacement){
+        const newTop=replacement.getBoundingClientRect().top;
+        const delta=newTop-anchor.top;
+        if(Math.abs(delta)>1){
+          let scroller=replacement.parentElement;
+          while(scroller&&scroller!==document.body&&scroller!==document.documentElement){
+            let isScroller=false;
+            try{const cs=getComputedStyle(scroller);isScroller=scroller.scrollHeight>scroller.clientHeight+2&&/(auto|scroll|overlay)/.test(cs.overflowY+' '+cs.overflow);}catch(e){}
+            if(isScroller)break;scroller=scroller.parentElement;
+          }
+          if(scroller&&scroller!==document.body&&scroller!==document.documentElement){scroller.scrollTop+=delta;}
+          else window.scrollBy(0,delta);
+        }
+      }
+    }
+    if(actifId){const el=document.getElementById(actifId);if(el){try{el.focus({preventScroll:true});const v=valeurs[actifId];if(v&&v.start!==null&&typeof el.setSelectionRange==='function')el.setSelectionRange(v.start,v.end);}catch(e){}}}
+    feed.style.overflowAnchor=oldAnchorBehavior;
+  };
+  /* Attendre que le navigateur ait recalculé la mise en page évite le saut lors
+     du remplacement des cartes et des sondages par les données actualisées. */
+  if(typeof requestAnimationFrame==='function')requestAnimationFrame(function(){requestAnimationFrame(restaurer);});
+  else setTimeout(restaurer,50);
 }
 function murActualitesActif_(){
   const page=document.getElementById('newsPage');
@@ -5025,7 +5077,7 @@ function rendreSondageCarteMurEquipe_(p){
     return '<label class="teamPollChoice"><input type="radio" name="teamPoll_'+id+'" value="'+i+'" '+(vote===i?'checked':'')+'><span>'+escapeHtml(text)+'</span></label>'+(already?'<div class="teamPollResultItem"><div class="teamPollChoiceResult"><span>'+escapeHtml(text)+(vote===i?' ✓':'')+'</span><strong>'+pct+'% · '+votes+'</strong></div><div class="teamPollBar"><span style="width:'+pct+'%"></span></div></div>':'');
   }).join('');
   const ts=Number(p.timestamp)||0;
-  return '<article class="teamPollCard sanNewsWallPoll" data-wall-timestamp="'+ts+'"><div class="teamPollWallHead"><span class="teamPollWallTag">📊 SONDAGE</span><span class="teamPollWallDate">'+escapeHtml(p.auteur||'Collègue')+' · '+escapeHtml(p.date||'')+'</span></div><div class="teamPollQuestion">'+escapeHtml(p.question||'Sondage')+'</div><div class="teamPollChoices">'+choices+'</div><div class="teamPollFooter"><span>'+total+' vote'+(total===1?'':'s')+(already?' · Votre vote est enregistré':'')+'</span><button type="button" class="teamPollVoteButton" onclick="voterSondageEquipeUI('+id+')">'+(already?'Modifier mon vote':'Voter')+'</button></div></article>';
+  return '<article id="teamPollPost_'+id+'" class="teamPollCard sanNewsWallPoll" data-wall-timestamp="'+ts+'"><div class="teamPollWallHead"><span class="teamPollWallTag">📊 SONDAGE</span><span class="teamPollWallDate">'+escapeHtml(p.auteur||'Collègue')+' · '+escapeHtml(p.date||'')+'</span></div><div class="teamPollQuestion">'+escapeHtml(p.question||'Sondage')+'</div><div class="teamPollChoices">'+choices+'</div><div class="teamPollFooter"><span>'+total+' vote'+(total===1?'':'s')+(already?' · Votre vote est enregistré':'')+'</span><button type="button" class="teamPollVoteButton" onclick="voterSondageEquipeUI('+id+')">'+(already?'Modifier mon vote':'Voter')+'</button></div></article>';
 }
 function creerSondageEquipeUI(){
   const auth=messageEspaceEquipe_(),status=document.getElementById('teamPollCreateStatus'),btn=document.getElementById('teamPollCreateButton');
@@ -13503,3 +13555,5 @@ html+='<div class="ambSectionBulkActions"><button type="button" class="toutCoche
 <!-- SaniStock 1.1.112 : notifications partagées des réactions J’aime. -->
 
 <style id="sanistock-1-1-111-mur-immediate">#newsPage .sanNewsLoadingFast{min-height:78px;margin:8px 0;padding:20px 12px;text-align:center;border:1px solid #d6e6f4;border-radius:14px;background:#fff;color:#175a8e}#newsPage .sanNewsLoadingFast .sanNewsEmptyIcon{display:block;margin-bottom:5px;font-size:20px}</style>
+
+<!-- SaniStock 1.1.113 : actualisation silencieuse sans saut de défilement -->
