@@ -1,6 +1,6 @@
 <!-- TAXI PDF FINAL - VALISE NOIR COORDONNEES SEPAREES -->
 <!-- TAXI PDF FINAL INTEGRE : taxi_template(3).pdf -->
-<!-- SaniStock version 1.1.110 : mur affiché depuis le cache local, API optimisée côté serveur -->
+<!-- SaniStock version 1.1.111 : ouverture immédiate du mur, actualisation en arrière-plan -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -4854,7 +4854,7 @@ function chargerActualitesEquipe(forcer){
     rendreActualitesEquipe_();
     if(status) status.textContent='Affichage des dernières publications · actualisation…';
   }else if(!contenuDejaAffiche){
-    feed.innerHTML='<div class="sanNewsLoading"><span class="sanNewsSpinner"></span> Récupération des dernières publications…</div>';
+    feed.innerHTML='<div class="sanNewsEmpty sanNewsLoadingFast"><span class="sanNewsEmptyIcon">🤝</span><strong>Actualité de l’équipe</strong><br>Le mur s’ouvre immédiatement ; récupération des dernières publications en cours…</div>';
   }
   /* Si un appel de vérification du compteur est déjà parti depuis l'accueil,
      le cache vient d'être affiché : on ne lance pas une seconde requête en parallèle. */
@@ -4889,6 +4889,16 @@ function chargerActualitesEquipe(forcer){
     const modeLecturePublications=(murActualitesActif_() && !document.hidden)?'publications':false;
     synchroniserBadgeActualitesEquipe_(actualitesEquipeData_,modeLecturePublications,window.sanNewsBadgeLatestChat_||[]);
     rendreActualitesEquipe_();
+    if(window.sanEquipeJumpOnNextRefresh_){
+      window.sanEquipeJumpOnNextRefresh_=false;
+      var seenSnapshot=Array.isArray(window.sanEquipeSeenBeforeOpen_)?window.sanEquipeSeenBeforeOpen_:null;
+      var destination=window.saniTrouverDestinationNonLueEquipe_
+        ? window.saniTrouverDestinationNonLueEquipe_(actualitesEquipeData_,seenSnapshot)
+        : window.sanEquipePendingJump_;
+      window.sanEquipeSeenBeforeOpen_=null;
+      if(destination)window.sanEquipePendingJump_=destination;
+      setTimeout(function(){if(window.appliquerSautNotificationEquipe_)window.appliquerSautNotificationEquipe_(0);},180);
+    }
   }).withFailureHandler(function(err){
     actualitesEquipeRequestPending_=false;
     let cache=[];
@@ -13373,8 +13383,8 @@ html+='<div class="ambSectionBulkActions"><button type="button" class="toutCoche
     n=Number(obj&&obj.createdAt);if(Number.isFinite(n)&&n>0)return n;
     var d=Date.parse(String(obj&&obj.date||''));return Number.isFinite(d)?d:(fallback||0);
   }
-  function findUnreadDestination_(publications){
-    var seenSet=new Set(seenMarkers_()),me=normaliserAuteurEquipeBadge_(donneesSessionEquipe_().salarie),candidates=[];
+  function findUnreadDestination_(publications,seenSnapshot){
+    var seenSet=new Set(Array.isArray(seenSnapshot)?seenSnapshot:seenMarkers_()),me=normaliserAuteurEquipeBadge_(donneesSessionEquipe_().salarie),candidates=[];
     (Array.isArray(publications)?publications:[]).forEach(function(p){
       if(!p||p.legacy||Number(p.id)<=0)return;
       var pid=String(p.id),pt=eventTime_(p,0),author=normaliserAuteurEquipeBadge_(p.auteur),pm='p:'+pid;
@@ -13388,6 +13398,9 @@ html+='<div class="ambSectionBulkActions"><button type="button" class="toutCoche
     candidates.sort(function(a,b){return (b.time-a.time)||(a.tie-b.tie);});
     return candidates.length?candidates[0]:null;
   }
+  window.saniTrouverDestinationNonLueEquipe_=function(publications,seenSnapshot){
+    return findUnreadDestination_(publications,seenSnapshot);
+  };
   window.appliquerSautNotificationEquipe_=function(essai){
     var jump=window.sanEquipePendingJump_;
     if(!jump)return;
@@ -13411,28 +13424,30 @@ html+='<div class="ambSectionBulkActions"><button type="button" class="toutCoche
     var pubPane=document.getElementById('teamPublicationsPane');
     if(pubPane)pubPane.hidden=true;
     if(typeof showPage==='function')showPage('newsPage');
-    function terminer_(publications){
-      var cached=donneesBadgeEquipeDepuisCache_();
-      var pubs=Array.isArray(publications)?publications:cached.publications;
-      window.sanNewsBadgeLatestPublications_=pubs;
-      window.sanNewsBadgeLatestChat_=[];
-      window.sanEquipePendingJump_=findUnreadDestination_(pubs);
-      setTimeout(function(){
-        ouvrirOngletEquipe('publications');
-        setTimeout(function(){window.appliquerSautNotificationEquipe_(0);},120);
-      },40);
-    }
+
+    // Préparer le saut depuis le cache AVANT que l'ouverture du mur ne marque
+    // les activités comme lues dans le stockage local.
+    var cached=donneesBadgeEquipeDepuisCache_();
+    var pubs=Array.isArray(cached.publications)?cached.publications:[];
+    var seenBefore=[];
+    try{seenBefore=JSON.parse(localStorage.getItem(cleBadgeActualitesEquipe_())||'[]');if(!Array.isArray(seenBefore))seenBefore=[];}catch(e){seenBefore=[];}
+    window.sanEquipeSeenBeforeOpen_=seenBefore.slice();
+    window.sanNewsBadgeLatestPublications_=pubs;
+    window.sanEquipePendingJump_=findUnreadDestination_(pubs,seenBefore);
+    window.sanEquipeJumpOnNextRefresh_=true;
+
+    // Ouvrir tout de suite : ouvrirOngletEquipe affiche d’abord le cache local
+    // et lance la requête de mise à jour sans garder l’utilisateur devant un écran vide.
+    ouvrirOngletEquipe('publications');
+    setTimeout(function(){
+      if(window.appliquerSautNotificationEquipe_)window.appliquerSautNotificationEquipe_(0);
+    },160);
+
+    // Ne pas lancer une deuxième requête ici : chargerActualitesEquipe() / le
+    // rafraîchissement du compteur ramènera les données fraîches en arrière-plan.
     if(!session.salarie||!session.code||!navigator.onLine||!gsDisponible()){
-      terminer_(null);return;
+      window.sanEquipeJumpOnNextRefresh_=false;
     }
-    var fini=false;
-    try{
-      google.script.run.withSuccessHandler(function(r){
-        if(fini)return;fini=true;
-        terminer_((r&&r.success===false)?null:normaliserActualites_(r));
-      }).withFailureHandler(function(){if(fini)return;fini=true;terminer_(null);}).getPublicationsEquipe(session);
-    }catch(e){if(!fini){fini=true;terminer_(null);}}
-    setTimeout(function(){if(fini)return;fini=true;terminer_(null);},2400);
   };
 })();
 </script>
@@ -13464,4 +13479,6 @@ html+='<div class="ambSectionBulkActions"><button type="button" class="toutCoche
 </body>
 </html>
 
-<!-- SaniStock 1.1.110 : affichage cache-first ; les réponses Apps Script du mur sont mises en cache côté serveur. -->
+<!-- SaniStock 1.1.111 : ouverture immédiate du mur depuis le cache ; actualisation en arrière-plan. -->
+
+<style id="sanistock-1-1-111-mur-immediate">#newsPage .sanNewsLoadingFast{min-height:78px;margin:8px 0;padding:20px 12px;text-align:center;border:1px solid #d6e6f4;border-radius:14px;background:#fff;color:#175a8e}#newsPage .sanNewsLoadingFast .sanNewsEmptyIcon{display:block;margin-bottom:5px;font-size:20px}</style>
