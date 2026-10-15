@@ -4238,6 +4238,27 @@ __SANI_PDFJS_SCRIPT_TAG__
 #newsPage .sanNewsHeroSimple p{margin:0!important;color:#536579!important;font-size:12px!important;line-height:1.45!important}
 #newsPage .sanNewsHeroSimple .sanNewsHeroBubble{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important}
 </style>
+
+<style id="sanistock-1-1-130-rectangles-categories-reduits">
+/* Réduction des rectangles dans les sous-catégories Mémo et Véhicule */
+#memoPage .memoChoices, #vehiclePage .memoChoices { gap: 12px; margin-top: 18px; }
+#memoPage .memoChoice, #vehiclePage .memoChoice { padding: 17px 14px; border-radius: 16px; }
+#memoPage .memoChoiceIcon, #vehiclePage .memoChoiceIcon { font-size: 34px; margin-bottom: 5px; }
+#memoPage .memoChoiceTitle, #vehiclePage .memoChoiceTitle { font-size: 16px; }
+#memoPage .memoChoiceDesc, #vehiclePage .memoChoiceDesc { font-size: 12px; margin-top: 4px; line-height: 1.35; }
+#checklistPage .checklistCard { padding: 14px 15px !important; border-radius: 14px !important; }
+#checklistPage .checklistCardTitle { font-size: 17px !important; }
+#checklistPage .checklistCardDesc { margin-top: 3px !important; font-size: 12px !important; }
+#checklistPage .checklistGrid { gap: 10px !important; }
+#checklistPage .checklistVehicle { padding: 11px 13px !important; margin-bottom: 7px !important; border-radius: 12px !important; }
+#checklistPage .checklistVehicleName { font-size: 14px !important; }
+@media (max-width: 600px) {
+  #memoPage .memoChoices, #vehiclePage .memoChoices { gap: 10px; }
+  #memoPage .memoChoice, #vehiclePage .memoChoice { padding: 15px 12px; }
+  #checklistPage .checklistCard { padding: 12px !important; }
+}
+</style>
+
 </body></html>`;
         function afficherLecteurHtml_(html){
           fenetre.document.open();
@@ -12487,7 +12508,28 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
           (sig&&sig.indexOf('data:image/')===0?'<img src="'+sig+'" alt="Signature">':'')+
         '</div>'+
         '<div class="meta">Véhicule : '+taxiPdfEscape(vehicle)+'</div>'+
-      '</div></body></html>';
+      '</div>
+<style id="sanistock-1-1-130-rectangles-categories-reduits">
+/* Réduction des rectangles dans les sous-catégories Mémo et Véhicule */
+#memoPage .memoChoices, #vehiclePage .memoChoices { gap: 12px; margin-top: 18px; }
+#memoPage .memoChoice, #vehiclePage .memoChoice { padding: 17px 14px; border-radius: 16px; }
+#memoPage .memoChoiceIcon, #vehiclePage .memoChoiceIcon { font-size: 34px; margin-bottom: 5px; }
+#memoPage .memoChoiceTitle, #vehiclePage .memoChoiceTitle { font-size: 16px; }
+#memoPage .memoChoiceDesc, #vehiclePage .memoChoiceDesc { font-size: 12px; margin-top: 4px; line-height: 1.35; }
+#checklistPage .checklistCard { padding: 14px 15px !important; border-radius: 14px !important; }
+#checklistPage .checklistCardTitle { font-size: 17px !important; }
+#checklistPage .checklistCardDesc { margin-top: 3px !important; font-size: 12px !important; }
+#checklistPage .checklistGrid { gap: 10px !important; }
+#checklistPage .checklistVehicle { padding: 11px 13px !important; margin-bottom: 7px !important; border-radius: 12px !important; }
+#checklistPage .checklistVehicleName { font-size: 14px !important; }
+@media (max-width: 600px) {
+  #memoPage .memoChoices, #vehiclePage .memoChoices { gap: 10px; }
+  #memoPage .memoChoice, #vehiclePage .memoChoice { padding: 15px 12px; }
+  #checklistPage .checklistCard { padding: 12px !important; }
+}
+</style>
+
+</body></html>';
   }
 
 
@@ -13912,6 +13954,27 @@ html+='<div class="ambSectionBulkActions"><button type="button" class="toutCoche
 }
 @media(max-width:420px){#newsPage .sanNewsHeroSimple .sanNewsHeroBubble{flex-basis:auto!important;width:auto!important;height:auto!important}}
 </style>
+
+<style id="sanistock-1-1-130-rectangles-categories-reduits">
+/* Réduction des rectangles dans les sous-catégories Mémo et Véhicule */
+#memoPage .memoChoices, #vehiclePage .memoChoices { gap: 12px; margin-top: 18px; }
+#memoPage .memoChoice, #vehiclePage .memoChoice { padding: 17px 14px; border-radius: 16px; }
+#memoPage .memoChoiceIcon, #vehiclePage .memoChoiceIcon { font-size: 34px; margin-bottom: 5px; }
+#memoPage .memoChoiceTitle, #vehiclePage .memoChoiceTitle { font-size: 16px; }
+#memoPage .memoChoiceDesc, #vehiclePage .memoChoiceDesc { font-size: 12px; margin-top: 4px; line-height: 1.35; }
+#checklistPage .checklistCard { padding: 14px 15px !important; border-radius: 14px !important; }
+#checklistPage .checklistCardTitle { font-size: 17px !important; }
+#checklistPage .checklistCardDesc { margin-top: 3px !important; font-size: 12px !important; }
+#checklistPage .checklistGrid { gap: 10px !important; }
+#checklistPage .checklistVehicle { padding: 11px 13px !important; margin-bottom: 7px !important; border-radius: 12px !important; }
+#checklistPage .checklistVehicleName { font-size: 14px !important; }
+@media (max-width: 600px) {
+  #memoPage .memoChoices, #vehiclePage .memoChoices { gap: 10px; }
+  #memoPage .memoChoice, #vehiclePage .memoChoice { padding: 15px 12px; }
+  #checklistPage .checklistCard { padding: 12px !important; }
+}
+</style>
+
 </body>
 </html>
 
