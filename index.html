@@ -4925,14 +4925,14 @@ function verifierBadgeActualitesEquipe_(){
   }catch(err){window.sanNewsBadgePublicationsPending_=false;console.warn('Impossible de vérifier les publications :',err);}
 }
 function initialiserBadgeActualitesEquipe_(){
-  /* Actualisation silencieuse toutes les 10 secondes, sans écran de chargement répétitif. */
-  window.setInterval(verifierBadgeActualitesEquipe_,10000);
+  /* SaniStock 1.1.121 : actualisation silencieuse toutes les 2 secondes, uniquement lorsque nécessaire. */
+  window.setInterval(verifierBadgeActualitesEquipe_,2000);
   window.setInterval(function(){
     if(document.hidden||!murActualitesActif_()||!navigator.onLine||!gsDisponible())return;
     const session=donneesSessionEquipe_();
     if(!session.salarie||!session.code)return;
     chargerSondagesEquipe(true);
-  },10000);
+  },2000);
   window.addEventListener('focus',verifierBadgeActualitesEquipe_);
   window.addEventListener('online',verifierBadgeActualitesEquipe_);
   window.addEventListener('pageshow',function(){verifierBadgeActualitesEquipe_();if(murActualitesActif_())chargerSondagesEquipe(true);});
