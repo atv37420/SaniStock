@@ -11727,7 +11727,7 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
             return;
           }
           var editableCats=['TAXIS','VSL'];
-          html+='<div class="checklistAdminRow"><strong>'+esc(v)+'</strong><select id="checkCat_'+c+'_'+i+'">'+editableCats.map(function(x){return '<option value="'+x+'" '+(x===c?'selected':'')+'>'+labels[x]+'</option>';}).join('')+'</select><button class="settingsAction" type="button" onclick="modifierVehiculeChecklistUI(\''+c+'\','+i+')">💾</button><button class="settingsAction secondary" type="button" onclick="supprimerVehiculeChecklistUI(\''+c+'\','+i+')">🗑️</button></div>';
+          html+='<div class="checklistAdminRow"><input type="text" maxlength="100" aria-label="Nom du véhicule" id="checkName_'+c+'_'+i+'" value="'+esc(v)+'" style="flex:1;min-width:180px"><select id="checkCat_'+c+'_'+i+'">'+editableCats.map(function(x){return '<option value="'+x+'" '+(x===c?'selected':'')+'>'+labels[x]+'</option>';}).join('')+'</select><button class="settingsAction" type="button" onclick="modifierVehiculeChecklistUI(\''+c+'\','+i+')">💾 Enregistrer</button><button class="settingsAction secondary" type="button" onclick="supprimerVehiculeChecklistUI(\''+c+'\','+i+')">🗑️</button></div>';
         });
       });
       list.innerHTML=html;
@@ -11743,10 +11743,17 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
   };
   window.modifierVehiculeChecklistUI=function(oldCat,index){
     var d=load(), v=d[oldCat]&&d[oldCat][index]; if(!v)return;
+    var nameInput=document.getElementById('checkName_'+oldCat+'_'+index);
+    var newName=String(nameInput&&nameInput.value||'').trim();
     var sel=document.getElementById('checkCat_'+oldCat+'_'+index), newCat=sel&&sel.value;
     if(oldCat==='AMBULANCES'){alert('La check-list des ambulances est verrouillée et ne peut pas être modifiée ici.');return;}
-    if(!newCat||!['TAXIS','VSL'].includes(newCat)||newCat===oldCat)return;
-    d[oldCat].splice(index,1);d[newCat].push(v);save(d);chargerGestionChecklist();
+    if(!newName){alert('Saisissez le nom du véhicule.');return;}
+    var duplicate=Object.keys(d).some(function(cat){return d[cat].some(function(name){return String(name).toLowerCase()===newName.toLowerCase() && !(cat===oldCat && name===v);});});
+    if(duplicate){alert('Ce nom de véhicule existe déjà dans la CHECK-LIST.');return;}
+    if(!newCat||!['TAXIS','VSL'].includes(newCat)){alert('Choisissez TAXIS ou VSL.');return;}
+    d[oldCat].splice(index,1);
+    d[newCat].push(newName);
+    save(d);chargerGestionChecklist();
   };
   window.supprimerVehiculeChecklistUI=function(cat,index){
     var d=load(), v=d[cat]&&d[cat][index]; if(!v)return;
