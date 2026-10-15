@@ -2495,6 +2495,7 @@ button.settingsAction.secondary:hover,
       <button id="settingsTabChecklist" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('checklist')">✅ CHECK-LIST</button>
       <button id="settingsTabDashboard" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('dashboard')">📊 Tableau de bord</button>
       <button id="settingsTabDocuments" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('documents')">📄 Documents</button>
+      <button id="settingsTabMemoCode" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('memocode')">🔐 Mémo code</button>
     </div>
 
     <div id="settingsMsg" class="settingsMsg"></div>
@@ -2573,6 +2574,20 @@ button.settingsAction.secondary:hover,
         <div id="documentsMsg" class="documentsMsg" aria-live="polite"></div>
       </div>
       <div id="documentsSettingsList" class="documentsList">Chargement des documents…</div>
+    </section>
+
+    <section id="settingsPaneMemoCode" class="settingsPane" role="tabpanel" hidden>
+      <div class="settingsPaneHead">
+        <div><strong>🔐 Mémo code</strong><span>Rédigez ici les informations de code à afficher dans la rubrique MÉMO.</span></div>
+      </div>
+      <div class="documentsAdmin">
+        <label for="memoCodeTitleInput" style="display:block;font-weight:800;margin-bottom:6px">Titre du mémo</label>
+        <input id="memoCodeTitleInput" type="text" maxlength="100" placeholder="Ex. Mémo code équipe" style="width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:10px;margin-bottom:12px">
+        <label for="memoCodeContentInput" style="display:block;font-weight:800;margin-bottom:6px">Contenu du mémo</label>
+        <textarea id="memoCodeContentInput" rows="8" placeholder="Saisissez les informations à partager…" style="width:100%;box-sizing:border-box;padding:12px;border:1px solid #cbd5e1;border-radius:10px;font:inherit;resize:vertical"></textarea>
+        <button type="button" onclick="enregistrerMemoCodeUI()" style="margin-top:10px">💾 Enregistrer le mémo code</button>
+        <div id="memoCodeSettingsMsg" class="documentsMsg" aria-live="polite"></div>
+      </div>
     </section>
 
     <div class="settingsAdminBlock">
@@ -2732,6 +2747,21 @@ button.settingsAction.secondary:hover,
         <span class="memoChoiceTitle">DOCUMENTS</span>
         <span class="memoChoiceDesc">Documents partagés de l’équipe</span>
       </button>
+      <button type="button" class="memoChoice" onclick="ouvrirMemoCodePage()">
+        <span class="memoChoiceIcon">🔐</span>
+        <span class="memoChoiceTitle">MÉMO CODE</span>
+        <span class="memoChoiceDesc">Retrouvez les informations de code partagées par le responsable</span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<section id="memoCodePage" class="screen page">
+  <button type="button" class="back" onclick="sanistockGoBack()">← Retour</button>
+  <div class="documentsWrap">
+    <div class="documentsHeader"><div><h1 id="memoCodeDisplayTitle" style="margin:0">🔐 Mémo code</h1><p style="margin:5px 0 0;color:#64748b">Informations utiles communiquées par le responsable.</p></div></div>
+    <div class="card" style="max-width:900px;margin:0 auto;text-align:left;padding:20px;border-radius:16px">
+      <div id="memoCodeDisplayContent" style="white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6">Aucun mémo code n’a encore été ajouté.</div>
     </div>
   </div>
 </section>
@@ -3651,6 +3681,47 @@ async function prechargerPDFJSHorsLigne_(){
   return !!(pdf&&worker);
 }
 
+const SANISTOCK_MEMO_CODE_KEY = 'sanistock_memo_code_v1';
+function lireMemoCode_(){
+  try{
+    const raw=localStorage.getItem(SANISTOCK_MEMO_CODE_KEY);
+    if(!raw)return {title:'Mémo code',content:''};
+    const data=JSON.parse(raw);
+    return {title:String(data.title||'Mémo code'),content:String(data.content||'')};
+  }catch(e){return {title:'Mémo code',content:''};}
+}
+function afficherMemoCode_(){
+  const data=lireMemoCode_();
+  const title=document.getElementById('memoCodeDisplayTitle');
+  const content=document.getElementById('memoCodeDisplayContent');
+  if(title)title.textContent='🔐 '+(data.title||'Mémo code');
+  if(content)content.textContent=data.content.trim()||'Aucun mémo code n’a encore été ajouté.';
+}
+function ouvrirMemoCodePage(){
+  afficherMemoCode_();
+  showPage('memoCodePage');
+}
+function chargerMemoCodeParametres(){
+  const data=lireMemoCode_();
+  const title=document.getElementById('memoCodeTitleInput');
+  const content=document.getElementById('memoCodeContentInput');
+  const msg=document.getElementById('memoCodeSettingsMsg');
+  if(title)title.value=data.title;
+  if(content)content.value=data.content;
+  if(msg)msg.textContent='';
+}
+function enregistrerMemoCodeUI(){
+  const titleInput=document.getElementById('memoCodeTitleInput');
+  const contentInput=document.getElementById('memoCodeContentInput');
+  const msg=document.getElementById('memoCodeSettingsMsg');
+  const data={title:(titleInput&&titleInput.value.trim())||'Mémo code',content:(contentInput&&contentInput.value)||''};
+  try{
+    localStorage.setItem(SANISTOCK_MEMO_CODE_KEY,JSON.stringify(data));
+    if(msg)msg.textContent='✅ Mémo code enregistré sur cet appareil.';
+    afficherMemoCode_();
+  }catch(e){if(msg)msg.textContent='❌ Impossible d’enregistrer le mémo code sur cet appareil.';}
+}
+
 function ouvrirDocuments(){
   showPage('documentsPage');
   chargerDocuments();
@@ -4490,6 +4561,7 @@ function ouvrirOngletParametres(onglet){
   const tc=document.getElementById('settingsTabChecklist');
   const ti=null; // L’ancien onglet Informations a été remplacé par « Esprit d’équipe ».
   const tdoc=document.getElementById('settingsTabDocuments');
+  const tmemo=document.getElementById('settingsTabMemoCode');
   const tdate=document.getElementById('settingsTabDates');
   const paneDate=document.getElementById('settingsPaneDates');
 
@@ -4500,6 +4572,7 @@ function ouvrirOngletParametres(onglet){
   const isChecklist=onglet==='checklist';
   const isInfo=false;
   const isDocs=onglet==='documents';
+  const isMemoCode=onglet==='memocode';
 
   sal.hidden=!isSal;
   paneDate.hidden=!isDates;
@@ -4507,6 +4580,7 @@ function ouvrirOngletParametres(onglet){
   dash.hidden=!isDash;
   document.getElementById('settingsPaneChecklist').hidden=!isChecklist;
   document.getElementById('settingsPaneDocuments').hidden=!isDocs;
+  document.getElementById('settingsPaneMemoCode').hidden=!isMemoCode;
 
   ts.classList.toggle('active',isSal);
   tdate.classList.toggle('active',isDates);
@@ -4514,6 +4588,7 @@ function ouvrirOngletParametres(onglet){
   td.classList.toggle('active',isDash);
   tc.classList.toggle('active',isChecklist);
   tdoc.classList.toggle('active',isDocs);
+  tmemo.classList.toggle('active',isMemoCode);
 
   ts.setAttribute('aria-selected',String(isSal));
   tdate.setAttribute('aria-selected',String(isDates));
@@ -4521,6 +4596,7 @@ function ouvrirOngletParametres(onglet){
   td.setAttribute('aria-selected',String(isDash));
   tc.setAttribute('aria-selected',String(isChecklist));
   tdoc.setAttribute('aria-selected',String(isDocs));
+  tmemo.setAttribute('aria-selected',String(isMemoCode));
 
   if(isSal) chargerGestionSalaries();
   else if(isDates) chargerDatesAnniversaires();
@@ -4528,6 +4604,7 @@ function ouvrirOngletParametres(onglet){
   else if(isDash) chargerTableauBord();
   else if(isChecklist) chargerGestionChecklist();
   else if(isDocs) chargerDocuments();
+  else if(isMemoCode) chargerMemoCodeParametres();
 }
 
 function chargerDatesAnniversaires(){
