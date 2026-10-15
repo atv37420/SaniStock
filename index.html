@@ -6,7 +6,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>SaniStock</title>
+<title>SaniStock 1.1.124</title>
 <link rel="manifest" href="./manifest.json">
 <!-- Icône SaniStock pour téléphone -->
 <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/atv37420/SaniStock/main/0.png">
@@ -2534,20 +2534,20 @@ button.settingsAction.secondary:hover,
 
     <section id="settingsPaneChecklist" class="settingsPane" role="tabpanel" hidden>
       <div class="settingsPaneHead">
-        <div><strong>✅ Gestion CHECK-LIST</strong><span>Ajoutez des véhicules et changez leur catégorie sans modifier le code.</span></div>
+        <div><strong>✅ Gestion CHECK-LIST</strong><span>Réglez ici la catégorie de CHECK-LIST, indépendamment de la catégorie utilisée pour les désinfections.</span></div>
         <button class="settingsAction" type="button" onclick="chargerGestionChecklist()">↻ Actualiser</button>
       </div>
       <div class="checklistAdminForm">
         <input id="checklistAdminVehicle" type="text" maxlength="100" placeholder="Nom / immatriculation du véhicule">
         <select id="checklistAdminCategory">
-          <option value="AMBULANCES">🚑 AMBULANCES</option>
           <option value="TAXIS">🚕 TAXIS</option>
           <option value="VSL">🚐 VSL</option>
         </select>
         <button class="settingsAction" type="button" onclick="ajouterVehiculeChecklistUI()">➕ Ajouter</button>
       </div>
       <div id="checklistAdminList"></div>
-      <button class="settingsAction secondary" type="button" onclick="reinitialiserChecklistVehiculesUI()">↩️ Restaurer la liste d’origine</button>
+      <p class="settingsIntro">🔒 Les ambulances et leur check-list restent inchangées. Cette rubrique sert uniquement à gérer les affectations TAXIS et VSL.</p>
+      <button class="settingsAction secondary" type="button" onclick="reinitialiserChecklistVehiculesUI()">↩️ Restaurer uniquement les listes TAXIS et VSL</button>
     </section>
 
     <section id="settingsPaneDashboard" class="settingsPane" role="tabpanel" hidden>
@@ -5996,7 +5996,7 @@ function ajouterVehiculeUI(){
     if(!d[cat].some(function(v){return String(v).toLowerCase()===nom.toLowerCase();}))d[cat].push(nom);
     _saveVehiculeCategoriesUI(d);
     if(input)input.value='';
-    messageParametres('✅ Véhicule ajouté.'); chargerGestionVehicules(); chargerVehicules();
+    messageParametres('✅ Véhicule ajouté.'); chargerGestionVehicules(); chargerVehicules(); if(typeof chargerGestionChecklist==='function')chargerGestionChecklist();
   }).withFailureHandler(function(e){
     messageParametres('❌ '+(e&&e.message?e.message:e),false);
   }).ajouterVehicule(Object.assign({vehicule:nom},donneesAccesGestion()));
@@ -7767,7 +7767,7 @@ const SANISTOCK_MEDICATIONS = [
 {name:'PICOSULFATE',active:'Picosulfate',role:'Gastro'},
 {name:'PSYLLIUM',active:'Psyllium',role:'Gastro'},
 {name:'BAMBUTÉROL',active:'Bambutérol',role:'Respiratoire'},
-{name:'BROMURE D\\\'IPRATROPIUM',active:'Bromure d\\\'ipratropium',role:'Respiratoire'},
+{name:'BROMURE D\\'IPRATROPIUM',active:'Bromure d\\'ipratropium',role:'Respiratoire'},
 {name:'CICLESONIDE',active:'Ciclesonide',role:'Respiratoire'},
 {name:'CLENBUTÉROL',active:'Clenbutérol',role:'Respiratoire'},
 {name:'DORNASE ALFA',active:'Dornase alfa',role:'Respiratoire'},
@@ -11680,19 +11680,58 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
   function save(x){localStorage.setItem(KEY,JSON.stringify(x));window.CHECKLIST_VEHICLES_FIXED=x;}
   function esc(x){return String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
   window.getChecklistVehiculesData=function(){return load();};
+  function categorieChecklistPourNom(nom){
+    var u=String(nom||'').toUpperCase();
+    if(/\bVSL\b/.test(u)) return 'VSL';
+    if(/TAXI/.test(u)) return 'TAXIS';
+    if(/AMBULANCE/.test(u)) return 'AMBULANCES';
+    return 'AMBULANCES';
+  }
+  function synchroniserDepuisVehicules(callback){
+    if(!window.google||!google.script||!google.script.run||typeof google.script.run.getGestionVehicules!=='function'){
+      if(typeof callback==='function')callback(load());return;
+    }
+    google.script.run.withSuccessHandler(function(rows){
+      var d=load(), cats=['AMBULANCES','TAXIS','VSL'], seen={};
+      cats.forEach(function(c){d[c].forEach(function(v){seen[String(v||'').trim().toLowerCase()]=true;});});
+      (Array.isArray(rows)?rows:[]).forEach(function(r){
+        var nom=String(r&&r.vehicule||'').trim(), key=nom.toLowerCase();
+        if(!nom||seen[key])return;
+        // Ne jamais ajouter automatiquement un véhicule à AMBULANCES.
+        // Seuls les nouveaux véhicules clairement identifiés TAXI ou VSL
+        // sont synchronisés ici ; les ambulances restent intactes.
+        var cat=categorieChecklistPourNom(nom);
+        if(cat==='AMBULANCES')return;
+        d[cat].push(nom);seen[key]=true;
+      });
+      save(d);
+      if(typeof callback==='function')callback(d);
+    }).withFailureHandler(function(){
+      if(typeof callback==='function')callback(load());
+    }).getGestionVehicules(typeof donneesAccesGestion==='function'?donneesAccesGestion():{});
+  }
+  window.synchroniserChecklistAvecVehicules=function(callback){synchroniserDepuisVehicules(callback);};
   window.chargerGestionChecklist=function(){
     var list=document.getElementById('checklistAdminList'); if(!list)return;
-    var d=load(), cats=['AMBULANCES','TAXIS','VSL'];
-    var labels={AMBULANCES:'🚑 AMBULANCES',TAXIS:'🚕 TAXIS',VSL:'🚐 VSL'};
-    var html='';
-    cats.forEach(function(c){
-      html+='<div style="margin:16px 0 8px;font-weight:800;color:#0757a0">'+labels[c]+'</div>';
-      if(!d[c].length){html+='<div class="checklistAdminEmpty">Aucun véhicule dans cette catégorie.</div>';return;}
-      d[c].forEach(function(v,i){
-        html+='<div class="checklistAdminRow"><strong>'+esc(v)+'</strong><select id="checkCat_'+c+'_'+i+'">'+cats.map(function(x){return '<option value="'+x+'" '+(x===c?'selected':'')+'>'+labels[x]+'</option>';}).join('')+'</select><button class="settingsAction" type="button" onclick="modifierVehiculeChecklistUI(\''+c+'\','+i+')">💾</button><button class="settingsAction secondary" type="button" onclick="supprimerVehiculeChecklistUI(\''+c+'\','+i+')">🗑️</button></div>';
+    list.innerHTML='<div class="settingsMsg">Synchronisation des véhicules…</div>';
+    synchroniserDepuisVehicules(function(d){
+      var cats=['AMBULANCES','TAXIS','VSL'];
+      var labels={AMBULANCES:'🚑 AMBULANCES',TAXIS:'🚕 TAXIS',VSL:'🚐 VSL'};
+      var html='';
+      cats.forEach(function(c){
+        html+='<div style="margin:16px 0 8px;font-weight:800;color:#0757a0">'+labels[c]+'</div>';
+        if(!d[c].length){html+='<div class="checklistAdminEmpty">Aucun véhicule dans cette catégorie.</div>';return;}
+        d[c].forEach(function(v,i){
+          if(c==='AMBULANCES'){
+            html+='<div class="checklistAdminRow checklistAmbulanceLocked"><strong>'+esc(v)+'</strong><span style="font-weight:800;color:#168044">🔒 Conservée telle quelle</span></div>';
+            return;
+          }
+          var editableCats=['TAXIS','VSL'];
+          html+='<div class="checklistAdminRow"><strong>'+esc(v)+'</strong><select id="checkCat_'+c+'_'+i+'">'+editableCats.map(function(x){return '<option value="'+x+'" '+(x===c?'selected':'')+'>'+labels[x]+'</option>';}).join('')+'</select><button class="settingsAction" type="button" onclick="modifierVehiculeChecklistUI(\''+c+'\','+i+')">💾</button><button class="settingsAction secondary" type="button" onclick="supprimerVehiculeChecklistUI(\''+c+'\','+i+')">🗑️</button></div>';
+        });
       });
+      list.innerHTML=html;
     });
-    list.innerHTML=html;
   };
   window.ajouterVehiculeChecklistUI=function(){
     var input=document.getElementById('checklistAdminVehicle'), sel=document.getElementById('checklistAdminCategory');
@@ -11705,17 +11744,19 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
   window.modifierVehiculeChecklistUI=function(oldCat,index){
     var d=load(), v=d[oldCat]&&d[oldCat][index]; if(!v)return;
     var sel=document.getElementById('checkCat_'+oldCat+'_'+index), newCat=sel&&sel.value;
-    if(!newCat||newCat===oldCat)return;
+    if(oldCat==='AMBULANCES'){alert('La check-list des ambulances est verrouillée et ne peut pas être modifiée ici.');return;}
+    if(!newCat||!['TAXIS','VSL'].includes(newCat)||newCat===oldCat)return;
     d[oldCat].splice(index,1);d[newCat].push(v);save(d);chargerGestionChecklist();
   };
   window.supprimerVehiculeChecklistUI=function(cat,index){
     var d=load(), v=d[cat]&&d[cat][index]; if(!v)return;
+    if(cat==='AMBULANCES'){alert('La liste des ambulances est verrouillée et ne peut pas être supprimée ici.');return;}
     if(!confirm('Supprimer « '+v+' » de la CHECK-LIST ?'))return;
     d[cat].splice(index,1);save(d);chargerGestionChecklist();
   };
   window.reinitialiserChecklistVehiculesUI=function(){
-    if(!confirm('Restaurer les 12 véhicules de la liste d’origine ?'))return;
-    save(clone(DEFAULTS));chargerGestionChecklist();
+    if(!confirm('Restaurer uniquement les listes TAXIS et VSL d’origine ? La liste AMBULANCES restera inchangée.'))return;
+    var d=load();d.TAXIS=clone(DEFAULTS.TAXIS);d.VSL=clone(DEFAULTS.VSL);save(d);chargerGestionChecklist();
   };
   window.CHECKLIST_VEHICULES_DEFAULTS=DEFAULTS;
 })();
@@ -11735,13 +11776,18 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
   window.ouvrirChecklistCategories=function(){
     var box=document.getElementById('checklistContent'), sub=document.getElementById('checklistSubtitle'); if(!box)return;
     if(sub)sub.textContent='Choisissez une catégorie de véhicule';
-    box.innerHTML='<div class="checklistGrid">'+Object.keys(V).map(function(c){
-      return '<button type="button" class="checklistCard" data-check-cat="'+esc(c)+'">'
-        +'<span class="checklistCardTitle">'+esc(checklistCategoryLabel(c))+'</span>'
-        +'<span class="checklistCardDesc">'+V[c].length+' véhicule'+(V[c].length>1?'s':'')+'</span>'
-        +'</button>';
-    }).join('')+'</div>';
-    if(typeof showPage==='function')showPage('checklistPage');
+    function afficher(){
+      var data=window.getChecklistVehiculesData?window.getChecklistVehiculesData():V;
+      window.CHECKLIST_VEHICLES_FIXED=data;
+      box.innerHTML='<div class="checklistGrid">'+['AMBULANCES','TAXIS','VSL'].map(function(c){
+        return '<button type="button" class="checklistCard" data-check-cat="'+esc(c)+'">'
+          +'<span class="checklistCardTitle">'+esc(checklistCategoryLabel(c))+'</span>'
+          +'<span class="checklistCardDesc">'+((data[c]||[]).length)+' véhicule'+((data[c]||[]).length>1?'s':'')+'</span>'
+          +'</button>';
+      }).join('')+'</div>';
+      if(typeof showPage==='function')showPage('checklistPage');
+    }
+    if(typeof window.synchroniserChecklistAvecVehicules==='function')window.synchroniserChecklistAvecVehicules(afficher);else afficher();
   };
   var monthlyChecklistCache={};
   function monthlyKey(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}
@@ -11775,9 +11821,10 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
   window.ouvrirChecklistVehicules=function(c){
     var box=document.getElementById('checklistContent'), sub=document.getElementById('checklistSubtitle'); if(!box)return;
     if(sub)sub.textContent=checklistCategoryLabel(c)+' — choisissez un véhicule';
+    var latest=window.getChecklistVehiculesData?window.getChecklistVehiculesData():V;
     box.innerHTML='<button type="button" class="back" id="checklistBackCat">← Catégories</button>'
       +'<button type="button" class="monthlyHistoryButton" onclick="ouvrirHistoriqueChecklistMensuelle()">📚 Historique mensuel</button>'
-      +V[c].map(function(v){var key=monthlyStatusKey(c,v);return '<div class="checklistVehicleMonthly" data-monthly-category="'+esc(c)+'">'
+      +(latest[c]||[]).map(function(v){var key=monthlyStatusKey(c,v);return '<div class="checklistVehicleMonthly" data-monthly-category="'+esc(c)+'">'
         +'<button type="button" class="checklistVehicle" data-check-veh="'+esc(v)+'">'
         +'<span class="checklistVehicleName">'+esc(v)+'</span><span class="checklistVehicleArrow">›</span></button>'
         +'<div class="monthlyStatus" data-monthly-status="'+esc(key)+'">⏳ Chargement du statut…</div>'
