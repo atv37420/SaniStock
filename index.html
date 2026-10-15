@@ -5441,6 +5441,8 @@ function rendreActualitesEquipe_(){
         +'<div class="sanNewsCommentList">'+commentItems+'</div>'
         +'<div class="sanNewsCommentForm"><textarea id="sanNewsCommentInput_'+id+'" maxlength="500" rows="2" placeholder="Écrire une réponse…" '+(offline?'disabled':'')+'></textarea><button type="button" class="sanNewsCommentSend" onclick="ajouterCommentaireEquipeUI('+id+')" '+(offline?'disabled':'')+'>Envoyer le commentaire</button></div>'
         +'</details><div id="sanNewsSocialStatus_'+id+'" class="sanNewsSocialStatus" aria-live="polite"></div></div>';
+    } else if(r.pendingLocal){
+      social='<div class="sanNewsLegacyNote" aria-live="polite">⏳ Publication en cours d’enregistrement…</div>';
     } else if(legacy){
       social='<div class="sanNewsLegacyNote">📌 Ancienne annonce SaniStock publiée par le responsable.</div>';
     } else {
@@ -5560,13 +5562,37 @@ function ajouterCommentaireEquipeUI(id){
   if(!message){if(status)status.textContent='Écrivez un commentaire avant de l’envoyer.';return;}
   const session=donneesSessionEquipe_();
   if(!session.salarie||!session.code){if(status)status.textContent='Reconnectez-vous à SaniStock pour commenter.';return;}
-  if(status)status.textContent='Envoi du commentaire…';
+  const card=document.getElementById('sanNewsPost_'+id);
+  const list=card&&card.querySelector('.sanNewsCommentList');
+  const details=document.getElementById('sanNewsComments_'+id);
+  const summary=details&&details.querySelector('summary');
+  const sendBtn=card&&card.querySelector('.sanNewsCommentSend');
+  const localId='local-'+Date.now()+'-'+Math.random().toString(36).slice(2,7);
+  const dateLabel=new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+  if(list){
+    const hint=list.querySelector('.sanNewsReadHint');if(hint)hint.remove();
+    const item=document.createElement('div');item.className='sanNewsComment sanNewsCommentPending';item.id='sanNewsComment_'+localId;
+    const head=document.createElement('div');head.className='sanNewsCommentHead';
+    const author=document.createElement('span');author.textContent=String(session.salarie||'Vous');
+    const date=document.createElement('span');date.className='sanNewsCommentDate';date.textContent=dateLabel+' · Envoi…';
+    head.append(author,date);const text=document.createElement('div');text.className='sanNewsCommentText';text.textContent=message;item.append(head,text);list.appendChild(item);
+    if(details)details.open=true;
+    const oldCount=Number((summary&&summary.textContent.match(/\d+/)||[])[0]||0);
+    if(summary)summary.textContent='💬 Commentaires ('+(oldCount+1)+')';
+  }
+  if(input)input.value='';
+  if(status)status.textContent='💬 Commentaire affiché — enregistrement en cours…';
+  if(sendBtn){sendBtn.disabled=true;sendBtn.textContent='Envoi…';}
   google.script.run.withSuccessHandler(function(res){
-    if(input)input.value='';
+    if(sendBtn){sendBtn.disabled=false;sendBtn.textContent='Envoyer le commentaire';}
     if(res&&res.offline){if(status)status.textContent='📵 Commentaire enregistré sur ce téléphone ; il sera partagé au retour de la connexion.';return;}
+    if(status)status.textContent='✅ Commentaire publié.';
     chargerActualitesEquipe(true);
-  }).withFailureHandler(function(err){if(status)status.textContent='Impossible d’envoyer le commentaire : '+(err&&err.message?err.message:err);})
-    .ajouterCommentaireEquipe(Object.assign(session,{publicationId:id,message:message,requestId:equipeRequestId_()}));
+  }).withFailureHandler(function(err){
+    if(sendBtn){sendBtn.disabled=false;sendBtn.textContent='Envoyer le commentaire';}
+    if(status)status.textContent='Impossible d’envoyer le commentaire : '+(err&&err.message?err.message:err)+' — le commentaire affiché n’a pas été confirmé.';
+    const pending=document.getElementById('sanNewsComment_'+localId);if(pending)pending.classList.add('sanNewsCommentFailed');
+  }).ajouterCommentaireEquipe(Object.assign(session,{publicationId:id,message:message,requestId:equipeRequestId_()}));
 }
 function marquerActualiteEquipeLue(id){
   id=String(id||'');
@@ -5721,6 +5747,19 @@ function publierPublicationEquipePhotoPOST_(payload){
     document.body.appendChild(frame);document.body.appendChild(form);form.submit();
   });
 }
+function ajouterPublicationOptimisteEquipe_(payload){
+  const tempId=-Date.now();
+  const now=new Date();
+  const pending={id:tempId,timestamp:now.getTime(),date:now.toLocaleString(),auteur:String(payload.salarie||'Vous'),titre:String(payload.titre||''),message:String(payload.message||''),type:String(payload.type||'publication'),priorite:String(payload.priorite||'info'),expiration:String(payload.expiration||''),commentaires:[],commentaireCount:0,pendingLocal:true};
+  actualitesEquipeData_.unshift(pending);
+  rendreActualitesEquipe_();
+  const feed=document.getElementById('sanNewsFeed');if(feed)feed.scrollTop=0;
+  return tempId;
+}
+function retirerPublicationOptimisteEquipe_(tempId){
+  actualitesEquipeData_=actualitesEquipeData_.filter(function(p){return Number(p&&p.id)!==Number(tempId);});
+  rendreActualitesEquipe_();
+}
 function terminerPublicationEquipeUI_(res,statusEl,btn){
   if(document.getElementById('infoTitre'))document.getElementById('infoTitre').value='';
   if(document.getElementById('infoMessage'))document.getElementById('infoMessage').value='';
@@ -5753,6 +5792,8 @@ async function publierInformationUI(){
   if(btn){btn.disabled=true;btn.textContent=photoFile?'Envoi de la photo…':'Publication…';}
   const titreEnregistre=titre.replace(/^\[(QUESTION|QUESTIONS|ID[ÉE]E|IDEA|ANNONCE)\]\s*/i,'').replace(/^(QUESTION|ID[ÉE]E|ANNONCE)\s*[-—:]\s*/i,'').trim();
   const payload=Object.assign({},session,{titre:titreEnregistre,message:message,type:type,priorite:priorite,expiration:expiration,requestId:equipeRequestId_()});
+  const pendingPublicationId=ajouterPublicationOptimisteEquipe_(payload);
+  if(statusEl)statusEl.textContent='⚡ Message affiché immédiatement — enregistrement en cours…';
   if(photoFile){
     try{
       const photosEquipe=[];
@@ -5760,16 +5801,23 @@ async function publierInformationUI(){
       payload.photosEquipe=photosEquipe;
       if(statusEl)statusEl.textContent='Envoi du texte et de '+photosEquipe.length+' photo(s) à toute l’équipe…';
       const res=await publierPublicationEquipePhotoPOST_(payload);
+      retirerPublicationOptimisteEquipe_(pendingPublicationId);
       terminerPublicationEquipeUI_(res,statusEl,btn);
     }catch(err){
+      retirerPublicationOptimisteEquipe_(pendingPublicationId);
       if(statusEl)statusEl.textContent='Impossible de partager la photo : '+(err&&err.message?err.message:err);
       if(btn){btn.disabled=false;btn.textContent='Publier';}
     }
     return;
   }
-  google.script.run.withSuccessHandler(function(res){terminerPublicationEquipeUI_(res,statusEl,btn);})
-    .withFailureHandler(function(err){if(statusEl)statusEl.textContent='Impossible de publier : '+(err&&err.message?err.message:err);if(btn){btn.disabled=false;btn.textContent='Publier';}})
-    .ajouterPublicationEquipe(payload);
+  google.script.run.withSuccessHandler(function(res){
+    retirerPublicationOptimisteEquipe_(pendingPublicationId);
+    terminerPublicationEquipeUI_(res,statusEl,btn);
+  }).withFailureHandler(function(err){
+    retirerPublicationOptimisteEquipe_(pendingPublicationId);
+    if(statusEl)statusEl.textContent='Impossible de publier : '+(err&&err.message?err.message:err);
+    if(btn){btn.disabled=false;btn.textContent='Publier';}
+  }).ajouterPublicationEquipe(payload);
 }
 function supprimerInformationUI(id){
   if(!confirm('Supprimer cette information ?')) return;
