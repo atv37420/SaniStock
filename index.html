@@ -2743,7 +2743,7 @@ button.settingsAction.secondary:hover,
       <span class="sanNewsHeroBubble" aria-hidden="true">💬</span>
       <div class="sanNewsHeroText">
         <h1>Actualité de l’équipe</h1>
-        <p>Partageons nos questions, nos idées et nos annonces dans le respect de chacun. Veillons à préserver la confidentialité : aucune information personnelle ou confidentielle ne doit être publiée.</p>
+        <p>Partageons nos questions, nos idées et nos annonces dans le respect de chacun. Veillons à préserver la confidentialité.</p>
       </div>
     </header>
     <div id="teamPublicationsPane" class="teamToolPane">
@@ -4152,6 +4152,15 @@ __SANI_PDFJS_SCRIPT_TAG__
 @media(max-width:420px){#newsPage .sanNewsHeroSimple{gap:8px!important;padding:9px 10px!important}#newsPage .sanNewsHeroSimple .sanNewsHeroBubble{flex-basis:27px;width:27px;height:27px;font-size:15px}#newsPage .sanNewsHeroSimple h1{font-size:18px!important}}
 </style>
 
+
+<style id="sanistock-1-1-122-esprit-equipe-sans-ancien-rectangle">
+/* 1.1.122 : le message d'accueil est intégré visuellement au mur, sans l'ancien rectangle. */
+#newsPage .sanNewsHeroSimple{background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;padding:4px 4px 10px!important;margin:0 0 8px!important;color:#15324b!important}
+#newsPage .sanNewsHeroSimple .sanNewsHeroText{min-width:0!important}
+#newsPage .sanNewsHeroSimple h1{margin:0 0 5px!important;color:#102a43!important;font-size:22px!important;line-height:1.2}
+#newsPage .sanNewsHeroSimple p{margin:0!important;color:#536579!important;font-size:12px!important;line-height:1.45!important}
+#newsPage .sanNewsHeroSimple .sanNewsHeroBubble{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important}
+</style>
 </body></html>`;
         function afficherLecteurHtml_(html){
           fenetre.document.open();
