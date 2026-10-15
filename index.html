@@ -2501,7 +2501,7 @@ button.settingsAction.secondary:hover,
       <button id="settingsTabChecklist" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('checklist')">✅ CHECK-LIST</button>
       <button id="settingsTabDashboard" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('dashboard')">📊 Tableau de bord</button>
       <button id="settingsTabDocuments" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('documents')">📄 Documents</button>
-      <button id="settingsTabMemoCode" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('memocode')">🔐 Mémo code</button>
+      <button id="settingsTabMemoCode" class="settingsTab" type="button" role="tab" aria-selected="false" onclick="ouvrirOngletParametres('memocode')">🔐 Code</button>
     </div>
 
     <div id="settingsMsg" class="settingsMsg"></div>
@@ -2584,14 +2584,14 @@ button.settingsAction.secondary:hover,
 
     <section id="settingsPaneMemoCode" class="settingsPane" role="tabpanel" hidden>
       <div class="settingsPaneHead">
-        <div><strong>🔐 Mémo code</strong><span>Rédigez ici les informations de code à afficher dans la rubrique MÉMO.</span></div>
+        <div><strong>🔐 Code</strong><span>Rédigez ici les informations de code à afficher dans la rubrique MÉMO.</span></div>
       </div>
       <div class="documentsAdmin">
         <label for="memoCodeTitleInput" style="display:block;font-weight:800;margin-bottom:6px">Titre du mémo</label>
-        <input id="memoCodeTitleInput" type="text" maxlength="100" placeholder="Ex. Mémo code équipe" style="width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:10px;margin-bottom:12px">
+        <input id="memoCodeTitleInput" type="text" maxlength="100" placeholder="Ex. Code équipe" style="width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:10px;margin-bottom:12px">
         <label for="memoCodeContentInput" style="display:block;font-weight:800;margin-bottom:6px">Contenu du mémo</label>
         <textarea id="memoCodeContentInput" rows="8" placeholder="Saisissez les informations à partager…" style="width:100%;box-sizing:border-box;padding:12px;border:1px solid #cbd5e1;border-radius:10px;font:inherit;resize:vertical"></textarea>
-        <button type="button" onclick="enregistrerMemoCodeUI()" style="margin-top:10px">💾 Enregistrer le mémo code</button>
+        <button type="button" onclick="enregistrerMemoCodeUI()" style="margin-top:10px">💾 Enregistrer le code</button>
         <div id="memoCodeSettingsMsg" class="documentsMsg" aria-live="polite"></div>
       </div>
     </section>
@@ -2765,9 +2765,9 @@ button.settingsAction.secondary:hover,
 <section id="memoCodePage" class="screen page">
   <button type="button" class="back" onclick="sanistockGoBack()">← Retour</button>
   <div class="documentsWrap">
-    <div class="documentsHeader"><div><h1 id="memoCodeDisplayTitle" style="margin:0">🔐 Mémo code</h1><p style="margin:5px 0 0;color:#64748b">Informations utiles communiquées par le responsable.</p></div></div>
+    <div class="documentsHeader"><div><h1 id="memoCodeDisplayTitle" style="margin:0">🔐 Code</h1><p style="margin:5px 0 0;color:#64748b">Informations utiles communiquées par le responsable.</p></div></div>
     <div class="card" style="max-width:900px;margin:0 auto;text-align:left;padding:20px;border-radius:16px">
-      <div id="memoCodeDisplayContent" style="white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6">Aucun mémo code n’a encore été ajouté.</div>
+      <div id="memoCodeDisplayContent" style="white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6">Aucun code n’a encore été ajouté.</div>
     </div>
   </div>
 </section>
@@ -3691,17 +3691,17 @@ const SANISTOCK_MEMO_CODE_KEY = 'sanistock_memo_code_v1';
 function lireMemoCode_(){
   try{
     const raw=localStorage.getItem(SANISTOCK_MEMO_CODE_KEY);
-    if(!raw)return {title:'Mémo code',content:''};
+    if(!raw)return {title:'Code',content:''};
     const data=JSON.parse(raw);
-    return {title:String(data.title||'Mémo code'),content:String(data.content||'')};
-  }catch(e){return {title:'Mémo code',content:''};}
+    return {title:String(data.title||'Code'),content:String(data.content||'')};
+  }catch(e){return {title:'Code',content:''};}
 }
 function afficherMemoCode_(){
   const data=lireMemoCode_();
   const title=document.getElementById('memoCodeDisplayTitle');
   const content=document.getElementById('memoCodeDisplayContent');
-  if(title)title.textContent='🔐 '+(data.title||'Mémo code');
-  if(content)content.textContent=data.content.trim()||'Aucun mémo code n’a encore été ajouté.';
+  if(title)title.textContent='🔐 '+(data.title||'Code');
+  if(content)content.textContent=data.content.trim()||'Aucun code n’a encore été ajouté.';
 }
 function ouvrirMemoCodePage(){
   afficherMemoCode_();
@@ -3720,12 +3720,12 @@ function enregistrerMemoCodeUI(){
   const titleInput=document.getElementById('memoCodeTitleInput');
   const contentInput=document.getElementById('memoCodeContentInput');
   const msg=document.getElementById('memoCodeSettingsMsg');
-  const data={title:(titleInput&&titleInput.value.trim())||'Mémo code',content:(contentInput&&contentInput.value)||''};
+  const data={title:(titleInput&&titleInput.value.trim())||'Code',content:(contentInput&&contentInput.value)||''};
   try{
     localStorage.setItem(SANISTOCK_MEMO_CODE_KEY,JSON.stringify(data));
-    if(msg)msg.textContent='✅ Mémo code enregistré sur cet appareil.';
+    if(msg)msg.textContent='✅ Code enregistré sur cet appareil.';
     afficherMemoCode_();
-  }catch(e){if(msg)msg.textContent='❌ Impossible d’enregistrer le mémo code sur cet appareil.';}
+  }catch(e){if(msg)msg.textContent='❌ Impossible d’enregistrer le code sur cet appareil.';}
 }
 
 function ouvrirDocuments(){
