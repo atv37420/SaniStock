@@ -2438,12 +2438,6 @@ button.settingsAction.secondary:hover,
 .homeButton4.team4 .sanNewsUnreadBadge[hidden] { display: none !important; }
 </style>
 
-
-<style id="sanistock-1-1-129-rectangles-vehicule-memo">
-/* Réduction légère des rectangles Véhicules et Mémo sur l’accueil */
-.homeButton4.vehicle4, .homeButton4.memo4 { min-height: 86px; padding-top: 9px; padding-bottom: 9px; }
-@media (max-width:700px) { .homeButton4.vehicle4, .homeButton4.memo4 { min-height: 80px; padding: 7px 5px; } }
-</style>
 </head>
 <body>
 
@@ -3720,7 +3714,7 @@ function enregistrerMemoCodeUI(){
   const titleInput=document.getElementById('memoCodeTitleInput');
   const contentInput=document.getElementById('memoCodeContentInput');
   const msg=document.getElementById('memoCodeSettingsMsg');
-  const data={title:(titleInput&&titleInput.value.trim())||'Code',content:(contentInput&&contentInput.value)||''};
+  const data={title:(titleInput&&titleInput.value.trim())||'Mémo code',content:(contentInput&&contentInput.value)||''};
   try{
     localStorage.setItem(SANISTOCK_MEMO_CODE_KEY,JSON.stringify(data));
     if(msg)msg.textContent='✅ Code enregistré sur cet appareil.';
@@ -4239,8 +4233,8 @@ __SANI_PDFJS_SCRIPT_TAG__
 #newsPage .sanNewsHeroSimple .sanNewsHeroBubble{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important}
 </style>
 
-<style id="sanistock-1-1-130-rectangles-categories-reduits">
-/* Réduction des rectangles dans les sous-catégories Mémo et Véhicule */
+<style id="sanistock-1-1-132-categories-compactes">
+/* Rectangles plus compacts dans les catégories Mémo et Véhicule */
 #memoPage .memoChoices, #vehiclePage .memoChoices { gap: 12px; margin-top: 18px; }
 #memoPage .memoChoice, #vehiclePage .memoChoice { padding: 17px 14px; border-radius: 16px; }
 #memoPage .memoChoiceIcon, #vehiclePage .memoChoiceIcon { font-size: 34px; margin-bottom: 5px; }
@@ -4252,13 +4246,8 @@ __SANI_PDFJS_SCRIPT_TAG__
 #checklistPage .checklistGrid { gap: 10px !important; }
 #checklistPage .checklistVehicle { padding: 11px 13px !important; margin-bottom: 7px !important; border-radius: 12px !important; }
 #checklistPage .checklistVehicleName { font-size: 14px !important; }
-@media (max-width: 600px) {
-  #memoPage .memoChoices, #vehiclePage .memoChoices { gap: 10px; }
-  #memoPage .memoChoice, #vehiclePage .memoChoice { padding: 15px 12px; }
-  #checklistPage .checklistCard { padding: 12px !important; }
-}
+@media (max-width: 600px) { #memoPage .memoChoices, #vehiclePage .memoChoices { gap: 10px; } #memoPage .memoChoice, #vehiclePage .memoChoice { padding: 15px 12px; } #checklistPage .checklistCard { padding: 12px !important; } }
 </style>
-
 </body></html>`;
         function afficherLecteurHtml_(html){
           fenetre.document.open();
@@ -12508,28 +12497,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
           (sig&&sig.indexOf('data:image/')===0?'<img src="'+sig+'" alt="Signature">':'')+
         '</div>'+
         '<div class="meta">Véhicule : '+taxiPdfEscape(vehicle)+'</div>'+
-      '</div>
-<style id="sanistock-1-1-130-rectangles-categories-reduits">
-/* Réduction des rectangles dans les sous-catégories Mémo et Véhicule */
-#memoPage .memoChoices, #vehiclePage .memoChoices { gap: 12px; margin-top: 18px; }
-#memoPage .memoChoice, #vehiclePage .memoChoice { padding: 17px 14px; border-radius: 16px; }
-#memoPage .memoChoiceIcon, #vehiclePage .memoChoiceIcon { font-size: 34px; margin-bottom: 5px; }
-#memoPage .memoChoiceTitle, #vehiclePage .memoChoiceTitle { font-size: 16px; }
-#memoPage .memoChoiceDesc, #vehiclePage .memoChoiceDesc { font-size: 12px; margin-top: 4px; line-height: 1.35; }
-#checklistPage .checklistCard { padding: 14px 15px !important; border-radius: 14px !important; }
-#checklistPage .checklistCardTitle { font-size: 17px !important; }
-#checklistPage .checklistCardDesc { margin-top: 3px !important; font-size: 12px !important; }
-#checklistPage .checklistGrid { gap: 10px !important; }
-#checklistPage .checklistVehicle { padding: 11px 13px !important; margin-bottom: 7px !important; border-radius: 12px !important; }
-#checklistPage .checklistVehicleName { font-size: 14px !important; }
-@media (max-width: 600px) {
-  #memoPage .memoChoices, #vehiclePage .memoChoices { gap: 10px; }
-  #memoPage .memoChoice, #vehiclePage .memoChoice { padding: 15px 12px; }
-  #checklistPage .checklistCard { padding: 12px !important; }
-}
-</style>
-
-</body></html>';
+      '</div></body></html>';
   }
 
 
@@ -13954,27 +13922,6 @@ html+='<div class="ambSectionBulkActions"><button type="button" class="toutCoche
 }
 @media(max-width:420px){#newsPage .sanNewsHeroSimple .sanNewsHeroBubble{flex-basis:auto!important;width:auto!important;height:auto!important}}
 </style>
-
-<style id="sanistock-1-1-130-rectangles-categories-reduits">
-/* Réduction des rectangles dans les sous-catégories Mémo et Véhicule */
-#memoPage .memoChoices, #vehiclePage .memoChoices { gap: 12px; margin-top: 18px; }
-#memoPage .memoChoice, #vehiclePage .memoChoice { padding: 17px 14px; border-radius: 16px; }
-#memoPage .memoChoiceIcon, #vehiclePage .memoChoiceIcon { font-size: 34px; margin-bottom: 5px; }
-#memoPage .memoChoiceTitle, #vehiclePage .memoChoiceTitle { font-size: 16px; }
-#memoPage .memoChoiceDesc, #vehiclePage .memoChoiceDesc { font-size: 12px; margin-top: 4px; line-height: 1.35; }
-#checklistPage .checklistCard { padding: 14px 15px !important; border-radius: 14px !important; }
-#checklistPage .checklistCardTitle { font-size: 17px !important; }
-#checklistPage .checklistCardDesc { margin-top: 3px !important; font-size: 12px !important; }
-#checklistPage .checklistGrid { gap: 10px !important; }
-#checklistPage .checklistVehicle { padding: 11px 13px !important; margin-bottom: 7px !important; border-radius: 12px !important; }
-#checklistPage .checklistVehicleName { font-size: 14px !important; }
-@media (max-width: 600px) {
-  #memoPage .memoChoices, #vehiclePage .memoChoices { gap: 10px; }
-  #memoPage .memoChoice, #vehiclePage .memoChoice { padding: 15px 12px; }
-  #checklistPage .checklistCard { padding: 12px !important; }
-}
-</style>
-
 </body>
 </html>
 
