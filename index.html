@@ -13859,6 +13859,43 @@ html+='<div class="ambSectionBulkActions"><button type="button" class="toutCoche
   #memoCodePage.pageFadeOut { animation-duration: .01ms !important; }
 }
 </style>
+
+<style id="sanistock-fix-memo-medicaments-page-noire-142">
+/* Correctif ciblé : empêcher l'ancien écran/son fondu de recouvrir Mémo Médicaments. */
+#medicationPage { background:#edf5fa !important; color:#042349 !important; filter:none !important; opacity:1 !important; }
+#medicationPage.active { display:block !important; visibility:visible !important; }
+#medicationPage.pageFadeIn, #medicationPage.pageFadeOut { animation:none !important; filter:none !important; }
+#medicationPage .card { background:#fff !important; color:#042349 !important; }
+#medicationPage #medicationList { color:#042349 !important; }
+</style>
+<script id="sanistock-fix-memo-medicaments-navigation-142">
+(function(){
+  function openMedicationSafely(){
+    document.querySelectorAll('.screen').forEach(function(p){
+      p.classList.remove('active','pageFadeIn','pageFadeOut');
+      p.style.removeProperty('z-index');
+    });
+    var page=document.getElementById('medicationPage');
+    if(!page) return;
+    page.classList.add('active');
+    page.style.display='block';
+    page.style.visibility='visible';
+    page.style.opacity='1';
+    page.style.background='#edf5fa';
+    window.scrollTo(0,0);
+    if(typeof renderMedicationMemo==='function') renderMedicationMemo();
+  }
+  document.addEventListener('click',function(e){
+    var btn=e.target && e.target.closest ? e.target.closest('button[onclick*="showPage(\'medicationPage\')"]') : null;
+    if(!btn) return;
+    e.preventDefault();
+    e.stopPropagation();
+    if(e.stopImmediatePropagation) e.stopImmediatePropagation();
+    openMedicationSafely();
+  },true);
+})();
+</script>
+
 </body>
 </html>
 <!-- SaniStock 1.1.114 : réactions multiples sur les publications. -->
