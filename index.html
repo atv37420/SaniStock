@@ -13754,6 +13754,32 @@ html+='<div class="ambSectionBulkActions"><button type="button" class="toutCoche
 }
 @media(max-width:420px){#newsPage .sanNewsHeroSimple .sanNewsHeroBubble{flex-basis:auto!important;width:auto!important;height:auto!important}}
 </style>
+
+<style id="sanistock-1-1-137-memo-ouverture-rapide">
+/* Ouverture plus rapide des rubriques Mémo : on garde le fondu, mais sans attendre presque une seconde. */
+#memoPage.pageFadeIn,
+#medicationPage.pageFadeIn,
+#medicamentsPage.pageFadeIn,
+#documentsPage.pageFadeIn,
+#memoCodePage.pageFadeIn {
+  animation-duration: .12s !important;
+  animation-timing-function: ease-out !important;
+  filter: none !important;
+}
+#memoPage.pageFadeOut,
+#medicationPage.pageFadeOut,
+#medicamentsPage.pageFadeOut,
+#documentsPage.pageFadeOut,
+#memoCodePage.pageFadeOut {
+  animation-duration: .12s !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  #memoPage.pageFadeIn, #medicationPage.pageFadeIn, #medicamentsPage.pageFadeIn,
+  #documentsPage.pageFadeIn, #memoCodePage.pageFadeIn, #memoPage.pageFadeOut,
+  #medicationPage.pageFadeOut, #medicamentsPage.pageFadeOut, #documentsPage.pageFadeOut,
+  #memoCodePage.pageFadeOut { animation-duration: .01ms !important; }
+}
+</style>
 </body>
 </html>
 <!-- SaniStock 1.1.114 : réactions multiples sur les publications. -->
