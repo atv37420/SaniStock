@@ -11776,6 +11776,8 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
   window.ouvrirChecklistCategories=function(){
     var box=document.getElementById('checklistContent'), sub=document.getElementById('checklistSubtitle'); if(!box)return;
     if(sub)sub.textContent='Choisissez une catégorie de véhicule';
+    // Affichage immédiat depuis les données locales : l'écran ne dépend plus
+    // du temps de réponse de Google Apps Script pour s'ouvrir.
     function afficher(){
       var data=window.getChecklistVehiculesData?window.getChecklistVehiculesData():V;
       window.CHECKLIST_VEHICLES_FIXED=data;
@@ -11787,7 +11789,21 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
       }).join('')+'</div>';
       if(typeof showPage==='function')showPage('checklistPage');
     }
-    if(typeof window.synchroniserChecklistAvecVehicules==='function')window.synchroniserChecklistAvecVehicules(afficher);else afficher();
+    afficher();
+    // Synchronisation en arrière-plan uniquement ; elle ne bloque plus l'ouverture.
+    if(typeof window.synchroniserChecklistAvecVehicules==='function'){
+      window.synchroniserChecklistAvecVehicules(function(data){
+        var page=document.getElementById('checklistPage');
+        var grid=box.querySelector('.checklistGrid');
+        if(!page || !page.classList.contains('active') || !grid)return;
+        window.CHECKLIST_VEHICLES_FIXED=data;
+        box.querySelectorAll('[data-check-cat]').forEach(function(btn){
+          var c=btn.getAttribute('data-check-cat'), count=(data[c]||[]).length;
+          var desc=btn.querySelector('.checklistCardDesc');
+          if(desc)desc.textContent=count+' véhicule'+(count>1?'s':'');
+        });
+      });
+    }
   };
   var monthlyChecklistCache={};
   function monthlyKey(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}
