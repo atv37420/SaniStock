@@ -4869,6 +4869,25 @@ function murActualitesActif_(){
   const page=document.getElementById('newsPage');
   return !!(page&&page.classList.contains('active'));
 }
+function afficherNotificationPublicationEquipe_(publication){
+  if(!publication)return;
+  const auteur=String(publication.auteur||'Un collègue').trim()||'Un collègue';
+  const titre=String(publication.titre||publication.contenu||'Nouvelle publication').trim();
+  let toast=document.getElementById('sanNewsPublicationToast');
+  if(!toast){
+    toast=document.createElement('button');
+    toast.type='button';toast.id='sanNewsPublicationToast';
+    toast.style.cssText='position:fixed;z-index:2147483000;top:16px;right:16px;max-width:min(360px,calc(100vw - 32px));padding:14px 16px;border:0;border-radius:14px;background:#042349;color:#fff;box-shadow:0 8px 28px rgba(0,0,0,.25);text-align:left;font:inherit;cursor:pointer;display:none;';
+    toast.addEventListener('click',function(){toast.style.display='none';if(typeof ouvrirEspritEquipeNotification_==='function')ouvrirEspritEquipeNotification_();});
+    document.body.appendChild(toast);
+  }
+  toast.textContent='🔔 Nouvelle publication de '+auteur+' : '+titre;
+  toast.style.display='block';
+  if(window.sanNewsToastTimer_)clearTimeout(window.sanNewsToastTimer_);
+  window.sanNewsToastTimer_=setTimeout(function(){toast.style.display='none';},9000);
+  /* Notification système uniquement si le salarié l’a déjà autorisée dans son navigateur. */
+  try{if(document.hidden&&'Notification'in window&&Notification.permission==='granted'){new Notification('SaniStock — nouvelle publication',{body:auteur+' : '+titre});}}catch(e){}
+}
 function verifierBadgeActualitesEquipe_(){
   const session=donneesSessionEquipe_();
   if(document.hidden||!session.salarie||!session.code||!navigator.onLine||!gsDisponible())return;
@@ -4881,6 +4900,18 @@ function verifierBadgeActualitesEquipe_(){
       const nouvellesPublications=normaliserActualites_(r);
       const signatureAvant=JSON.stringify(actualitesEquipeData_||[]);
       const signatureApres=JSON.stringify(nouvellesPublications);
+      const anciennesPourNotification=Array.isArray(window.sanNewsBadgeLatestPublications_)
+        ? window.sanNewsBadgeLatestPublications_
+        : (function(){try{const cached=JSON.parse(localStorage.getItem('sanistock_actualites_cache')||'null');return Array.isArray(cached)?cached:null;}catch(e){return null;}})();
+      if(Array.isArray(anciennesPourNotification)){
+        const anciensIds=new Set(anciennesPourNotification.map(function(p){return String(p&&p.id||'');}));
+        const moi=normaliserAuteurEquipeBadge_(session.salarie);
+        const nouveaux=nouvellesPublications.filter(function(p){return p&&p.id&& !anciensIds.has(String(p.id)) && normaliserAuteurEquipeBadge_(p.auteur)!==moi && !p.legacy;});
+        if(nouveaux.length){
+          const plusRecentes=nouveaux.slice().sort(function(a,b){return Number(b.id||0)-Number(a.id||0);});
+          afficherNotificationPublicationEquipe_(plusRecentes[0]);
+        }
+      }
       window.sanNewsBadgeLatestPublications_=nouvellesPublications;
       window.sanNewsBadgeLatestUpdatedAt_=Date.now();
       window.sanNewsBadgeLatestChat_=[];
@@ -4902,7 +4933,7 @@ function verifierBadgeActualitesEquipe_(){
   }catch(err){window.sanNewsBadgePublicationsPending_=false;console.warn('Impossible de vérifier les publications :',err);}
 }
 function initialiserBadgeActualitesEquipe_(){
-  /* SaniStock 1.1.121 : actualisation silencieuse toutes les 2 secondes, uniquement lorsque nécessaire. */
+  /* SaniStock 1.1.140 : vérification des nouvelles publications toutes les 2 secondes, avec notifications conservées. */
   window.setInterval(verifierBadgeActualitesEquipe_,2000);
   window.setInterval(function(){
     if(document.hidden||!murActualitesActif_()||!navigator.onLine||!gsDisponible())return;
