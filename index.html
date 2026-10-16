@@ -3256,8 +3256,13 @@ function currentChecklist(){
    vehUpper.includes('HA-219-PS') ||
    vehUpper.includes('RENAULT TRAFIC');
  const base=isAmbulanceVehicle(veh)?CHECKLIST_AMBULANCE:CHECKLIST_STANDARD;
- if(ambulanceSansCoffre) return base;
- return base.concat(CHECKLIST_COFFRE_VSL_TAXI);
+ if(ambulanceSansCoffre) return base.slice();
+ // Ajouter Coffre juste avant la dernière étape « Lavage extérieur ».
+ const list=base.slice();
+ const indexLavage=list.findIndex(t => t.id==='outside' || t.id==='serpilliereCellule');
+ if(indexLavage>=0) list.splice(indexLavage,0,...CHECKLIST_COFFRE_VSL_TAXI);
+ else list.push(...CHECKLIST_COFFRE_VSL_TAXI);
+ return list;
 }
 function toggleSecondColleague(){
  const wrap=$('secondColleagueWrap'), btn=$('addColleagueBtn'), select=$('employee2');
