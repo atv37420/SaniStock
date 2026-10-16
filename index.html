@@ -2666,15 +2666,12 @@ button.settingsAction.secondary:hover,
 <section class="screen page sanNewsPage" id="newsPage">
 <button class="back" onclick="sanistockGoBack()" type="button">← Retour</button>
 <div class="sanNewsWrap">
-<header class="sanNewsHero sanNewsHeroSimple">
-<span aria-hidden="true" class="sanNewsHeroBubble">💬</span>
-<div class="sanNewsHeroText">
+<div class="teamToolPane" id="teamPublicationsPane">
+<div aria-label="Créer une publication" class="sanNewsPublishBar">
+<div class="sanNewsInlineIntro">
 <h1>Actualité de l’équipe</h1>
 <p>Partageons nos questions, nos idées et nos annonces dans le respect de chacun. Veillons à préserver la confidentialité.</p>
 </div>
-</header>
-<div class="teamToolPane" id="teamPublicationsPane">
-<div aria-label="Créer une publication" class="sanNewsPublishBar">
 <button class="sanNewsPublishButton" onclick="ouvrirPublicationLibreEquipe_()" type="button">À quoi pensez-vous ? Partagez avec l’équipe…</button>
 <div aria-label="Raccourcis de publication" class="sanNewsQuickActions">
 <button class="sanNewsQuickAction photo" onclick="ouvrirPublicationAvecTypeEquipe_('photo')" type="button"><span aria-hidden="true">📷</span> Photo</button>
@@ -13896,6 +13893,16 @@ html+='<div class="ambSectionBulkActions"><button type="button" class="toutCoche
 })();
 </script>
 
+<style id="sanistock-1-1-142-actualite-integree-au-rectangle-suivant">
+/* L’en-tête séparé est supprimé : le titre et son texte sont intégrés au rectangle de publication. */
+#newsPage .sanNewsInlineIntro{margin:0 0 10px;padding:0 1px 10px;border-bottom:1px solid #edf0f3;color:#102a43}
+#newsPage .sanNewsInlineIntro h1{margin:0!important;color:#102a43!important;font-size:20px!important;line-height:1.2;font-weight:900;text-align:left}
+#newsPage .sanNewsInlineIntro p{margin:4px 0 0!important;color:#536579!important;font-size:11px;line-height:1.4}
+@media(max-width:420px){
+ #newsPage .sanNewsInlineIntro h1{font-size:18px!important}
+ #newsPage .sanNewsInlineIntro p{font-size:10px;line-height:1.35}
+}
+</style>
 </body>
 </html>
 <!-- SaniStock 1.1.114 : réactions multiples sur les publications. -->
