@@ -4329,15 +4329,14 @@ function preparerDocumentPourEnvoi_(file){
 
 async function envoyerDocumentPOST_(documentData, acces){
   const payload=Object.assign({},documentData,acces||{});
-  const body=new URLSearchParams({
-    api:'1',
-    action:'ajouterDocumentPartage',
-    data:JSON.stringify(payload)
-  });
+  /* IMPORTANT : doPost(e) côté Apps Script lit e.parameter.payload puis
+     analyse ce champ comme du JSON. Envoyer action/data séparément empêchait
+     donc l'enregistrement du fichier dans Drive. */
+  const enveloppe={action:'ajouterDocumentPartage',data:payload};
+  const body=new URLSearchParams({payload:JSON.stringify(enveloppe)});
 
-  /* no-cors est volontaire : Apps Script ne fournit pas les en-têtes CORS
-     nécessaires à une lecture fetch classique depuis GitHub Pages. Le serveur
-     reçoit bien le POST ; on vérifie ensuite la présence du document par JSONP. */
+  /* Le POST no-cors ne permet pas de lire sa réponse. On envoie le format
+     attendu par doPost ; l'interface vérifie ensuite la liste partagée. */
   await fetch('https://script.google.com/macros/s/AKfycbxz5dZkT7FyFx8ohxWmg2Pt23Yqx0LQDMqqJg8LM8bkfN3ulkb37VqUO8m8WvjyuGBqrg/exec',{
     method:'POST',
     mode:'no-cors',
@@ -4376,7 +4375,7 @@ function ajouterDocumentUI(){
         taille:Math.round(doc.contenuBase64.length*0.75)
       };
       return enregistrerDocumentHorsLigne_(localDoc).then(function(){
-        if(msg) msg.textContent='✅ Document ajouté et disponible hors connexion.';
+        if(msg) msg.textContent='✅ Photo envoyée. Actualisez la liste pour vérifier son partage avec l’équipe.';
         input.value='';
         lireDocumentsHorsLigne_().then(function(cached){
           rendreDocuments_(cached,listDocuments(),settingsDocuments());
