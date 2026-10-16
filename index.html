@@ -3247,10 +3247,17 @@ const CHECKLIST_COFFRE_VSL_TAXI = [
 ];
 function currentChecklist(){
  const veh=$('vehicle')?$('vehicle').value:'';
- if(isAmbulanceVehicle(veh)) return CHECKLIST_AMBULANCE;
- const type=detectVehicleType(veh);
- if(type==='vsl'||type==='taxi') return CHECKLIST_STANDARD.concat(CHECKLIST_COFFRE_VSL_TAXI);
- return CHECKLIST_STANDARD;
+ const vehUpper=String(veh||'').toUpperCase();
+ // Le coffre est demandé pour tous les véhicules, sauf les ambulances Trafic et Boxer.
+ const ambulanceSansCoffre =
+   vehUpper.includes('FZ-349-AT') ||
+   vehUpper.includes('PEUGEOT BOXER') ||
+   vehUpper.includes('HS-219-PS') ||
+   vehUpper.includes('HA-219-PS') ||
+   vehUpper.includes('RENAULT TRAFIC');
+ const base=isAmbulanceVehicle(veh)?CHECKLIST_AMBULANCE:CHECKLIST_STANDARD;
+ if(ambulanceSansCoffre) return base;
+ return base.concat(CHECKLIST_COFFRE_VSL_TAXI);
 }
 function toggleSecondColleague(){
  const wrap=$('secondColleagueWrap'), btn=$('addColleagueBtn'), select=$('employee2');
