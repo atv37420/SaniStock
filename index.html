@@ -3553,45 +3553,66 @@ async function prechargerPDFJSHorsLigne_(){
   return !!(pdf&&worker);
 }
 
-const SANISTOCK_MEMO_CODE_KEY = 'sanistock_memo_code_v1';
-function lireMemoCode_(){
-  try{
-    const raw=localStorage.getItem(SANISTOCK_MEMO_CODE_KEY);
-    if(!raw)return {title:'Code',content:''};
-    const data=JSON.parse(raw);
-    return {title:String(data.title||'Code'),content:String(data.content||'')};
-  }catch(e){return {title:'Code',content:''};}
-}
-function afficherMemoCode_(){
-  const data=lireMemoCode_();
+// Mémo Code Accès Services : stockage partagé côté serveur Apps Script.
+let SANISTOCK_MEMO_CODE_CACHE = {title:'Code',content:''};
+function afficherMemoCode_(data){
+  if(data) SANISTOCK_MEMO_CODE_CACHE={title:String(data.title||'Code'),content:String(data.content||'')};
+  const current=SANISTOCK_MEMO_CODE_CACHE;
   const title=document.getElementById('memoCodeDisplayTitle');
   const content=document.getElementById('memoCodeDisplayContent');
-  if(title)title.textContent='🔐 '+(data.title||'Code');
-  if(content)content.textContent=data.content.trim()||'Aucun code n’a encore été ajouté.';
+  if(title)title.textContent='🔐 '+(current.title||'Code');
+  if(content)content.textContent=current.content.trim()||'Aucun code n’a encore été ajouté.';
+}
+function chargerMemoCodeEquipe_(done){
+  const content=document.getElementById('memoCodeDisplayContent');
+  if(content)content.textContent='Chargement des codes partagés…';
+  if(!(window.google&&google.script&&google.script.run)){
+    if(content)content.textContent='Connexion au serveur SaniStock indisponible.';
+    if(done)done(false); return;
+  }
+  google.script.run.withSuccessHandler(function(data){
+    afficherMemoCode_(data||{title:'Code',content:''}); if(done)done(true);
+  }).withFailureHandler(function(err){
+    if(content)content.textContent='❌ Impossible de charger les codes partagés. Vérifiez la connexion.';
+    if(done)done(false);
+  }).getMemoCodeEquipe();
 }
 function ouvrirMemoCodePage(){
-  afficherMemoCode_();
   showPage('memoCodePage');
+  chargerMemoCodeEquipe_();
 }
 function chargerMemoCodeParametres(){
-  const data=lireMemoCode_();
   const title=document.getElementById('memoCodeTitleInput');
   const content=document.getElementById('memoCodeContentInput');
   const msg=document.getElementById('memoCodeSettingsMsg');
-  if(title)title.value=data.title;
-  if(content)content.value=data.content;
-  if(msg)msg.textContent='';
+  if(msg)msg.textContent='Chargement des codes partagés…';
+  if(!(window.google&&google.script&&google.script.run)){
+    if(msg)msg.textContent='❌ Connexion au serveur indisponible.'; return;
+  }
+  google.script.run.withSuccessHandler(function(data){
+    data=data||{title:'Code',content:''};
+    if(title)title.value=String(data.title||'Code');
+    if(content)content.value=String(data.content||'');
+    if(msg)msg.textContent='';
+  }).withFailureHandler(function(err){
+    if(msg)msg.textContent='❌ Impossible de charger les codes partagés.';
+  }).getMemoCodeEquipe();
 }
 function enregistrerMemoCodeUI(){
   const titleInput=document.getElementById('memoCodeTitleInput');
   const contentInput=document.getElementById('memoCodeContentInput');
   const msg=document.getElementById('memoCodeSettingsMsg');
   const data={title:(titleInput&&titleInput.value.trim())||'Mémo code',content:(contentInput&&contentInput.value)||''};
-  try{
-    localStorage.setItem(SANISTOCK_MEMO_CODE_KEY,JSON.stringify(data));
-    if(msg)msg.textContent='✅ Code enregistré sur cet appareil.';
-    afficherMemoCode_();
-  }catch(e){if(msg)msg.textContent='❌ Impossible d’enregistrer le code sur cet appareil.';}
+  if(!(window.google&&google.script&&google.script.run)){
+    if(msg)msg.textContent='❌ Connexion au serveur indisponible. Rien n’a été enregistré.'; return;
+  }
+  if(msg)msg.textContent='Enregistrement des codes pour toute l’équipe…';
+  google.script.run.withSuccessHandler(function(res){
+    afficherMemoCode_(data);
+    if(msg)msg.textContent='✅ Codes enregistrés et partagés avec toute l’équipe.';
+  }).withFailureHandler(function(err){
+    if(msg)msg.textContent='❌ Échec de l’enregistrement partagé : '+(err&&err.message?err.message:'erreur serveur');
+  }).enregistrerMemoCodeEquipe(data);
 }
 
 function ouvrirDocuments(){
