@@ -6234,7 +6234,9 @@ function changerCodeAdminUI(){
   function activerAccesProprietaire(name,code){
     const nom=String(name||'').trim().replace(/\s+/g,' ').toLowerCase();
     const c=String(code||'').trim();
-    if(nom!=='lewis hognon' && nom!=='lewis') return;
+    // Accès administrateur sans code de paramètres pour Lewis Hognon et Laurent Guette.
+    // Cette fonction est appelée au moment de la connexion du salarié.
+    if(nom!=='lewis hognon' && nom!=='lewis' && nom!=='laurent guette') return;
     if(/^\d{4}$/.test(c)===false) return;
     localStorage.setItem(OWNER_DEVICE_KEY,'1');
     localStorage.setItem('sanistock_employee_name',String(name).trim());
