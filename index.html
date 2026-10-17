@@ -1632,6 +1632,12 @@ body{display:block}
   display:none !important;
 }
 </style>
+<style id="stock-quantity-status-colors">
+/* Quantité en vert si le stock est correct, orange au minimum et rouge en rupture. */
+.stockQty.stockQtyOk b{color:#148545 !important}
+.stockQty.stockQtyMin b{color:#b56b00 !important}
+.stockQty.stockQtyRupture b{color:#c51f2d !important}
+</style>
 <style id="sanistock-all-blue-text-1-1-09">
 /* Toutes les écritures bleues de SaniStock utilisent exactement le bleu
    du bandeau « Connecté à SaniStock ». */
@@ -3113,7 +3119,7 @@ function setStockFilter(f,btn){stockFilter=f;document.querySelectorAll('.filterB
 function renderStock(){
  const q=($('stockSearch')?.value||'').trim().toLowerCase();
  const rows=stockData.filter(r=>!q||String(r.produit).toLowerCase().includes(q));
- $('stockList').innerHTML=rows.length?rows.map(r=>'<div class="stockItem"><div class="stockTop"><div class="stockName">'+escapeHtml(r.produit)+'</div><div class="stockQty"><b>'+escapeHtml(String(r.actuel ?? 0))+'</b></div></div></div>').join(''):'<div class="stockEmpty">Aucun produit trouvé.</div>';
+ $('stockList').innerHTML=rows.length?rows.map(r=>{const statut=String(r.statut||'');const couleur=statut==='Rupture'?'stockQtyRupture':statut==='Stock min'?'stockQtyMin':'stockQtyOk';return '<div class="stockItem"><div class="stockTop"><div class="stockName">'+escapeHtml(r.produit)+'</div><div class="stockQty '+couleur+'"><b>'+escapeHtml(String(r.actuel ?? r._actuel ?? 0))+'</b></div></div></div>';}).join(''):'<div class="stockEmpty">Aucun produit trouvé.</div>';
 }
 let codeEntreeStockValide='';
 function demanderCodeEntreeStock(){
