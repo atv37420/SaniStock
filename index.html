@@ -2751,7 +2751,7 @@ button.settingsAction.secondary:hover,
 <p class="stockSub">Suivi en temps réel de la réserve</p>
 <input class="stockSearch" id="stockSearch" oninput="renderStock()" placeholder="🔎 Rechercher un produit..." type="search"/>
 <div class="stockFilters" style="display:none"></div>
-<div class="stockActions"><button class="stockAction entryBtn" onclick="demanderCodeEntreeStock()">＋ ENTRÉE PRODUIT</button><button class="stockAction exitBtn" onclick="openStockModal('sortie')">− SORTIE PRODUIT</button></div>
+<div class="stockActions"><button class="stockAction entryBtn" id="stockEntryButton" onclick="demanderCodeEntreeStock()" style="display:none">＋ ENTRÉE PRODUIT</button><button class="stockAction exitBtn" onclick="openStockModal('sortie')">− SORTIE PRODUIT</button></div>
 <div class="stockMessage" id="stockMessage"></div>
 <div class="stockList" id="stockList"><div class="stockEmpty">Chargement du stock...</div></div>
 </div>
@@ -3121,12 +3121,27 @@ function renderStock(){
  const rows=stockData.filter(r=>!q||String(r.produit).toLowerCase().includes(q));
  $('stockList').innerHTML=rows.length?rows.map(r=>{const statut=String(r.statut||'');const couleur=statut==='Rupture'?'stockQtyRupture':statut==='Stock min'?'stockQtyMin':'stockQtyOk';return '<div class="stockItem"><div class="stockTop"><div class="stockName">'+escapeHtml(r.produit)+'</div><div class="stockQty '+couleur+'"><b>'+escapeHtml(String(r.actuel ?? r._actuel ?? 0))+'</b></div></div></div>';}).join(''):'<div class="stockEmpty">Aucun produit trouvé.</div>';
 }
+function normaliserNomAccesStock(nom){
+ return String(nom||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().replace(/\s+/g,' ').toLowerCase();
+}
+function accesEntreeStockAutorise(){
+ let nom='';
+ try{nom=localStorage.getItem('sanistock_employee_name')||'';}catch(e){}
+ nom=normaliserNomAccesStock(nom);
+ return ['lewis hognon','hognon lewis','mike boucher','emilie roy','laurent guette'].includes(nom);
+}
+function actualiserBoutonEntreeStock(){
+ const btn=$('stockEntryButton');
+ if(btn) btn.style.display=accesEntreeStockAutorise()?'block':'none';
+}
 let codeEntreeStockValide='';
 function demanderCodeEntreeStock(){
+ actualiserBoutonEntreeStock();
+ if(!accesEntreeStockAutorise()) return;
  const overlay=$('stockPinOverlay'), input=$('stockPinInput'), err=$('stockPinError');
  if(!overlay||!input) return;
- const salarie=String(($('stockEmployee')&&$('stockEmployee').value)||'').trim().replace(/\s+/g,' ').toLowerCase();
- const entreesSansCode=['mike boucher','emilie roy','laurent guette','lewis hognon'];
+ const salarie=normaliserNomAccesStock(localStorage.getItem('sanistock_employee_name')||(($('stockEmployee')&&$('stockEmployee').value)||''));
+ const entreesSansCode=['mike boucher','emilie roy','laurent guette','lewis hognon','hognon lewis'];
  if(appareilProprietaire() || entreesSansCode.indexOf(salarie)!==-1){
    codeEntreeStockValide='';
    openStockModal('entree');
@@ -3156,6 +3171,9 @@ function validerCodeEntreeStock(){
   .withFailureHandler(function(e){err.textContent='Erreur de vérification';})
   .verifierCodeEntreeStock(code);
 }
+
+document.addEventListener('DOMContentLoaded',function(){try{actualiserBoutonEntreeStock();}catch(e){}});
+try{actualiserBoutonEntreeStock();}catch(e){}
 
 document.addEventListener('input',function(e){if(e.target&&e.target.id==='stockPinInput')e.target.value=e.target.value.replace(/\D/g,'').slice(0,5)});
 document.addEventListener('keydown',function(e){if(e.target&&e.target.id==='stockPinInput'&&e.key==='Enter')validerCodeEntreeStock()});
@@ -6246,6 +6264,7 @@ function changerCodeAdminUI(){
     setTimeout(function(){afficherBienvenue(name)},900);
     const logoutBtn=document.getElementById('homeLogoutBtn');
     if(logoutBtn) logoutBtn.style.display='flex';
+    try{actualiserBoutonEntreeStock();}catch(e){}
     setTimeout(chargerInformationAccueil,120);
     setTimeout(verifierAnniversaireConnecte,900);
     setTimeout(function(){if(typeof verifierBadgeActualitesEquipe_==='function')verifierBadgeActualitesEquipe_();},1800);
