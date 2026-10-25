@@ -3152,48 +3152,42 @@ const STOCK_PHOTOS = {
 };
 function stockImageForProduct(nom){
  const n=String(nom||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[’']/g,' ').replace(/\s+/g,' ').trim();
- // Respiratoire : distinctions adulte/enfant et haute concentration
- if(n.includes('bavu') && (n.includes('nouveau')||n.includes('ne')) ) return '';
+ if(n.includes('bavu') && (n.includes('nouveau')||n.includes('ne-ne'))) return '';
  if(n.includes('bavu') && n.includes('enfant')) return STOCK_PHOTOS.bavu_enfant;
- if(n.includes('bavu')) return STOCK_PHOTOS.bavu_adulte;
- if((n.includes('masque') && (n.includes('hc')||n.includes('haute concentration')) && n.includes('enfant'))) return STOCK_PHOTOS.masque_hc;
- if(n.includes('masque') && (n.includes('hc')||n.includes('haute concentration'))) return STOCK_PHOTOS.masque_hc;
+ if(n.includes('bavu') && n.includes('adulte')) return STOCK_PHOTOS.bavu_adulte;
+ if(n.includes('masque') && (n.includes('haute concentration')||n.includes('masque o2 hc'))) return STOCK_PHOTOS.masque_hc;
  if(n.includes('lunettes') && (n.includes('o2')||n.includes('oxygene'))) return STOCK_PHOTOS.lunettes_o2;
  if(n.includes('masque') && (n.includes('o2')||n.includes('oxygene')) && n.includes('enfant')) return STOCK_PHOTOS.masque_o2_enfant;
- if(n.includes('masque') && (n.includes('o2')||n.includes('oxygene'))) return STOCK_PHOTOS.masque_o2_adulte;
- if(n.includes('masque') && n.includes('chirurg')) return STOCK_PHOTOS.masque_chirurgical;
- if(n.includes('ffp2')) return STOCK_PHOTOS.masque_chirurgical;
+ if(n.includes('masque') && (n.includes('o2')||n.includes('oxygene')) && n.includes('adulte')) return STOCK_PHOTOS.masque_o2_adulte;
+ if(n.includes('masque') && n.includes('chirurgical')) return STOCK_PHOTOS.masque_chirurgical;
+ if(n.includes('ffp2') || n.includes('lunettes de protection')) return '';
  if(n.includes('surblouse')) return STOCK_PHOTOS.surblouse;
  if(n.includes('charlotte')) return STOCK_PHOTOS.charlotte;
- // Aspiration : couleur de sonde précise
- if(n.includes('sonde') && n.includes('bleue')) return STOCK_PHOTOS.sonde_bleue;
+ if(n.includes('sonde') && n.includes('bleu')) return STOCK_PHOTOS.sonde_bleue;
  if(n.includes('sonde') && n.includes('orange')) return STOCK_PHOTOS.sonde_orange;
- if(n.includes('sonde') && n.includes('noire')) return STOCK_PHOTOS.sonde_noire;
- if(n.includes('sonde') && n.includes('verte')) return STOCK_PHOTOS.sonde_bleue;
- if(n.includes('sonde') && n.includes('blanche')) return STOCK_PHOTOS.tubulure_aspiration;
+ if(n.includes('sonde') && n.includes('noir')) return STOCK_PHOTOS.sonde_noire;
+ if(n.includes('sonde') && n.includes('vert')) return '';
+ if(n.includes('sonde') && n.includes('blanc')) return '';
  if(n.includes('sonde') && n.includes('rouge')) return STOCK_PHOTOS.sonde_rouge;
  if(n.includes('yankauer')) return STOCK_PHOTOS.canule_yankauer;
- if(n.includes('tubulure') || n.includes('aspiration')) return STOCK_PHOTOS.tubulure_aspiration;
- // Protection : tailles de gants distinctes
+ if(n.includes('tubulure') && n.includes('aspiration')) return STOCK_PHOTOS.tubulure_aspiration;
+ if(n.includes('gant') && n.includes('sterile')) return '';
  if(n.includes('gant') && (n.includes('(s)')||/\bs\b/.test(n)||n.includes('taille s'))) return STOCK_PHOTOS.gants_s;
  if(n.includes('gant') && (n.includes('(m)')||/\bm\b/.test(n)||n.includes('taille m'))) return STOCK_PHOTOS.gants_m;
  if(n.includes('gant') && (n.includes('(l)')||/\bl\b/.test(n)||n.includes('taille l'))) return STOCK_PHOTOS.gants_l;
- if(n.includes('gant')) return STOCK_PHOTOS.gants_m;
- if(n.includes('lunettes de protection')) return STOCK_PHOTOS.masque_hc;
- // Pansements et consommables
  if(n.includes('compress')) return STOCK_PHOTOS.compresses;
- if(n.includes('pansement') && (n.includes('americain')||n.includes('hemostatique'))) return STOCK_PHOTOS.pansement;
- if(n.includes('pansement')) return STOCK_PHOTOS.pansement;
- if(n.includes('bande velpeau') || n.includes('bande de fixation') || n.includes('bande de crete') || n.includes('bande fixation') || n.includes('bande fixation cohesive')) return STOCK_PHOTOS.bande_fixation;
+ if(n.includes('pansement') || n.includes('patche rea')) return STOCK_PHOTOS.pansement;
+ if(n.includes('bande velpeau') || n.includes('bande de fixation') || n.includes('bande de crete') || n.includes('bande fixation')) return STOCK_PHOTOS.bande_fixation;
  if(n.includes('sparadrap')) return STOCK_PHOTOS.sparadrap;
  if(n.includes('seringue') && n.includes('10')) return STOCK_PHOTOS.seringue_10;
- if(n.includes('seringue')) return STOCK_PHOTOS.seringue_5;
- if(n.includes('aiguille') || n.includes('autopiqueur')) return STOCK_PHOTOS.aiguilles;
- if(n.includes('catheter iv') || n.includes('clamps')) return STOCK_PHOTOS.catheter_iv;
+ if(n.includes('seringue') && n.includes('5')) return STOCK_PHOTOS.seringue_5;
+ if(n.includes('aiguille')) return STOCK_PHOTOS.aiguilles;
+ if(n.includes('autopiqueur') || n.includes('bandelette dextro')) return '';
+ if(n.includes('catheter iv')) return STOCK_PHOTOS.catheter_iv;
  if(n.includes('perfuseur')) return STOCK_PHOTOS.perfuseur;
  if(n.includes('serum physiologique')) return STOCK_PHOTOS.serum_physio;
- if(n.includes('desinfectant') || n.includes('surfa') || n.includes('one shot') || n.includes('aniosgel') || n.includes('chlohexidrine') || n.includes('chlorhexidine')) return STOCK_PHOTOS.desinfectant_surface;
- // No suitable photo in the reference grid: leave blank instead of showing a misleading product.
+ if(n.includes('desinfectant surface')) return STOCK_PHOTOS.desinfectant_surface;
+ if(n.includes('detergent') || n.includes('one shot') || n.includes('desodorisant') || n.includes('aniosgel') || n.includes('chlohexidrine') || n.includes('chlorhexidine') || n.includes('bidon desinfectant')) return '';
  return '';
 }
 
