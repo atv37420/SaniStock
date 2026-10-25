@@ -3099,13 +3099,16 @@ function afficherListeSalaries(noms){
   if(noms.length){
     try{localStorage.setItem('sanistock_salaries_cache',JSON.stringify(noms));}catch(e){}
   }
-  ['stockEmployee','employee','employee2'].forEach(function(id){
+  /* Inclure aussi le menu de connexion : il était oublié dans la liste précédente,
+     ce qui laissait « Chargement des salariés… » affiché indéfiniment. */
+  ['employeeLoginName','stockEmployee','employee','employee2'].forEach(function(id){
     const select=$(id);
     if(!select) return;
     const valeurActuelle=select.value;
     const salarieConnecte=localStorage.getItem('sanistock_employee_name')||'';
     const nomsPourListe=(id==='employee2') ? noms.filter(function(nom){ return String(nom)!==String(salarieConnecte); }) : noms;
-    select.innerHTML='<option value="">'+(id==='employee2'?'Sélectionner le collègue':'Sélectionner votre nom')+'</option>'+
+    const placeholder = id==='employeeLoginName' ? 'Sélectionner votre nom' : (id==='employee2' ? 'Sélectionner le collègue' : 'Sélectionner votre nom');
+    select.innerHTML='<option value="">'+placeholder+'</option>'+
       nomsPourListe.map(function(nom){
         return '<option value="'+escapeHtml(nom)+'">'+escapeHtml(nom)+'</option>';
       }).join('');
@@ -3115,6 +3118,8 @@ function afficherListeSalaries(noms){
       select.disabled=true;
     }else if(noms.includes(valeurActuelle)){
       select.value=valeurActuelle;
+    }else if(id==='employeeLoginName' && salarieConnecte && noms.includes(salarieConnecte)){
+      select.value=salarieConnecte;
     }
   });
 }
