@@ -6378,18 +6378,22 @@ function changerCodeAdminUI(){
   function loadNames(){
     setLoginAnimation(true,'Préparation de votre connexion','Connexion SaniStock…');
 
-    // Hors ligne : on construit immédiatement l'écran de connexion depuis
-    // les données déjà enregistrées sur le PDA. Aucun appel réseau n'est requis.
+    // Rétablit la connexion automatique immédiatement avec la session locale,
+    // sans attendre la réponse de getSalaries() qui peut être lente ou bloquée.
     const saved=savedCredentials();
+    const autoConnectedImmediately=!!(saved.name && saved.code);
+    if(autoConnectedImmediately){
+      try{autoConnect(saved.name,saved.code);}catch(e){console.warn('Connexion automatique locale impossible',e);}
+    }
+
+    // Hors ligne : les noms en cache restent disponibles pour la première connexion.
     let cachedNames=[];
     try{cachedNames=JSON.parse(localStorage.getItem('sanistock_cached_employee_names')||'[]')}catch(e){cachedNames=[]}
     cachedNames=Array.isArray(cachedNames)?cachedNames:[];
 
     if(!navigator.onLine){
       if(saved.name && saved.code){
-        afficherModeCodeSeul(saved.name,'📵 Hors ligne : utilisez votre mot de passe enregistré sur cet appareil.');
-        // Le code est déjà mémorisé sur cet appareil : l'utilisateur peut
-        // entrer son code et être déverrouillé sans Google Apps Script.
+        // autoConnect a déjà ouvert SaniStock localement sans réseau.
         return;
       }
       if(cachedNames.length){
@@ -6408,8 +6412,10 @@ function changerCodeAdminUI(){
       try{localStorage.setItem('sanistock_cached_employee_names',JSON.stringify(noms));}catch(e){}
       nameSel.innerHTML='<option value="">Sélectionner votre nom</option>'+noms.map(function(n){return '<option value="'+escapeHtml(n)+'">'+escapeHtml(n)+'</option>'}).join('');
       const saved=savedCredentials();
-      if(saved.name&&saved.code&&noms.includes(saved.name)){
-        autoConnect(saved.name,saved.code);
+      if(saved.name&&saved.code){
+        // Session déjà ouverte immédiatement ; ne pas relancer unlock ni
+        // afficher le formulaire si la liste serveur arrive plus tard.
+        if(!autoConnectedImmediately && noms.includes(saved.name)) autoConnect(saved.name,saved.code);
       }else{
         afficherModePremiereConnexion();
       }
@@ -6418,7 +6424,10 @@ function changerCodeAdminUI(){
       noms=Array.isArray(noms)?noms:[];
       nameSel.innerHTML='<option value="">Sélectionner votre nom</option>'+noms.map(function(n){return '<option value="'+escapeHtml(n)+'">'+escapeHtml(n)+'</option>'}).join('');
       const saved=savedCredentials();
-      if(saved.name){
+      if(saved.name && saved.code && autoConnectedImmediately){
+        // La connexion locale reste active même si le serveur ne répond pas.
+        console.warn('Liste des salariés indisponible ; session locale conservée.');
+      }else if(saved.name){
         afficherModeCodeSeul(saved.name,noms.length?'Mode hors ligne : entrez votre mot de passe déjà enregistré.':'Connexion automatique impossible. Entrez votre mot de passe.');
       }else{
         afficherModePremiereConnexion();
