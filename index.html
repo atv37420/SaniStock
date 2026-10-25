@@ -771,6 +771,11 @@ body{display:block}
   display:block !important;
 }
 
+
+.stockItem{display:flex;align-items:center;gap:10px}
+.stockProductImg{width:38px;height:38px;flex:0 0 38px;object-fit:contain;border-radius:8px;background:#fff;border:1px solid #e8eef4}
+.stockTop{flex:1;min-width:0}
+.stockName{overflow-wrap:anywhere}
 </style>
 <style>
 #homeLogoutBtn{
@@ -3117,10 +3122,19 @@ function addMovementRow(produit='',quantite=1){
 function removeMovementRow(btn){btn.closest('.movementRow').remove();updateRemoveButtons()}
 function updateRemoveButtons(){const rows=document.querySelectorAll('#movementRows .movementRow');rows.forEach(r=>r.querySelector('.removeMovement').style.visibility=rows.length===1?'hidden':'visible')}
 function setStockFilter(f,btn){stockFilter=f;document.querySelectorAll('.filterBtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderStock()}
+
+function stockImageForProduct(produit){
+ const n=String(produit||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/₂/g,'2').replace(/\s+/g,' ').trim();
+ if(n.includes('masque') && n.includes('o2') && n.includes('hc') && n.includes('adulte')) return 'masque_o2_hc_adulte.png';
+ if(n.includes('masque') && n.includes('o2') && n.includes('hc') && n.includes('enfant')) return 'masque_o2_hc_enfant.png';
+ if(n.includes('masque') && n.includes('o2') && n.includes('adulte')) return 'masque_o2_adulte.png';
+ if(n.includes('masque') && n.includes('o2') && n.includes('enfant')) return 'masque_o2_enfant.png';
+ return '';
+}
 function renderStock(){
  const q=($('stockSearch')?.value||'').trim().toLowerCase();
  const rows=stockData.filter(r=>!q||String(r.produit).toLowerCase().includes(q));
- $('stockList').innerHTML=rows.length?rows.map(r=>{const statut=String(r.statut||'');const couleur=statut==='Rupture'?'stockQtyRupture':statut==='Stock min'?'stockQtyMin':'stockQtyOk';return '<div class="stockItem"><div class="stockTop"><div class="stockName">'+escapeHtml(r.produit)+'</div><div class="stockQty '+couleur+'"><b>'+escapeHtml(String(r.actuel ?? r._actuel ?? 0))+'</b></div></div></div>';}).join(''):'<div class="stockEmpty">Aucun produit trouvé.</div>';
+ $('stockList').innerHTML=rows.length?rows.map(r=>{const statut=String(r.statut||'');const couleur=statut==='Rupture'?'stockQtyRupture':statut==='Stock min'?'stockQtyMin':'stockQtyOk';const nomImage=stockImageForProduct(r.produit);return '<div class="stockItem">'+(nomImage?'<img class="stockProductImg" src="images/stock/'+nomImage+'" alt="" loading="lazy">':'')+'<div class="stockTop"><div class="stockName">'+escapeHtml(r.produit)+'</div><div class="stockQty '+couleur+'"><b>'+escapeHtml(String(r.actuel ?? r._actuel ?? 0))+'</b></div></div></div>';}).join(''):'<div class="stockEmpty">Aucun produit trouvé.</div>';
 }
 function normaliserNomAccesStock(nom){
  return String(nom||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().replace(/\s+/g,' ').toLowerCase();
