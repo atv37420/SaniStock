@@ -7,7 +7,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/>
-<title>SaniStock 1.1.149</title>
+<title>SaniStock 1.1.150</title>
 <link href="./manifest.json" rel="manifest"/>
 <!-- Icône SaniStock pour téléphone -->
 <link href="https://raw.githubusercontent.com/atv37420/SaniStock/main/0.png" rel="icon" type="image/png"/>
@@ -770,6 +770,25 @@ body{display:block}
 .octobreRoseRibbon{
   display:block !important;
 }
+
+
+/* ===== STOCK VISUEL : cartes illustrées façon catalogue ===== */
+.stockWrap{width:min(98%,1100px);margin:auto}
+.stockTitle{margin:16px 0 4px;font-size:28px}
+.stockSub{font-size:11px;margin-bottom:14px}
+.stockList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:stretch}
+.stockItem{position:relative;min-width:0;display:flex;flex-direction:column;justify-content:space-between;padding:10px 9px 11px;border:1px solid #e1eaf1;border-radius:15px;background:linear-gradient(180deg,#fff 0%,#f8fbfe 100%);box-shadow:0 4px 12px rgba(17,65,99,.08);min-height:140px}
+.stockTop{display:flex;flex-direction:column;align-items:stretch;gap:7px;height:100%}
+.stockProductLine{display:flex;flex:1;min-height:76px;align-items:center;justify-content:center;flex-direction:column;gap:5px}
+.stockThumb{width:76px;height:76px;flex:0 0 76px;object-fit:contain;border:0;border-radius:12px;background:transparent;padding:2px}
+.stockEmoji{width:76px;height:76px;display:flex;align-items:center;justify-content:center;font-size:48px;line-height:1;background:linear-gradient(145deg,#f1f8ff,#fff);border-radius:13px}
+.stockName{text-align:center;font-size:11px;line-height:1.25;font-weight:800;overflow-wrap:anywhere;min-height:28px;display:flex;align-items:center;justify-content:center}
+.stockQty{position:absolute;top:7px;right:7px;text-align:center;white-space:nowrap;border-radius:8px;padding:3px 7px;background:#159447;color:#fff!important;min-width:29px}
+.stockQty b{font-size:14px;color:#fff!important}
+.stockQtyRupture{background:#e32636!important}.stockQtyMin{background:#e58a00!important}
+.stockActions{margin-top:10px}
+@media(min-width:650px){.stockList{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.stockItem{min-height:158px}.stockThumb,.stockEmoji{width:88px;height:88px;flex-basis:88px}.stockEmoji{font-size:55px}.stockName{font-size:12px}}
+@media(min-width:1000px){.stockList{grid-template-columns:repeat(5,minmax(0,1fr))}}
 
 </style>
 <style>
@@ -3120,49 +3139,45 @@ function setStockFilter(f,btn){stockFilter=f;document.querySelectorAll('.filterB
 
 function stockImageForProduct(nom){
  const n=String(nom||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
- // Images intégrées au fichier : une illustration dédiée à chaque famille de matériel.
  if(n.includes('masque') && n.includes('o2') && (n.includes('hc')||n.includes('haute concentration')) && n.includes('enfant')) return STOCK_IMG_HC_CHILD;
  if(n.includes('masque') && n.includes('o2') && (n.includes('hc')||n.includes('haute concentration'))) return STOCK_IMG_HC_ADULT;
  if(n.includes('masque') && n.includes('o2') && n.includes('enfant')) return STOCK_IMG_CHILD;
  if(n.includes('masque') && n.includes('o2')) return STOCK_IMG_ADULT;
- let emoji='🩺', label='MATÉRIEL';
- if(n.includes('bavu')||n.includes('ambu')||n.includes('ballon')){emoji='🫁';label='BAVU';}
- else if(n.includes('sonde') && (n.includes('aspir')||n.includes('suction'))){emoji=n.includes('bleu')?'🔵':n.includes('blanc')?'⚪':n.includes('noir')?'⚫':n.includes('orange')?'🟠':n.includes('vert')?'🟢':'🧪';label='SONDE';}
- else if(n.includes('sonde')){emoji='🧪';label='SONDE';}
- else if(n.includes('oxyg')||n.includes('o2')||n.includes('bouteille')){emoji='🫧';label='OXYGÈNE';}
- else if(n.includes('gants')){emoji='🧤';label='GANTS';}
- else if(n.includes('masque')){emoji='😷';label='MASQUE';}
- else if(n.includes('lunette')){emoji='🥽';label='LUNETTES';}
- else if(n.includes('canule')||n.includes('guedel')){emoji='🩺';label='CANULE';}
- else if(n.includes('aspir')){emoji='🧴';label='ASPIRATION';}
- else if(n.includes('compress')||n.includes('pansement')||n.includes('sparadrap')||n.includes('bandage')){emoji='🩹';label='PANSEMENT';}
- else if(n.includes('seringue')||n.includes('aiguille')||n.includes('cath')||n.includes('perfusion')){emoji='💉';label='INJECTION';}
- else if(n.includes('electrode')||n.includes('patch rea')||n.includes('défibr')||n.includes('defibr')||n.includes('dae')){emoji='❤️';label='RÉANIMATION';}
- else if(n.includes('thermometre')||n.includes('temperature')){emoji='🌡️';label='MESURE';}
- else if(n.includes('tensi')||n.includes('stetho')||n.includes('oxym')){emoji='🩺';label='DIAGNOSTIC';}
- else if(n.includes('dastri')||n.includes('jaune')||n.includes('dechet')||n.includes('boite')){emoji='🟨';label='COLLECTEUR';}
- else if(n.includes('desinfect')||n.includes('spray')||n.includes('savon')||n.includes('gel')){emoji='🧴';label='HYGIÈNE';}
- else if(n.includes('couverture')||n.includes('survie')||n.includes('isotherm')){emoji='🟨';label='COUVERTURE';}
- else if(n.includes('ciseaux')||n.includes('pince')||n.includes('outil')){emoji='✂️';label='INSTRUMENT';}
- else if(n.includes('sac')||n.includes('poche')||n.includes('trousse')){emoji='🧰';label='RANGEMENT';}
- else if(n.includes('drap')||n.includes('alese')||n.includes('oreiller')){emoji='🛏️';label='LITERIE';}
- else if(n.includes('pile')||n.includes('batterie')){emoji='🔋';label='ÉNERGIE';}
- else if(n.includes('lampe')||n.includes('lumiere')){emoji='🔦';label='ÉCLAIRAGE';}
- else if(n.includes('collier')||n.includes('attelle')||n.includes('immobil')){emoji='🦴';label='IMMOBILISATION';}
- else if(n.includes('bassin')||n.includes('urinal')||n.includes('vom')){emoji='🧴';label='HYGIÈNE';}
- const svg='<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96"><rect width="96" height="96" rx="14" fill="#f0f7fb"/><circle cx="48" cy="39" r="27" fill="#dcecf6"/><text x="48" y="50" text-anchor="middle" font-size="31" font-family="Arial,sans-serif">'+emoji+'</text><rect x="9" y="70" width="78" height="16" rx="7" fill="#0757a0"/><text x="48" y="81" text-anchor="middle" font-size="8" font-weight="700" font-family="Arial,sans-serif" fill="#fff">'+label+'</text></svg>';
- return 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg);
+ return '';
 }
 const STOCK_IMG_ADULT='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI5NiIgaGVpZ2h0PSI5NiIgdmlld0JveD0iMCAwIDk2IDk2Ij48cmVjdCB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHJ4PSIxNCIgZmlsbD0iI2YwZjdmYiIvPjxwYXRoIGQ9Ik0xOCAyOCBRNDggMTAgNzggMjgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzhhYTliYyIgc3Ryb2tlLXdpZHRoPSI1IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNMjMgMzAgTDE4IDU2IFExOCA2NiAzMSA2OCBMNDAgNjAgTDU2IDYwIEw2NSA2OCBRNzggNjYgNzggNTYgTDczIDMwIiBmaWxsPSJub25lIiBzdHJva2U9IiM4YWE5YmMiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjxwYXRoIGQ9Ik0zMSAzNSBRNDggMjYgNjUgMzUgTDYxIDUzIFE0OCA2MiAzNSA1MyBaIiBmaWxsPSIjOWJkM2VlIiBzdHJva2U9IiMzMTVhNzMiIHN0cm9rZS13aWR0aD0iMyIvPjxwYXRoIGQ9Ik00MiA1NSBMNDIgNzIgTTU0IDU1IEw1NCA3MiIgc3Ryb2tlPSIjNmU5MWE2IiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjxwYXRoIGQ9Ik00MiA3MiBRNDggODAgNTQgNzIiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzZlOTFhNiIgc3Ryb2tlLXdpZHRoPSI0IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48Y2lyY2xlIGN4PSI0OCIgY3k9IjQ0IiByPSIzIiBmaWxsPSIjZmZmIi8+PC9zdmc+';
 const STOCK_IMG_CHILD='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI5NiIgaGVpZ2h0PSI5NiIgdmlld0JveD0iMCAwIDk2IDk2Ij48cmVjdCB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHJ4PSIxNCIgZmlsbD0iI2YwZjdmYiIvPjxwYXRoIGQ9Ik0xOCAyOCBRNDggMTAgNzggMjgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzhhYTliYyIgc3Ryb2tlLXdpZHRoPSI1IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNMjMgMzAgTDE4IDU2IFExOCA2NiAzMSA2OCBMNDAgNjAgTDU2IDYwIEw2NSA2OCBRNzggNjYgNzggNTYgTDczIDMwIiBmaWxsPSJub25lIiBzdHJva2U9IiM4YWE5YmMiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjxwYXRoIGQ9Ik0zMSAzNSBRNDggMjYgNjUgMzUgTDYxIDUzIFE0OCA2MiAzNSA1MyBaIiBmaWxsPSIjYThkOGYwIiBzdHJva2U9IiMzMTVhNzMiIHN0cm9rZS13aWR0aD0iMyIvPjxwYXRoIGQ9Ik00MiA1NSBMNDIgNzIgTTU0IDU1IEw1NCA3MiIgc3Ryb2tlPSIjNmU5MWE2IiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjxwYXRoIGQ9Ik00MiA3MiBRNDggODAgNTQgNzIiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzZlOTFhNiIgc3Ryb2tlLXdpZHRoPSI0IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48Y2lyY2xlIGN4PSI0OCIgY3k9IjQ0IiByPSIzIiBmaWxsPSIjZmZmIi8+PHBhdGggZD0iTTI1IDIwIEwxOCAxNSBNNzEgMjAgTDc4IDE1IiBzdHJva2U9IiM4YWE5YmMiIHN0cm9rZS13aWR0aD0iMyIvPjwvc3ZnPg==';
 const STOCK_IMG_HC_ADULT='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI5NiIgaGVpZ2h0PSI5NiIgdmlld0JveD0iMCAwIDk2IDk2Ij48cmVjdCB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHJ4PSIxNCIgZmlsbD0iI2YwZjdmYiIvPjxwYXRoIGQ9Ik0xOCAyOCBRNDggMTAgNzggMjgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzhhYTliYyIgc3Ryb2tlLXdpZHRoPSI1IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNMjMgMzAgTDE4IDU2IFExOCA2NiAzMSA2OCBMNDAgNjAgTDU2IDYwIEw2NSA2OCBRNzggNjYgNzggNTYgTDczIDMwIiBmaWxsPSJub25lIiBzdHJva2U9IiM4YWE5YmMiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjxwYXRoIGQ9Ik0zMSAzNSBRNDggMjYgNjUgMzUgTDYxIDUzIFE0OCA2MiAzNSA1MyBaIiBmaWxsPSIjYTRjN2U4IiBzdHJva2U9IiMzMTVhNzMiIHN0cm9rZS13aWR0aD0iMyIvPjxwYXRoIGQ9Ik00MiA1NSBMNDIgNzIgTTU0IDU1IEw1NCA3MiIgc3Ryb2tlPSIjNmU5MWE2IiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjxwYXRoIGQ9Ik00MiA3MiBRNDggODAgNTQgNzIiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzZlOTFhNiIgc3Ryb2tlLXdpZHRoPSI0IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNMzAgMzcgUTQ4IDI4IDY2IDM3IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMyIvPjwvc3ZnPg==';
 const STOCK_IMG_HC_CHILD='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI5NiIgaGVpZ2h0PSI5NiIgdmlld0JveD0iMCAwIDk2IDk2Ij48cmVjdCB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHJ4PSIxNCIgZmlsbD0iI2YwZjdmYiIvPjxwYXRoIGQ9Ik0xOCAyOCBRNDggMTAgNzggMjgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzhhYTliYyIgc3Ryb2tlLXdpZHRoPSI1IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNMjMgMzAgTDE4IDU2IFExOCA2NiAzMSA2OCBMNDAgNjAgTDU2IDYwIEw2NSA2OCBRNzggNjYgNzggNTYgTDczIDMwIiBmaWxsPSJub25lIiBzdHJva2U9IiM4YWE5YmMiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjxwYXRoIGQ9Ik0zMSAzNSBRNDggMjYgNjUgMzUgTDYxIDUzIFE0OCA2MiAzNSA1MyBaIiBmaWxsPSIjYjdkOGVmIiBzdHJva2U9IiMzMTVhNzMiIHN0cm9rZS13aWR0aD0iMyIvPjxwYXRoIGQ9Ik00MiA1NSBMNDIgNzIgTTU0IDU1IEw1NCA3MiIgc3Ryb2tlPSIjNmU5MWE2IiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjxwYXRoIGQ9Ik00MiA3MiBRNDggODAgNTQgNzIiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzZlOTFhNiIgc3Ryb2tlLXdpZHRoPSI0IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNMzAgMzcgUTQ4IDI4IDY2IDM3IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMyIvPjxjaXJjbGUgY3g9IjQ4IiBjeT0iNDQiIHI9IjMiIGZpbGw9IiNmZmYiLz48L3N2Zz4=';
 
+function stockEmojiForProduct(nom){
+ const n=String(nom||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+ if(/bavu|ballon|insufflateur/.test(n)) return '🫁';
+ if(/masque.*o2|lunette.*oxyg|oxygene|canule/.test(n)) return '😷';
+ if(/sonde|aspiration|tubulure|yankauer|suction/.test(n)) return '〰️';
+ if(/gant|charlotte|surblouse|masque chirurg/.test(n)) return '🧤';
+ if(/compresse|pansement|bande|sparadrap|coton/.test(n)) return '🩹';
+ if(/seringue|aiguille|catheter/.test(n)) return '💉';
+ if(/perfuseur|perfusion|na.cl|g5|glucose|solute|poche/.test(n)) return '🧴';
+ if(/desinfect|gel hydro|lavage|savon/.test(n)) return '🧼';
+ if(/defibr|patch|rea|electrode/.test(n)) return '❤️';
+ if(/gaze|sterile|champ/.test(n)) return '🩺';
+ if(/sac|dechet|dastri|boite jaune/.test(n)) return '🗑️';
+ if(/thermometre|tensiometre|stethoscope/.test(n)) return '🩺';
+ return '📦';
+}
 function renderStock(){
  const q=($('stockSearch')?.value||'').trim().toLowerCase();
  const rows=stockData.filter(r=>!q||String(r.produit).toLowerCase().includes(q));
- $('stockList').innerHTML=rows.length?rows.map(r=>{const statut=String(r.statut||'');const couleur=statut==='Rupture'?'stockQtyRupture':statut==='Stock min'?'stockQtyMin':'stockQtyOk';const img=stockImageForProduct(r.produit);return '<div class="stockItem"><div class="stockTop"><div class="stockProductLine">'+(img?'<img class="stockThumb" src="'+img+'" alt="Illustration '+escapeHtml(r.produit)+'">':'')+'<div class="stockName">'+escapeHtml(r.produit)+'</div></div><div class="stockQty '+couleur+'"><b>'+escapeHtml(String(r.actuel ?? r._actuel ?? 0))+'</b></div></div></div>';}).join(''):'<div class="stockEmpty">Aucun produit trouvé.</div>';
+ $('stockList').innerHTML=rows.length?rows.map(r=>{
+   const statut=String(r.statut||'');
+   const actuel=String(r.actuel ?? r._actuel ?? 0);
+   const couleur=statut==='Rupture'||Number(actuel)===0?'stockQtyRupture':statut==='Stock min'?'stockQtyMin':'stockQtyOk';
+   const emoji=stockEmojiForProduct(r.produit);
+   return '<div class="stockItem"><div class="stockTop"><div class="stockProductLine"><div class="stockEmoji" aria-hidden="true">'+emoji+'</div><div class="stockName">'+escapeHtml(r.produit)+'</div></div><div class="stockQty '+couleur+'"><b>'+escapeHtml(actuel)+'</b></div></div></div>';
+ }).join(''):'<div class="stockEmpty">Aucun produit trouvé.</div>';
 }
+
 function normaliserNomAccesStock(nom){
  return String(nom||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().replace(/\s+/g,' ').toLowerCase();
 }
