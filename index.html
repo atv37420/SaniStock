@@ -7,7 +7,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/>
-<title>SaniStock 1.1.134</title>
+<title>SaniStock 1.1.149</title>
 <link href="./manifest.json" rel="manifest"/>
 <!-- Icône SaniStock pour téléphone -->
 <link href="https://raw.githubusercontent.com/atv37420/SaniStock/main/0.png" rel="icon" type="image/png"/>
@@ -3120,11 +3120,38 @@ function setStockFilter(f,btn){stockFilter=f;document.querySelectorAll('.filterB
 
 function stockImageForProduct(nom){
  const n=String(nom||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+ // Images intégrées au fichier : une illustration dédiée à chaque famille de matériel.
  if(n.includes('masque') && n.includes('o2') && (n.includes('hc')||n.includes('haute concentration')) && n.includes('enfant')) return STOCK_IMG_HC_CHILD;
  if(n.includes('masque') && n.includes('o2') && (n.includes('hc')||n.includes('haute concentration'))) return STOCK_IMG_HC_ADULT;
  if(n.includes('masque') && n.includes('o2') && n.includes('enfant')) return STOCK_IMG_CHILD;
  if(n.includes('masque') && n.includes('o2')) return STOCK_IMG_ADULT;
- return '';
+ let emoji='🩺', label='MATÉRIEL';
+ if(n.includes('bavu')||n.includes('ambu')||n.includes('ballon')){emoji='🫁';label='BAVU';}
+ else if(n.includes('sonde') && (n.includes('aspir')||n.includes('suction'))){emoji=n.includes('bleu')?'🔵':n.includes('blanc')?'⚪':n.includes('noir')?'⚫':n.includes('orange')?'🟠':n.includes('vert')?'🟢':'🧪';label='SONDE';}
+ else if(n.includes('sonde')){emoji='🧪';label='SONDE';}
+ else if(n.includes('oxyg')||n.includes('o2')||n.includes('bouteille')){emoji='🫧';label='OXYGÈNE';}
+ else if(n.includes('gants')){emoji='🧤';label='GANTS';}
+ else if(n.includes('masque')){emoji='😷';label='MASQUE';}
+ else if(n.includes('lunette')){emoji='🥽';label='LUNETTES';}
+ else if(n.includes('canule')||n.includes('guedel')){emoji='🩺';label='CANULE';}
+ else if(n.includes('aspir')){emoji='🧴';label='ASPIRATION';}
+ else if(n.includes('compress')||n.includes('pansement')||n.includes('sparadrap')||n.includes('bandage')){emoji='🩹';label='PANSEMENT';}
+ else if(n.includes('seringue')||n.includes('aiguille')||n.includes('cath')||n.includes('perfusion')){emoji='💉';label='INJECTION';}
+ else if(n.includes('electrode')||n.includes('patch rea')||n.includes('défibr')||n.includes('defibr')||n.includes('dae')){emoji='❤️';label='RÉANIMATION';}
+ else if(n.includes('thermometre')||n.includes('temperature')){emoji='🌡️';label='MESURE';}
+ else if(n.includes('tensi')||n.includes('stetho')||n.includes('oxym')){emoji='🩺';label='DIAGNOSTIC';}
+ else if(n.includes('dastri')||n.includes('jaune')||n.includes('dechet')||n.includes('boite')){emoji='🟨';label='COLLECTEUR';}
+ else if(n.includes('desinfect')||n.includes('spray')||n.includes('savon')||n.includes('gel')){emoji='🧴';label='HYGIÈNE';}
+ else if(n.includes('couverture')||n.includes('survie')||n.includes('isotherm')){emoji='🟨';label='COUVERTURE';}
+ else if(n.includes('ciseaux')||n.includes('pince')||n.includes('outil')){emoji='✂️';label='INSTRUMENT';}
+ else if(n.includes('sac')||n.includes('poche')||n.includes('trousse')){emoji='🧰';label='RANGEMENT';}
+ else if(n.includes('drap')||n.includes('alese')||n.includes('oreiller')){emoji='🛏️';label='LITERIE';}
+ else if(n.includes('pile')||n.includes('batterie')){emoji='🔋';label='ÉNERGIE';}
+ else if(n.includes('lampe')||n.includes('lumiere')){emoji='🔦';label='ÉCLAIRAGE';}
+ else if(n.includes('collier')||n.includes('attelle')||n.includes('immobil')){emoji='🦴';label='IMMOBILISATION';}
+ else if(n.includes('bassin')||n.includes('urinal')||n.includes('vom')){emoji='🧴';label='HYGIÈNE';}
+ const svg='<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96"><rect width="96" height="96" rx="14" fill="#f0f7fb"/><circle cx="48" cy="39" r="27" fill="#dcecf6"/><text x="48" y="50" text-anchor="middle" font-size="31" font-family="Arial,sans-serif">'+emoji+'</text><rect x="9" y="70" width="78" height="16" rx="7" fill="#0757a0"/><text x="48" y="81" text-anchor="middle" font-size="8" font-weight="700" font-family="Arial,sans-serif" fill="#fff">'+label+'</text></svg>';
+ return 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg);
 }
 const STOCK_IMG_ADULT='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI5NiIgaGVpZ2h0PSI5NiIgdmlld0JveD0iMCAwIDk2IDk2Ij48cmVjdCB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHJ4PSIxNCIgZmlsbD0iI2YwZjdmYiIvPjxwYXRoIGQ9Ik0xOCAyOCBRNDggMTAgNzggMjgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzhhYTliYyIgc3Ryb2tlLXdpZHRoPSI1IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNMjMgMzAgTDE4IDU2IFExOCA2NiAzMSA2OCBMNDAgNjAgTDU2IDYwIEw2NSA2OCBRNzggNjYgNzggNTYgTDczIDMwIiBmaWxsPSJub25lIiBzdHJva2U9IiM4YWE5YmMiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjxwYXRoIGQ9Ik0zMSAzNSBRNDggMjYgNjUgMzUgTDYxIDUzIFE0OCA2MiAzNSA1MyBaIiBmaWxsPSIjOWJkM2VlIiBzdHJva2U9IiMzMTVhNzMiIHN0cm9rZS13aWR0aD0iMyIvPjxwYXRoIGQ9Ik00MiA1NSBMNDIgNzIgTTU0IDU1IEw1NCA3MiIgc3Ryb2tlPSIjNmU5MWE2IiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjxwYXRoIGQ9Ik00MiA3MiBRNDggODAgNTQgNzIiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzZlOTFhNiIgc3Ryb2tlLXdpZHRoPSI0IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48Y2lyY2xlIGN4PSI0OCIgY3k9IjQ0IiByPSIzIiBmaWxsPSIjZmZmIi8+PC9zdmc+';
 const STOCK_IMG_CHILD='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI5NiIgaGVpZ2h0PSI5NiIgdmlld0JveD0iMCAwIDk2IDk2Ij48cmVjdCB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHJ4PSIxNCIgZmlsbD0iI2YwZjdmYiIvPjxwYXRoIGQ9Ik0xOCAyOCBRNDggMTAgNzggMjgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzhhYTliYyIgc3Ryb2tlLXdpZHRoPSI1IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNMjMgMzAgTDE4IDU2IFExOCA2NiAzMSA2OCBMNDAgNjAgTDU2IDYwIEw2NSA2OCBRNzggNjYgNzggNTYgTDczIDMwIiBmaWxsPSJub25lIiBzdHJva2U9IiM4YWE5YmMiIHN0cm9rZS13aWR0aD0iNCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjxwYXRoIGQ9Ik0zMSAzNSBRNDggMjYgNjUgMzUgTDYxIDUzIFE0OCA2MiAzNSA1MyBaIiBmaWxsPSIjYThkOGYwIiBzdHJva2U9IiMzMTVhNzMiIHN0cm9rZS13aWR0aD0iMyIvPjxwYXRoIGQ9Ik00MiA1NSBMNDIgNzIgTTU0IDU1IEw1NCA3MiIgc3Ryb2tlPSIjNmU5MWE2IiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjxwYXRoIGQ9Ik00MiA3MiBRNDggODAgNTQgNzIiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzZlOTFhNiIgc3Ryb2tlLXdpZHRoPSI0IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48Y2lyY2xlIGN4PSI0OCIgY3k9IjQ0IiByPSIzIiBmaWxsPSIjZmZmIi8+PHBhdGggZD0iTTI1IDIwIEwxOCAxNSBNNzEgMjAgTDc4IDE1IiBzdHJva2U9IiM4YWE5YmMiIHN0cm9rZS13aWR0aD0iMyIvPjwvc3ZnPg==';
