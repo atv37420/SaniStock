@@ -772,7 +772,7 @@ body{display:block}
 }
 
 
-/* SaniStock: catalogue stock en grille avec photo au-dessus du nom */
+/* SaniStock: catalogue stock en grille avec photos seules, sans nom affiché sur les cartes */
 #stockList.stockList{display:grid;grid-template-columns:repeat(auto-fill,minmax(135px,1fr));gap:10px;align-items:stretch}
 #stockList .stockItem{min-width:0;padding:8px;background:rgba(255,255,255,.97);border:1px solid #e7eff6;border-radius:14px;box-shadow:0 3px 12px #174f7512}
 #stockList .stockProductLine{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:6px;min-width:0;text-align:center}
@@ -3145,7 +3145,7 @@ function stockImageForProduct(nom){
 function renderStock(){
  const q=($('stockSearch')?.value||'').trim().toLowerCase();
  const rows=stockData.filter(r=>!q||String(r.produit).toLowerCase().includes(q));
- $('stockList').innerHTML=rows.length?rows.map(r=>{const statut=String(r.statut||'');const couleur=statut==='Rupture'?'stockQtyRupture':statut==='Stock min'?'stockQtyMin':'stockQtyOk';const img=stockImageForProduct(r.produit);return '<div class="stockItem"><div class="stockProductLine">'+(img?'<img class="stockThumb" src="'+img+'" alt="Photo '+escapeHtml(r.produit)+'">':'<div class="stockThumb stockThumbFallback">📦</div>')+'<div class="stockName">'+escapeHtml(r.produit)+'</div></div><div class="stockQty '+couleur+'"><b>'+escapeHtml(String(r.actuel ?? r._actuel ?? 0))+'</b></div></div>';}).join(''):'<div class="stockEmpty">Aucun produit trouvé.</div>';
+ $('stockList').innerHTML=rows.length?rows.map(r=>{const statut=String(r.statut||'');const couleur=statut==='Rupture'?'stockQtyRupture':statut==='Stock min'?'stockQtyMin':'stockQtyOk';const img=stockImageForProduct(r.produit);return '<div class="stockItem"><div class="stockProductLine">'+(img?'<img class="stockThumb" src="'+img+'" alt="Photo '+escapeHtml(r.produit)+'">':'<div class="stockThumb stockThumbFallback">📦</div>')+'</div><div class="stockQty '+couleur+'"><b>'+escapeHtml(String(r.actuel ?? r._actuel ?? 0))+'</b></div></div>';}).join(''):'<div class="stockEmpty">Aucun produit trouvé.</div>';
 }
 function normaliserNomAccesStock(nom){
  return String(nom||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().replace(/\s+/g,' ').toLowerCase();
