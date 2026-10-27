@@ -1,13 +1,13 @@
 <!-- TAXI PDF FINAL - VALISE NOIR COORDONNEES SEPAREES -->
 <!-- TAXI PDF FINAL INTEGRE : taxi_template(3).pdf -->
-<!-- SaniStock version 1.1.148 : coffre ajouté à la désinfection journalière VSL et Taxi -->
+<!-- SaniStock version 1.1.158 : stock sans noms ni images, boutons entrée/sortie empilés -->
 <!DOCTYPE html>
 
 <html lang="fr">
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/>
-<title>SaniStock 1.1.150</title>
+<title>SaniStock 1.1.158</title>
 <link href="./manifest.json" rel="manifest"/>
 <!-- Icône SaniStock pour téléphone -->
 <link href="https://raw.githubusercontent.com/atv37420/SaniStock/main/0.png" rel="icon" type="image/png"/>
@@ -2396,7 +2396,20 @@ button.settingsAction.secondary:hover,
   #memoPage .memoChoice, #vehiclePage .memoChoice { padding: 15px 12px; }
   #checklistPage .checklistCard { padding: 12px !important; }
 }
-</style></head>
+</style><style>
+/* SaniStock 1.1.158 — stock sans noms ni images, boutons empilés */
+.stockActions{display:grid!important;grid-template-columns:1fr!important;gap:8px!important;margin-bottom:12px!important}
+.stockAction{width:100%;display:block;min-height:44px}
+.stockItem{min-height:0!important;padding:10px!important;display:flex!important;align-items:center!important;justify-content:center!important}
+.stockTop{display:flex!important;align-items:center!important;justify-content:center!important;width:100%!important}
+.stockProductLine,.stockThumb,.stockEmoji,.stockName{display:none!important}
+.stockQty{position:static!important;display:block!important;margin:0 auto!important;text-align:center!important;min-width:72px!important;padding:8px 16px!important;border-radius:12px!important}
+.stockQty b{font-size:22px!important;color:#fff!important}
+.stockList{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important}
+@media(min-width:650px){.stockList{grid-template-columns:repeat(5,minmax(0,1fr))!important}}
+@media(min-width:1000px){.stockList{grid-template-columns:repeat(7,minmax(0,1fr))!important}}
+</style>
+</head>
 <body>
 <div aria-live="polite" id="employeeLoginOverlay">
 <div class="employeeLoginCard">
@@ -3173,8 +3186,7 @@ function renderStock(){
    const statut=String(r.statut||'');
    const actuel=String(r.actuel ?? r._actuel ?? 0);
    const couleur=statut==='Rupture'||Number(actuel)===0?'stockQtyRupture':statut==='Stock min'?'stockQtyMin':'stockQtyOk';
-   const emoji=stockEmojiForProduct(r.produit);
-   return '<div class="stockItem"><div class="stockTop"><div class="stockProductLine"><div class="stockEmoji" aria-hidden="true">'+emoji+'</div><div class="stockName">'+escapeHtml(r.produit)+'</div></div><div class="stockQty '+couleur+'"><b>'+escapeHtml(actuel)+'</b></div></div></div>';
+   return '<div class="stockItem"><div class="stockTop"><div class="stockQty '+couleur+'" aria-label="Quantité en stock"><b>'+escapeHtml(actuel)+'</b></div></div></div>';
  }).join(''):'<div class="stockEmpty">Aucun produit trouvé.</div>';
 }
 
