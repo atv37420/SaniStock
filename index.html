@@ -666,6 +666,8 @@ body{display:block}
 .homeButton4.stock4{background:#1479e8}.homeButton4.disinfection4{background:#e53935}.homeButton4.medication4{background:#2eaf5d}.homeButton4.memo4{background:#2eaf5d}.homeButton4.settings4{background:#6b7280}.homeButton4.vehicle4{background:#e53935}
 .homeButton4.documents4{background:#f6c945;grid-column:1;max-width:none;width:auto;justify-self:stretch;}
 
+/* Le bouton Esprit d'équipe peut remplacer Paramètres pour les salariés non autorisés. */
+.homeButton4.team4.teamReplacesSettings{grid-column:1 / -1 !important;justify-self:stretch !important;width:100% !important;max-width:none !important;aspect-ratio:auto !important;min-height:100px !important;height:auto !important;}
 /* ===== BOUTON ESPRIT D’ÉQUIPE — carré, deuxième ligne du menu d’accueil ===== */
 .homeButton4.team4{
   grid-column:1;justify-self:start;width:min(100%,104px);height:auto;aspect-ratio:1/1;min-height:0;
@@ -4513,35 +4515,44 @@ function nomAutoriseParametres_(){
   return ['hognon lewis','lewis hognon','laurent guette','guette laurent','nathalie froget','froget nathalie'].includes(nom);
 }
 function actualiserVisibiliteBoutonParametres_(){
-  const autorise=nomAutoriseParametres_();
-  const boutonFixe=document.getElementById('settingsBtn');
-  if(boutonFixe) boutonFixe.style.display=autorise?'':'none';
-  document.querySelectorAll('.settings4').forEach(function(b){b.style.display=autorise?'':'none';});
+  const autorise = nomAutoriseParametres_();
+  const boutonFixe = document.getElementById('settingsBtn');
+  const menu = document.querySelector('.homeButtons4');
+  const boutonParametres = menu ? menu.querySelector('.settings4') : null;
+  const boutonEquipe = menu ? menu.querySelector('.team4') : null;
 
-  // Pour les autres salariés, Esprit d'équipe prend la place du bouton Paramètres.
-  const menu=document.querySelector('.homeButtons4');
-  const boutonParametres=menu&&menu.querySelector('.settings4');
-  const boutonEquipe=menu&&menu.querySelector('.team4');
-  if(menu&&boutonParametres&&boutonEquipe){
-    if(!autorise){
-      if(boutonEquipe.parentElement===menu && boutonEquipe.nextElementSibling!==boutonParametres){
-        menu.insertBefore(boutonEquipe,boutonParametres);
-      }
-      boutonParametres.style.display='none';
-    }else{
-      // Les responsables retrouvent l'ordre initial, avec Esprit d'équipe en dernier.
-      boutonEquipe.style.display='';
+  // Le bouton flottant Paramètres est réservé aux trois personnes autorisées.
+  if (boutonFixe) boutonFixe.style.display = autorise ? '' : 'none';
+
+  if (boutonParametres && boutonEquipe && menu) {
+    if (autorise) {
+      boutonParametres.style.display = '';
+      boutonEquipe.classList.remove('teamReplacesSettings');
+      boutonEquipe.style.display = '';
+      // Les trois responsables conservent le menu habituel : Paramètres puis Esprit d'équipe.
+      menu.appendChild(boutonParametres);
       menu.appendChild(boutonEquipe);
+    } else {
+      // Pour tous les autres salariés, Esprit d'équipe occupe exactement la place de Paramètres.
+      boutonEquipe.style.display = '';
+      boutonEquipe.classList.add('teamReplacesSettings');
+      menu.insertBefore(boutonEquipe, boutonParametres);
+      boutonParametres.style.display = 'none';
     }
   }
-  if(!autorise){
-    const overlay=document.getElementById('settingsOverlay');
-    if(overlay){overlay.classList.remove('open');overlay.setAttribute('aria-hidden','true');}
+
+  if (!autorise) {
+    const overlay = document.getElementById('settingsOverlay');
+    if (overlay) {
+      overlay.classList.remove('open');
+      overlay.setAttribute('aria-hidden', 'true');
+    }
   }
   return autorise;
 }
-document.addEventListener('DOMContentLoaded',actualiserVisibiliteBoutonParametres_);
-window.addEventListener('pageshow',actualiserVisibiliteBoutonParametres_);
+document.addEventListener('DOMContentLoaded', actualiserVisibiliteBoutonParametres_);
+window.addEventListener('pageshow', actualiserVisibiliteBoutonParametres_);
+window.addEventListener('load', actualiserVisibiliteBoutonParametres_);
 
 function ouvrirParametres(){
   if(!actualiserVisibiliteBoutonParametres_()){alert('🔒 Les paramètres sont réservés à Hognon Lewis, Laurent Guette et Nathalie Froget.');return}
