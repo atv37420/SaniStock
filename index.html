@@ -412,10 +412,10 @@ body{display:block}
 .card{background:#fff;border-radius:20px;padding:28px;text-align:center;color:#042349;box-shadow:0 8px 25px rgba(0,45,90,.12)}
 
 
-/* STOCK simplifié : masquer la recherche et la liste, garder les actions Entrée / Sortie */
+/* STOCK simplifié : masquer la recherche et la liste, afficher Entrée / Sortie l’une sous l’autre */
 #stockPage .stockSearch, #stockPage .stockFilters, #stockPage #stockList { display:none !important; }
-#stockPage .stockActions { margin-top:22px; grid-template-columns:1fr 1fr; gap:12px; }
-#stockPage .stockAction { min-height:64px; font-size:15px; }
+#stockPage .stockActions { margin-top:22px; grid-template-columns:1fr; gap:12px; }
+#stockPage .stockAction { width:100%; min-height:64px; font-size:15px; }
 
 /* PAGE STOCK */
 .stockPage{position:relative;padding:18px;color:#042349;background:#edf5fa;overflow:hidden}
