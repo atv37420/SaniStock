@@ -420,7 +420,7 @@ body{display:block}
 .stockSearch{width:100%;padding:13px 14px;border:1px solid #cbdde9;border-radius:13px;background:rgba(255,255,255,.94);font-size:14px;outline:none}
 .stockFilters{display:flex;gap:7px;overflow:auto;padding:10px 0}.filterBtn{border:0;border-radius:999px;padding:8px 12px;background:#e2edf5;color:#042349;font-weight:800;white-space:nowrap;cursor:pointer}.filterBtn.active{background:#075ba9;color:#fff}
 .stockSummary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:4px 0 12px}.sumCard{background:rgba(255,255,255,.94);border-radius:14px;padding:10px 6px;text-align:center;box-shadow:0 5px 16px #174f7520}.sumCard b{display:block;font-size:20px;color:#042349}.sumCard span{font-size:9px;font-weight:800;color:#6c8497}
-.stockActions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:12px}.stockAction{border:0;border-radius:13px;padding:13px 8px;color:#fff;font-weight:900;cursor:pointer}.entryBtn{background:#15934b}.exitBtn{background:#d72a36}
+.stockActions{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:12px}.stockAction{border:0;border-radius:13px;padding:13px 8px;color:#fff;font-weight:900;cursor:pointer}.entryBtn{background:#15934b}.exitBtn{background:#d72a36}
 .stockList{display:grid;gap:9px}.stockProductLine{display:flex;align-items:center;gap:10px;min-width:0}.stockThumb{width:44px;height:44px;flex:0 0 44px;object-fit:contain;border-radius:10px;background:#f0f7fb;border:1px solid #d9e8f1;padding:3px}.stockName{font-weight:900;font-size:11px;color:#042349;overflow-wrap:anywhere}.stockItem{background:rgba(255,255,255,.95);border-radius:15px;padding:12px 13px;box-shadow:0 5px 16px #174f7518}.stockTop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.stockName{font-weight:900;font-size:11px;color:#042349}.stockQty{text-align:right;white-space:nowrap}.stockQty b{font-size:19px;color:#042349}.stockMeta{display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:10px;color:#70879a}.expiryMeta{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-top:8px;padding-top:8px;border-top:1px solid #edf3f7;font-size:10px;color:#70879a}.expiryStatus{font-weight:900}.expiry-ok{color:#148545}.expiry-soon{color:#b56b00}.expiry-expired{color:#c51f2d}.statusPill{font-weight:900;border-radius:999px;padding:5px 8px}.status-ok{background:#e4f7ea;color:#148545}.status-min{background:#fff0d5;color:#b56b00}.status-rupture{background:#fde2e5;color:#c51f2d}.stockEmpty{text-align:center;padding:25px;color:#6c8497}
 .stockModal{display:none;position:fixed;z-index:500;inset:0;background:#002b4d80;padding:18px;align-items:center;justify-content:center}.stockModal.show{display:flex}.stockModalCard{width:min(100%,450px);background:#fff;border-radius:20px;padding:18px;box-shadow:0 20px 55px #00305b60}.stockModalHead{display:flex;align-items:center;justify-content:space-between}.stockModalHead h3{margin:0;color:#042349}.stockClose{border:0;border-radius:50%;width:32px;height:32px;background:#e6f0f6;color:#042349;font-weight:900}.stockField{margin-top:13px}.stockField label{display:block;font-size:10px;font-weight:900;color:#042349;margin-bottom:6px}.stockField select,.stockField input{width:100%;padding:12px;border:1px solid #cbdde9;border-radius:10px;background:#fff}.movementRows{display:grid;gap:9px;margin-top:13px}.movementRow{display:grid;grid-template-columns:minmax(0,1fr) 78px 36px;gap:7px;align-items:center}.movementRow select,.movementRow input{width:100%;padding:11px;border:1px solid #cbdde9;border-radius:10px;background:#fff}.removeMovement{border:0;border-radius:10px;height:40px;background:#fde2e5;color:#c51f2d;font-weight:900;cursor:pointer}.addMovement{width:100%;margin-top:9px;border:1px dashed #76a8c8;border-radius:11px;padding:10px;background:#f3f9fc;color:#042349;font-weight:900;cursor:pointer}.stockSave{width:100%;margin-top:15px;border:0;border-radius:12px;padding:13px;color:#fff;font-weight:900}.stockMessage{display:none;margin:10px 0;padding:11px;border-radius:11px;text-align:center;font-weight:900;background:#e5f8eb;color:#08753b}.stockMessage.show{display:block}
 
@@ -2409,6 +2409,7 @@ button.settingsAction.secondary:hover,
 @media(min-width:650px){.stockList{grid-template-columns:repeat(5,minmax(0,1fr))!important}}
 @media(min-width:1000px){.stockList{grid-template-columns:repeat(7,minmax(0,1fr))!important}}
 </style>
+<style>#stockPage .stockSearch,#stockPage .stockList{display:none!important}#stockPage .stockActions{display:grid!important;grid-template-columns:1fr!important;gap:8px!important}#stockPage .stockAction{width:100%;display:block}</style>
 </head>
 <body>
 <div aria-live="polite" id="employeeLoginOverlay">
@@ -2782,11 +2783,11 @@ button.settingsAction.secondary:hover,
 <button class="back" onclick="sanistockGoBack()">← Retour</button>
 <h1 class="stockTitle">📦 STOCK</h1>
 <p class="stockSub">Merci d’indiquer les produits sortis et les quantités.</p>
-<input class="stockSearch" id="stockSearch" oninput="renderStock()" placeholder="🔎 Rechercher un produit..." type="search"/>
+<input class="stockSearch" id="stockSearch" oninput="renderStock()" placeholder="🔎 Rechercher un produit..." type="search" style="display:none"/>
 <div class="stockFilters" style="display:none"></div>
 <div class="stockActions"><button class="stockAction entryBtn" id="stockEntryButton" onclick="demanderCodeEntreeStock()" style="display:none">＋ ENTRÉE PRODUIT</button><button class="stockAction exitBtn" onclick="openStockModal('sortie')">− SORTIE PRODUIT</button></div>
 <div class="stockMessage" id="stockMessage"></div>
-<div class="stockList" id="stockList"><div class="stockEmpty">Chargement du stock...</div></div>
+<div class="stockList" id="stockList" style="display:none" aria-hidden="true"></div>
 </div>
 <div class="stockModal" id="stockModal">
 <div class="stockModalCard">
