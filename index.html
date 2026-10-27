@@ -1,13 +1,13 @@
 <!-- TAXI PDF FINAL - VALISE NOIR COORDONNEES SEPAREES -->
 <!-- TAXI PDF FINAL INTEGRE : taxi_template(3).pdf -->
-<!-- SaniStock version 1.1.165 : description Stock avec police harmonisée -->
+<!-- SaniStock version 1.1.158 : stock sans noms ni images, boutons entrée/sortie empilés -->
 <!DOCTYPE html>
 
 <html lang="fr">
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/>
-<title>SaniStock 1.1.165</title>
+<title>SaniStock 1.1.158</title>
 <link href="./manifest.json" rel="manifest"/>
 <!-- Icône SaniStock pour téléphone -->
 <link href="https://raw.githubusercontent.com/atv37420/SaniStock/main/0.png" rel="icon" type="image/png"/>
@@ -416,7 +416,7 @@ body{display:block}
 .stockPage{position:relative;padding:18px;color:#042349;background:#edf5fa;overflow:hidden}
 .stockPage::before{content:"";display:none!important}
 .stockPage .stockWrap{position:relative;z-index:1}
-.stockWrap{width:min(96%,520px);margin:auto}.stockTitle{text-align:center;color:#042349;margin:20px 0 4px;font-size:28px}.stockSub{text-align:center;color:#66839a;font-size:14px;line-height:1.4;margin:0 0 16px}
+.stockWrap{width:min(96%,520px);margin:auto}.stockTitle{text-align:center;color:#042349;margin:20px 0 4px;font-size:28px}.stockSub{text-align:center;color:#66839a;font-size:10px;margin:0 0 16px}
 .stockSearch{width:100%;padding:13px 14px;border:1px solid #cbdde9;border-radius:13px;background:rgba(255,255,255,.94);font-size:14px;outline:none}
 .stockFilters{display:flex;gap:7px;overflow:auto;padding:10px 0}.filterBtn{border:0;border-radius:999px;padding:8px 12px;background:#e2edf5;color:#042349;font-weight:800;white-space:nowrap;cursor:pointer}.filterBtn.active{background:#075ba9;color:#fff}
 .stockSummary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:4px 0 12px}.sumCard{background:rgba(255,255,255,.94);border-radius:14px;padding:10px 6px;text-align:center;box-shadow:0 5px 16px #174f7520}.sumCard b{display:block;font-size:20px;color:#042349}.sumCard span{font-size:9px;font-weight:800;color:#6c8497}
@@ -2412,6 +2412,27 @@ button.settingsAction.secondary:hover,
 @media(min-width:1000px){.stockList{grid-template-columns:repeat(7,minmax(0,1fr))!important}}
 </style>
 <style>/* Boutons Stock agrandis comme les autres catégories */#stockPage .stockSearch,#stockPage .stockList{display:none!important}#stockPage .stockActions{display:grid!important;grid-template-columns:1fr!important;gap:12px!important;margin:12px 0 16px!important}#stockPage .stockAction{width:100%;display:block;min-height:76px!important;padding:22px 16px!important;border-radius:18px!important;font-size:17px!important;line-height:1.25!important;font-weight:900!important;letter-spacing:.3px!important;box-shadow:0 7px 18px rgba(4,35,73,.18)!important}#stockPage .stockAction:active{transform:scale(.985)}</style>
+
+<style id="sanistock-transport-cost-styles">
+.transportCostPage{background:#edf5fa;min-height:100%;padding:18px;color:#12304b;box-sizing:border-box}
+.transportCostWrap{max-width:900px;margin:0 auto}
+.transportCostHeader{display:flex;align-items:center;gap:14px;margin:16px 0}
+.transportCostHeader h1{margin:0;font-size:25px;color:#1269a7}.transportCostHeader p{margin:5px 0 0;color:#526779}
+.transportCostIcon{width:58px;height:58px;flex:0 0 58px;display:grid;place-items:center;border-radius:17px;background:#d8eafb;font-size:30px}
+.transportCostNotice{background:#fff4db;border:1px solid #f0d18a;border-radius:12px;padding:12px 14px;margin:12px 0;font-size:13px;line-height:1.45;color:#704c0c}
+.transportCostCard{background:#fff;border-radius:16px;padding:16px;margin:14px 0;box-shadow:0 4px 14px rgba(14,66,105,.08)}
+.transportCostCard h2{margin:0 0 13px;font-size:17px;color:#1769a7}.transportCostHint{margin:-5px 0 14px;color:#64748b;font-size:13px}
+.transportCostGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.transportCostGrid label{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:700;color:#425466}
+.transportCostGrid input,.transportCostGrid select{width:100%;box-sizing:border-box;border:1px solid #cbd8e3;border-radius:10px;padding:12px;font-size:16px;background:#fff;color:#12304b;min-height:44px}
+.transportCostCalcBtn{width:100%;border:0;border-radius:13px;background:#1769a7;color:#fff;font-size:16px;font-weight:800;padding:16px;margin:3px 0 14px;cursor:pointer}
+.transportCostResult{background:#e7f5eb;border:1px solid #b6e0c1;border-radius:16px;padding:18px;text-align:center}
+.transportCostResultLabel{font-size:14px;color:#326b43;font-weight:700}.transportCostTotal{font-size:34px;font-weight:900;color:#176c36;margin:7px 0 12px}
+.transportCostBreakdown{font-size:14px;line-height:1.8;color:#244c32;text-align:left;border-top:1px solid #c5e6ce;padding-top:10px}
+.transportCostFootnote{font-size:12px;color:#64748b;line-height:1.5;margin:12px 2px 24px}
+.costTransport4 .homeButtonIcon{font-size:30px}
+@media(max-width:560px){.transportCostGrid{grid-template-columns:1fr}.transportCostHeader h1{font-size:22px}.transportCostPage{padding:14px}}
+</style>
 </head>
 <body>
 <div aria-live="polite" id="employeeLoginOverlay">
@@ -2622,7 +2643,46 @@ button.settingsAction.secondary:hover,
 <div class="penseTitre">🚑 PENSE-BÊTE DU JOUR</div>
 <div class="penseTexte" id="penseBeteTexte">Malaise → contrôler les constantes et réaliser une glycémie si indiquée.</div>
 </div>
+
+<button aria-label="Calcul coût transport" class="homeButton4 costTransport4" onclick="showPage('transportCostPage')" type="button"><span class="homeButtonIcon">🧮</span><span class="homeButtonTitle">COÛT TRANSPORT</span><span class="homeButtonDesc">Estimation du coût d’un trajet</span></button>
 </section>
+<section class="screen transportCostPage" id="transportCostPage">
+  <div class="transportCostWrap">
+    <button class="back" onclick="sanistockGoBack()" type="button">← Retour</button>
+    <header class="transportCostHeader">
+      <div class="transportCostIcon">🧮</div>
+      <div><h1>Coût d’un transport</h1><p>Estimez le coût interne d’un trajet pour votre entreprise.</p></div>
+    </header>
+    <div class="transportCostNotice">Cet outil calcule une estimation interne à partir de vos coûts. Il ne calcule pas le tarif réglementaire de facturation d’un transport sanitaire ni le montant remboursable.</div>
+    <div class="transportCostCard">
+      <h2>🚑 Trajet</h2>
+      <div class="transportCostGrid">
+        <label>Type de véhicule<select id="tcVehicle"><option>Ambulance</option><option>VSL</option><option>Taxi</option><option>Autre</option></select></label>
+        <label>Distance totale (km)<input id="tcKm" type="number" min="0" step="0.1" value="20"></label>
+        <label>Durée totale (minutes)<input id="tcMinutes" type="number" min="0" step="1" value="45"></label>
+        <label>Péages (€)<input id="tcTolls" type="number" min="0" step="0.01" value="0"></label>
+      </div>
+    </div>
+    <div class="transportCostCard">
+      <h2>⚙️ Vos coûts internes</h2>
+      <p class="transportCostHint">Renseignez vos propres valeurs pour obtenir une estimation adaptée à votre entreprise.</p>
+      <div class="transportCostGrid">
+        <label>Consommation (L/100 km)<input id="tcConsumption" type="number" min="0" step="0.1" value="10"></label>
+        <label>Prix du carburant (€/L)<input id="tcFuelPrice" type="number" min="0" step="0.01" value="1.80"></label>
+        <label>Coût véhicule hors carburant (€/km)<input id="tcVehicleCost" type="number" min="0" step="0.01" value="0.25"></label>
+        <label>Coût du personnel (€/heure, total équipage)<input id="tcLaborRate" type="number" min="0" step="0.5" value="30"></label>
+        <label>Autres frais (€)<input id="tcOther" type="number" min="0" step="0.01" value="0"></label>
+      </div>
+    </div>
+    <button class="transportCostCalcBtn" onclick="calculerCoutTransportSani()" type="button">Calculer le coût estimé</button>
+    <div class="transportCostResult" id="tcResult" aria-live="polite">
+      <div class="transportCostResultLabel">Coût interne estimé</div><div class="transportCostTotal" id="tcTotal">—</div>
+      <div class="transportCostBreakdown" id="tcBreakdown">Renseignez les données puis lancez le calcul.</div>
+    </div>
+    <p class="transportCostFootnote">Le résultat dépend des données saisies. Pensez à compter le trajet à vide, le retour ou les kilomètres réellement supportés par l’entreprise, selon votre méthode de calcul.</p>
+  </div>
+</section>
+
 <style>
 .memoChoices{max-width:900px;margin:24px auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;padding:0 14px}
 .memoChoice{border:0;border-radius:20px;background:#fff;box-shadow:0 8px 24px rgba(20,60,100,.12);padding:26px 18px;cursor:pointer;text-align:center;transition:transform .15s,box-shadow .15s}
@@ -2823,7 +2883,7 @@ button.settingsAction.secondary:hover,
 <p style="margin:0 0 22px;color:#64748b">Désinfection et suivi des véhicules</p>
 <div class="memoChoices">
 <button class="memoChoice" onclick="showPage('disinfectionPage')" type="button">
-<span aria-hidden="true" class="memoChoiceIcon"><svg height="42" viewbox="0 0 64 64" width="42" xmlns="http://www.w3.org/2000/svg"><path d="M23 25h25v27c0 3-2 5-5 5H28c-3 0-5-2-5-5V25Z" fill="#dcecff" stroke="#2f80ed" stroke-width="2.5"></path><path d="M28 18h16v8H28z" fill="#2f80ed"></path><path d="M44 16h11v6H44zM54 12h7v5h-7z" fill="#2f80ed"></path><path d="M18 31h7" stroke="#2f80ed" stroke-linecap="round" stroke-width="3"></path><path d="M32 35h10M37 30v10" stroke="#e53935" stroke-linecap="round" stroke-width="4"></path></svg></span>
+<span aria-hidden="true" class="memoChoiceIcon"><svg height="42" viewbox="0 0 64 64" width="42" xmlns="http://www.w3.org/2000/svg"><path d="M23 27h25v25c0 3-2 5-5 5H28c-3 0-5-2-5-5V27Z" fill="#dcecff" stroke="#2f80ed" stroke-width="2.5" stroke-linejoin="round"></path><path d="M28 20h16v7H28z" fill="#2f80ed"></path><path d="M39 20v-5h12v5H39Z" fill="#2f80ed" stroke="#2f80ed" stroke-linejoin="round"></path><path d="M50 16h7" stroke="#2f80ed" stroke-width="3" stroke-linecap="round"></path><path d="M18 14l-3-2M17 20h-4M19 26l-3 2" stroke="#2f80ed" stroke-width="2.5" stroke-linecap="round"></path><path d="M29 36l4 4 8-9M29 47h12" fill="none" stroke="#218348" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
 <span class="memoChoiceTitle">DÉSINFECTION</span>
 <span class="memoChoiceDesc">Accéder à la désinfection journalière des véhicules</span>
 </button>
@@ -14088,6 +14148,17 @@ html+='<div class="ambSectionBulkActions"><button type="button" class="toutCoche
  #newsPage .sanNewsInlineIntro p{font-size:10px;line-height:1.35}
 }
 </style>
+
+<script id="sanistock-transport-cost-script">
+function calculerCoutTransportSani(){
+  const num=id=>{const el=document.getElementById(id);const v=parseFloat(String(el&&el.value||'0').replace(',','.'));return Number.isFinite(v)&&v>=0?v:0;};
+  const km=num('tcKm'), minutes=num('tcMinutes'), conso=num('tcConsumption'), carburant=num('tcFuelPrice'), coutKm=num('tcVehicleCost'), personnel=num('tcLaborRate'), peages=num('tcTolls'), autres=num('tcOther');
+  const fuel=(km*conso/100)*carburant, vehicle=km*coutKm, labor=(minutes/60)*personnel, total=fuel+vehicle+labor+peages+autres;
+  const eur=n=>n.toLocaleString('fr-FR',{style:'currency',currency:'EUR'});
+  document.getElementById('tcTotal').textContent=eur(total);
+  document.getElementById('tcBreakdown').innerHTML='<div>Carburant : <strong>'+eur(fuel)+'</strong></div><div>Coût véhicule hors carburant : <strong>'+eur(vehicle)+'</strong></div><div>Personnel : <strong>'+eur(labor)+'</strong></div><div>Péages : <strong>'+eur(peages)+'</strong></div><div>Autres frais : <strong>'+eur(autres)+'</strong></div><div style="margin-top:8px;font-weight:800">Distance : '+km.toLocaleString('fr-FR')+' km · Durée : '+minutes+' min</div>';
+}
+</script>
 </body>
 </html>
 <!-- SaniStock 1.1.114 : réactions multiples sur les publications. -->
