@@ -4506,7 +4506,45 @@ function donneesAccesGestion() {
   };
 }
 
+function nomAutoriseParametres_(){
+  let nom='';
+  try{nom=localStorage.getItem('sanistock_employee_name')||'';}catch(e){}
+  nom=String(nom).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
+  return ['hognon lewis','lewis hognon','laurent guette','guette laurent','nathalie froget','froget nathalie'].includes(nom);
+}
+function actualiserVisibiliteBoutonParametres_(){
+  const autorise=nomAutoriseParametres_();
+  const boutonFixe=document.getElementById('settingsBtn');
+  if(boutonFixe) boutonFixe.style.display=autorise?'':'none';
+  document.querySelectorAll('.settings4').forEach(function(b){b.style.display=autorise?'':'none';});
+
+  // Pour les autres salariés, Esprit d'équipe prend la place du bouton Paramètres.
+  const menu=document.querySelector('.homeButtons4');
+  const boutonParametres=menu&&menu.querySelector('.settings4');
+  const boutonEquipe=menu&&menu.querySelector('.team4');
+  if(menu&&boutonParametres&&boutonEquipe){
+    if(!autorise){
+      if(boutonEquipe.parentElement===menu && boutonEquipe.nextElementSibling!==boutonParametres){
+        menu.insertBefore(boutonEquipe,boutonParametres);
+      }
+      boutonParametres.style.display='none';
+    }else{
+      // Les responsables retrouvent l'ordre initial, avec Esprit d'équipe en dernier.
+      boutonEquipe.style.display='';
+      menu.appendChild(boutonEquipe);
+    }
+  }
+  if(!autorise){
+    const overlay=document.getElementById('settingsOverlay');
+    if(overlay){overlay.classList.remove('open');overlay.setAttribute('aria-hidden','true');}
+  }
+  return autorise;
+}
+document.addEventListener('DOMContentLoaded',actualiserVisibiliteBoutonParametres_);
+window.addEventListener('pageshow',actualiserVisibiliteBoutonParametres_);
+
 function ouvrirParametres(){
+  if(!actualiserVisibiliteBoutonParametres_()){alert('🔒 Les paramètres sont réservés à Hognon Lewis, Laurent Guette et Nathalie Froget.');return}
   if(!gsDisponible()){alert('Connexion SaniStock indisponible.');return}
   if(appareilProprietaire()){
     document.getElementById('settingsOverlay').classList.add('open');
@@ -6309,7 +6347,9 @@ function changerCodeAdminUI(){
     if(/^\d{4}$/.test(c)===false) return;
     localStorage.setItem(OWNER_DEVICE_KEY,'1');
     localStorage.setItem('sanistock_employee_name',String(name).trim());
+    try{actualiserVisibiliteBoutonParametres_();}catch(e){}
     localStorage.setItem('sanistock_employee_code',c);
+    try{actualiserVisibiliteBoutonParametres_();}catch(e){}
   }
   function afficherBienvenue(name){
     const box=document.getElementById('sanistockWelcomeName');
