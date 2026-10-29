@@ -2899,11 +2899,16 @@ function sanistockAfficherOngletStock(onglet){
     if(!c||!b||!bar||!h)return;
     c.textContent=Number(d.count)||0;b.textContent=Number(d.bags)||0;bar.style.width=Math.min(100,(Number(d.count)||0)*10)+'%';
     const rows=(d.history||[]).slice(0,5);
-    h.innerHTML=rows.length?rows.map(x=>'<div class="drapsHistoryRow"><span>🧺 '+escapeHtmlDraps(x.label)+'</span><strong>'+escapeHtmlDraps(x.time)+'</strong></div>').join(''):'<p class="drapsHistoryEmpty">Aucun changement enregistré.</p>';
+    h.innerHTML=rows.length?rows.map(x=>'<div class="drapsHistoryRow"><span>🧺 '+escapeHtmlDraps(x.label)+(x.salarie?' · '+escapeHtmlDraps(x.salarie):'')+'</span><strong>'+escapeHtmlDraps(x.time)+'</strong></div>').join(''):'<p class="drapsHistoryEmpty">Aucun changement enregistré.</p>';
   }
   function afficherErreurDraps(message){
     const h=document.getElementById('drapsHistory');
     if(h) h.innerHTML='<p class="drapsHistoryEmpty" style="color:#b91c1c">'+escapeHtmlDraps(message)+'</p>';
+  }
+  function salarieConnecteDraps(){
+    try {
+      return String(localStorage.getItem('sanistock_employee_name') || '').trim();
+    } catch(e) { return ''; }
   }
   function chargerDraps(){
     if(chargementDraps)return;
@@ -2921,8 +2926,10 @@ function sanistockAfficherOngletStock(onglet){
     if(!navigator.onLine){alert('Connexion Internet nécessaire pour enregistrer les draps dans le suivi partagé. Aucun changement n’a été enregistré.');return;}
     if(typeof window.sendJsonp!=='function'){alert('Service de synchronisation SaniStock introuvable. Vérifie que le bon fichier index.html est installé sur GitHub.');return;}
     const buttons=document.querySelectorAll('#drapsStockPanel button');buttons.forEach(b=>b.disabled=true);
+    const salarie=salarieConnecteDraps();
+    if(!salarie){buttons.forEach(b=>b.disabled=false);alert('Salarié non identifié. Déconnectez-vous puis reconnectez-vous à SaniStock avec votre nom et votre code personnel avant d’ajouter des draps.');return;}
     const requestId='draps_'+Date.now()+'_'+Math.random().toString(36).slice(2,10);
-    window.sendJsonp('ajouterDraps',{quantite:n,salarie:'Équipe',requestId:requestId},function(result){
+    window.sendJsonp('ajouterDraps',{quantite:n,salarie:salarie,requestId:requestId},function(result){
       buttons.forEach(b=>b.disabled=false);
       if(!result||typeof result!=='object'){alert('Le serveur n’a pas confirmé l’enregistrement.');return;}
       etatDraps=result;afficher();
@@ -2944,8 +2951,10 @@ function sanistockAfficherOngletStock(onglet){
     if(!confirm('Réinitialiser le compteur de draps dans le sac actuel ? L’historique des sacs changés sera conservé.'))return;
     if(!navigator.onLine){alert('Connexion Internet nécessaire. Aucun changement n’a été enregistré.');return;}
     if(typeof window.sendJsonp!=='function'){alert('Service de synchronisation SaniStock introuvable.');return;}
+    const salarie=salarieConnecteDraps();
+    if(!salarie){alert('Salarié non identifié. Reconnectez-vous à SaniStock avant de réinitialiser le compteur.');return;}
     const requestId='draps_reset_'+Date.now()+'_'+Math.random().toString(36).slice(2,10);
-    window.sendJsonp('reinitialiserCompteurDraps',{salarie:'Équipe',requestId:requestId},function(result){etatDraps=result||etatDraps;afficher();alert('Compteur réinitialisé.');},function(err){alert('Impossible de réinitialiser le compteur : '+((err&&err.message)||'erreur inconnue'));});
+    window.sendJsonp('reinitialiserCompteurDraps',{salarie:salarie,requestId:requestId},function(result){etatDraps=result||etatDraps;afficher();alert('Compteur réinitialisé.');},function(err){alert('Impossible de réinitialiser le compteur : '+((err&&err.message)||'erreur inconnue'));});
   };
   document.addEventListener('DOMContentLoaded',chargerDraps);
   window.addEventListener('pageshow',chargerDraps);
