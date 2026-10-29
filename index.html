@@ -2460,6 +2460,19 @@ function sanistockAfficherOngletStock(onglet){
 }
 </script>
 <style id="sanistock-stock-entry-exit-layout">.stockMovementActions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:stretch}.stockMovementActions .stockAction{width:100%;min-width:0}@media(max-width:420px){.stockMovementActions{grid-template-columns:1fr}}</style>
+
+<style id="sanistock-gestion-tabs-couleur-retour">
+/* Même bleu nuit que le bouton Retour */
+#stockPage .stockInnerTabs .stockInnerTab,
+#stockPage .stockInnerTabs .stockInnerTab.active,
+#stockPage .stockInnerTabs .stockInnerTab[aria-selected="true"] {
+  background: rgba(4,35,73,.82) !important;
+  color: #fff !important;
+  border: 0 !important;
+  box-shadow: 0 4px 12px rgba(7,88,165,.22) !important;
+}
+#stockPage .stockInnerTabs .stockInnerTab:focus-visible { outline: 2px solid #0758a5 !important; outline-offset: 2px; }
+</style>
 </head>
 <body>
 <div aria-live="polite" id="employeeLoginOverlay">
