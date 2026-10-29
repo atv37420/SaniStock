@@ -14569,3 +14569,20 @@ html+='<div class="ambSectionBulkActions"><button type="button" class="toutCoche
 #stockPage .stockInnerTabs .stockInnerTab[aria-selected="false"]{background:#fff!important;color:#042349!important}
 #stockPage .stockInnerPane[hidden]{display:none!important}
 </style>
+
+<script id="sanistock-gestion-stock-page-fix">
+/* Au clic sur GESTION STOCK, afficher une page avec les deux actions. Chaque action ouvre son formulaire existant. */
+function sanistockAfficherOngletStock(onglet){
+  if(onglet!=='draps') onglet='stock';
+  ['stock','draps'].forEach(function(n){
+    var pane=document.getElementById('stockInnerPane-'+n);
+    var tab=document.querySelector('[data-stock-tab="'+n+'"]');
+    var actif=n===onglet;
+    if(pane){pane.hidden=!actif;pane.classList.toggle('active',actif);pane.style.display=actif?'block':'none';}
+    if(tab){tab.classList.toggle('active',actif);tab.setAttribute('aria-selected',actif?'true':'false');}
+  });
+  if(onglet==='draps' && typeof chargerDraps==='function'){chargerDraps();}
+  var page=document.getElementById('stockPage');
+  if(page && onglet==='stock'){var paneStock=document.getElementById('stockInnerPane-stock'); if(paneStock) paneStock.scrollIntoView({behavior:'smooth',block:'start'});}
+}
+</script>
