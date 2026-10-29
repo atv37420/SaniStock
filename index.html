@@ -2867,8 +2867,8 @@ function sanistockAfficherOngletStock(onglet){
 <h1 class="stockTitle">📦 GESTION</h1>
 <p class="stockSub">Choisissez un onglet pour accéder à la fonction souhaitée.</p>
 <nav class="stockInnerTabs" role="tablist" aria-label="Rubriques de gestion">
-  <button type="button" class="stockInnerTab active" role="tab" aria-selected="true" data-stock-tab="stock" onclick="sanistockAfficherOngletStock('stock')"><span class="stockInnerTabTitle">📦 GESTION STOCK</span><small class="stockInnerTabDesc">Consulter les quantités et enregistrer les entrées et sorties</small></button>
-  <button type="button" class="stockInnerTab" role="tab" aria-selected="false" data-stock-tab="draps" onclick="sanistockAfficherOngletStock('draps')"><span class="stockInnerTabTitle">🧺 GESTION DRAPS</span><small class="stockInnerTabDesc">Compteur des draps sales et suivi des sacs</small></button>
+  <button type="button" class="stockInnerTab active" role="tab" aria-selected="true" data-stock-tab="stock" onclick="sanistockAfficherOngletStock('stock')"><span class="stockInnerTabIcon" aria-hidden="true">📦</span><span class="stockInnerTabTitle">GESTION STOCK</span><small class="stockInnerTabDesc">Consulter les quantités et enregistrer les entrées et sorties</small></button>
+  <button type="button" class="stockInnerTab" role="tab" aria-selected="false" data-stock-tab="draps" onclick="sanistockAfficherOngletStock('draps')"><span class="stockInnerTabIcon" aria-hidden="true">🧺</span><span class="stockInnerTabTitle">GESTION DRAPS</span><small class="stockInnerTabDesc">Compteur des draps sales et suivi des sacs</small></button>
 </nav>
 <section class="stockInnerPane active" id="stockInnerPane-stock" role="tabpanel">
   
@@ -14292,6 +14292,75 @@ html+='<div class="ambSectionBulkActions"><button type="button" class="toutCoche
 @media(max-width:420px){
  #newsPage .sanNewsInlineIntro h1{font-size:18px!important}
  #newsPage .sanNewsInlineIntro p{font-size:10px;line-height:1.35}
+}
+</style>
+
+<style id="sanistock-gestion-cards-match-memo">
+/* Reproduire exactement la présentation des cartes de catégories Mémo / Véhicule */
+#stockPage .stockInnerTabs{
+  max-width:900px!important;
+  margin:24px auto!important;
+  padding:0 14px!important;
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  gap:14px!important;
+  background:transparent!important;
+  border-radius:0!important;
+}
+#stockPage .stockInnerTab,
+#stockPage .stockInnerTab.active,
+#stockPage .stockInnerTab[aria-selected="true"]{
+  width:100%!important;
+  min-width:0!important;
+  min-height:0!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:0!important;
+  padding:22px 16px!important;
+  border:0!important;
+  border-radius:20px!important;
+  background:#fff!important;
+  color:#042349!important;
+  box-shadow:0 8px 24px rgba(20,60,100,.12)!important;
+  text-align:center!important;
+  white-space:normal!important;
+  cursor:pointer!important;
+  transition:transform .15s,box-shadow .15s!important;
+}
+#stockPage .stockInnerTab:active{transform:scale(.98)!important}
+#stockPage .stockInnerTab[aria-selected="true"]{
+  outline:2px solid #075BA9!important;
+  outline-offset:0!important;
+  box-shadow:0 8px 24px rgba(7,91,169,.18)!important;
+}
+#stockPage .stockInnerTabIcon{
+  display:block!important;
+  font-size:42px!important;
+  line-height:1.1!important;
+  margin-bottom:8px!important;
+}
+#stockPage .stockInnerTabTitle{
+  display:block!important;
+  color:#042349!important;
+  font-size:19px!important;
+  line-height:1.25!important;
+  font-weight:800!important;
+}
+#stockPage .stockInnerTabDesc{
+  display:block!important;
+  margin-top:6px!important;
+  color:#64748b!important;
+  font-size:14px!important;
+  line-height:1.4!important;
+  font-weight:400!important;
+}
+@media(max-width:600px){
+  #stockPage .stockInnerTabs{grid-template-columns:1fr!important;gap:14px!important}
+  #stockPage .stockInnerTab,
+  #stockPage .stockInnerTab.active,
+  #stockPage .stockInnerTab[aria-selected="true"]{padding:22px 16px!important}
 }
 </style>
 </body>
