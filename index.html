@@ -2451,11 +2451,24 @@ button.settingsAction.secondary:hover,
 </style>
 <script>
 function sanistockAfficherOngletStock(onglet){
+  if(onglet!=='draps') onglet='stock';
   ['stock','draps'].forEach(function(n){
-    var pane=document.getElementById('stockInnerPane-'+n);var tab=document.querySelector('[data-stock-tab="'+n+'"]');
-    if(pane){pane.classList.toggle('active',n===onglet);pane.hidden=n!==onglet;}
-    if(tab){tab.classList.toggle('active',n===onglet);tab.setAttribute('aria-selected',n===onglet?'true':'false');}
+    var pane=document.getElementById('stockInnerPane-'+n);
+    var tab=document.querySelector('[data-stock-tab="'+n+'"]');
+    var actif=(n===onglet);
+    if(pane){
+      pane.hidden=!actif;
+      pane.classList.toggle('active',actif);
+      pane.style.display=actif?'block':'none';
+    }
+    if(tab){
+      tab.classList.toggle('active',actif);
+      tab.setAttribute('aria-selected',actif?'true':'false');
+    }
   });
+  /* Les boutons Entrée et Sortie sont contenus dans Gestion Stock. */
+  var actions=document.querySelector('#stockInnerPane-stock .stockMovementActions');
+  if(actions) actions.style.display=(onglet==='stock')?'grid':'none';
   if(onglet==='draps'&&typeof chargerDraps==='function')chargerDraps();
 }
 </script>
@@ -2928,6 +2941,12 @@ function sanistockAfficherOngletStock(onglet){
   <p class="drapsLocalNotice">☁️ Suivi partagé : les compteurs et l’historique sont enregistrés dans Google Sheets.</p>
 </section>
 </section><!-- /stockInnerPane-draps -->
+<script id="sanistock-gestion-stock-default-tab">
+/* À l'ouverture de Gestion, afficher les mouvements dans l'onglet Gestion Stock. */
+document.addEventListener('DOMContentLoaded', function(){
+  if(document.getElementById('stockInnerPane-stock')) sanistockAfficherOngletStock('stock');
+});
+</script>
 <input class="stockSearch" id="stockSearch" oninput="renderStock()" placeholder="🔎 Rechercher un produit..." type="search" style="display:none"/>
 <div class="stockFilters" style="display:none"></div>
 <div class="stockMessage" id="stockMessage"></div>
