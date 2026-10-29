@@ -12771,6 +12771,23 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
 #stockPage .stockInnerTab.active { background:#0758a5 !important; color:#fff !important; }
 #stockPage .stockInnerTab:not(.active) { border:1px solid #0758a5 !important; color:#0758a5 !important; }
 </style>
+
+<style id="sanistock-gestion-style-memo-documents-final">
+/* Gestion : même présentation que les catégories Mémo et Documents */
+#stockPage .stockInnerTabs{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:12px!important;margin:0 0 16px!important;padding:0!important;background:transparent!important}
+#stockPage .stockInnerTabs .stockInnerTab,
+#stockPage .stockInnerTabs .stockInnerTab.active,
+#stockPage .stockInnerTabs .stockInnerTab[aria-selected="true"]{
+ display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:center!important;gap:5px!important;
+ width:100%!important;min-width:0!important;min-height:82px!important;padding:15px 16px!important;
+ background:#fff!important;color:#042349!important;border:1px solid #d8e3ec!important;border-radius:16px!important;
+ text-align:left!important;box-shadow:0 4px 12px rgba(0,0,0,.08)!important;font-weight:800!important;
+}
+#stockPage .stockInnerTabs .stockInnerTab:hover{border-color:#0758a5!important;box-shadow:0 5px 14px rgba(7,88,165,.12)!important}
+#stockPage .stockInnerTabs .stockInnerTab:focus-visible{outline:2px solid #0758a5!important;outline-offset:2px}
+#stockPage .stockInnerTabTitle{display:block!important;color:#042349!important;font-size:15px!important;font-weight:900!important;line-height:1.25!important}
+#stockPage .stockInnerTabDesc{display:block!important;color:#64748b!important;font-size:12px!important;font-weight:600!important;line-height:1.4!important;white-space:normal!important}
+</style>
 </head><body>'+
       '<div class="page">'+
         '<div class="title">FICHE DE CONTRÔLE ET D’ENTRETIEN MENSUEL DES TAXIS</div>'+
