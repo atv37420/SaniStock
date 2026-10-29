@@ -2852,9 +2852,14 @@ function sanistockAfficherOngletStock(onglet){
 </div>
 </section>
 <style id="sanistock-gestion-tab-description">
-#stockPage .stockInnerTab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;white-space:normal}
-#stockPage .stockInnerTabTitle{display:block;font-weight:900}
-#stockPage .stockInnerTabDesc{display:block;font-size:11px;line-height:1.25;font-weight:500;opacity:.88}
+/* Rubriques Gestion : même présentation que les catégories de Véhicule */
+#stockPage .stockInnerTabs{max-width:900px;margin:18px auto 24px;padding:0 14px;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;border:0;background:transparent;}
+#stockPage .stockInnerTab{min-width:0;min-height:145px;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:5px;text-align:center;white-space:normal;padding:17px 14px!important;border:0!important;border-radius:16px!important;background:#fff!important;box-shadow:0 8px 24px rgba(20,60,100,.12)!important;color:#042349!important;cursor:pointer;transition:transform .15s,box-shadow .15s;}
+#stockPage .stockInnerTab:active{transform:scale(.98)}
+#stockPage .stockInnerTab[aria-selected="true"]{outline:2px solid #075BA9;outline-offset:0;box-shadow:0 8px 24px rgba(7,91,169,.18)!important;}
+#stockPage .stockInnerTabTitle{display:block;font-size:16px;font-weight:800;color:#042349!important;}
+#stockPage .stockInnerTabDesc{display:block;font-size:12px;line-height:1.35;font-weight:500;color:#64748b!important;opacity:1;}
+@media(max-width:520px){#stockPage .stockInnerTabs{grid-template-columns:1fr;gap:10px}#stockPage .stockInnerTab{min-height:112px;padding:15px 12px!important}}
 </style>
 <section class="screen stockPage" id="stockPage">
 <div class="stockWrap">
