@@ -2491,11 +2491,13 @@ function ouvrirFenetreMouvementsStock(){
   var contenu=document.getElementById('sanistockMouvementsContenu');
   if(actions&&contenu&&actions.parentElement!==contenu) contenu.appendChild(actions);
   overlay.style.display='flex';
+  overlay.hidden=false;
+  overlay.style.visibility='visible';
   document.body.style.overflow='hidden';
 }
 function fermerFenetreMouvementsStock(){
   var overlay=document.getElementById('sanistockMouvementsOverlay');
-  if(overlay) overlay.style.display='none';
+  if(overlay){overlay.style.display='none';overlay.hidden=true;}
   document.body.style.overflow='';
 }
 document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerFenetreMouvementsStock();});
@@ -2936,8 +2938,8 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerFenetr
 <h1 class="stockTitle">📦 GESTION</h1>
 <p class="stockSub">Choisissez un onglet pour accéder à la fonction souhaitée.</p>
 <nav class="stockInnerTabs" role="tablist" aria-label="Rubriques de gestion">
-  <button type="button" class="stockInnerTab" role="tab" aria-selected="false" data-stock-tab="stock" onclick="sanistockAfficherOngletStock('stock')"><span class="stockInnerTabIcon" aria-hidden="true">📦</span><span class="stockInnerTabTitle">GESTION STOCK</span><small class="stockInnerTabDesc">Consulter les quantités et enregistrer les entrées et sorties</small></button>
-  <button type="button" class="stockInnerTab" role="tab" aria-selected="false" data-stock-tab="draps" onclick="sanistockAfficherOngletStock('draps')"><span class="stockInnerTabIcon" aria-hidden="true">🧺</span><span class="stockInnerTabTitle">GESTION DRAPS SALES</span><small class="stockInnerTabDesc">Compter les draps sales et suivre les sacs</small></button>
+  <button type="button" class="stockInnerTab" role="tab" aria-selected="false" data-stock-tab="stock" onclick="sanistockAfficherOngletStock('stock')"><span class="stockInnerTabIcon" aria-hidden="true">📤</span><span class="stockInnerTabTitle">SORTIE PRODUIT</span><small class="stockInnerTabDesc">Accéder aux opérations d’entrée et de sortie du stock</small></button>
+  <button type="button" class="stockInnerTab" role="tab" aria-selected="false" data-stock-tab="draps" onclick="sanistockAfficherOngletStock('draps')"><span class="stockInnerTabIcon" aria-hidden="true">🧺</span><span class="stockInnerTabTitle">GESTION DRAPS</span><small class="stockInnerTabDesc">Compter les draps sales et suivre les sacs</small></button>
 </nav>
 <section class="stockInnerPane" id="stockInnerPane-stock" role="tabpanel" hidden>
   
