@@ -2908,10 +2908,10 @@ function sanistockAfficherOngletStock(onglet){
 <h1 class="stockTitle">📦 GESTION</h1>
 <p class="stockSub">Choisissez un onglet pour accéder à la fonction souhaitée.</p>
 <nav class="stockInnerTabs" role="tablist" aria-label="Rubriques de gestion">
-  <button type="button" class="stockInnerTab active" role="tab" aria-selected="true" data-stock-tab="stock" onclick="sanistockAfficherOngletStock('stock')"><span class="stockInnerTabIcon" aria-hidden="true">📦</span><span class="stockInnerTabTitle">GESTION STOCK</span><small class="stockInnerTabDesc">Consulter les quantités et enregistrer les entrées et sorties</small></button>
+  <button type="button" class="stockInnerTab" role="tab" aria-selected="false" data-stock-tab="stock" onclick="sanistockAfficherOngletStock('stock')"><span class="stockInnerTabIcon" aria-hidden="true">📦</span><span class="stockInnerTabTitle">GESTION STOCK</span><small class="stockInnerTabDesc">Consulter les quantités et enregistrer les entrées et sorties</small></button>
   <button type="button" class="stockInnerTab" role="tab" aria-selected="false" data-stock-tab="draps" onclick="sanistockAfficherOngletStock('draps')"><span class="stockInnerTabIcon" aria-hidden="true">🧺</span><span class="stockInnerTabTitle">GESTION DRAPS</span><small class="stockInnerTabDesc">Compteur des draps sales et suivi des sacs</small></button>
 </nav>
-<section class="stockInnerPane active" id="stockInnerPane-stock" role="tabpanel">
+<section class="stockInnerPane" id="stockInnerPane-stock" role="tabpanel" hidden>
   
   <div class="stockActions stockMovementActions" aria-label="Mouvements de stock">
     <button type="button" class="stockAction entryBtn stockMovementCard" id="stockEntryButton" onclick="demanderCodeEntreeStock()">
@@ -2944,7 +2944,12 @@ function sanistockAfficherOngletStock(onglet){
 <script id="sanistock-gestion-stock-default-tab">
 /* À l'ouverture de Gestion, afficher les mouvements dans l'onglet Gestion Stock. */
 document.addEventListener('DOMContentLoaded', function(){
-  if(document.getElementById('stockInnerPane-stock')) sanistockAfficherOngletStock('stock');
+  ['stock','draps'].forEach(function(n){
+    var pane=document.getElementById('stockInnerPane-'+n);
+    var tab=document.querySelector('[data-stock-tab="'+n+'"]');
+    if(pane){pane.hidden=true;pane.classList.remove('active');pane.style.display='none';}
+    if(tab){tab.classList.remove('active');tab.setAttribute('aria-selected','false');}
+  });
 });
 </script>
 <input class="stockSearch" id="stockSearch" oninput="renderStock()" placeholder="🔎 Rechercher un produit..." type="search" style="display:none"/>
@@ -14513,4 +14518,10 @@ html+='<div class="ambSectionBulkActions"><button type="button" class="toutCoche
  #stockPage .stockInnerTabTitle,#stockInnerPane-stock .stockMovementCard .stockMovementTitle{font-size:17px!important}
  #stockPage .stockInnerTabDesc,#stockInnerPane-stock .stockMovementCard small{font-size:12px!important}
 }
+</style>
+
+<style id="sanistock-gestion-cards-final-override">
+#stockPage .stockInnerTabs .stockInnerTab[aria-selected="true"]{background:#fff!important;color:#042349!important;border:1px solid #075BA9!important;outline:none!important;box-shadow:0 8px 24px rgba(7,91,169,.18)!important}
+#stockPage .stockInnerTabs .stockInnerTab[aria-selected="false"]{background:#fff!important;color:#042349!important}
+#stockPage .stockInnerPane[hidden]{display:none!important}
 </style>
