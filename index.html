@@ -2921,7 +2921,7 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerFenetr
 <nav class="stockInnerTabs" role="tablist" aria-label="Rubriques de gestion">
   <button type="button" class="stockInnerTab" role="tab" aria-selected="false" data-stock-tab="entree" onclick="sanistockOuvrirEntreeDepuisGestion()"><span class="stockInnerTabIcon" aria-hidden="true">📥</span><span class="stockInnerTabTitle">ENTRÉE PRODUIT</span><small class="stockInnerTabDesc">Ouvrir directement le formulaire d’entrée</small></button>
   <button type="button" class="stockInnerTab" role="tab" aria-selected="false" data-stock-tab="sortie" onclick="sanistockOuvrirSortieDepuisGestion()"><span class="stockInnerTabIcon" aria-hidden="true">📤</span><span class="stockInnerTabTitle">SORTIE PRODUIT</span><small class="stockInnerTabDesc">Ouvrir directement le formulaire de sortie</small></button>
-  <button type="button" class="stockInnerTab" role="tab" aria-selected="false" data-stock-tab="draps" onclick="sanistockAfficherOngletStock('draps')"><span class="stockInnerTabIcon" aria-hidden="true">🧺</span><span class="stockInnerTabTitle">GESTION DRAPS</span><small class="stockInnerTabDesc">Compter les draps sales et suivre les sacs</small></button>
+  <button type="button" class="stockInnerTab" role="tab" aria-selected="false" data-stock-tab="draps" onclick="sanistockOuvrirFenetreDraps()"><span class="stockInnerTabIcon" aria-hidden="true">🧺</span><span class="stockInnerTabTitle">GESTION DRAPS</span><small class="stockInnerTabDesc">Compter les draps sales et suivre les sacs</small></button>
 </nav>
 <section class="stockInnerPane" id="stockInnerPane-stock" role="tabpanel" hidden>
   
@@ -2969,6 +2969,49 @@ document.addEventListener('DOMContentLoaded', function(){
 <div class="stockMessage" id="stockMessage"></div>
 <div class="stockList" id="stockList" style="display:none" aria-hidden="true"></div>
 </div>
+
+<style id="sanistock-draps-modal-style">
+.sanistock-draps-overlay{position:fixed;inset:0;z-index:100001;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(2,18,38,.52);backdrop-filter:blur(3px)}
+.sanistock-draps-overlay.is-open{display:flex}
+.sanistock-draps-dialog{width:min(760px,100%);max-height:88dvh;overflow:auto;background:#edf5fa;border-radius:26px;padding:16px;box-shadow:0 22px 70px rgba(0,0,0,.28);position:relative}
+.sanistock-draps-dialog-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:2px 2px 10px;color:#042349}
+.sanistock-draps-dialog-head h2{font-size:clamp(20px,4.5vw,28px);font-weight:900;margin:0}
+.sanistock-draps-close{flex:0 0 42px;width:42px;height:42px;border:0;border-radius:50%;background:#e5f0f6;color:#042349;font-size:22px;font-weight:800;cursor:pointer}
+.sanistock-draps-dialog #drapsStockPanel{margin:0!important;}
+@media(max-width:520px){.sanistock-draps-overlay{padding:10px}.sanistock-draps-dialog{padding:10px;border-radius:24px;max-height:90dvh}}
+</style>
+<div class="sanistock-draps-overlay" id="sanistockDrapsOverlay" aria-hidden="true">
+  <div class="sanistock-draps-dialog" role="dialog" aria-modal="true" aria-labelledby="sanistockDrapsModalTitle">
+    <div class="sanistock-draps-dialog-head"><h2 id="sanistockDrapsModalTitle">🧺 Gestion des draps sales</h2><button class="sanistock-draps-close" type="button" onclick="sanistockFermerFenetreDraps()" aria-label="Fermer">×</button></div>
+    <div id="sanistockDrapsModalContent"></div>
+  </div>
+</div>
+<script id="sanistock-draps-modal-js">
+(function(){
+  var panelHome=null, panelNext=null;
+  function getPanel(){return document.getElementById('drapsStockPanel');}
+  window.sanistockOuvrirFenetreDraps=function(){
+    var overlay=document.getElementById('sanistockDrapsOverlay');
+    var content=document.getElementById('sanistockDrapsModalContent');
+    var panel=getPanel();
+    if(!overlay||!content||!panel)return;
+    if(!panelHome){panelHome=panel.parentNode;panelNext=panel.nextSibling;}
+    content.appendChild(panel);
+    overlay.classList.add('is-open');overlay.setAttribute('aria-hidden','false');
+    document.body.style.overflow='hidden';
+    if(typeof chargerDraps==='function')chargerDraps();
+  };
+  window.sanistockFermerFenetreDraps=function(){
+    var overlay=document.getElementById('sanistockDrapsOverlay');
+    var panel=getPanel();
+    if(panel&&panelHome){if(panelNext&&panelNext.parentNode===panelHome)panelHome.insertBefore(panel,panelNext);else panelHome.appendChild(panel);}
+    if(overlay){overlay.classList.remove('is-open');overlay.setAttribute('aria-hidden','true');}
+    document.body.style.overflow='';
+  };
+  document.addEventListener('click',function(e){if(e.target&&e.target.id==='sanistockDrapsOverlay')window.sanistockFermerFenetreDraps();});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')window.sanistockFermerFenetreDraps();});
+})();
+</script>
 
 <style id="sanistock-mouvements-modal-style">
 .sanistock-mouvements-overlay{position:fixed;inset:0;z-index:100000;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(2,18,38,.62);backdrop-filter:blur(3px)}
