@@ -2457,20 +2457,48 @@ function sanistockAfficherOngletStock(onglet){
     var tab=document.querySelector('[data-stock-tab="'+n+'"]');
     var actif=(n===onglet);
     if(pane){
-      pane.hidden=!actif;
-      pane.classList.toggle('active',actif);
-      pane.style.display=actif?'block':'none';
+      /* Les mouvements de stock s'ouvrent dans une fenêtre dédiée. */
+      var masquer=(n==='stock') || !actif;
+      pane.hidden=masquer;
+      pane.classList.toggle('active',actif && n!=='stock');
+      pane.style.display=masquer?'none':'block';
     }
     if(tab){
       tab.classList.toggle('active',actif);
       tab.setAttribute('aria-selected',actif?'true':'false');
     }
   });
-  /* Les boutons Entrée et Sortie sont contenus dans Gestion Stock. */
-  var actions=document.querySelector('#stockInnerPane-stock .stockMovementActions');
-  if(actions) actions.style.display=(onglet==='stock')?'grid':'none';
-  if(onglet==='draps'&&typeof chargerDraps==='function')chargerDraps();
+  if(onglet==='stock'){
+    ouvrirFenetreMouvementsStock();
+  }else if(onglet==='draps'&&typeof chargerDraps==='function'){
+    chargerDraps();
+  }
 }
+function ouvrirFenetreMouvementsStock(){
+  var overlay=document.getElementById('sanistockMouvementsOverlay');
+  if(!overlay){
+    overlay=document.createElement('div');
+    overlay.id='sanistockMouvementsOverlay';
+    overlay.className='sanistock-mouvements-overlay';
+    overlay.setAttribute('role','dialog');
+    overlay.setAttribute('aria-modal','true');
+    overlay.setAttribute('aria-labelledby','sanistockMouvementsTitre');
+    overlay.innerHTML='<div class="sanistock-mouvements-fenetre"><div class="sanistock-mouvements-entete"><h2 id="sanistockMouvementsTitre">📦 GESTION STOCK</h2><button type="button" class="sanistock-mouvements-fermer" aria-label="Fermer" onclick="fermerFenetreMouvementsStock()">✕</button></div><p>Choisissez l’opération à effectuer.</p><div id="sanistockMouvementsContenu"></div></div>';
+    overlay.addEventListener('click',function(e){if(e.target===overlay)fermerFenetreMouvementsStock();});
+    document.body.appendChild(overlay);
+  }
+  var actions=document.querySelector('#stockInnerPane-stock .stockMovementActions');
+  var contenu=document.getElementById('sanistockMouvementsContenu');
+  if(actions&&contenu&&actions.parentElement!==contenu) contenu.appendChild(actions);
+  overlay.style.display='flex';
+  document.body.style.overflow='hidden';
+}
+function fermerFenetreMouvementsStock(){
+  var overlay=document.getElementById('sanistockMouvementsOverlay');
+  if(overlay) overlay.style.display='none';
+  document.body.style.overflow='';
+}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerFenetreMouvementsStock();});
 </script>
 <style id="sanistock-stock-entry-exit-layout">.stockMovementActions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:stretch}.stockMovementActions .stockAction{width:100%;min-width:0}@media(max-width:420px){.stockMovementActions{grid-template-columns:1fr}}</style>
 
@@ -2957,6 +2985,22 @@ document.addEventListener('DOMContentLoaded', function(){
 <div class="stockMessage" id="stockMessage"></div>
 <div class="stockList" id="stockList" style="display:none" aria-hidden="true"></div>
 </div>
+
+<style id="sanistock-mouvements-modal-style">
+.sanistock-mouvements-overlay{position:fixed;inset:0;z-index:100000;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(2,18,38,.62);backdrop-filter:blur(3px)}
+.sanistock-mouvements-fenetre{width:min(620px,100%);max-height:90dvh;overflow:auto;background:#edf5fa;border-radius:24px;padding:22px 18px 24px;box-shadow:0 22px 70px rgba(0,0,0,.28);color:#042349}
+.sanistock-mouvements-entete{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.sanistock-mouvements-entete h2{margin:0;font-size:clamp(20px,4vw,28px);font-weight:900;color:#042349}
+.sanistock-mouvements-fermer{flex:0 0 42px;width:42px;height:42px;border:0;border-radius:14px;background:#042349;color:#fff;font-size:20px;font-weight:900;cursor:pointer}
+.sanistock-mouvements-fenetre>p{margin:8px 0 18px;color:#64748b;text-align:center}
+.sanistock-mouvements-fenetre .stockMovementActions{display:grid;grid-template-columns:1fr;gap:14px;margin:0}
+.sanistock-mouvements-fenetre .stockMovementCard{min-height:125px;border:0;border-radius:20px;background:#fff;color:#042349;box-shadow:0 8px 24px rgba(20,60,100,.12);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:20px;text-align:center}
+.sanistock-mouvements-fenetre .stockMovementTitle{font-size:20px;font-weight:900;color:#042349}
+.sanistock-mouvements-fenetre .stockMovementIcon{font-size:32px;color:#075BA9}
+.sanistock-mouvements-fenetre .stockMovementCard small{font-size:14px;color:#64748b}
+@media(min-width:520px){.sanistock-mouvements-fenetre .stockMovementActions{grid-template-columns:1fr 1fr}}
+</style>
+
 <div class="stockModal" id="stockModal">
 <div class="stockModalCard">
 <div class="stockModalHead"><h3 id="stockModalTitle">Mouvement de stock</h3><button class="stockClose" onclick="closeStockModal()">✕</button></div>
