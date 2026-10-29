@@ -204,6 +204,9 @@
     },30000);
   }
 
+  // Expose le même transport JSONP aux modules de l'application, dont Gestion draps.
+  window.sendJsonp = sendJsonp;
+
   async function synchroniser(){
     if(!navigator.onLine) return;
 
