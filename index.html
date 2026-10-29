@@ -14468,3 +14468,49 @@ html+='<div class="ambSectionBulkActions"><button type="button" class="toutCoche
 #newsPage .sanNewsReactionOption{flex:0 0 38px!important;min-width:38px!important;max-width:38px!important}
 #newsPage .sanNewsReactionTotals{display:inline-flex!important;flex:1 1 130px!important;min-width:0!important}
 </style>
+
+<style id="sanistock-gestion-meme-interface-categories-final">
+/* Gestion : reprendre le même visuel que les cartes des catégories Mémo et Véhicules */
+#stockPage .stockInnerTabs{
+  width:100%!important;max-width:900px!important;margin:18px auto 24px!important;padding:0 14px!important;
+  display:grid!important;grid-template-columns:1fr!important;gap:14px!important;
+  background:transparent!important;border:0!important;border-radius:0!important;
+}
+#stockPage .stockInnerTabs .stockInnerTab,
+#stockPage .stockInnerTabs .stockInnerTab.active,
+#stockPage .stockInnerTabs .stockInnerTab[aria-selected="true"]{
+  box-sizing:border-box!important;width:100%!important;min-width:0!important;min-height:0!important;
+  display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
+  gap:0!important;padding:22px 16px!important;text-align:center!important;white-space:normal!important;
+  background:#fff!important;color:#042349!important;border:1px solid #e2eaf1!important;border-radius:20px!important;
+  box-shadow:0 8px 24px rgba(20,60,100,.12)!important;outline:none!important;
+}
+#stockPage .stockInnerTabs .stockInnerTab[aria-selected="true"]{border-color:#075BA9!important;box-shadow:0 8px 24px rgba(7,91,169,.18)!important}
+#stockPage .stockInnerTabIcon{display:block!important;font-size:42px!important;line-height:1.1!important;margin:0 0 8px!important;color:inherit!important}
+#stockPage .stockInnerTabTitle{display:block!important;color:#042349!important;font-size:19px!important;line-height:1.25!important;font-weight:800!important}
+#stockPage .stockInnerTabDesc{display:block!important;margin-top:6px!important;color:#64748b!important;font-size:14px!important;line-height:1.4!important;font-weight:400!important;opacity:1!important}
+/* Les cartes Entrée / Sortie reprennent également la présentation des autres rubriques */
+#stockInnerPane-stock .stockMovementActions{display:grid!important;grid-template-columns:1fr!important;gap:14px!important;margin:18px auto 24px!important;max-width:900px!important;padding:0 14px!important}
+#stockInnerPane-stock .stockMovementCard{
+  box-sizing:border-box!important;width:100%!important;min-width:0!important;min-height:0!important;
+  display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
+  gap:0!important;padding:22px 16px!important;text-align:center!important;white-space:normal!important;
+  background:#fff!important;color:#042349!important;border:1px solid #e2eaf1!important;border-radius:20px!important;
+  box-shadow:0 8px 24px rgba(20,60,100,.12)!important;cursor:pointer!important;
+}
+#stockInnerPane-stock .stockMovementCard .stockMovementIcon{
+  display:grid!important;place-items:center!important;width:54px!important;height:54px!important;
+  margin:0 0 8px!important;border-radius:16px!important;background:#eaf2fb!important;color:#075BA9!important;
+  font-size:34px!important;font-weight:700!important;line-height:1!important;
+}
+#stockInnerPane-stock .stockMovementCard .stockMovementTitle{display:block!important;color:#042349!important;font-size:19px!important;line-height:1.25!important;font-weight:800!important;letter-spacing:0!important}
+#stockInnerPane-stock .stockMovementCard small{display:block!important;margin-top:6px!important;color:#64748b!important;font-size:14px!important;line-height:1.4!important;font-weight:400!important}
+#stockInnerPane-stock .stockMovementCard:hover{border-color:#075BA9!important;box-shadow:0 8px 24px rgba(7,91,169,.18)!important}
+@media(max-width:600px){
+ #stockPage .stockInnerTabs{gap:12px!important;margin:14px auto 20px!important}
+ #stockPage .stockInnerTabs .stockInnerTab,#stockPage .stockInnerTabs .stockInnerTab.active,#stockPage .stockInnerTabs .stockInnerTab[aria-selected="true"],
+ #stockInnerPane-stock .stockMovementCard{padding:20px 14px!important;border-radius:18px!important}
+ #stockPage .stockInnerTabTitle,#stockInnerPane-stock .stockMovementCard .stockMovementTitle{font-size:17px!important}
+ #stockPage .stockInnerTabDesc,#stockInnerPane-stock .stockMovementCard small{font-size:12px!important}
+}
+</style>
