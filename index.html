@@ -2909,7 +2909,7 @@ function sanistockAfficherOngletStock(onglet){
 <p class="stockSub">Choisissez un onglet pour accéder à la fonction souhaitée.</p>
 <nav class="stockInnerTabs" role="tablist" aria-label="Rubriques de gestion">
   <button type="button" class="stockInnerTab" role="tab" aria-selected="false" data-stock-tab="stock" onclick="sanistockAfficherOngletStock('stock')"><span class="stockInnerTabIcon" aria-hidden="true">📦</span><span class="stockInnerTabTitle">GESTION STOCK</span><small class="stockInnerTabDesc">Consulter les quantités et enregistrer les entrées et sorties</small></button>
-  <button type="button" class="stockInnerTab" role="tab" aria-selected="false" data-stock-tab="draps" onclick="sanistockAfficherOngletStock('draps')"><span class="stockInnerTabIcon" aria-hidden="true">🧺</span><span class="stockInnerTabTitle">GESTION DRAPS</span><small class="stockInnerTabDesc">Compteur des draps sales et suivi des sacs</small></button>
+  <button type="button" class="stockInnerTab" role="tab" aria-selected="false" data-stock-tab="draps" onclick="sanistockAfficherOngletStock('draps')"><span class="stockInnerTabIcon" aria-hidden="true">🧺</span><span class="stockInnerTabTitle">GESTION DRAPS SALES</span><small class="stockInnerTabDesc">Compter les draps sales et suivre les sacs</small></button>
 </nav>
 <section class="stockInnerPane" id="stockInnerPane-stock" role="tabpanel" hidden>
   
@@ -2929,7 +2929,7 @@ function sanistockAfficherOngletStock(onglet){
 <section class="stockInnerPane" id="stockInnerPane-draps" role="tabpanel" hidden>
 <!-- Gestion des draps : ajout intégré à la rubrique Stock -->
 <section id="drapsStockPanel" aria-labelledby="drapsStockTitle">
-  <div class="drapsStockHead"><div><h2 id="drapsStockTitle">🧺 Gestion des draps</h2><p>Un sac est automatiquement comptabilisé tous les 10 draps sales.</p></div><span class="drapsStockTag">SUIVI</span></div>
+  <div class="drapsStockHead"><div><h2 id="drapsStockTitle">🧺 GESTION DES DRAPS SALES</h2><p>Un sac est automatiquement comptabilisé tous les 10 draps sales.</p></div><span class="drapsStockTag">SUIVI</span></div>
   <div class="drapsStats">
     <div class="drapsStat drapsStatBlue"><span>Draps dans le sac actuel</span><strong><b id="drapsCount">0</b><small> / 10</small></strong><div class="drapsProgress"><i id="drapsProgressBar"></i></div></div>
     <div class="drapsStat drapsStatGreen"><span>Sacs changés</span><strong id="drapsBags">0</strong><small>Aujourd’hui</small></div>
@@ -2942,7 +2942,7 @@ function sanistockAfficherOngletStock(onglet){
 </section>
 </section><!-- /stockInnerPane-draps -->
 <script id="sanistock-gestion-stock-default-tab">
-/* À l'ouverture de Gestion, afficher les mouvements dans l'onglet Gestion Stock. */
+/* À l'ouverture de Gestion, garder les rubriques fermées jusqu'au clic. Le clic sur Gestion Stock ouvre Entrée/Sortie ; le clic sur Gestion Draps Sales ouvre le compteur. */
 document.addEventListener('DOMContentLoaded', function(){
   ['stock','draps'].forEach(function(n){
     var pane=document.getElementById('stockInnerPane-'+n);
