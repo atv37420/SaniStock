@@ -797,6 +797,8 @@ body{display:block}
 @media(min-width:650px){.stockList{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.stockItem{min-height:158px}.stockThumb,.stockEmoji{width:88px;height:88px;flex-basis:88px}.stockEmoji{font-size:55px}.stockName{font-size:12px}}
 @media(min-width:1000px){.stockList{grid-template-columns:repeat(5,minmax(0,1fr))}}
 
+
+.drapsSacReminder{margin:10px 0 14px;padding:10px 12px;border-radius:10px;background:#eaf2fb;border-left:4px solid #075BA9;color:#17365d;font-weight:600;font-size:14px;line-height:1.4;}
 </style>
 <style>
 #homeLogoutBtn{
@@ -2851,6 +2853,7 @@ function sanistockAfficherOngletStock(onglet){
 <!-- Gestion des draps : ajout intégré à la rubrique Stock -->
 <section id="drapsStockPanel" aria-labelledby="drapsStockTitle">
   <div class="drapsStockHead"><div><h2 id="drapsStockTitle">🧺 Gestion des draps</h2><p>Un sac est automatiquement comptabilisé tous les 10 draps sales.</p></div><span class="drapsStockTag">SUIVI</span></div>
+  <div class="drapsSacReminder" role="note">🧺 Pensez à changer de sac et à mettre un nouveau sac.</div>
   <div class="drapsStats">
     <div class="drapsStat drapsStatBlue"><span>Draps dans le sac actuel</span><strong><b id="drapsCount">0</b><small> / 10</small></strong><div class="drapsProgress"><i id="drapsProgressBar"></i></div></div>
     <div class="drapsStat drapsStatGreen"><span>Sacs changés</span><strong id="drapsBags">0</strong><small>Aujourd’hui</small></div>
@@ -12734,7 +12737,14 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
       '.matRow{display:grid;grid-template-columns:1fr 18mm 18mm 18mm 25mm;align-items:center;min-height:7mm;padding:1mm 0}.matRow.alt{background:#ececec}.matName{padding:0 2.5mm}.matQty,.matState,.matMissing{text-align:center}.matMissing{text-decoration:underline dotted;text-underline-offset:2px}'+
       '.bottomTitle{background:#d9d9d9;border:1.3px solid #111;color:#52739a;text-decoration:underline;text-align:center;font-weight:800;padding:2.3mm}.obsBox{height:65mm;border:1.3px solid #111;padding:3mm;white-space:pre-wrap}.signBox{height:48mm;border:1.3px solid #111;padding:3mm;position:relative}.signBox img{display:block;max-width:75%;max-height:31mm;margin:2mm auto 0}.signName{font-weight:800}'+
       '.meta{font-size:7.5pt;color:#526777;margin-top:2.5mm}'+
-      '</style></head><body>'+
+      '</style>
+<style id="sanistock-gestion-bleu-fonce">
+/* Harmonisation SaniStock : boutons de gestion en bleu foncé */
+#stockPage .stockAction, #stockPage .stockAction.entryBtn, #stockPage .stockAction.exitBtn { background:#0758a5 !important; color:#fff !important; }
+#stockPage .stockInnerTab.active { background:#0758a5 !important; color:#fff !important; }
+#stockPage .stockInnerTab:not(.active) { border:1px solid #0758a5 !important; color:#0758a5 !important; }
+</style>
+</head><body>'+
       '<div class="page">'+
         '<div class="title">FICHE DE CONTRÔLE ET D’ENTRETIEN MENSUEL DES TAXIS</div>'+
         '<div class="sectionTitle">INFORMATIONS GENERALES</div>'+
