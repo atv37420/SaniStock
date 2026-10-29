@@ -2483,7 +2483,7 @@ function ouvrirFenetreMouvementsStock(){
     overlay.setAttribute('role','dialog');
     overlay.setAttribute('aria-modal','true');
     overlay.setAttribute('aria-labelledby','sanistockMouvementsTitre');
-    overlay.innerHTML='<div class="sanistock-mouvements-fenetre"><div class="sanistock-mouvements-entete"><h2 id="sanistockMouvementsTitre">📦 GESTION STOCK</h2><button type="button" class="sanistock-mouvements-fermer" aria-label="Fermer" onclick="fermerFenetreMouvementsStock()">✕</button></div><p>Choisissez l’opération à effectuer.</p><div id="sanistockMouvementsContenu"></div></div>';
+    overlay.innerHTML='<div class="sanistock-mouvements-fenetre"><div class="sanistock-mouvements-entete"><h2 id="sanistockMouvementsTitre">📦 ENTRÉES ET SORTIES DE STOCK</h2><button type="button" class="sanistock-mouvements-fermer" aria-label="Fermer" onclick="fermerFenetreMouvementsStock()">✕</button></div><p>Choisissez une opération pour effectuer votre mouvement de stock.</p><div id="sanistockMouvementsContenu"></div></div>';
     overlay.addEventListener('click',function(e){if(e.target===overlay)fermerFenetreMouvementsStock();});
     document.body.appendChild(overlay);
   }
