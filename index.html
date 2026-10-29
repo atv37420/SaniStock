@@ -2054,7 +2054,7 @@ button.settingsAction.secondary:hover,
 @media(prefers-reduced-motion:reduce){.sanNewsSpinner{animation:none}.sanNewsRefresh:active{transform:none}}
 </style>
 <style id="sanistock-team-tools-style">
-.teamToolsNav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 16px;padding:5px;background:#edf2f7;border-radius:15px}
+.teamToolsNav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0 0 16px;padding:5px;background:#edf2f7;border-radius:15px}
 .teamToolsTab{appearance:none;border:1px solid transparent;border-radius:11px;background:transparent;color:#334155;padding:11px 6px;font-weight:800;font-size:13px;cursor:pointer;min-width:0;touch-action:manipulation}
 .teamToolsTab{position:relative!important;overflow:visible!important}
 .teamToolsUnreadBadge{position:absolute;top:-5px;right:-4px;z-index:5;min-width:18px;height:18px;padding:0 4px;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;border:1.5px solid #fff;border-radius:999px;background:#e32636;color:#fff;font-size:10px;line-height:1;font-weight:900;box-shadow:0 1px 4px rgba(0,0,0,.22);pointer-events:none}
@@ -2407,7 +2407,7 @@ button.settingsAction.secondary:hover,
 .stockProductLine,.stockThumb,.stockEmoji,.stockName{display:none!important}
 .stockQty{position:static!important;display:block!important;margin:0 auto!important;text-align:center!important;min-width:72px!important;padding:8px 16px!important;border-radius:12px!important}
 .stockQty b{font-size:22px!important;color:#fff!important}
-.stockList{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important}
+.stockList{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
 @media(min-width:650px){.stockList{grid-template-columns:repeat(5,minmax(0,1fr))!important}}
 @media(min-width:1000px){.stockList{grid-template-columns:repeat(7,minmax(0,1fr))!important}}
 </style>
@@ -2428,9 +2428,11 @@ button.settingsAction.secondary:hover,
 
 
 <style id="sanistock-inner-stock-tabs">
-.stockInnerTabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:16px 0 18px;padding:6px;background:#dceaf5;border-radius:16px}
-.stockInnerTab{border:0;border-radius:12px;padding:12px 5px;min-height:54px;background:transparent;color:#17466e;font-size:11px;font-weight:900;line-height:1.25;cursor:pointer}
-.stockInnerTab.active{background:#075ba9;color:#fff;box-shadow:0 4px 12px #075ba933}
+/* Onglets Stock alignés sur le style des autres catégories SaniStock */
+.stockInnerTabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0 0 14px;padding:0;background:transparent;border-radius:0}
+.stockInnerTab{border:0;border-radius:12px;padding:12px 8px;min-height:44px;background:#dce7ef;color:#042349;font-size:12px;font-weight:900;line-height:1.25;cursor:pointer}
+.stockInnerTab.active{background:#0758a5;color:#fff;box-shadow:none}
+.stockInnerTab:focus-visible{outline:2px solid #0758a5;outline-offset:2px}
 .stockInnerPane{display:none;animation:stockPaneIn .18s ease-out}
 .stockInnerPane.active{display:block}
 .stockInnerPane[hidden]{display:none!important}
@@ -2438,11 +2440,11 @@ button.settingsAction.secondary:hover,
 .stockPaneIntro strong{font-size:17px}.stockPaneIntro span{font-size:12px;color:#66839a}
 #stockInnerPane-sortie>.stockAction{width:100%;min-height:76px;padding:22px 16px;border-radius:18px;font-size:16px;font-weight:900;box-shadow:0 7px 18px rgba(4,35,73,.18)}
 @keyframes stockPaneIn{from{opacity:.6;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}
-@media(max-width:360px){.stockInnerTab{font-size:10px;padding:10px 2px}}
+@media(max-width:360px){.stockInnerTab{font-size:10px;padding:10px 3px}}
 </style>
 <script>
 function sanistockAfficherOngletStock(onglet){
-  ['stock','sortie','draps'].forEach(function(n){
+  ['stock','draps'].forEach(function(n){
     var pane=document.getElementById('stockInnerPane-'+n);var tab=document.querySelector('[data-stock-tab="'+n+'"]');
     if(pane){pane.classList.toggle('active',n===onglet);pane.hidden=n!==onglet;}
     if(tab){tab.classList.toggle('active',n===onglet);tab.setAttribute('aria-selected',n===onglet?'true':'false');}
@@ -2450,6 +2452,7 @@ function sanistockAfficherOngletStock(onglet){
   if(onglet==='draps'&&typeof chargerDraps==='function')chargerDraps();
 }
 </script>
+<style id="sanistock-stock-entry-exit-layout">.stockMovementActions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:stretch}.stockMovementActions .stockAction{width:100%;min-width:0}@media(max-width:420px){.stockMovementActions{grid-template-columns:1fr}}</style>
 </head>
 <body>
 <div aria-live="polite" id="employeeLoginOverlay">
@@ -2825,16 +2828,14 @@ function sanistockAfficherOngletStock(onglet){
 <p class="stockSub">Choisissez un onglet pour accéder à la fonction souhaitée.</p>
 <nav class="stockInnerTabs" role="tablist" aria-label="Rubriques du stock">
   <button type="button" class="stockInnerTab active" role="tab" aria-selected="true" data-stock-tab="stock" onclick="sanistockAfficherOngletStock('stock')">📦 STOCK</button>
-  <button type="button" class="stockInnerTab" role="tab" aria-selected="false" data-stock-tab="sortie" onclick="sanistockAfficherOngletStock('sortie')">− SORTIE</button>
   <button type="button" class="stockInnerTab" role="tab" aria-selected="false" data-stock-tab="draps" onclick="sanistockAfficherOngletStock('draps')">🧺 GESTION DRAPS</button>
 </nav>
 <section class="stockInnerPane active" id="stockInnerPane-stock" role="tabpanel">
-  <div class="stockPaneIntro"><strong>📦 Gestion du stock</strong><span>Accédez aux mouvements de stock.</span></div>
-  <div class="stockActions"><button class="stockAction entryBtn" id="stockEntryButton" onclick="demanderCodeEntreeStock()" style="display:none">＋ ENTRÉE PRODUIT</button></div>
-</section>
-<section class="stockInnerPane" id="stockInnerPane-sortie" role="tabpanel" hidden>
-  <div class="stockPaneIntro"><strong>− Sortie de produits</strong><span>Enregistrez les produits et quantités utilisés.</span></div>
-  <button type="button" class="stockAction exitBtn" onclick="openStockModal('sortie')">− ENREGISTRER UNE SORTIE</button>
+  <div class="stockPaneIntro"><strong>📦 Gestion du stock</strong><span>Consultez le stock et enregistrez les mouvements.</span></div>
+  <div class="stockActions stockMovementActions">
+    <button class="stockAction entryBtn" id="stockEntryButton" onclick="demanderCodeEntreeStock()">＋ ENTRÉE PRODUIT</button>
+    <button type="button" class="stockAction exitBtn" onclick="openStockModal('sortie')">− SORTIE PRODUIT</button>
+  </div>
 </section>
 <section class="stockInnerPane" id="stockInnerPane-draps" role="tabpanel" hidden>
 <!-- Gestion des draps : ajout intégré à la rubrique Stock -->
@@ -13987,7 +13988,7 @@ html+='<div class="ambSectionBulkActions"><button type="button" class="toutCoche
 #saniMonthlyChecklistOverlay .monthlyHead h2{display:inline-block;vertical-align:middle;margin:0;font-size:clamp(20px,5vw,27px)}
 #saniMonthlyChecklistOverlay .monthlyBody{padding:20px}
 #saniMonthlyChecklistOverlay .monthlyMessage{font-size:clamp(16px,4vw,20px);font-weight:800;line-height:1.45;margin:0 0 18px}
-#saniMonthlyChecklistOverlay .monthlyVehicles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0}
+#saniMonthlyChecklistOverlay .monthlyVehicles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:14px 0}
 #saniMonthlyChecklistOverlay .monthlyVehicle{border-radius:14px;padding:12px 4px;font-weight:900;font-size:clamp(11px,3vw,15px)}
 #saniMonthlyChecklistOverlay .monthlyVehicle span{display:block;font-size:34px;margin-bottom:5px}
 #saniMonthlyChecklistOverlay .monthlyNote{background:#e8f3ff;border-radius:14px;padding:14px;font-weight:800;line-height:1.4;color:#0757a0;margin-top:16px}
