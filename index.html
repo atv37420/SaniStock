@@ -2473,6 +2473,16 @@ function sanistockAfficherOngletStock(onglet){
 }
 #stockPage .stockInnerTabs .stockInnerTab:focus-visible { outline: 2px solid #0758a5 !important; outline-offset: 2px; }
 </style>
+
+<style id="sanistock-gestion-cards-style">
+/* Cartes superposées comme les autres catégories : fond blanc et texte bleu SaniStock */
+.stockInnerTabs{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:10px!important;margin:0 0 14px!important;padding:0!important;background:transparent!important}
+.stockInnerTab{display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:center!important;gap:5px!important;width:100%!important;min-height:76px!important;padding:14px 16px!important;text-align:left!important;background:#fff!important;color:#075BA9!important;border:1px solid #d7e5f0!important;border-radius:14px!important;box-shadow:0 3px 10px rgba(4,35,73,.08)!important;font-size:14px!important;font-weight:800!important;line-height:1.25!important}
+.stockInnerTab.active{background:#fff!important;color:#075BA9!important;border-color:#075BA9!important;box-shadow:0 0 0 1px rgba(7,91,169,.12),0 3px 10px rgba(4,35,73,.08)!important}
+.stockInnerTabTitle{display:block!important;color:#075BA9!important;font-size:14px!important;font-weight:900!important}
+.stockInnerTabDesc{display:block!important;color:#526b80!important;font-size:11px!important;font-weight:500!important;line-height:1.35!important;white-space:normal!important}
+</style>
+
 </head>
 <body>
 <div aria-live="polite" id="employeeLoginOverlay">
@@ -2851,9 +2861,9 @@ function sanistockAfficherOngletStock(onglet){
 <button class="back" onclick="sanistockGoBack()">← Retour</button>
 <h1 class="stockTitle">📦 GESTION</h1>
 <p class="stockSub">Choisissez un onglet pour accéder à la fonction souhaitée.</p>
-<nav class="stockInnerTabs" role="tablist" aria-label="Rubriques du stock">
-  <button type="button" class="stockInnerTab active" role="tab" aria-selected="true" data-stock-tab="stock" onclick="sanistockAfficherOngletStock('stock')"><span class="stockInnerTabTitle">📦 GESTION</span><small class="stockInnerTabDesc">Entrées et sorties de produits</small></button>
-  <button type="button" class="stockInnerTab" role="tab" aria-selected="false" data-stock-tab="draps" onclick="sanistockAfficherOngletStock('draps')">🧺 GESTION DRAPS</button>
+<nav class="stockInnerTabs" role="tablist" aria-label="Rubriques de gestion">
+  <button type="button" class="stockInnerTab active" role="tab" aria-selected="true" data-stock-tab="stock" onclick="sanistockAfficherOngletStock('stock')"><span class="stockInnerTabTitle">📦 GESTION</span><small class="stockInnerTabDesc">Consulter le stock et enregistrer les entrées et sorties</small></button>
+  <button type="button" class="stockInnerTab" role="tab" aria-selected="false" data-stock-tab="draps" onclick="sanistockAfficherOngletStock('draps')"><span class="stockInnerTabTitle">🧺 GESTION DRAPS</span><small class="stockInnerTabDesc">Compteur des draps sales et suivi des sacs</small></button>
 </nav>
 <section class="stockInnerPane active" id="stockInnerPane-stock" role="tabpanel">
   
