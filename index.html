@@ -2900,9 +2900,17 @@ function sanistockAfficherOngletStock(onglet){
 </nav>
 <section class="stockInnerPane active" id="stockInnerPane-stock" role="tabpanel">
   
-  <div class="stockActions stockMovementActions">
-    <button class="stockAction entryBtn" id="stockEntryButton" onclick="demanderCodeEntreeStock()">＋ ENTRÉE PRODUIT</button>
-    <button type="button" class="stockAction exitBtn" onclick="openStockModal('sortie')">− SORTIE PRODUIT</button>
+  <div class="stockActions stockMovementActions" aria-label="Mouvements de stock">
+    <button type="button" class="stockAction entryBtn stockMovementCard" id="stockEntryButton" onclick="demanderCodeEntreeStock()">
+      <span class="stockMovementIcon" aria-hidden="true">＋</span>
+      <span class="stockMovementTitle">ENTRÉE PRODUIT</span>
+      <small>Ajouter des produits au stock</small>
+    </button>
+    <button type="button" class="stockAction exitBtn stockMovementCard" onclick="openStockModal('sortie')">
+      <span class="stockMovementIcon" aria-hidden="true">−</span>
+      <span class="stockMovementTitle">SORTIE PRODUIT</span>
+      <small>Enregistrer une sortie de stock</small>
+    </button>
   </div>
 </section>
 <section class="stockInnerPane" id="stockInnerPane-draps" role="tabpanel" hidden>
@@ -14406,6 +14414,16 @@ html+='<div class="ambSectionBulkActions"><button type="button" class="toutCoche
   #stockPage .stockInnerTab.active,
   #stockPage .stockInnerTab[aria-selected="true"]{padding:22px 16px!important}
 }
+</style>
+
+<style id="sanistock-gestion-stock-entree-sortie-cartes">
+/* Entrées et sorties directement dans l’onglet Gestion Stock, avec les cartes blanches des autres catégories */
+#stockInnerPane-stock .stockMovementActions{display:grid;grid-template-columns:1fr;gap:12px;margin:12px 0 16px}
+#stockInnerPane-stock .stockMovementCard{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:5px;width:100%;min-height:82px;padding:15px 17px;background:#fff!important;color:#075BA9!important;border:1px solid #d7e5f0!important;border-radius:15px;box-shadow:0 4px 14px rgba(4,35,73,.08);text-align:left}
+#stockInnerPane-stock .stockMovementCard .stockMovementIcon{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:8px;background:#eaf2fb;color:#075BA9;font-size:20px;font-weight:900;line-height:1}
+#stockInnerPane-stock .stockMovementCard .stockMovementTitle{font-size:13px;font-weight:900;letter-spacing:.2px;color:#075BA9}
+#stockInnerPane-stock .stockMovementCard small{font-size:11px;font-weight:500;line-height:1.35;color:#526b80}
+#stockInnerPane-stock .stockMovementCard:hover{border-color:#075BA9!important;box-shadow:0 6px 16px rgba(7,91,169,.14)}
 </style>
 </body>
 </html>
