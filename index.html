@@ -2483,6 +2483,34 @@ function sanistockAfficherOngletStock(onglet){
 .stockInnerTabDesc{display:block!important;color:#526b80!important;font-size:11px!important;font-weight:500!important;line-height:1.35!important;white-space:normal!important}
 </style>
 
+
+<style id="sanistock-gestion-final-blanc-bleu">
+/* Correction finale : cartes Gestion identiques au style blanc/bleu des catégories */
+#stockPage .stockInnerTabs {
+  display:grid !important; grid-template-columns:minmax(0,1fr) !important; gap:10px !important;
+  margin:0 0 14px !important; padding:0 !important; background:transparent !important;
+}
+#stockPage .stockInnerTabs .stockInnerTab,
+#stockPage .stockInnerTabs .stockInnerTab.active,
+#stockPage .stockInnerTabs .stockInnerTab[aria-selected="true"] {
+  display:flex !important; flex-direction:column !important; align-items:flex-start !important;
+  justify-content:center !important; gap:5px !important; width:100% !important; min-height:76px !important;
+  padding:14px 16px !important; text-align:left !important;
+  background:#ffffff !important; color:#075BA9 !important;
+  border:1px solid #d7e5f0 !important; border-radius:14px !important;
+  box-shadow:0 3px 10px rgba(4,35,73,.08) !important;
+}
+#stockPage .stockInnerTabs .stockInnerTab.active,
+#stockPage .stockInnerTabs .stockInnerTab[aria-selected="true"] {
+  background:#ffffff !important; color:#075BA9 !important; border-color:#075BA9 !important;
+  box-shadow:0 0 0 1px rgba(7,91,169,.12),0 3px 10px rgba(4,35,73,.08) !important;
+}
+#stockPage .stockInnerTabIcon {font-size:23px !important; line-height:1.2 !important;}
+#stockPage .stockInnerTabTitle {display:block !important; color:#075BA9 !important; font-size:14px !important; font-weight:900 !important;}
+#stockPage .stockInnerTabDesc {display:block !important; color:#526b80 !important; font-size:11px !important; font-weight:500 !important; line-height:1.35 !important; white-space:normal !important;}
+#stockPage .stockInnerTabs .stockInnerTab:focus-visible {outline:2px solid #075BA9 !important; outline-offset:2px !important;}
+</style>
+
 </head>
 <body>
 <div aria-live="polite" id="employeeLoginOverlay">
