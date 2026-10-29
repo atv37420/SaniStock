@@ -2436,7 +2436,7 @@ button.settingsAction.secondary:hover,
 
 <style id="sanistock-inner-stock-tabs">
 /* Onglets Stock alignés sur le style des autres catégories SaniStock */
-.stockInnerTabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0 0 14px;padding:0;background:transparent;border-radius:0}
+.stockInnerTabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 14px;padding:0;background:transparent;border-radius:0}
 .stockInnerTab{border:0;border-radius:12px;padding:12px 8px;min-height:44px;background:#dce7ef;color:#042349;font-size:12px;font-weight:900;line-height:1.25;cursor:pointer}
 .stockInnerTab.active{background:#0758a5;color:#fff;box-shadow:none}
 .stockInnerTab:focus-visible{outline:2px solid #0758a5;outline-offset:2px}
@@ -2451,49 +2451,24 @@ button.settingsAction.secondary:hover,
 </style>
 <script>
 function sanistockAfficherOngletStock(onglet){
-  if(onglet!=='draps') onglet='stock';
+  if(onglet!=='draps') onglet='draps';
   ['stock','draps'].forEach(function(n){
     var pane=document.getElementById('stockInnerPane-'+n);
-    var tab=document.querySelector('[data-stock-tab="'+n+'"]');
-    var actif=(n===onglet);
-    if(pane){
-      /* Les mouvements de stock s'ouvrent dans une fenêtre dédiée. */
-      var masquer=(n==='stock') || !actif;
-      pane.hidden=masquer;
-      pane.classList.toggle('active',actif && n!=='stock');
-      pane.style.display=masquer?'none':'block';
-    }
-    if(tab){
-      tab.classList.toggle('active',actif);
-      tab.setAttribute('aria-selected',actif?'true':'false');
-    }
+    if(pane){pane.hidden=(n!=='draps');pane.classList.toggle('active',n==='draps');pane.style.display=n==='draps'?'block':'none';}
   });
-  if(onglet==='stock'){
-    ouvrirFenetreMouvementsStock();
-  }else if(onglet==='draps'&&typeof chargerDraps==='function'){
-    chargerDraps();
-  }
+  document.querySelectorAll('.stockInnerTab').forEach(function(tab){
+    var actif=tab.getAttribute('data-stock-tab')===onglet;
+    tab.classList.toggle('active',actif);tab.setAttribute('aria-selected',actif?'true':'false');
+  });
+  if(typeof chargerDraps==='function') chargerDraps();
 }
-function ouvrirFenetreMouvementsStock(){
-  var overlay=document.getElementById('sanistockMouvementsOverlay');
-  if(!overlay){
-    overlay=document.createElement('div');
-    overlay.id='sanistockMouvementsOverlay';
-    overlay.className='sanistock-mouvements-overlay';
-    overlay.setAttribute('role','dialog');
-    overlay.setAttribute('aria-modal','true');
-    overlay.setAttribute('aria-labelledby','sanistockMouvementsTitre');
-    overlay.innerHTML='<div class="sanistock-mouvements-fenetre"><div class="sanistock-mouvements-entete"><h2 id="sanistockMouvementsTitre">📦 ENTRÉES ET SORTIES DE STOCK</h2><button type="button" class="sanistock-mouvements-fermer" aria-label="Fermer" onclick="fermerFenetreMouvementsStock()">✕</button></div><p>Choisissez une opération : le formulaire correspondant s’ouvre directement.</p><div id="sanistockMouvementsContenu"></div></div>';
-    overlay.addEventListener('click',function(e){if(e.target===overlay)fermerFenetreMouvementsStock();});
-    document.body.appendChild(overlay);
-  }
-  var actions=document.querySelector('#stockInnerPane-stock .stockMovementActions');
-  var contenu=document.getElementById('sanistockMouvementsContenu');
-  if(actions&&contenu&&actions.parentElement!==contenu) contenu.appendChild(actions);
-  overlay.style.display='flex';
-  overlay.hidden=false;
-  overlay.style.visibility='visible';
-  document.body.style.overflow='hidden';
+function sanistockOuvrirEntreeDepuisGestion(){
+  document.querySelectorAll('.stockInnerTab').forEach(function(tab){tab.classList.toggle('active',tab.getAttribute('data-stock-tab')==='entree');tab.setAttribute('aria-selected',tab.getAttribute('data-stock-tab')==='entree'?'true':'false');});
+  if(typeof demanderCodeEntreeStock==='function') demanderCodeEntreeStock();
+}
+function sanistockOuvrirSortieDepuisGestion(){
+  document.querySelectorAll('.stockInnerTab').forEach(function(tab){tab.classList.toggle('active',tab.getAttribute('data-stock-tab')==='sortie');tab.setAttribute('aria-selected',tab.getAttribute('data-stock-tab')==='sortie'?'true':'false');});
+  if(typeof openStockModal==='function') openStockModal('sortie');
 }
 document.addEventListener('click',function(e){
   var entree=e.target.closest && e.target.closest('#sanistockMouvementsContenu #stockEntryButton');
@@ -2944,7 +2919,8 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerFenetr
 <h1 class="stockTitle">📦 GESTION</h1>
 <p class="stockSub">Choisissez un onglet pour accéder à la fonction souhaitée.</p>
 <nav class="stockInnerTabs" role="tablist" aria-label="Rubriques de gestion">
-  <button type="button" class="stockInnerTab" role="tab" aria-selected="false" data-stock-tab="stock" onclick="sanistockAfficherOngletStock('stock')"><span class="stockInnerTabIcon" aria-hidden="true">📤</span><span class="stockInnerTabTitle">SORTIE PRODUIT</span><small class="stockInnerTabDesc">Accéder aux opérations d’entrée et de sortie du stock</small></button>
+  <button type="button" class="stockInnerTab" role="tab" aria-selected="false" data-stock-tab="entree" onclick="sanistockOuvrirEntreeDepuisGestion()"><span class="stockInnerTabIcon" aria-hidden="true">📥</span><span class="stockInnerTabTitle">ENTRÉE PRODUIT</span><small class="stockInnerTabDesc">Ouvrir directement le formulaire d’entrée</small></button>
+  <button type="button" class="stockInnerTab" role="tab" aria-selected="false" data-stock-tab="sortie" onclick="sanistockOuvrirSortieDepuisGestion()"><span class="stockInnerTabIcon" aria-hidden="true">📤</span><span class="stockInnerTabTitle">SORTIE PRODUIT</span><small class="stockInnerTabDesc">Ouvrir directement le formulaire de sortie</small></button>
   <button type="button" class="stockInnerTab" role="tab" aria-selected="false" data-stock-tab="draps" onclick="sanistockAfficherOngletStock('draps')"><span class="stockInnerTabIcon" aria-hidden="true">🧺</span><span class="stockInnerTabTitle">GESTION DRAPS</span><small class="stockInnerTabDesc">Compter les draps sales et suivre les sacs</small></button>
 </nav>
 <section class="stockInnerPane" id="stockInnerPane-stock" role="tabpanel" hidden>
