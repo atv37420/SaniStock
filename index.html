@@ -2416,6 +2416,16 @@ button.settingsAction.secondary:hover,
 <style id="removeOctoberRoseRibbons">
 .octobreRoseRibbon, .octobreRoseBottomBand, .octobreRoseBottomLogo, .octobreRoseLogoScarf { display:none !important; visibility:hidden !important; }
 </style>
+
+<style id="sanistock-gestion-draps-css">
+#drapsStockPanel{margin:12px 0 18px;padding:15px;background:#fff;border:1px solid #d9e8f4;border-radius:20px;box-shadow:0 7px 20px rgba(4,35,73,.10);color:#042349}
+.drapsStockHead{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.drapsStockHead h2{font-size:20px;margin:0 0 5px;color:#0757a0}.drapsStockHead p{font-size:11px;line-height:1.4;color:#637d92;margin:0}.drapsStockTag{background:#e7f2ff;color:#0757a0;padding:6px 9px;border-radius:999px;font-size:9px;font-weight:900;letter-spacing:.5px}
+.drapsStats{display:grid;grid-template-columns:1.35fr .85fr;gap:8px;margin:14px 0 10px}.drapsStat{border-radius:14px;padding:12px 10px;display:flex;flex-direction:column;gap:4px;min-width:0}.drapsStat span{font-size:10px;font-weight:800}.drapsStat strong{font-size:31px;line-height:1.1}.drapsStat strong small{font-size:18px}.drapsStat>small{font-size:10px}.drapsStatBlue{background:#eaf4ff;color:#123f69}.drapsStatGreen{background:#eaf8ef;color:#177345;text-align:center;align-items:center;justify-content:center}.drapsProgress{height:7px;background:#d4e4f3;border-radius:99px;overflow:hidden;margin-top:5px}.drapsProgress i{display:block;height:100%;width:0;background:#0878d1;border-radius:99px;transition:width .2s}
+.drapsAddBtn{width:100%;border:0;border-radius:13px;padding:14px 10px;background:linear-gradient(100deg,#0877d1,#0757a0);color:#fff;font-weight:900;font-size:14px;cursor:pointer}.drapsQuickBtns{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:8px 0 14px}.drapsQuickBtns button{border:1px solid #d7e4ef;border-radius:10px;background:#f8fbfe;color:#123f69;padding:10px 3px;font-size:11px;font-weight:900;cursor:pointer}.drapsQuickBtns .drapsResetBtn{font-size:10px;color:#6b7280}.drapsHistoryHead{display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px solid #e8eff5;padding-top:12px;font-size:12px}.drapsHistoryHead button{border:0;background:transparent;color:#0872c4;font-weight:900;font-size:11px}.drapsHistory{margin-top:8px;max-height:180px;overflow:auto}.drapsHistoryRow{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:9px 7px;border-radius:9px;background:#f5f9fc;margin-top:5px;font-size:10px}.drapsHistoryRow strong{color:#0757a0}.drapsHistoryEmpty{text-align:center;color:#8496a5;font-size:11px;padding:12px 0}.drapsLocalNotice{font-size:9px;color:#7a8d9d;margin:10px 0 0;text-align:center}
+.drapsConfirmOverlay{position:fixed;inset:0;z-index:1000000;background:rgba(0,25,53,.65);display:flex;align-items:center;justify-content:center;padding:20px}.drapsConfirmCard{width:min(100%,360px);background:#fff;border-radius:24px;padding:24px 20px;text-align:center;box-shadow:0 20px 60px #001d3a55}.drapsConfirmCheck{width:62px;height:62px;border-radius:50%;background:#1fa84f;color:#fff;display:grid;place-items:center;font-size:36px;font-weight:900;margin:0 auto 10px}.drapsConfirmCard h3{font-size:24px;color:#123f69;margin:6px 0}.drapsConfirmCard p{font-size:13px;line-height:1.45;color:#526c83}.drapsConfirmCard button{width:100%;border:0;border-radius:12px;padding:13px;background:#0757a0;color:#fff;font-weight:900;margin-top:8px}
+@media(max-width:380px){.drapsStats{grid-template-columns:1fr 1fr}.drapsStat strong{font-size:27px}.drapsStockHead h2{font-size:18px}}
+</style>
+
 </head>
 <body>
 <div aria-live="polite" id="employeeLoginOverlay">
@@ -2789,6 +2799,19 @@ button.settingsAction.secondary:hover,
 <button class="back" onclick="sanistockGoBack()">← Retour</button>
 <h1 class="stockTitle">📦 STOCK</h1>
 <p class="stockSub">Merci d’indiquer les produits sortis et les quantités.</p>
+<!-- Gestion des draps : ajout intégré à la rubrique Stock -->
+<section id="drapsStockPanel" aria-labelledby="drapsStockTitle">
+  <div class="drapsStockHead"><div><h2 id="drapsStockTitle">🧺 Gestion des draps</h2><p>Un sac est automatiquement comptabilisé tous les 10 draps sales.</p></div><span class="drapsStockTag">SUIVI</span></div>
+  <div class="drapsStats">
+    <div class="drapsStat drapsStatBlue"><span>Draps dans le sac actuel</span><strong><b id="drapsCount">0</b><small> / 10</small></strong><div class="drapsProgress"><i id="drapsProgressBar"></i></div></div>
+    <div class="drapsStat drapsStatGreen"><span>Sacs changés</span><strong id="drapsBags">0</strong><small>Aujourd’hui</small></div>
+  </div>
+  <button type="button" class="drapsAddBtn" onclick="sanistockAjouterDraps(1)">＋ Ajouter 1 drap sale</button>
+  <div class="drapsQuickBtns"><button type="button" onclick="sanistockAjouterDraps(1)">+1</button><button type="button" onclick="sanistockAjouterDraps(5)">+5</button><button type="button" onclick="sanistockAjouterDraps(10)">+10</button><button type="button" class="drapsResetBtn" onclick="sanistockConfirmerResetDraps()">Réinitialiser</button></div>
+  <div class="drapsHistoryHead"><strong>🕘 Historique des changements</strong><button type="button" onclick="sanistockAfficherHistoriqueDraps()">Voir tout</button></div>
+  <div id="drapsHistory" class="drapsHistory"><p class="drapsHistoryEmpty">Aucun changement enregistré.</p></div>
+  <p class="drapsLocalNotice">ℹ️ Le suivi est actuellement enregistré sur cet appareil.</p>
+</section>
 <input class="stockSearch" id="stockSearch" oninput="renderStock()" placeholder="🔎 Rechercher un produit..." type="search" style="display:none"/>
 <div class="stockFilters" style="display:none"></div>
 <div class="stockActions"><button class="stockAction entryBtn" id="stockEntryButton" onclick="demanderCodeEntreeStock()" style="display:none">＋ ENTRÉE PRODUIT</button><button class="stockAction exitBtn" onclick="openStockModal('sortie')">− SORTIE PRODUIT</button></div>
@@ -2820,6 +2843,28 @@ button.settingsAction.secondary:hover,
 </div>
 </div>
 </section>
+
+<script id="sanistock-gestion-draps-js">
+(function(){
+  const KEY='sanistock_gestion_draps_v1';
+  function aujourdHui(){return new Date().toLocaleDateString('fr-FR');}
+  function charger(){
+    let d={count:0,bags:0,day:aujourdHui(),history:[]};
+    try{const saved=JSON.parse(localStorage.getItem(KEY)||'null');if(saved&&typeof saved==='object')d=Object.assign(d,saved);}catch(e){}
+    if(d.day!==aujourdHui()){d.day=aujourdHui();d.bags=0;}
+    d.count=Math.max(0,Math.min(9,Number(d.count)||0));d.bags=Math.max(0,Number(d.bags)||0);if(!Array.isArray(d.history))d.history=[];return d;
+  }
+  function sauver(d){try{localStorage.setItem(KEY,JSON.stringify(d));}catch(e){alert('Impossible de sauvegarder le suivi des draps sur cet appareil.');}}
+  function afficher(){const d=charger();const c=document.getElementById('drapsCount'),b=document.getElementById('drapsBags'),bar=document.getElementById('drapsProgressBar'),h=document.getElementById('drapsHistory');if(!c||!b||!bar||!h)return;c.textContent=d.count;b.textContent=d.bags;bar.style.width=(d.count*10)+'%';const rows=d.history.slice(0,5);h.innerHTML=rows.length?rows.map(x=>'<div class="drapsHistoryRow"><span>🧺 '+escapeHtmlDraps(x.label)+'</span><strong>'+escapeHtmlDraps(x.time)+'</strong></div>').join(''):'<p class="drapsHistoryEmpty">Aucun changement enregistré.</p>';}
+  function escapeHtmlDraps(v){return String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+  window.sanistockAjouterDraps=function(n){n=Math.max(1,Math.min(100,Number(n)||1));const d=charger();let sacs=0;for(let i=0;i<n;i++){d.count++;if(d.count>=10){d.count=0;d.bags++;sacs++;const now=new Date();d.history.unshift({label:'Sac changé automatiquement (10 draps)',time:now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})+' · '+aujourdHui()});}}sauver(d);afficher();if(sacs)afficherConfirmationDraps(sacs,d.bags);};
+  function afficherConfirmationDraps(sacs,total){const old=document.getElementById('drapsConfirmOverlay');if(old)old.remove();const overlay=document.createElement('div');overlay.id='drapsConfirmOverlay';overlay.className='drapsConfirmOverlay';overlay.innerHTML='<div class="drapsConfirmCard" role="dialog" aria-modal="true"><div class="drapsConfirmCheck">✓</div><h3>🧺 Sac changé !</h3><p>'+sacs+' sac'+(sacs>1?'s':'')+' de linge '+(sacs>1?'ont été':'a été')+' automatiquement comptabilisé'+(sacs>1?'s':'')+' après 10 draps sales.<br>Le compteur repart à <strong>0/10</strong>.<br><br>Total aujourd’hui : <strong>'+total+'</strong> sac'+(total>1?'s':'')+'.</p><button type="button" id="drapsConfirmClose">Continuer</button></div>';document.body.appendChild(overlay);document.getElementById('drapsConfirmClose').onclick=()=>overlay.remove();overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});}
+  window.sanistockAfficherHistoriqueDraps=function(){const d=charger();if(!d.history.length){alert('Aucun sac changé pour le moment.');return;}alert('Historique des sacs changés :\n\n'+d.history.map(x=>'• '+x.label+' — '+x.time).join('\n'));};
+  window.sanistockConfirmerResetDraps=function(){if(!confirm('Réinitialiser le compteur de draps dans le sac actuel ? L’historique des sacs changés sera conservé.'))return;const d=charger();d.count=0;sauver(d);afficher();};
+  document.addEventListener('DOMContentLoaded',afficher);window.addEventListener('pageshow',afficher);
+})();
+</script>
+
 <section class="screen page" id="vehiclePage">
 <button class="back" onclick="sanistockGoBack()" type="button">← Retour</button>
 <div style="max-width:900px;margin:20px auto;padding:0 20px">
