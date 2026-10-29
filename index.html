@@ -2426,6 +2426,30 @@ button.settingsAction.secondary:hover,
 @media(max-width:380px){.drapsStats{grid-template-columns:1fr 1fr}.drapsStat strong{font-size:27px}.drapsStockHead h2{font-size:18px}}
 </style>
 
+
+<style id="sanistock-inner-stock-tabs">
+.stockInnerTabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:16px 0 18px;padding:6px;background:#dceaf5;border-radius:16px}
+.stockInnerTab{border:0;border-radius:12px;padding:12px 5px;min-height:54px;background:transparent;color:#17466e;font-size:11px;font-weight:900;line-height:1.25;cursor:pointer}
+.stockInnerTab.active{background:#075ba9;color:#fff;box-shadow:0 4px 12px #075ba933}
+.stockInnerPane{display:none;animation:stockPaneIn .18s ease-out}
+.stockInnerPane.active{display:block}
+.stockInnerPane[hidden]{display:none!important}
+.stockPaneIntro{display:flex;flex-direction:column;gap:5px;background:#fff;border:1px solid #d9e8f4;border-radius:16px;padding:16px;margin:0 0 14px;color:#042349}
+.stockPaneIntro strong{font-size:17px}.stockPaneIntro span{font-size:12px;color:#66839a}
+#stockInnerPane-sortie>.stockAction{width:100%;min-height:76px;padding:22px 16px;border-radius:18px;font-size:16px;font-weight:900;box-shadow:0 7px 18px rgba(4,35,73,.18)}
+@keyframes stockPaneIn{from{opacity:.6;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:360px){.stockInnerTab{font-size:10px;padding:10px 2px}}
+</style>
+<script>
+function sanistockAfficherOngletStock(onglet){
+  ['stock','sortie','draps'].forEach(function(n){
+    var pane=document.getElementById('stockInnerPane-'+n);var tab=document.querySelector('[data-stock-tab="'+n+'"]');
+    if(pane){pane.classList.toggle('active',n===onglet);pane.hidden=n!==onglet;}
+    if(tab){tab.classList.toggle('active',n===onglet);tab.setAttribute('aria-selected',n===onglet?'true':'false');}
+  });
+  if(onglet==='draps'&&typeof chargerDraps==='function')chargerDraps();
+}
+</script>
 </head>
 <body>
 <div aria-live="polite" id="employeeLoginOverlay">
@@ -2798,7 +2822,21 @@ button.settingsAction.secondary:hover,
 <div class="stockWrap">
 <button class="back" onclick="sanistockGoBack()">← Retour</button>
 <h1 class="stockTitle">📦 STOCK</h1>
-<p class="stockSub">Merci d’indiquer les produits sortis et les quantités.</p>
+<p class="stockSub">Choisissez un onglet pour accéder à la fonction souhaitée.</p>
+<nav class="stockInnerTabs" role="tablist" aria-label="Rubriques du stock">
+  <button type="button" class="stockInnerTab active" role="tab" aria-selected="true" data-stock-tab="stock" onclick="sanistockAfficherOngletStock('stock')">📦 STOCK</button>
+  <button type="button" class="stockInnerTab" role="tab" aria-selected="false" data-stock-tab="sortie" onclick="sanistockAfficherOngletStock('sortie')">− SORTIE</button>
+  <button type="button" class="stockInnerTab" role="tab" aria-selected="false" data-stock-tab="draps" onclick="sanistockAfficherOngletStock('draps')">🧺 GESTION DRAPS</button>
+</nav>
+<section class="stockInnerPane active" id="stockInnerPane-stock" role="tabpanel">
+  <div class="stockPaneIntro"><strong>📦 Gestion du stock</strong><span>Accédez aux mouvements de stock.</span></div>
+  <div class="stockActions"><button class="stockAction entryBtn" id="stockEntryButton" onclick="demanderCodeEntreeStock()" style="display:none">＋ ENTRÉE PRODUIT</button></div>
+</section>
+<section class="stockInnerPane" id="stockInnerPane-sortie" role="tabpanel" hidden>
+  <div class="stockPaneIntro"><strong>− Sortie de produits</strong><span>Enregistrez les produits et quantités utilisés.</span></div>
+  <button type="button" class="stockAction exitBtn" onclick="openStockModal('sortie')">− ENREGISTRER UNE SORTIE</button>
+</section>
+<section class="stockInnerPane" id="stockInnerPane-draps" role="tabpanel" hidden>
 <!-- Gestion des draps : ajout intégré à la rubrique Stock -->
 <section id="drapsStockPanel" aria-labelledby="drapsStockTitle">
   <div class="drapsStockHead"><div><h2 id="drapsStockTitle">🧺 Gestion des draps</h2><p>Un sac est automatiquement comptabilisé tous les 10 draps sales.</p></div><span class="drapsStockTag">SUIVI</span></div>
@@ -2812,9 +2850,9 @@ button.settingsAction.secondary:hover,
   <div id="drapsHistory" class="drapsHistory"><p class="drapsHistoryEmpty">Aucun changement enregistré.</p></div>
   <p class="drapsLocalNotice">☁️ Suivi partagé : les compteurs et l’historique sont enregistrés dans Google Sheets.</p>
 </section>
+</section><!-- /stockInnerPane-draps -->
 <input class="stockSearch" id="stockSearch" oninput="renderStock()" placeholder="🔎 Rechercher un produit..." type="search" style="display:none"/>
 <div class="stockFilters" style="display:none"></div>
-<div class="stockActions"><button class="stockAction entryBtn" id="stockEntryButton" onclick="demanderCodeEntreeStock()" style="display:none">＋ ENTRÉE PRODUIT</button><button class="stockAction exitBtn" onclick="openStockModal('sortie')">− SORTIE PRODUIT</button></div>
 <div class="stockMessage" id="stockMessage"></div>
 <div class="stockList" id="stockList" style="display:none" aria-hidden="true"></div>
 </div>
