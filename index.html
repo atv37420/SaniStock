@@ -15107,6 +15107,32 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerFenetr
 }
 </style>
 
+
+<style id="sanistock-historique-draps-horizontal">
+/* Historique des draps présenté en cartes horizontales défilantes. */
+.sanistock-draps-dialog #drapsHistory{
+  display:flex!important; flex-direction:row!important; flex-wrap:nowrap!important;
+  align-items:stretch!important; justify-content:flex-start!important; gap:10px!important;
+  overflow-x:auto!important; overflow-y:hidden!important; width:100%!important;
+  min-height:86px!important; padding:10px 4px 14px!important;
+  scroll-snap-type:x proximity!important; -webkit-overflow-scrolling:touch!important;
+}
+.sanistock-draps-dialog #drapsHistory .drapsHistoryRow{
+  display:flex!important; flex:0 0 250px!important; flex-direction:column!important;
+  justify-content:center!important; align-items:flex-start!important; gap:7px!important;
+  min-width:220px!important; max-width:280px!important; min-height:68px!important;
+  padding:12px 14px!important; box-sizing:border-box!important;
+  scroll-snap-align:start!important; overflow-wrap:anywhere!important;
+}
+.sanistock-draps-dialog #drapsHistory .drapsHistoryRow span,
+.sanistock-draps-dialog #drapsHistory .drapsHistoryRow strong{
+  display:block!important; width:100%!important; white-space:normal!important;
+  text-align:left!important; overflow-wrap:anywhere!important;
+}
+.sanistock-draps-dialog #drapsHistory .drapsHistoryEmpty{
+  flex:0 0 100%!important; text-align:left!important;
+}
+</style>
 </body>
 </html>
 <!-- SaniStock 1.1.114 : réactions multiples sur les publications. -->
