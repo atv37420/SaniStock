@@ -11736,18 +11736,35 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
     'VSL':['GH-575-RH – CADDY VSL','FF-458-QT – SKODA BREAK VSL','FF-334-SL – SKODA KODIAQ VSL','EN-114-BK – SKODA SUPERB VSL','FC-295-XP – SKODA SUPERB VSL','GP-794-BQ – TIGUAN']
   };
   function clone(o){return JSON.parse(JSON.stringify(o));}
+  function cleVehiculeChecklist(v){
+    var s=String(v||'').trim().toUpperCase();
+    var plaque=s.match(/[A-Z]{2}[- ]?\d{3}[- ]?[A-Z]{2}/);
+    return plaque ? plaque[0].replace(/[^A-Z0-9]/g,'') : s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Z0-9]/g,'');
+  }
+  function dedoublonnerListe(liste){
+    var vus={};
+    return (Array.isArray(liste)?liste:[]).filter(function(v){
+      var nom=String(v||'').trim(), cle=cleVehiculeChecklist(nom);
+      if(!nom||!cle||vus[cle])return false;
+      vus[cle]=true;return true;
+    });
+  }
   function load(){
     try{
       var x=JSON.parse(localStorage.getItem(KEY)||'null');
       if(x&&Array.isArray(x.AMBULANCES)&&Array.isArray(x.TAXIS)&&Array.isArray(x.VSL)){
-        if(!x.AMBULANCES.some(function(v){return String(v||'').toUpperCase().includes('HS-219-PS');})) x.AMBULANCES.push('HS-219-PS – AMBULANCE RENAULT TRAFIC');
+        if(!x.AMBULANCES.some(function(v){return cleVehiculeChecklist(v)==='HS219PS';})) x.AMBULANCES.push('HS-219-PS – AMBULANCE RENAULT TRAFIC');
         ['AMBULANCES','TAXIS','VSL'].forEach(function(c){
           if(!x[c].length) x[c]=clone(DEFAULTS[c]);
+          x[c]=dedoublonnerListe(x[c]);
         });
+        try{localStorage.setItem(KEY,JSON.stringify(x));}catch(e){}
         return x;
       }
     }catch(e){}
-    return clone(DEFAULTS);
+    var defaults=clone(DEFAULTS);
+    ['AMBULANCES','TAXIS','VSL'].forEach(function(c){defaults[c]=dedoublonnerListe(defaults[c]);});
+    return defaults;
   }
   function save(x){localStorage.setItem(KEY,JSON.stringify(x));window.CHECKLIST_VEHICLES_FIXED=x;}
   function esc(x){return String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
@@ -11770,9 +11787,9 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
     }
     google.script.run.withSuccessHandler(function(rows){
       var d=load(), cats=['AMBULANCES','TAXIS','VSL'], seen={};
-      cats.forEach(function(c){d[c].forEach(function(v){seen[String(v||'').trim().toLowerCase()]=true;});});
+      cats.forEach(function(c){d[c].forEach(function(v){seen[cleVehiculeChecklist(v)]=true;});});
       (Array.isArray(rows)?rows:[]).forEach(function(r){
-        var nom=String(typeof r==='string'?r:(r&&r.vehicule)||'').trim(), key=nom.toLowerCase();
+        var nom=String(typeof r==='string'?r:(r&&r.vehicule)||'').trim(), key=cleVehiculeChecklist(nom);
         if(!nom||seen[key])return;
         var cat=categorieChecklistPourNom(nom);
         // Les véhicules dont la catégorie n'est pas certaine ne sont pas déplacés.
