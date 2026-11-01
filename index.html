@@ -3122,7 +3122,7 @@ document.addEventListener('DOMContentLoaded', function(){
   function afficherConfirmationDraps(sacs,total){
     const old=document.getElementById('drapsConfirmOverlay');if(old)old.remove();
     const overlay=document.createElement('div');overlay.id='drapsConfirmOverlay';overlay.className='drapsConfirmOverlay';
-    overlay.innerHTML='<div class="drapsConfirmCard" role="dialog" aria-modal="true"><div class="drapsConfirmCheck">✓</div><h3>🧺 Sac changé !</h3><p>'+sacs+' sac(s) ajouté(s) au suivi.</p><p>Total des sacs changés aujourd’hui : '+total+'</p><button type="button" onclick="this.parentElement.parentElement.remove()">OK</button></div>';
+    overlay.innerHTML='<div class="drapsConfirmCard" role="dialog" aria-modal="true"><div class="drapsConfirmCheck">✓</div><h3>🧺 Sac changé !</h3><p>'+sacs+' sac(s) ajouté(s) au suivi.</p><p>Total des sacs changés aujourd’hui : '+total+'</p><p>💡 Pensez à changer le sac et à en remettre un vide.</p><button type="button" onclick="this.parentElement.parentElement.remove()">OK</button></div>';
     document.body.appendChild(overlay);
   }
   window.sanistockAfficherHistoriqueDraps=function(){
