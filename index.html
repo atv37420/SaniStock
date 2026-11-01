@@ -3077,6 +3077,11 @@ document.addEventListener('DOMContentLoaded', function(){
  .sanistock-draps-dialog .drapsLocalNotice{font-size:12px!important}
 }
 </style>
+<style id="sanistock-draps-suppression-bandeau-ajout">
+/* Supprimer le grand bandeau bleu « Ajouter des draps sales » */
+.sanistock-draps-dialog .drapsAddPanel h3{display:none!important;}
+.sanistock-draps-dialog .drapsAddPanel{padding-top:0!important;margin-top:0!important;}
+</style>
 <div class="sanistock-draps-overlay" id="sanistockDrapsOverlay" aria-hidden="true">
   <div class="sanistock-draps-dialog" role="dialog" aria-modal="true" aria-labelledby="sanistockDrapsModalTitle">
     <div class="sanistock-draps-dialog-head"><h2 id="sanistockDrapsModalTitle">🧺 Suivi des draps</h2><button class="sanistock-draps-close" type="button" onclick="sanistockFermerFenetreDraps()" aria-label="Fermer">×</button></div>
@@ -4782,7 +4787,7 @@ __SANI_PDFJS_SCRIPT_TAG__
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',appliquer);else appliquer();
   window.addEventListener('storage',function(e){if(e.key==='sanistock_employee_name')appliquer();});
 })();
-<\/script>
+</script>
 
 </body></html>`;
         function afficherLecteurHtml_(html){
