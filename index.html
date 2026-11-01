@@ -13002,14 +13002,22 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
   window.afficherChecklistTaxi = function(v){
     const box=document.getElementById('checklistContent');
     const sub=document.getElementById('checklistSubtitle');
-    if(!box) return;
-    if(sub) sub.textContent='TAXI — contrôle du véhicule';
-    box.innerHTML=taxiHtml(v);
-    chargerEquipageTaxi();
-    const d=document.getElementById('checklistTaxiDetail');
-    if(d) d.classList.add('show');
-    if(typeof window.showPage==='function') window.showPage('checklistPage');
-    setTimeout(function(){ initSignatureTaxi(); }, 60);
+    if(!box){ console.error('SaniStock TAXI : zone checklistContent introuvable'); return false; }
+    try {
+      if(sub) sub.textContent='TAXI — contrôle du véhicule';
+      box.innerHTML=taxiHtml(String(v||''));
+      const d=document.getElementById('checklistTaxiDetail');
+      if(d) d.classList.add('show');
+      // Afficher la page avant les chargements secondaires (équipage/signature).
+      if(typeof window.showPage==='function') window.showPage('checklistPage');
+      try { chargerEquipageTaxi(); } catch(err) { console.warn('Chargement équipage TAXI indisponible',err); }
+      setTimeout(function(){ try { initSignatureTaxi(); } catch(err) { console.warn('Initialisation signature TAXI indisponible',err); } }, 60);
+      return true;
+    } catch(err) {
+      console.error('Ouverture check-list TAXI impossible',err);
+      alert('Impossible d’ouvrir la check-list TAXI. Consultez la console ou rechargez SaniStock.');
+      return false;
+    }
   };
   window.ouvrirChecklistVehiculeFixe = function(v,categorieForce){
     if(String(categorieForce||categorieChecklistDuVehicule(v)).toUpperCase()==='TAXIS'){
@@ -14943,46 +14951,43 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerFenetr
   'use strict';
   var previous=window.ouvrirChecklistVehiculeFixe;
   function normaliser(v){return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();}
-  function estVehiculeTaxi(v, categorieForce){
-    var cat=String(categorieForce||'').trim().toUpperCase();
-    if(cat==='TAXI' || cat==='TAXIS' || /\bTAXI\b/i.test(String(v||''))) return true;
+  function estTaxi(v, categorie){
+    var c=String(categorie||'').trim().toUpperCase();
+    if(c==='TAXI'||c==='TAXIS'||/\bTAXI\b/i.test(String(v||''))) return true;
+    try{
+      var data=typeof window.getChecklistVehiculesData==='function' ? window.getChecklistVehiculesData() : {};
+      var liste=Array.isArray(data.TAXIS)?data.TAXIS:(Array.isArray(data.TAXI)?data.TAXI:[]);
+      if(liste.some(function(x){return normaliser(x)===normaliser(v);})) return true;
+    }catch(err){ console.warn('Lecture catégorie TAXI impossible',err); }
     try{
       if(typeof window.categorieChecklistDuVehicule==='function'){
-        var c=String(window.categorieChecklistDuVehicule(v)||'').trim().toUpperCase();
-        if(c==='TAXI' || c==='TAXIS') return true;
+        c=String(window.categorieChecklistDuVehicule(v)||'').trim().toUpperCase();
+        if(c==='TAXI'||c==='TAXIS') return true;
       }
-    }catch(e){}
-    try{
-      if(typeof window.getChecklistVehiculesData==='function'){
-        var data=window.getChecklistVehiculesData()||{};
-        var taxis=Array.isArray(data.TAXIS)?data.TAXIS:(Array.isArray(data.TAXI)?data.TAXI:[]);
-        if(taxis.some(function(x){return normaliser(x)===normaliser(v);})) return true;
-      }
-    }catch(e){}
+    }catch(err){}
     return false;
   }
-  window.ouvrirChecklistVehiculeFixe=function(v,categorieForce){
-    if(estVehiculeTaxi(v,categorieForce)){
-      if(typeof window.afficherChecklistTaxi==='function'){
-        window.afficherChecklistTaxi(v);
-        return;
-      }
-      alert('La fiche de check-list TAXI est indisponible. Rechargez SaniStock.');
+  function ouvrirTaxi(v){
+    if(typeof window.afficherChecklistTaxi!=='function'){
+      alert('La fiche TAXI est introuvable dans cette version de SaniStock.');
       return;
     }
+    window.afficherChecklistTaxi(String(v||''));
+  }
+  window.ouvrirChecklistVehiculeFixe=function(v,categorieForce){
+    if(estTaxi(v,categorieForce)){ ouvrirTaxi(v); return; }
     if(typeof previous==='function') return previous.apply(this,arguments);
   };
-  // Sécurise aussi le clic sur un véhicule de la rubrique TAXIS, même si son libellé
-  // ne contient pas le mot « taxi » : la catégorie portée par la ligne fait foi.
+  // Le clic sur un véhicule de la rubrique TAXIS est prioritaire sur les anciens gestionnaires.
   document.addEventListener('click',function(e){
     var el=e.target && e.target.closest ? e.target.closest('[data-check-veh]') : null;
     if(!el) return;
     var wrap=el.closest('[data-monthly-category]');
     var cat=wrap ? String(wrap.getAttribute('data-monthly-category')||'').trim().toUpperCase() : '';
-    if(cat==='TAXI' || cat==='TAXIS'){
+    if(estTaxi(el.getAttribute('data-check-veh')||'',cat)){
       e.preventDefault();
       e.stopImmediatePropagation();
-      window.afficherChecklistTaxi(el.getAttribute('data-check-veh')||'');
+      ouvrirTaxi(el.getAttribute('data-check-veh')||'');
     }
   },true);
 })();
