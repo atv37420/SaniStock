@@ -4789,6 +4789,8 @@ __SANI_PDFJS_SCRIPT_TAG__
 })();
 <\/script>
 
+
+
 </body></html>`;
         function afficherLecteurHtml_(html){
           fenetre.document.open();
@@ -12902,11 +12904,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     }catch(e){}
     return '';
   }
-  window.ouvrirChecklistVehiculeFixe = function(v,categorieForce){
-    if(String(categorieForce||categorieChecklistDuVehicule(v)).toUpperCase()!=='TAXIS'){
-      alert('Ce véhicule n’est pas affecté à une check-list TAXI. Vérifiez son affectation dans Paramètres → CHECK-LIST.');
-      return;
-    }
+  window.afficherChecklistTaxi = function(v){
     const box=document.getElementById('checklistContent');
     const sub=document.getElementById('checklistSubtitle');
     if(!box) return;
@@ -12915,7 +12913,15 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
     chargerEquipageTaxi();
     const d=document.getElementById('checklistTaxiDetail');
     if(d) d.classList.add('show');
+    if(typeof window.showPage==='function') window.showPage('checklistPage');
     setTimeout(function(){ initSignatureTaxi(); }, 60);
+  };
+  window.ouvrirChecklistVehiculeFixe = function(v,categorieForce){
+    if(String(categorieForce||categorieChecklistDuVehicule(v)).toUpperCase()==='TAXIS'){
+      window.afficherChecklistTaxi(v);
+      return;
+    }
+    alert('Ce véhicule n’est pas affecté à une check-list TAXI. Vérifiez son affectation dans Paramètres → CHECK-LIST.');
   };
 
   window.fermerChecklistTaxi=function(){
@@ -13146,46 +13152,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
       '.matRow{display:grid;grid-template-columns:1fr 18mm 18mm 18mm 25mm;align-items:center;min-height:7mm;padding:1mm 0}.matRow.alt{background:#ececec}.matName{padding:0 2.5mm}.matQty,.matState,.matMissing{text-align:center}.matMissing{text-decoration:underline dotted;text-underline-offset:2px}'+
       '.bottomTitle{background:#d9d9d9;border:1.3px solid #111;color:#52739a;text-decoration:underline;text-align:center;font-weight:800;padding:2.3mm}.obsBox{height:65mm;border:1.3px solid #111;padding:3mm;white-space:pre-wrap}.signBox{height:48mm;border:1.3px solid #111;padding:3mm;position:relative}.signBox img{display:block;max-width:75%;max-height:31mm;margin:2mm auto 0}.signName{font-weight:800}'+
       '.meta{font-size:7.5pt;color:#526777;margin-top:2.5mm}'+
-      '</style>
-<style id="sanistock-gestion-draps-css">
-#drapsStockPanel{margin:12px 0 18px;padding:15px;background:#fff;border:1px solid #d9e8f4;border-radius:20px;box-shadow:0 7px 20px rgba(4,35,73,.10);color:#042349}
-.drapsStockHead{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.drapsStockHead h2{font-size:20px;margin:0 0 5px;color:#0757a0}.drapsStockHead p{font-size:11px;line-height:1.4;color:#637d92;margin:0}.drapsStockTag{background:#e7f2ff;color:#0757a0;padding:6px 9px;border-radius:999px;font-size:9px;font-weight:900;letter-spacing:.5px}
-.drapsStats{display:grid;grid-template-columns:1.35fr .85fr;gap:8px;margin:14px 0 10px}.drapsStat{border-radius:14px;padding:12px 10px;display:flex;flex-direction:column;gap:4px;min-width:0}.drapsStat span{font-size:10px;font-weight:800}.drapsStat strong{font-size:31px;line-height:1.1}.drapsStat strong small{font-size:18px}.drapsStat>small{font-size:10px}.drapsStatBlue{background:#eaf4ff;color:#123f69}.drapsStatGreen{background:#eaf8ef;color:#177345;text-align:center;align-items:center;justify-content:center}.drapsProgress{height:7px;background:#d4e4f3;border-radius:99px;overflow:hidden;margin-top:5px}.drapsProgress i{display:block;height:100%;width:0;background:#0878d1;border-radius:99px;transition:width .2s}
-.drapsAddBtn{width:100%;border:0;border-radius:13px;padding:14px 10px;background:linear-gradient(100deg,#0877d1,#0757a0);color:#fff;font-weight:900;font-size:14px;cursor:pointer}.drapsQuickBtns{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:8px 0 14px}.drapsQuickBtns button{border:1px solid #d7e4ef;border-radius:10px;background:#f8fbfe;color:#123f69;padding:10px 3px;font-size:11px;font-weight:900;cursor:pointer}.drapsQuickBtns .drapsResetBtn{font-size:10px;color:#6b7280}.drapsQuickBtnsNine{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0 16px}.drapsQuickBtnsNine button{font-size:14px;padding:12px 6px}.drapsQuickBtnsNine .drapsResetBtn{grid-column:1 / -1;font-size:12px} .drapsStatsSingle{grid-template-columns:minmax(0,1fr) minmax(105px,.72fr);align-items:stretch}.drapsRuleCard{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:6px;background:#fff;border:2px solid #b8d7ef;border-radius:14px;padding:10px 8px;color:#123f69;box-shadow:0 3px 10px rgba(7,87,160,.06)}.drapsRuleCard strong{font-size:26px;line-height:1}.drapsRuleCard span{font-size:11px;line-height:1.3;font-weight:800}.drapsRuleCard small{font-size:10px;color:#637d92;line-height:1.3}@media(max-width:380px){.drapsStatsSingle{grid-template-columns:minmax(0,1fr) 105px}.drapsRuleCard{padding:8px 5px}.drapsRuleCard strong{font-size:22px}}.drapsHistoryHead{display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px solid #e8eff5;padding-top:12px;font-size:12px}.drapsHistoryHead button{border:0;background:transparent;color:#0872c4;font-weight:900;font-size:11px}.drapsHistory{margin-top:8px;max-height:180px;overflow:auto}.drapsHistoryRow{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:9px 7px;border-radius:9px;background:#f5f9fc;margin-top:5px;font-size:10px}.drapsHistoryRow strong{color:#0757a0}.drapsHistoryEmpty{text-align:center;color:#8496a5;font-size:11px;padding:12px 0}.drapsLocalNotice{font-size:9px;color:#7a8d9d;margin:10px 0 0;text-align:center}
-.drapsConfirmOverlay{position:fixed;inset:0;z-index:1000000;background:rgba(0,25,53,.65);display:flex;align-items:center;justify-content:center;padding:20px}.drapsConfirmCard{width:min(100%,360px);background:#fff;border-radius:24px;padding:24px 20px;text-align:center;box-shadow:0 20px 60px #001d3a55}.drapsConfirmCheck{width:62px;height:62px;border-radius:50%;background:#1fa84f;color:#fff;display:grid;place-items:center;font-size:36px;font-weight:900;margin:0 auto 10px}.drapsConfirmCard h3{font-size:24px;color:#123f69;margin:6px 0}.drapsConfirmCard p{font-size:13px;line-height:1.45;color:#526c83}.drapsConfirmCard button{width:100%;border:0;border-radius:12px;padding:13px;background:#0757a0;color:#fff;font-weight:900;margin-top:8px}
-@media(max-width:380px){.drapsStats{grid-template-columns:1fr 1fr}.drapsStat strong{font-size:27px}.drapsStockHead h2{font-size:18px}}
-</style>
-<style id="sanistock-inner-stock-tabs">
-/* Onglets Stock alignés sur le style des autres catégories SaniStock */
-.stockInnerTabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 14px;padding:0;background:transparent;border-radius:0}
-.stockInnerTab{border:0;border-radius:12px;padding:12px 8px;min-height:44px;background:#dce7ef;color:#042349;font-size:12px;font-weight:900;line-height:1.25;cursor:pointer}
-.stockInnerTab.active{background:#0758a5;color:#fff;box-shadow:none}
-.stockInnerTab:focus-visible{outline:2px solid #0758a5;outline-offset:2px}
-.stockInnerPane{display:none;animation:stockPaneIn .18s ease-out}
-.stockInnerPane.active{display:block}
-.stockInnerPane[hidden]{display:none!important}
-.stockPaneIntro{display:flex;flex-direction:column;gap:5px;background:#fff;border:1px solid #d9e8f4;border-radius:16px;padding:16px;margin:0 0 14px;color:#042349}
-.stockPaneIntro strong{font-size:17px}.stockPaneIntro span{font-size:12px;color:#66839a}
-#stockInnerPane-sortie>.stockAction{width:100%;min-height:76px;padding:22px 16px;border-radius:18px;font-size:16px;font-weight:900;box-shadow:0 7px 18px rgba(4,35,73,.18)}
-@keyframes stockPaneIn{from{opacity:.6;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}
-@media(max-width:360px){.stockInnerTab{font-size:10px;padding:10px 3px}}
-</style>
-<style id="sanistock-inner-stock-tabs">
-/* Onglets Stock alignés sur le style des autres catégories SaniStock */
-.stockInnerTabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 14px;padding:0;background:transparent;border-radius:0}
-.stockInnerTab{border:0;border-radius:12px;padding:12px 8px;min-height:44px;background:#dce7ef;color:#042349;font-size:12px;font-weight:900;line-height:1.25;cursor:pointer}
-.stockInnerTab.active{background:#0758a5;color:#fff;box-shadow:none}
-.stockInnerTab:focus-visible{outline:2px solid #0758a5;outline-offset:2px}
-.stockInnerPane{display:none;animation:stockPaneIn .18s ease-out}
-.stockInnerPane.active{display:block}
-.stockInnerPane[hidden]{display:none!important}
-.stockPaneIntro{display:flex;flex-direction:column;gap:5px;background:#fff;border:1px solid #d9e8f4;border-radius:16px;padding:16px;margin:0 0 14px;color:#042349}
-.stockPaneIntro strong{font-size:17px}.stockPaneIntro span{font-size:12px;color:#66839a}
-#stockInnerPane-sortie>.stockAction{width:100%;min-height:76px;padding:22px 16px;border-radius:18px;font-size:16px;font-weight:900;box-shadow:0 7px 18px rgba(4,35,73,.18)}
-@keyframes stockPaneIn{from{opacity:.6;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}
-@media(max-width:360px){.stockInnerTab{font-size:10px;padding:10px 3px}}
-</style>
-</head><body>'+
+      '</style></head><body>'+
       '<div class="page">'+
         '<div class="title">FICHE DE CONTRÔLE ET D’ENTRETIEN MENSUEL DES TAXIS</div>'+
         '<div class="sectionTitle">INFORMATIONS GENERALES</div>'+
@@ -13217,74 +13184,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
           (sig&&sig.indexOf('data:image/')===0?'<img src="'+sig+'" alt="Signature">':'')+
         '</div>'+
         '<div class="meta">Véhicule : '+taxiPdfEscape(vehicle)+'</div>'+
-      '</div>
-<style id="sanistock-draps-style-vehicule">
-/* Gestion des draps : même identité visuelle que les cartes de la page Véhicule */
-.sanistock-draps-dialog{background:#edf5fa!important;padding:18px!important;border-radius:28px!important;color:#042349!important}
-.sanistock-draps-dialog-head{justify-content:center!important;position:relative!important;padding:8px 48px 18px!important;text-align:center!important}
-.sanistock-draps-dialog-head h2{font-size:clamp(22px,5vw,30px)!important;color:#042349!important;font-weight:900!important}
-.sanistock-draps-close{position:absolute!important;right:0!important;top:0!important;background:#fff!important;box-shadow:0 5px 16px rgba(10,59,96,.12)!important}
-.sanistock-draps-dialog #drapsStockPanel{margin:0!important;padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0!important}
-.sanistock-draps-dialog .drapsStockHead{display:block!important;text-align:center!important;background:transparent!important;padding:0 8px 16px!important}
-.sanistock-draps-dialog .drapsStockHead h2{font-size:17px!important;font-weight:900!important;color:#042349!important;margin:0 0 6px!important}
-.sanistock-draps-dialog .drapsStockHead p{font-size:13px!important;line-height:1.45!important;color:#64748b!important;max-width:440px!important;margin:0 auto!important}
-.sanistock-draps-dialog .drapsStockTag{display:none!important}
-.sanistock-draps-dialog .drapsStats{grid-template-columns:1fr 1fr!important;gap:12px!important;margin:0 0 14px!important}
-.sanistock-draps-dialog .drapsStat,.sanistock-draps-dialog .drapsRuleCard{min-height:138px!important;border:0!important;border-radius:22px!important;background:#fff!important;color:#042349!important;box-shadow:0 8px 24px rgba(20,60,100,.10)!important;padding:18px 12px!important;display:flex!important;align-items:center!important;justify-content:center!important;text-align:center!important}
-.sanistock-draps-dialog .drapsStat span{font-size:13px!important;color:#64748b!important}
-.sanistock-draps-dialog .drapsStat strong{font-size:42px!important;color:#042349!important;margin:4px 0!important}
-.sanistock-draps-dialog .drapsStat strong small{font-size:23px!important;color:#64748b!important}
-.sanistock-draps-dialog .drapsProgress{width:90%!important;height:9px!important;background:#e5edf4!important;margin-top:8px!important}
-.sanistock-draps-dialog .drapsProgress i{background:#0758a5!important}
-.sanistock-draps-dialog .drapsRuleCard strong{font-size:29px!important;color:#0758a5!important}
-.sanistock-draps-dialog .drapsRuleCard span{font-size:12px!important;color:#042349!important}
-.sanistock-draps-dialog .drapsRuleCard small{font-size:11px!important;color:#64748b!important}
-.sanistock-draps-dialog .drapsQuickBtnsNine{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important;margin:0 0 16px!important}
-.sanistock-draps-dialog .drapsQuickBtnsNine button{min-height:76px!important;border:0!important;border-radius:20px!important;background:#fff!important;color:#0758a5!important;box-shadow:0 7px 20px rgba(20,60,100,.10)!important;font-size:25px!important;font-weight:900!important}
-.sanistock-draps-dialog .drapsQuickBtnsNine button:active{transform:scale(.97)}
-.sanistock-draps-dialog .drapsQuickBtnsNine .drapsResetBtn{grid-column:1/-1!important;min-height:52px!important;font-size:13px!important;color:#b42332!important}
-.sanistock-draps-dialog .drapsHistoryHead{background:#fff!important;border:0!important;border-radius:20px!important;padding:16px!important;box-shadow:0 7px 20px rgba(20,60,100,.08)!important;font-size:14px!important}
-.sanistock-draps-dialog .drapsHistoryHead button{font-size:12px!important}
-.sanistock-draps-dialog .drapsHistory{background:#fff!important;border-radius:18px!important;padding:6px 12px 12px!important;box-shadow:0 7px 20px rgba(20,60,100,.08)!important}
-.sanistock-draps-dialog .drapsHistoryRow{background:#edf5fa!important;border-radius:12px!important;font-size:11px!important;padding:11px 10px!important}
-.sanistock-draps-dialog .drapsHistoryEmpty{font-size:12px!important}
-.sanistock-draps-dialog .drapsLocalNotice{font-size:11px!important;color:#64748b!important}
-@media(max-width:420px){
- .sanistock-draps-dialog{padding:12px!important}
- .sanistock-draps-dialog-head{padding-bottom:14px!important}
- .sanistock-draps-dialog .drapsStats{gap:8px!important}
- .sanistock-draps-dialog .drapsStat,.sanistock-draps-dialog .drapsRuleCard{min-height:124px!important;padding:12px 7px!important;border-radius:19px!important}
- .sanistock-draps-dialog .drapsStat strong{font-size:36px!important}
- .sanistock-draps-dialog .drapsQuickBtnsNine{gap:8px!important}
- .sanistock-draps-dialog .drapsQuickBtnsNine button{min-height:66px!important;border-radius:17px!important;font-size:22px!important}
-}
-</style>
-
-
-<style id="sanistock-draps-final-polish">
-.sanistock-draps-dialog{background:#edf5fa!important;color:#042349!important}
-.sanistock-draps-dialog .drapsStats{grid-template-columns:1fr!important;gap:12px!important}
-.sanistock-draps-dialog .drapsStat,.sanistock-draps-dialog .drapsRuleCard{width:100%!important;min-height:112px!important;border-radius:22px!important}
-.sanistock-draps-dialog .drapsStat{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;align-items:center!important;text-align:left!important;gap:5px 12px!important;padding:18px 20px!important}
-.sanistock-draps-dialog .drapsStat span{font-size:14px!important;line-height:1.3!important}
-.sanistock-draps-dialog .drapsStat strong{font-size:46px!important;white-space:nowrap!important;margin:0!important}
-.sanistock-draps-dialog .drapsProgress{grid-column:1/-1!important;width:100%!important;margin-top:5px!important}
-.sanistock-draps-dialog .drapsRuleCard{display:grid!important;grid-template-columns:auto 1fr!important;column-gap:14px!important;row-gap:4px!important;text-align:left!important;padding:16px 20px!important}
-.sanistock-draps-dialog .drapsRuleCard strong{grid-row:1/3!important;font-size:30px!important}
-.sanistock-draps-dialog .drapsRuleCard span,.sanistock-draps-dialog .drapsRuleCard small{font-size:12px!important}
-.sanistock-draps-dialog .drapsQuickBtnsNine{grid-template-columns:repeat(3,minmax(0,1fr))!important}
-.sanistock-draps-dialog .drapsHistoryHead{display:flex!important;flex-wrap:wrap!important}
-.sanistock-draps-dialog .drapsHistoryRow{display:flex!important;flex-wrap:wrap!important;align-items:center!important}
-.sanistock-draps-dialog .drapsHistoryRow span{min-width:0!important;overflow-wrap:anywhere!important}
-@media(max-width:420px){
- .sanistock-draps-dialog .drapsStat{grid-template-columns:1fr auto!important;padding:15px!important}
- .sanistock-draps-dialog .drapsStat strong{font-size:40px!important}
- .sanistock-draps-dialog .drapsRuleCard{padding:14px 16px!important}
- .sanistock-draps-dialog .drapsQuickBtnsNine button{min-height:64px!important}
-}
-</style>
-
-</body></html>';
+      '</div></body></html>';
   }
 
 
@@ -14931,20 +14831,17 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerFenetr
 }
 </style>
 
-<!-- SaniStock : raccordement final de la check-list TAXI, sans toucher aux autres modules -->
-<script id="sanistock-taxi-routing-final">
+
+<script id="sanistock-taxi-final-routing">
 (function(){
-  var previousOpen = window.ouvrirChecklistVehiculeFixe;
-  if (typeof previousOpen !== 'function') return;
-  window.ouvrirChecklistVehiculeFixe = function(vehicle, category){
-    var name = String(vehicle || '').trim();
-    var cat = String(category || '').trim().toUpperCase();
-    var isTaxi = cat === 'TAXIS' || /\bTAXI\b/i.test(name);
-    if (isTaxi) {
-      // Force explicitement la catégorie TAXIS pour atteindre la fiche dédiée.
-      return previousOpen.call(this, name, 'TAXIS');
+  var previous=window.ouvrirChecklistVehiculeFixe;
+  window.ouvrirChecklistVehiculeFixe=function(v,categorieForce){
+    var cat=String(categorieForce||'').trim().toUpperCase();
+    if(cat==='TAXIS'){
+      if(typeof window.afficherChecklistTaxi==='function'){window.afficherChecklistTaxi(v);return;}
+      alert('La check-list TAXI n’a pas pu être chargée. Rechargez SaniStock.');return;
     }
-    return previousOpen.apply(this, arguments);
+    if(typeof previous==='function') return previous.apply(this,arguments);
   };
 })();
 </script>
