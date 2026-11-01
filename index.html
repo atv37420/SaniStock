@@ -2804,12 +2804,6 @@ button.settingsAction.secondary:hover,
     <div class="drapsStat drapsStatBlue"><span>Draps dans le sac actuel</span><strong><b id="drapsCount">0</b><small> / 10</small></strong><div class="drapsProgress"><i id="drapsProgressBar"></i></div></div>
     <span id="drapsBags" hidden>0</span>
   </div>
-  <div class="drapsBagInfoCard" aria-label="Un sac peut contenir dix draps sales maximum">
-    <div class="drapsBagIllustration" aria-hidden="true">🧺</div>
-    <div class="drapsBagNumber"><strong>1</strong><b>SAC</b></div>
-    <div class="drapsBagDivider" aria-hidden="true"></div>
-    <div class="drapsBagText"><strong>10 DRAPS SALES MAX.</strong><span>À 10, le compteur revient à zéro.</span></div>
-  </div>
   <div class="drapsAddPanel">
     <h3><span class="drapsAddIcon">＋</span> Ajouter des draps sales</h3>
     <div class="drapsQuickBtns drapsQuickBtnsNine drapsQuantityPicker">
@@ -2854,42 +2848,6 @@ document.addEventListener('DOMContentLoaded', function(){
 .sanistock-draps-close{flex:0 0 42px;width:42px;height:42px;border:0;border-radius:50%;background:#e5f0f6;color:#042349;font-size:22px;font-weight:800;cursor:pointer}
 .sanistock-draps-dialog #drapsStockPanel{margin:0!important;}
 @media(max-width:520px){.sanistock-draps-overlay{padding:10px}.sanistock-draps-dialog{padding:10px;border-radius:24px;max-height:90dvh}}
-</style>
-
-<style id="sanistock-maquette-draps-identique">
-/* Reproduction du visuel de référence Suivi des draps */
-.sanistock-draps-dialog{width:min(760px,100%)!important;max-height:92dvh!important;padding:0!important;overflow:auto!important;background:linear-gradient(180deg,#eaf6ff 0%,#dff1ff 100%)!important;border:2px solid #1687e8!important;border-radius:30px!important;box-shadow:0 22px 70px rgba(0,0,0,.28)!important}
-.sanistock-draps-dialog-head{position:sticky!important;top:0!important;z-index:3!important;min-height:100px!important;padding:18px 22px!important;background:linear-gradient(115deg,#0877d2 0%,#06366c 100%)!important;border-radius:26px 26px 0 0!important;color:#fff!important}
-.sanistock-draps-dialog-head h2{font-size:clamp(23px,5vw,34px)!important;color:#fff!important;font-weight:950!important}
-.sanistock-draps-close{width:48px!important;height:48px!important;flex-basis:48px!important;background:#fff!important;color:#07325d!important;font-size:29px!important}
-.sanistock-draps-dialog #sanistockDrapsModalContent{padding:0 18px 20px!important}
-.sanistock-draps-dialog #drapsStockPanel{display:flex!important;flex-direction:column!important;gap:18px!important;background:transparent!important}
-.sanistock-draps-dialog .drapsInfoBanner{min-height:82px!important;padding:16px 18px!important;border-radius:24px!important;background:linear-gradient(110deg,#e4f3ff,#d4eaff)!important;box-shadow:none!important}
-.sanistock-draps-dialog .drapsInfoBanner p{font-size:clamp(14px,2.3vw,17px)!important;line-height:1.4!important}
-.sanistock-draps-dialog .drapsStat{min-height:150px!important;padding:20px 26px!important;border-radius:30px!important;box-shadow:0 10px 22px rgba(20,67,108,.13)!important}
-.sanistock-draps-dialog .drapsStat span{font-size:clamp(16px,2.7vw,22px)!important;color:#14395f!important}
-.sanistock-draps-dialog .drapsStat strong{font-size:clamp(48px,8vw,66px)!important;padding:5px 22px!important;border-radius:28px!important;background:#edf3f8!important;box-shadow:inset 0 0 0 2px #d8e4ee,0 5px 10px rgba(20,50,80,.12)!important}
-.sanistock-draps-dialog .drapsProgress{height:12px!important;background:#c4d8e9!important}
-.sanistock-draps-dialog .drapsBagInfoCard{display:grid!important;grid-template-columns:92px 92px 2px minmax(0,1fr)!important;align-items:center!important;gap:12px!important;min-height:170px!important;padding:18px 20px!important;background:#fff!important;border:1px solid #edf4fa!important;border-radius:30px!important;box-shadow:0 10px 22px rgba(20,67,108,.13)!important;color:#082b50!important}
-.sanistock-draps-dialog .drapsBagIllustration{font-size:76px!important;line-height:1!important;text-align:center!important;filter:drop-shadow(0 5px 4px rgba(0,0,0,.12))}
-.sanistock-draps-dialog .drapsBagNumber{display:flex!important;flex-direction:column!important;align-items:center!important;color:#0875d1!important;line-height:1!important}
-.sanistock-draps-dialog .drapsBagNumber strong{font-size:58px!important;font-weight:950!important}
-.sanistock-draps-dialog .drapsBagNumber b{font-size:30px!important;font-weight:950!important}
-.sanistock-draps-dialog .drapsBagDivider{height:112px!important;background:#d5e2ee!important}
-.sanistock-draps-dialog .drapsBagText{display:flex!important;flex-direction:column!important;gap:10px!important;text-align:center!important}
-.sanistock-draps-dialog .drapsBagText strong{font-size:clamp(15px,2.8vw,21px)!important;font-weight:950!important;color:#082b50!important}
-.sanistock-draps-dialog .drapsBagText span{font-size:clamp(14px,2.5vw,19px)!important;line-height:1.4!important;color:#536f8d!important}
-.sanistock-draps-dialog .drapsAddPanel,.sanistock-draps-dialog .drapsHistoryCard{padding:20px!important;border-radius:30px!important;box-shadow:0 10px 22px rgba(20,67,108,.12)!important}
-.sanistock-draps-dialog .drapsAddPanel h3{font-size:clamp(19px,3.3vw,25px)!important;margin-bottom:16px!important}
-.sanistock-draps-dialog .drapsQuantityPicker{grid-template-columns:minmax(0,1fr) 180px!important;align-items:center!important}
-.sanistock-draps-dialog .drapsQuantityPicker label{display:none!important}
-.sanistock-draps-dialog .drapsQuantityPicker select{min-height:66px!important;border-radius:22px!important;font-size:18px!important;padding:12px 16px!important}
-.sanistock-draps-dialog .drapsQuantityPicker .drapsAddSelected{min-height:66px!important;border-radius:22px!important;font-size:19px!important}
-.sanistock-draps-dialog .drapsHistoryHead strong{font-size:clamp(16px,3vw,22px)!important}
-.sanistock-draps-dialog .drapsHistory{min-height:125px!important;display:flex!important;align-items:center!important;justify-content:center!important}
-.sanistock-draps-dialog .drapsResetBtn{min-height:78px!important;border-radius:50px!important;background:#fff!important;color:#d71920!important;font-size:clamp(19px,3vw,25px)!important;font-weight:950!important;box-shadow:0 9px 22px rgba(20,67,108,.13)!important}
-.sanistock-draps-dialog .drapsLocalNotice{padding:0 18px!important;font-size:16px!important;line-height:1.4!important;color:#174875!important}
-@media(max-width:520px){.sanistock-draps-dialog{width:100%!important;max-height:94dvh!important;border-radius:25px!important}.sanistock-draps-dialog-head{min-height:86px!important;padding:14px 16px!important}.sanistock-draps-dialog #sanistockDrapsModalContent{padding:0 12px 16px!important}.sanistock-draps-dialog #drapsStockPanel{gap:13px!important}.sanistock-draps-dialog .drapsBagInfoCard{grid-template-columns:68px 64px 2px minmax(0,1fr)!important;gap:7px!important;min-height:140px!important;padding:12px 10px!important}.sanistock-draps-dialog .drapsBagIllustration{font-size:54px!important}.sanistock-draps-dialog .drapsBagNumber strong{font-size:44px!important}.sanistock-draps-dialog .drapsBagNumber b{font-size:22px!important}.sanistock-draps-dialog .drapsBagDivider{height:90px!important}.sanistock-draps-dialog .drapsQuantityPicker{grid-template-columns:minmax(0,1fr) 118px!important;gap:8px!important}.sanistock-draps-dialog .drapsQuantityPicker select,.sanistock-draps-dialog .drapsQuantityPicker .drapsAddSelected{min-height:58px!important;font-size:15px!important;padding:8px!important}.sanistock-draps-dialog .drapsStat{min-height:125px!important;padding:16px!important}}
 </style>
 <div class="sanistock-draps-overlay" id="sanistockDrapsOverlay" aria-hidden="true">
   <div class="sanistock-draps-dialog" role="dialog" aria-modal="true" aria-labelledby="sanistockDrapsModalTitle">
@@ -6814,29 +6772,18 @@ function changerCodeAdminUI(){
   function loadNames(){
     setLoginAnimation(true,'Préparation de votre connexion','Connexion SaniStock…');
 
+    // Hors ligne : on construit immédiatement l'écran de connexion depuis
+    // les données déjà enregistrées sur le PDA. Aucun appel réseau n'est requis.
     const saved=savedCredentials();
     let cachedNames=[];
     try{cachedNames=JSON.parse(localStorage.getItem('sanistock_cached_employee_names')||'[]')}catch(e){cachedNames=[]}
     cachedNames=Array.isArray(cachedNames)?cachedNames:[];
 
-    function afficherSecours(message){
-      let noms=[];
-      try{noms=JSON.parse(localStorage.getItem('sanistock_cached_employee_names')||'[]')}catch(e){noms=[]}
-      noms=Array.isArray(noms)?noms:[];
-      nameSel.innerHTML='<option value="">Sélectionner votre nom</option>'+noms.map(function(n){return '<option value="'+escapeHtml(n)+'">'+escapeHtml(n)+'</option>'}).join('');
-      if(saved.name && saved.code){
-        afficherModeCodeSeul(saved.name,message||'Mode de secours : entrez votre mot de passe enregistré.');
-      }else if(saved.name){
-        afficherModeCodeSeul(saved.name,message||'Connexion automatique impossible. Entrez votre mot de passe.');
-      }else{
-        afficherModePremiereConnexion();
-        showError(message||(noms.length?'Liste temporairement indisponible. Réessayez dans quelques instants.':'Impossible de charger les salariés. Vérifiez la connexion Internet.'));
-      }
-    }
-
     if(!navigator.onLine){
       if(saved.name && saved.code){
         afficherModeCodeSeul(saved.name,'📵 Hors ligne : utilisez votre mot de passe enregistré sur cet appareil.');
+        // Le code est déjà mémorisé sur cet appareil : l'utilisateur peut
+        // entrer son code et être déverrouillé sans Google Apps Script.
         return;
       }
       if(cachedNames.length){
@@ -6850,39 +6797,28 @@ function changerCodeAdminUI(){
       return;
     }
 
-    if(!(window.google&&google.script&&google.script.run)){
-      afficherSecours('Service de connexion indisponible. Rechargez SaniStock ou réessayez.');
-      return;
-    }
-
-    let termine=false;
-    const delai=setTimeout(function(){
-      if(termine)return;
-      termine=true;
-      afficherSecours('Le serveur met trop de temps à répondre. Vous pouvez utiliser votre connexion déjà enregistrée ou réessayer.');
-    },8000);
-
-    try{
-      google.script.run.withSuccessHandler(function(noms){
-        if(termine)return;
-        termine=true;clearTimeout(delai);
-        noms=Array.isArray(noms)?noms:[];
-        try{localStorage.setItem('sanistock_cached_employee_names',JSON.stringify(noms));}catch(e){}
-        nameSel.innerHTML='<option value="">Sélectionner votre nom</option>'+noms.map(function(n){return '<option value="'+escapeHtml(n)+'">'+escapeHtml(n)+'</option>'}).join('');
-        const identifiants=savedCredentials();
-        if(identifiants.name&&identifiants.code&&noms.includes(identifiants.name)){
-          autoConnect(identifiants.name,identifiants.code);
-        }else{
-          afficherModePremiereConnexion();
-        }
-      }).withFailureHandler(function(){
-        if(termine)return;
-        termine=true;clearTimeout(delai);
-        afficherSecours('Le chargement des salariés a échoué. Utilisez votre mot de passe déjà enregistré ou réessayez.');
-      }).getSalaries();
-    }catch(e){
-      if(!termine){termine=true;clearTimeout(delai);afficherSecours('Erreur de connexion au serveur. Réessayez dans quelques instants.');}
-    }
+    google.script.run.withSuccessHandler(function(noms){
+      noms=Array.isArray(noms)?noms:[];
+      try{localStorage.setItem('sanistock_cached_employee_names',JSON.stringify(noms));}catch(e){}
+      nameSel.innerHTML='<option value="">Sélectionner votre nom</option>'+noms.map(function(n){return '<option value="'+escapeHtml(n)+'">'+escapeHtml(n)+'</option>'}).join('');
+      const saved=savedCredentials();
+      if(saved.name&&saved.code&&noms.includes(saved.name)){
+        autoConnect(saved.name,saved.code);
+      }else{
+        afficherModePremiereConnexion();
+      }
+    }).withFailureHandler(function(){
+      let noms=[]; try{noms=JSON.parse(localStorage.getItem('sanistock_cached_employee_names')||'[]')}catch(e){noms=[]}
+      noms=Array.isArray(noms)?noms:[];
+      nameSel.innerHTML='<option value="">Sélectionner votre nom</option>'+noms.map(function(n){return '<option value="'+escapeHtml(n)+'">'+escapeHtml(n)+'</option>'}).join('');
+      const saved=savedCredentials();
+      if(saved.name){
+        afficherModeCodeSeul(saved.name,noms.length?'Mode hors ligne : entrez votre mot de passe déjà enregistré.':'Connexion automatique impossible. Entrez votre mot de passe.');
+      }else{
+        afficherModePremiereConnexion();
+        showError(noms.length?'Mode hors ligne : choisissez votre nom puis utilisez votre mot de passe.':'Aucun salarié enregistré sur cet appareil. Connectez-vous une première fois avec Internet.');
+      }
+    }).getSalaries();
   }
   btn.addEventListener('click',function(){
     // En mode code seul (hors ligne), la liste des salariés est masquée :
