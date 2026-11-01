@@ -2536,10 +2536,25 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerFenetr
 </style>
 
 
-<style id="sanistock-draps-single-counter">
-  #drapsStockPanel .drapsStatsSingle {
-    grid-template-columns: minmax(0, 1fr) !important;
-  }
+<style id="sanistock-draps-modern-counter">
+  #drapsStockPanel .drapsStockHead{margin-bottom:14px}
+  #drapsStockPanel .drapsStockHead p{font-size:12px;line-height:1.45;color:#526b80}
+  #drapsStockPanel .drapsStatsSingle{display:block!important;margin:12px 0 14px}
+  #drapsStockPanel .drapsStatBlue{position:relative;display:grid;grid-template-columns:82px minmax(0,1fr);align-items:center;column-gap:16px;row-gap:12px;padding:20px 18px;border:1px solid #c9e0f7;border-radius:26px;background:linear-gradient(135deg,#f4faff 0%,#e7f2ff 100%);box-shadow:0 5px 16px rgba(7,87,160,.09);color:#123f69}
+  #drapsStockPanel .drapsStatBlue:before{content:'🧺';display:flex;align-items:center;justify-content:center;width:76px;height:76px;border-radius:22px;background:#fff;border:1px solid #d7e8f8;font-size:43px;grid-row:1}
+  #drapsStockPanel .drapsStatBlue>span{grid-column:2;grid-row:1;font-size:12px;font-weight:800;color:#42627f}
+  #drapsStockPanel .drapsStatBlue>strong{grid-column:2;grid-row:1;margin-top:17px;font-size:clamp(48px,12vw,66px);line-height:.95;letter-spacing:-2px;color:#073d70;font-weight:950}
+  #drapsStockPanel .drapsStatBlue>strong small{font-size:.48em;color:#3975a8;letter-spacing:0}
+  #drapsStockPanel .drapsProgress{grid-column:1/-1;height:13px;margin:0;background:#cbdced;border:2px solid #fff;border-radius:99px;box-shadow:inset 0 1px 3px rgba(7,55,99,.08)}
+  #drapsStockPanel .drapsProgress i{background:linear-gradient(90deg,#36a5ec,#0757a0);border-radius:99px}
+  #drapsStockPanel .drapsPercent{grid-column:1/-1;text-align:center;font-size:13px;font-weight:900;color:#164c7d;margin-top:-5px}
+  #drapsStockPanel .drapsQuickBtnsNine{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0}
+  #drapsStockPanel .drapsQuickBtnsNine button{min-height:48px;border:1px solid #0757a0;border-radius:14px;background:linear-gradient(145deg,#1688d8,#0757a0);color:#fff;font-size:17px;font-weight:900;box-shadow:0 3px 7px rgba(7,87,160,.16)}
+  #drapsStockPanel .drapsQuickBtnsNine button:active{transform:scale(.97)}
+  #drapsStockPanel .drapsQuickBtnsNine .drapsResetBtn{grid-column:1/-1;min-height:42px;background:#fff;color:#45627c;border:1px solid #d6e4f1;box-shadow:none;font-size:12px}
+  #drapsStockPanel .drapsBagsSummary{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 15px;margin:12px 0;border:1px solid #d9e8f6;border-radius:17px;background:#fff;box-shadow:0 3px 10px rgba(7,87,160,.06);color:#123f69;font-size:13px;font-weight:800}
+  #drapsStockPanel .drapsBagsSummary strong{display:inline-flex;align-items:center;justify-content:center;min-width:42px;padding:6px 12px;border-radius:12px;background:#dff1ff;color:#0757a0;font-size:20px}
+  @media(max-width:360px){#drapsStockPanel .drapsStatBlue{grid-template-columns:62px minmax(0,1fr);gap:10px;padding:15px 12px}#drapsStockPanel .drapsStatBlue:before{width:60px;height:60px;font-size:34px}#drapsStockPanel .drapsStatBlue>strong{font-size:48px}}
 </style>
 </head>
 <body>
@@ -2949,9 +2964,9 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerFenetr
 <section id="drapsStockPanel" aria-labelledby="drapsStockTitle">
   <div class="drapsStockHead"><div><p>🧺 1 sac = 10 draps sales maximum. À 10 draps, le sac est comptabilisé automatiquement et le compteur revient à zéro.</p></div><span class="drapsStockTag">SUIVI</span></div>
   <div class="drapsStats drapsStatsSingle">
-    <div class="drapsStat drapsStatBlue"><span>Draps dans le sac actuel</span><strong><b id="drapsCount">0</b><small> / 10</small></strong><div class="drapsProgress"><i id="drapsProgressBar"></i></div></div>
-    <span id="drapsBags" hidden>0</span>
+    <div class="drapsStat drapsStatBlue"><span>Draps dans le sac actuel</span><strong><b id="drapsCount">0</b><small> / 10</small></strong><div class="drapsProgress"><i id="drapsProgressBar"></i></div><div class="drapsPercent" id="drapsPercent">0 %</div></div>
   </div>
+  <div class="drapsBagsSummary"><span>🧺 Sacs changés</span><strong id="drapsBags">0</strong></div>
   <div class="drapsQuickBtns drapsQuickBtnsNine">
     <button type="button" onclick="sanistockAjouterDraps(1)">+1</button>
     <button type="button" onclick="sanistockAjouterDraps(2)">+2</button>
@@ -3079,7 +3094,7 @@ document.addEventListener('DOMContentLoaded', function(){
     const d=etatDraps;
     const c=document.getElementById('drapsCount'),b=document.getElementById('drapsBags'),bar=document.getElementById('drapsProgressBar'),h=document.getElementById('drapsHistory');
     if(!c||!b||!bar||!h)return;
-    c.textContent=Number(d.count)||0;b.textContent=Number(d.bags)||0;bar.style.width=Math.min(100,(Number(d.count)||0)*10)+'%';
+    c.textContent=Number(d.count)||0;b.textContent=Number(d.bags)||0;const pourcentage=Math.min(100,(Number(d.count)||0)*10);bar.style.width=pourcentage+'%';const pct=document.getElementById('drapsPercent');if(pct)pct.textContent=pourcentage+' %';
     const rows=(d.history||[]).slice(0,5);
     h.innerHTML=rows.length?rows.map(x=>'<div class="drapsHistoryRow"><span>🧺 '+escapeHtmlDraps(x.label)+(x.salarie?' · '+escapeHtmlDraps(x.salarie):'')+'</span><strong>'+escapeHtmlDraps(x.time)+'</strong></div>').join(''):'<p class="drapsHistoryEmpty">Aucun changement enregistré.</p>';
   }
