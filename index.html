@@ -15175,6 +15175,41 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerFenetr
   flex:0 0 100%!important; text-align:left!important;
 }
 </style>
+
+<script id="sanistock-taxi-ouverture-finale-20261101">
+(function(){
+  'use strict';
+  function norm(v){return String(v||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').trim().toUpperCase();}
+  function estTaxi(el){
+    var wrap=el&&el.closest?el.closest('[data-monthly-category]'):null;
+    var cat=norm(wrap&&wrap.getAttribute('data-monthly-category'));
+    if(cat==='TAXI'||cat==='TAXIS') return true;
+    var name=norm(el&&el.getAttribute&&el.getAttribute('data-check-veh'));
+    if(/\\bTAXI\\b/.test(name)) return true;
+    try{var data=window.getChecklistVehiculesData&&window.getChecklistVehiculesData();
+      var list=data&&(data.TAXIS||data.TAXI);
+      return Array.isArray(list)&&list.some(function(v){return norm(v)===name;});
+    }catch(e){return false;}
+  }
+  document.addEventListener('click',function(e){
+    var veh=e.target&&e.target.closest&&e.target.closest('#checklistContent [data-check-veh]');
+    if(!veh||!estTaxi(veh)) return;
+    e.preventDefault(); e.stopPropagation(); if(e.stopImmediatePropagation)e.stopImmediatePropagation();
+    var nom=veh.getAttribute('data-check-veh')||'';
+    if(typeof window.afficherChecklistTaxi==='function') window.afficherChecklistTaxi(nom);
+    else alert('La fiche TAXI ne se charge pas. Rechargez SaniStock.');
+  },true);
+  var previous=window.ouvrirChecklistVehiculeFixe;
+  window.ouvrirChecklistVehiculeFixe=function(v,categorieForce){
+    var cat=norm(categorieForce), nom=norm(v);
+    if(cat==='TAXI'||cat==='TAXIS'||/\\bTAXI\\b/.test(nom)){
+      if(typeof window.afficherChecklistTaxi==='function') return window.afficherChecklistTaxi(v);
+      alert('La fiche TAXI ne se charge pas. Rechargez SaniStock.'); return;
+    }
+    if(typeof previous==='function') return previous.apply(this,arguments);
+  };
+})();
+</script>
 </body>
 </html>
 <!-- SaniStock 1.1.114 : réactions multiples sur les publications. -->
