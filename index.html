@@ -2600,13 +2600,13 @@ button.settingsAction.secondary:hover,
 <button aria-label="Gestion" class="homeButton4 stock4" onclick="showPage('stockPage')" type="button"><span class="homeButtonIcon">📦</span><span class="homeButtonTitle">GESTION</span><span class="homeButtonDesc">Entrées, sorties et draps</span></button>
 <button aria-label="Véhicule" class="homeButton4 vehicle4" onclick="showPage('vehiclePage')" type="button"><span class="homeButtonIcon">🚑</span><span class="homeButtonTitle">VÉHICULE</span><span class="homeButtonDesc">Désinfection et check-list</span></button>
 <button aria-label="Mémo" class="homeButton4 memo4" onclick="showPage('memoPage')" type="button"><span class="homeButtonIcon">📚</span><span class="homeButtonTitle">MÉMO</span><span class="homeButtonDesc">Documents, médicaments et infos utiles</span></button>
+<button aria-label="Paramètres" class="homeButton4 settings4" onclick="ouvrirParametres()" type="button"><span class="homeButtonIcon">⚙️</span><span class="homeButtonTitle">PARAMÈTRES</span><span class="homeButtonDesc">Gestion de l’application</span></button>
 <button aria-label="Esprit d’équipe" class="homeButton4 team4" onclick="ouvrirEspritEquipeNotification_()" title="Esprit d’équipe" type="button">
 <span aria-hidden="true" class="homeButtonIcon">🤝</span>
 <span class="homeButtonTitle">ESPRIT D’ÉQUIPE</span>
 <span class="homeButtonDesc">Actualités et vie d’équipe</span>
 <span aria-label="Nouvelles publications ou réponses" class="sanNewsUnreadBadge" hidden="" id="sanNewsUnreadBadge">1</span>
 </button>
-<button aria-label="Paramètres" class="homeButton4 settings4" id="homeSettingsButton" onclick="ouvrirParametres()" type="button"><span class="homeButtonIcon">⚙️</span><span class="homeButtonTitle">PARAMÈTRES</span><span class="homeButtonDesc">Gestion de l’application</span></button>
 </div>
 
 <div aria-live="polite" class="penseBeteAccueil" id="penseBeteAccueil">
@@ -4523,38 +4523,6 @@ __SANI_PDFJS_SCRIPT_TAG__
  .sanistock-draps-dialog .drapsHistoryRow{font-size:12px!important}
 }
 </style>
-
-
-<style id="sanistock-team-settings-placement">
-/* Esprit d'équipe occupe désormais la place de Paramètres sur l'accueil. */
-.homeButton4.team4{grid-column:auto!important;justify-self:stretch!important;width:100%!important;max-width:none!important;aspect-ratio:1/1!important;}
-.homeButton4.settings4[hidden]{display:none!important}
-</style>
-<script id="sanistock-settings-role-access">
-(function(){
-  const AUTORISES = new Set([
-    'laurent guette',
-    'hognono lewis',
-    'lewis hognon',
-    'nathalie froger'
-  ]);
-  function normaliserNom(n){
-    return String(n||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
-  }
-  window.saniActualiserAccesParametresAccueil=function(nom){
-    const name=normaliserNom(nom || (function(){try{return localStorage.getItem('sanistock_employee_name')||'';}catch(e){return '';}})());
-    const autorise=AUTORISES.has(name);
-    const btn=document.getElementById('homeSettingsButton');
-    if(btn){btn.hidden=!autorise;btn.style.display=autorise?'':'none';}
-    const team=document.querySelector('#homePage .homeButton4.team4');
-    if(team){team.style.gridColumn='auto';team.style.width='100%';}
-    return autorise;
-  };
-  function appliquer(){window.saniActualiserAccesParametresAccueil();}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',appliquer);else appliquer();
-  window.addEventListener('storage',function(e){if(e.key==='sanistock_employee_name')appliquer();});
-})();
-</script>
 
 </body></html>`;
         function afficherLecteurHtml_(html){
@@ -6633,7 +6601,6 @@ function changerCodeAdminUI(){
   function unlock(name,activeCode){
     const sessionCode=String(activeCode||localStorage.getItem(KEY_CODE)||'').trim();
     if(name && sessionCode) window.SaniStockCurrentEmployeeSession={salarie:String(name).trim(),code:sessionCode};
-    if(typeof window.saniActualiserAccesParametresAccueil==='function') window.saniActualiserAccesParametresAccueil(name);
     overlay.classList.add('hidden');
     setTimeout(function(){afficherBienvenue(name)},900);
     const logoutBtn=document.getElementById('homeLogoutBtn');
