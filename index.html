@@ -14929,24 +14929,25 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerFenetr
 })();
 </script>
 
-<style id="sanistock-position-esprit-equipe-a-droite-memo">
-/* Ajustement visuel uniquement : placer le carré Esprit d’équipe à droite de MÉMO.
-   Aucun script ni mécanisme de chargement/connexion n’est modifié. */
+<style id="sanistock-position-esprit-equipe-place-parametres">
+/* Ajustement visuel uniquement : Esprit d’équipe prend la place du bouton Paramètres.
+   Aucun script, chargement salarié ou mécanisme de connexion n’est modifié. */
 .homeButtons4 > .homeButton4.team4 {
-  grid-column: 2 !important;
-  grid-row: 2 !important;
-  justify-self: start !important;
-  align-self: start !important;
-  width: min(100%, 104px) !important;
+  grid-column: 4 !important;
+  grid-row: 1 !important;
+  justify-self: stretch !important;
+  align-self: stretch !important;
+  width: 100% !important;
+  max-width: none !important;
   height: auto !important;
   aspect-ratio: 1 / 1 !important;
   min-height: 0 !important;
 }
 @media (max-width:700px) {
   .homeButtons4 > .homeButton4.team4 {
-    grid-column: 2 !important;
-    grid-row: 2 !important;
-    width: min(100%, 104px) !important;
+    grid-column: 4 !important;
+    grid-row: 1 !important;
+    width: 100% !important;
     aspect-ratio: 1 / 1 !important;
   }
 }
