@@ -202,6 +202,10 @@
     },30000);
   }
 
+  // Expose le transport JSONP utilisé par le module Gestion des draps.
+  // Le module est chargé dans un autre script et appelle window.sendJsonp.
+  window.sendJsonp = sendJsonp;
+
   async function synchroniser(){
     if(!navigator.onLine) return;
 
