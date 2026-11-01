@@ -2809,8 +2809,8 @@ button.settingsAction.secondary:hover,
 <div class="selectors">
 <div><label>SALARIÉ</label><select id="employee"><option value="">Sélectionner votre nom</option></select><button class="addColleagueBtn" hidden="" id="addColleagueBtn" onclick="toggleSecondColleague()" type="button">＋ Ajouter un collègue</button><div class="secondColleagueWrap" hidden="" id="secondColleagueWrap"><label>2ᵉ COLLÈGUE</label><select id="employee2"><option value="">Sélectionner le collègue</option></select></div></div>
 <div><label>VÉHICULE</label><select id="vehicle" onchange="adapterChecklistVehicule()"><option value="">Sélectionner un véhicule</option><option>FZ-349-AT – AMBULANCE PEUGEOT BOXER</option>
-<option>HS-219-PS – AMBULANCE RENAULT TRAFIC</option>
-<option>HA-219-PS – AMBULANCE RENAULT TRAFIC</option><option>AUDI A6 TAXI</option><option>HK-887-SD – FORD TOURNEO TAXI</option><option>FH-061-DT – CADDY TAXI</option><option>GH805GV – IONIQ 5 TAXI</option><option>GH-575-RH – CADDY VSL</option><option>DR-607-TE – CADDY BLANC TAXI</option><option>FC-295-XP – SKODA SUPERB VSL</option><option>FF-458-QT – SKODA BREAK VSL</option><option>EW-353-WR – SKODA BREAK VSL</option><option>FF-334-SL – SKODA KODIAQ VSL</option><option>EN-114-BK – SKODA SUPERB VSL</option></select></div>
+
+<option>AUDI A6 TAXI</option><option>HK-887-SD – FORD TOURNEO TAXI</option><option>FH-061-DT – CADDY TAXI</option><option>GH805GV – IONIQ 5 TAXI</option><option>GH-575-RH – CADDY VSL</option><option>DR-607-TE – CADDY BLANC TAXI</option><option>FC-295-XP – SKODA SUPERB VSL</option><option>FF-458-QT – SKODA BREAK VSL</option><option>EW-353-WR – SKODA BREAK VSL</option><option>FF-334-SL – SKODA KODIAQ VSL</option><option>EN-114-BK – SKODA SUPERB VSL</option></select></div>
 </div>
 <div class="disCard">
 <div class="progressHead"><b>ÉTAPES DE DÉSINFECTION</b><strong id="pct">0%</strong></div>
@@ -11731,7 +11731,7 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
 (function(){
   const KEY='sanistock_checklist_vehicules_v1';
   const DEFAULTS={
-    'AMBULANCES':['FZ-349-AT – AMBULANCE PEUGEOT BOXER','HS-219-PS – AMBULANCE RENAULT TRAFIC'],
+    'AMBULANCES':['FZ-349-AT – AMBULANCE PEUGEOT BOXER'],
     'TAXIS':['DR-951-FG – AUDI A6 TAXI','FH-061-DT – CADDY TAXI','GH-805-GV – IONIQ 5 TAXI','HK-887-SD – FORD TOURNEO TAXI','DR-607-TE – CADDY TAXI','HA-829-KW – KODIAQ'],
     'VSL':['GH-575-RH – CADDY VSL','FF-458-QT – SKODA BREAK VSL','FF-334-SL – SKODA KODIAQ VSL','EN-114-BK – SKODA SUPERB VSL','FC-295-XP – SKODA SUPERB VSL','GP-794-BQ – TIGUAN']
   };
@@ -11753,7 +11753,13 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
     try{
       var x=JSON.parse(localStorage.getItem(KEY)||'null');
       if(x&&Array.isArray(x.AMBULANCES)&&Array.isArray(x.TAXIS)&&Array.isArray(x.VSL)){
-        if(!x.AMBULANCES.some(function(v){return cleVehiculeChecklist(v)==='HS219PS';})) x.AMBULANCES.push('HS-219-PS – AMBULANCE RENAULT TRAFIC');
+        // Le Renault Trafic n'est plus proposé dans la catégorie Ambulances.
+        x.AMBULANCES=x.AMBULANCES.filter(function(v){
+          var u=String(v||'').toUpperCase();
+          return cleVehiculeChecklist(v)!=='HS219PS' && cleVehiculeChecklist(v)!=='HA219PS' && !u.includes('RENAULT TRAFIC');
+        });
+        // Le Tiguan doit toujours apparaître dans la checklist VSL.
+        if(!x.VSL.some(function(v){return cleVehiculeChecklist(v)==='GP794BQ';})) x.VSL.push('GP-794-BQ – TIGUAN');
         ['AMBULANCES','TAXIS','VSL'].forEach(function(c){
           if(!x[c].length) x[c]=clone(DEFAULTS[c]);
           x[c]=dedoublonnerListe(x[c]);
