@@ -2799,21 +2799,26 @@ button.settingsAction.secondary:hover,
 <section class="stockInnerPane" id="stockInnerPane-draps" role="tabpanel" hidden>
 <!-- Gestion des draps : ajout intégré à la rubrique Stock -->
 <section id="drapsStockPanel" aria-labelledby="drapsStockTitle">
-  <div class="drapsStockHead"><div><p>🧺 1 sac = 10 draps sales maximum. À 10 draps, le sac est comptabilisé automatiquement et le compteur revient à zéro.</p></div><span class="drapsStockTag">SUIVI</span></div>
+  <div class="drapsInfoBanner"><span class="drapsInfoIcon">i</span><p>1 sac = 10 draps sales maximum. À 10 draps, le sac est comptabilisé automatiquement et le compteur revient à zéro.</p></div>
   <div class="drapsStats drapsStatsSingle">
     <div class="drapsStat drapsStatBlue"><span>Draps dans le sac actuel</span><strong><b id="drapsCount">0</b><small> / 10</small></strong><div class="drapsProgress"><i id="drapsProgressBar"></i></div></div>
     <span id="drapsBags" hidden>0</span>
   </div>
-  <div class="drapsQuickBtns drapsQuickBtnsNine drapsQuantityPicker">
-    <label for="drapsQuantitySelect">Nombre de draps sales à ajouter</label>
-    <select id="drapsQuantitySelect" aria-label="Choisir le nombre de draps à ajouter">
-      <option value="1">1 drap</option><option value="2">2 draps</option><option value="3">3 draps</option><option value="4">4 draps</option><option value="5">5 draps</option><option value="6">6 draps</option><option value="7">7 draps</option><option value="8">8 draps</option><option value="9">9 draps</option><option value="10">10 draps</option>
-    </select>
-    <button type="button" class="drapsAddSelected" onclick="sanistockAjouterDraps(Number(document.getElementById('drapsQuantitySelect').value)||1)">Ajouter</button>
-    <button type="button" class="drapsResetBtn" onclick="sanistockConfirmerResetDraps()">Réinitialiser le compteur</button>
+  <div class="drapsAddPanel">
+    <h3><span class="drapsAddIcon">＋</span> Ajouter des draps sales</h3>
+    <div class="drapsQuickBtns drapsQuickBtnsNine drapsQuantityPicker">
+      <label for="drapsQuantitySelect">Nombre de draps</label>
+      <select id="drapsQuantitySelect" aria-label="Choisir le nombre de draps à ajouter">
+        <option value="1">1 drap</option><option value="2">2 draps</option><option value="3">3 draps</option><option value="4">4 draps</option><option value="5">5 draps</option><option value="6">6 draps</option><option value="7">7 draps</option><option value="8">8 draps</option><option value="9">9 draps</option><option value="10">10 draps</option>
+      </select>
+      <button type="button" class="drapsAddSelected" onclick="sanistockAjouterDraps(Number(document.getElementById('drapsQuantitySelect').value)||1)">＋ Ajouter</button>
+    </div>
   </div>
-  <div class="drapsHistoryHead"><strong>🕘 Historique des changements</strong><button type="button" onclick="sanistockAfficherHistoriqueDraps()">Voir tout</button></div>
-  <div id="drapsHistory" class="drapsHistory"><p class="drapsHistoryEmpty">Aucun changement enregistré.</p></div>
+  <div class="drapsHistoryCard">
+    <div class="drapsHistoryHead"><strong>🕘 Historique des changements</strong><button type="button" onclick="sanistockAfficherHistoriqueDraps()">Voir tout</button></div>
+    <div id="drapsHistory" class="drapsHistory"><p class="drapsHistoryEmpty">Aucun changement enregistré.</p></div>
+  </div>
+  <button type="button" class="drapsResetBtn" onclick="sanistockConfirmerResetDraps()">⟳ Réinitialiser le compteur</button>
   <p class="drapsLocalNotice">☁️ Suivi partagé : les compteurs et l’historique sont enregistrés dans Google Sheets.</p>
 </section>
 </section><!-- /stockInnerPane-draps -->
@@ -4463,6 +4468,59 @@ __SANI_PDFJS_SCRIPT_TAG__
  .sanistock-draps-dialog .drapsStat strong{font-size:40px!important}
  .sanistock-draps-dialog .drapsRuleCard{padding:14px 16px!important}
  .sanistock-draps-dialog .drapsQuickBtnsNine button{min-height:64px!important}
+}
+</style>
+<style id="sanistock-draps-maquette-integree">
+/* Présentation harmonisée inspirée de la maquette mobile */
+.sanistock-draps-dialog{width:min(620px,100%)!important;max-height:91dvh!important;padding:0!important;overflow:auto!important;border:1px solid #b8d8f2!important;border-radius:30px!important;background:linear-gradient(180deg,#eaf5ff 0%,#f4f9fd 100%)!important;color:#082b50!important}
+.sanistock-draps-dialog-head{position:sticky;top:0;z-index:3;min-height:82px!important;padding:16px 18px!important;background:linear-gradient(110deg,#0875d1 0%,#063d78 100%)!important;color:#fff!important;border-radius:28px 28px 0 0!important;box-shadow:0 5px 18px rgba(3,48,94,.18)!important}
+.sanistock-draps-dialog-head h2{color:#fff!important;font-size:clamp(21px,5vw,29px)!important;font-weight:900!important;letter-spacing:-.3px!important}
+.sanistock-draps-close{background:#fff!important;color:#082b50!important;width:44px!important;height:44px!important;flex-basis:44px!important;font-size:25px!important;box-shadow:0 5px 14px rgba(0,0,0,.12)!important}
+.sanistock-draps-dialog #sanistockDrapsModalContent{padding:16px!important}
+.sanistock-draps-dialog #drapsStockPanel{display:flex!important;flex-direction:column!important;gap:16px!important}
+.sanistock-draps-dialog .drapsInfoBanner{display:flex!important;align-items:center!important;gap:12px!important;padding:14px 16px!important;margin:0!important;border-radius:18px!important;background:#dceeff!important;color:#12385e!important;box-shadow:inset 0 0 0 1px rgba(38,126,202,.08)!important}
+.sanistock-draps-dialog .drapsInfoIcon{display:grid!important;place-items:center!important;flex:0 0 34px!important;width:34px!important;height:34px!important;border-radius:50%!important;background:#0875d1!important;color:white!important;font-size:21px!important;font-weight:900!important;font-style:normal!important}
+.sanistock-draps-dialog .drapsInfoBanner p{margin:0!important;font-size:14px!important;line-height:1.45!important;font-weight:650!important;text-align:left!important;color:#12385e!important}
+.sanistock-draps-dialog .drapsStats{display:block!important;margin:0!important}
+.sanistock-draps-dialog .drapsStat{min-height:142px!important;display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;align-items:center!important;gap:8px 12px!important;padding:20px 22px!important;background:#fff!important;border:1px solid #edf4fa!important;border-radius:25px!important;box-shadow:0 10px 24px rgba(21,75,119,.12)!important}
+.sanistock-draps-dialog .drapsStat span{font-size:16px!important;font-weight:750!important;color:#173c64!important;text-align:left!important}
+.sanistock-draps-dialog .drapsStat strong{font-size:54px!important;line-height:1!important;color:#062c55!important;font-weight:950!important;white-space:nowrap!important}
+.sanistock-draps-dialog .drapsStat strong small{font-size:25px!important;color:#6c8098!important}
+.sanistock-draps-dialog .drapsProgress{grid-column:1/-1!important;width:100%!important;height:11px!important;margin:7px 0 0!important;background:#e2edf6!important;border-radius:20px!important;overflow:hidden!important}
+.sanistock-draps-dialog .drapsProgress i{height:100%!important;background:linear-gradient(90deg,#1687e8,#0758a5)!important;border-radius:20px!important}
+.sanistock-draps-dialog .drapsAddPanel,.sanistock-draps-dialog .drapsHistoryCard{padding:18px!important;background:#fff!important;border-radius:24px!important;box-shadow:0 9px 22px rgba(21,75,119,.10)!important;border:1px solid #edf4fa!important}
+.sanistock-draps-dialog .drapsAddPanel h3{display:flex!important;align-items:center!important;gap:11px!important;margin:0 0 15px!important;color:#082b50!important;font-size:20px!important;font-weight:900!important}
+.sanistock-draps-dialog .drapsAddIcon{display:grid!important;place-items:center!important;width:38px!important;height:38px!important;flex:0 0 38px!important;border-radius:50%!important;background:#0875d1!important;color:#fff!important;font-size:30px!important;line-height:1!important}
+.sanistock-draps-dialog .drapsQuantityPicker{display:grid!important;grid-template-columns:minmax(0,1fr) 145px!important;gap:10px!important;margin:0!important;padding:0!important;background:transparent!important;border-radius:0!important}
+.sanistock-draps-dialog .drapsQuantityPicker label{grid-column:1/-1!important;font-size:13px!important;font-weight:800!important;color:#526d88!important}
+.sanistock-draps-dialog .drapsQuantityPicker select{width:100%!important;min-width:0!important;min-height:56px!important;padding:10px 14px!important;border:2px solid #0875d1!important;border-radius:15px!important;background:#fff!important;color:#173c64!important;font-size:16px!important;font-weight:700!important}
+.sanistock-draps-dialog .drapsQuantityPicker .drapsAddSelected{min-height:56px!important;border:0!important;border-radius:15px!important;background:linear-gradient(135deg,#087ce0,#0758a5)!important;color:#fff!important;font-size:16px!important;font-weight:900!important;box-shadow:0 6px 15px rgba(7,88,165,.22)!important}
+.sanistock-draps-dialog .drapsHistoryCard{padding:16px!important}
+.sanistock-draps-dialog .drapsHistoryHead{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;margin:0!important;padding:0 0 12px!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;color:#082b50!important}
+.sanistock-draps-dialog .drapsHistoryHead strong{font-size:17px!important;font-weight:900!important;color:#082b50!important}
+.sanistock-draps-dialog .drapsHistoryHead button{border:0!important;border-radius:22px!important;padding:8px 15px!important;background:#e9f1f8!important;color:#183b5f!important;font-size:13px!important;font-weight:750!important}
+.sanistock-draps-dialog .drapsHistory{padding:0!important;margin:0!important;background:transparent!important;border-radius:0!important;box-shadow:none!important}
+.sanistock-draps-dialog .drapsHistoryRow{display:flex!important;justify-content:space-between!important;align-items:center!important;gap:10px!important;padding:11px 4px!important;border-top:1px solid #e7eef5!important;background:transparent!important;border-radius:0!important;font-size:13px!important;color:#173c64!important}
+.sanistock-draps-dialog .drapsHistoryRow strong{white-space:nowrap!important;color:#647b93!important;font-size:12px!important}
+.sanistock-draps-dialog .drapsHistoryEmpty{padding:22px 8px!important;margin:0!important;text-align:center!important;color:#647b93!important;font-size:14px!important}
+.sanistock-draps-dialog .drapsResetBtn{width:100%!important;min-height:54px!important;border:1px solid #f3d2d2!important;border-radius:18px!important;background:#fff!important;color:#c9232c!important;font-size:16px!important;font-weight:900!important;box-shadow:0 7px 18px rgba(21,75,119,.08)!important}
+.sanistock-draps-dialog .drapsLocalNotice{margin:0!important;padding:0 6px 4px!important;text-align:left!important;color:#58738e!important;font-size:12px!important;line-height:1.5!important}
+@media(max-width:420px){
+ .sanistock-draps-overlay{padding:8px!important}
+ .sanistock-draps-dialog{max-height:93dvh!important;border-radius:25px!important}
+ .sanistock-draps-dialog-head{min-height:72px!important;padding:12px 14px!important}
+ .sanistock-draps-dialog #sanistockDrapsModalContent{padding:12px!important}
+ .sanistock-draps-dialog #drapsStockPanel{gap:12px!important}
+ .sanistock-draps-dialog .drapsInfoBanner{padding:11px 12px!important}
+ .sanistock-draps-dialog .drapsInfoBanner p{font-size:12px!important}
+ .sanistock-draps-dialog .drapsStat{min-height:125px!important;padding:16px!important}
+ .sanistock-draps-dialog .drapsStat strong{font-size:46px!important}
+ .sanistock-draps-dialog .drapsAddPanel,.sanistock-draps-dialog .drapsHistoryCard{padding:14px!important}
+ .sanistock-draps-dialog .drapsAddPanel h3{font-size:17px!important}
+ .sanistock-draps-dialog .drapsQuantityPicker{grid-template-columns:minmax(0,1fr) 112px!important;gap:8px!important}
+ .sanistock-draps-dialog .drapsQuantityPicker select,.sanistock-draps-dialog .drapsQuantityPicker .drapsAddSelected{min-height:52px!important;font-size:14px!important}
+ .sanistock-draps-dialog .drapsHistoryHead strong{font-size:14px!important}
+ .sanistock-draps-dialog .drapsHistoryRow{font-size:12px!important}
 }
 </style>
 
