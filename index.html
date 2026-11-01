@@ -7010,6 +7010,12 @@ function changerCodeAdminUI(){
     try{cachedNames=JSON.parse(localStorage.getItem('sanistock_cached_employee_names')||'[]')}catch(e){cachedNames=[]}
     cachedNames=Array.isArray(cachedNames)?cachedNames:[];
 
+    // Afficher immédiatement la dernière liste connue : l'écran ne reste
+    // plus bloqué sur « Chargement des salariés… » pendant l'appel serveur.
+    if(cachedNames.length){
+      nameSel.innerHTML='<option value="">Sélectionner votre nom</option>'+cachedNames.map(function(n){return '<option value="'+escapeHtml(n)+'">'+escapeHtml(n)+'</option>'}).join('');
+    }
+
     function afficherSecours(message){
       let noms=[];
       try{noms=JSON.parse(localStorage.getItem('sanistock_cached_employee_names')||'[]')}catch(e){noms=[]}
@@ -7050,7 +7056,8 @@ function changerCodeAdminUI(){
     const delai=setTimeout(function(){
       if(termine)return;
       termine=true;
-      afficherSecours('Le serveur met trop de temps à répondre. Vous pouvez utiliser votre connexion déjà enregistrée ou réessayer.');
+      afficherSecours('Le serveur met trop de temps à répondre. Vous pouvez utiliser la liste enregistrée ou réessayer.');
+      setLoginAnimation(false);
     },8000);
 
     try{
