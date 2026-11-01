@@ -14976,3 +14976,49 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerFenetr
 #newsPage .sanNewsReactionOption{flex:0 0 38px!important;min-width:38px!important;max-width:38px!important}
 #newsPage .sanNewsReactionTotals{display:inline-flex!important;flex:1 1 130px!important;min-width:0!important}
 </style>
+
+<style id="sanistock-entree-produit-droits-style">
+#stockPage [data-stock-tab="entree"][hidden],
+#stockPage #stockEntryButton[hidden]{display:none!important}
+</style>
+<script id="sanistock-entree-produit-droits">
+(function(){
+  'use strict';
+  const AUTORISES = new Set(['lewis hognon','mike boucher','emilie roy','laurent guette']);
+  function normaliserNom(nom){
+    return String(nom||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
+  }
+  function nomConnecte(nom){
+    if(nom) return String(nom);
+    try {
+      const session=window.SaniStockCurrentEmployeeSession||{};
+      return String(session.salarie||localStorage.getItem('sanistock_employee_name')||'');
+    } catch(e) { return ''; }
+  }
+  function appliquerAccesEntreeProduit(nom){
+    const autorise=AUTORISES.has(normaliserNom(nomConnecte(nom)));
+    document.querySelectorAll('#stockPage [data-stock-tab="entree"], #stockPage #stockEntryButton').forEach(function(el){
+      el.hidden=!autorise;
+      el.style.display=autorise?'':'none';
+      el.setAttribute('aria-hidden',autorise?'false':'true');
+      if('disabled' in el) el.disabled=!autorise;
+    });
+    return autorise;
+  }
+  const ancienne=window.saniActualiserAccesParametresAccueil;
+  window.saniActualiserAccesParametresAccueil=function(nom){
+    if(typeof ancienne==='function') ancienne(nom);
+    appliquerAccesEntreeProduit(nom);
+  };
+  window.saniActualiserAccesEntreeProduit=appliquerAccesEntreeProduit;
+  function initialiser(){appliquerAccesEntreeProduit();}
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',initialiser);
+  else initialiser();
+  window.addEventListener('storage',function(e){if(!e||e.key==='sanistock_employee_name')initialiser();});
+  const ancienneOuverture=window.sanistockOuvrirEntreeDepuisGestion;
+  window.sanistockOuvrirEntreeDepuisGestion=function(){
+    if(!appliquerAccesEntreeProduit()) return;
+    if(typeof ancienneOuverture==='function') return ancienneOuverture.apply(this,arguments);
+  };
+})();
+</script>
