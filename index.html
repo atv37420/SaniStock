@@ -2535,6 +2535,12 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerFenetr
 #stockPage .stockInnerTabs .stockInnerTab:focus-visible {outline:2px solid #075BA9 !important; outline-offset:2px !important;}
 </style>
 
+
+<style id="sanistock-draps-single-counter">
+  #drapsStockPanel .drapsStatsSingle {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+</style>
 </head>
 <body>
 <div aria-live="polite" id="employeeLoginOverlay">
@@ -2944,7 +2950,6 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerFenetr
   <div class="drapsStockHead"><div><h2 id="drapsStockTitle">🧺 GESTION DES DRAPS SALES</h2><p>🧺 1 sac = 10 draps sales maximum. À 10 draps, le sac est comptabilisé automatiquement et le compteur revient à zéro.</p></div><span class="drapsStockTag">SUIVI</span></div>
   <div class="drapsStats drapsStatsSingle">
     <div class="drapsStat drapsStatBlue"><span>Draps dans le sac actuel</span><strong><b id="drapsCount">0</b><small> / 10</small></strong><div class="drapsProgress"><i id="drapsProgressBar"></i></div></div>
-    <div class="drapsRuleCard" aria-label="Un sac contient au maximum 10 draps sales"><strong>🧺 1 SAC</strong><span>10 DRAPS SALES MAX.</span><small>À 10, le compteur revient à zéro.</small></div>
     <span id="drapsBags" hidden>0</span>
   </div>
   <div class="drapsQuickBtns drapsQuickBtnsNine">
