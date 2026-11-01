@@ -4791,6 +4791,45 @@ __SANI_PDFJS_SCRIPT_TAG__
 
 
 
+
+<style id="sanistock-esprit-equipe-position-visibility">
+/* Esprit d'équipe : même rangée que les autres tuiles, juste après Mémo. */
+#homePage .homeButton4.team4{
+  grid-column:auto !important;
+  justify-self:stretch !important;
+  width:100% !important;
+  max-width:none !important;
+  aspect-ratio:1/1 !important;
+  height:auto !important;
+}
+</style>
+<script id="sanistock-esprit-equipe-regle-salaries">
+(function(){
+  const MASQUER_ESPRIT = new Set(['lewis hognon','laurent guette','nathalie froger']);
+  function normaliser(n){
+    return String(n||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
+  }
+  const ancienneMiseAJour = window.saniActualiserAccesParametresAccueil;
+  window.saniActualiserAccesParametresAccueil = function(nom){
+    if(typeof ancienneMiseAJour === 'function') ancienneMiseAJour(nom);
+    let nomActuel = nom;
+    if(!nomActuel){ try{ nomActuel=localStorage.getItem('sanistock_employee_name')||''; }catch(e){} }
+    const team = document.querySelector('#homePage .homeButton4.team4');
+    if(team){
+      const visible = !MASQUER_ESPRIT.has(normaliser(nomActuel));
+      team.hidden = !visible;
+      team.style.display = visible ? '' : 'none';
+      team.setAttribute('aria-hidden', visible ? 'false' : 'true');
+      team.disabled = !visible;
+    }
+  };
+  function appliquer(){ window.saniActualiserAccesParametresAccueil(); }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', appliquer);
+  else appliquer();
+  window.addEventListener('storage', function(e){ if(!e || e.key === 'sanistock_employee_name') appliquer(); });
+})();
+</script>
+
 </body></html>`;
         function afficherLecteurHtml_(html){
           fenetre.document.open();
