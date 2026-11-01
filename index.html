@@ -14845,6 +14845,50 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerFenetr
   };
 })();
 </script>
+<script id="sanistock-parametres-autorisation-finale">
+(function(){
+  'use strict';
+  const AUTORISES = new Set([
+    'laurent guette',
+    'hognono lewis',
+    'lewis hognon',
+    'nathalie froger'
+  ]);
+  function normaliserNom(nom){
+    return String(nom || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .toLowerCase().replace(/\s+/g,' ').trim();
+  }
+  function nomConnecte(nom){
+    if(nom) return normaliserNom(nom);
+    try { return normaliserNom(localStorage.getItem('sanistock_employee_name') || ''); }
+    catch(e){ return ''; }
+  }
+  function appliquer(nom){
+    const bouton = document.getElementById('homeSettingsButton');
+    if(!bouton) return false;
+    const autorise = AUTORISES.has(nomConnecte(nom));
+    bouton.hidden = !autorise;
+    bouton.style.display = autorise ? '' : 'none';
+    bouton.setAttribute('aria-hidden', autorise ? 'false' : 'true');
+    bouton.disabled = !autorise;
+    return autorise;
+  }
+  // Cette fonction est appelée à la connexion par le mécanisme existant.
+  window.saniActualiserAccesParametresAccueil = appliquer;
+  function initialiser(){ appliquer(); }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initialiser);
+  else initialiser();
+  window.addEventListener('storage', function(e){
+    if(!e || e.key === 'sanistock_employee_name') appliquer();
+  });
+  // Réapplique la règle si l'accueil ou son bouton est recréé dynamiquement.
+  const observer = new MutationObserver(function(){
+    const bouton = document.getElementById('homeSettingsButton');
+    if(bouton && !bouton.__saniRoleChecked){ bouton.__saniRoleChecked = true; appliquer(); }
+  });
+  if(document.documentElement) observer.observe(document.documentElement,{childList:true,subtree:true});
+})();
+</script>
 </body>
 </html>
 <!-- SaniStock 1.1.114 : réactions multiples sur les publications. -->
