@@ -6875,53 +6875,65 @@ function changerCodeAdminUI(){
   function loadNames(){
     setLoginAnimation(true,'Préparation de votre connexion','Connexion SaniStock…');
 
-    // Hors ligne : on construit immédiatement l'écran de connexion depuis
-    // les données déjà enregistrées sur le PDA. Aucun appel réseau n'est requis.
     const saved=savedCredentials();
     let cachedNames=[];
     try{cachedNames=JSON.parse(localStorage.getItem('sanistock_cached_employee_names')||'[]')}catch(e){cachedNames=[]}
     cachedNames=Array.isArray(cachedNames)?cachedNames:[];
 
-    if(!navigator.onLine){
+    function afficherNoms(noms){
+      noms=Array.isArray(noms)?noms:[];
+      nameSel.innerHTML='<option value="">Sélectionner votre nom</option>'+noms.map(function(n){return '<option value="'+escapeHtml(n)+'">'+escapeHtml(n)+'</option>'}).join('');
+    }
+    function modeSecours(message){
+      let noms=[];
+      try{noms=JSON.parse(localStorage.getItem('sanistock_cached_employee_names')||'[]')}catch(e){noms=[]}
+      noms=Array.isArray(noms)?noms:[];
+      afficherNoms(noms);
       if(saved.name && saved.code){
-        afficherModeCodeSeul(saved.name,'📵 Hors ligne : utilisez votre mot de passe enregistré sur cet appareil.');
-        // Le code est déjà mémorisé sur cet appareil : l'utilisateur peut
-        // entrer son code et être déverrouillé sans Google Apps Script.
-        return;
-      }
-      if(cachedNames.length){
-        nameSel.innerHTML='<option value="">Sélectionner votre nom</option>'+cachedNames.map(function(n){return '<option value="'+escapeHtml(n)+'">'+escapeHtml(n)+'</option>'}).join('');
+        afficherModeCodeSeul(saved.name,message||'Serveur indisponible : utilisez votre code déjà enregistré sur cet appareil.');
+      }else{
         afficherModePremiereConnexion();
-        showError('📵 Hors ligne : choisissez votre nom et utilisez un mot de passe déjà enregistré sur cet appareil.');
-        return;
+        showError(message||(noms.length?'Serveur indisponible : choisissez votre nom dans la liste mémorisée.':'Impossible de charger les salariés. Vérifiez la connexion puis actualisez la page.'));
       }
+    }
+
+    if(!navigator.onLine){
+      if(saved.name && saved.code){afficherModeCodeSeul(saved.name,'📵 Hors ligne : utilisez votre mot de passe enregistré sur cet appareil.');return;}
+      afficherNoms(cachedNames);
       afficherModePremiereConnexion();
-      showError('📵 Première connexion nécessaire avec Internet pour charger les salariés.');
+      showError(cachedNames.length?'📵 Hors ligne : choisissez votre nom dans la liste mémorisée.':'📵 Première connexion nécessaire avec Internet pour charger les salariés.');
       return;
     }
 
-    google.script.run.withSuccessHandler(function(noms){
-      noms=Array.isArray(noms)?noms:[];
-      try{localStorage.setItem('sanistock_cached_employee_names',JSON.stringify(noms));}catch(e){}
-      nameSel.innerHTML='<option value="">Sélectionner votre nom</option>'+noms.map(function(n){return '<option value="'+escapeHtml(n)+'">'+escapeHtml(n)+'</option>'}).join('');
-      const saved=savedCredentials();
-      if(saved.name&&saved.code&&noms.includes(saved.name)){
-        autoConnect(saved.name,saved.code);
-      }else{
-        afficherModePremiereConnexion();
+    // Ne jamais laisser l'écran bloqué si Google Apps Script ne répond pas.
+    let termine=false;
+    const secours=setTimeout(function(){
+      if(termine)return;
+      termine=true;
+      modeSecours('Le serveur met trop de temps à répondre. Vous pouvez utiliser les salariés mémorisés sur cet appareil ou réessayer.');
+    },8000);
+
+    try{
+      if(!(window.google&&google.script&&google.script.run)){
+        clearTimeout(secours); termine=true;
+        modeSecours('Connexion au serveur indisponible. Ouvrez SaniStock depuis son adresse publiée.');
+        return;
       }
-    }).withFailureHandler(function(){
-      let noms=[]; try{noms=JSON.parse(localStorage.getItem('sanistock_cached_employee_names')||'[]')}catch(e){noms=[]}
-      noms=Array.isArray(noms)?noms:[];
-      nameSel.innerHTML='<option value="">Sélectionner votre nom</option>'+noms.map(function(n){return '<option value="'+escapeHtml(n)+'">'+escapeHtml(n)+'</option>'}).join('');
-      const saved=savedCredentials();
-      if(saved.name){
-        afficherModeCodeSeul(saved.name,noms.length?'Mode hors ligne : entrez votre mot de passe déjà enregistré.':'Connexion automatique impossible. Entrez votre mot de passe.');
-      }else{
-        afficherModePremiereConnexion();
-        showError(noms.length?'Mode hors ligne : choisissez votre nom puis utilisez votre mot de passe.':'Aucun salarié enregistré sur cet appareil. Connectez-vous une première fois avec Internet.');
-      }
-    }).getSalaries();
+      google.script.run.withSuccessHandler(function(noms){
+        if(termine)return; termine=true; clearTimeout(secours);
+        noms=Array.isArray(noms)?noms:[];
+        try{localStorage.setItem('sanistock_cached_employee_names',JSON.stringify(noms));}catch(e){}
+        afficherNoms(noms);
+        const identifiants=savedCredentials();
+        if(identifiants.name&&identifiants.code&&noms.includes(identifiants.name)) autoConnect(identifiants.name,identifiants.code);
+        else afficherModePremiereConnexion();
+      }).withFailureHandler(function(){
+        if(termine)return; termine=true; clearTimeout(secours);
+        modeSecours('Impossible de joindre le serveur. Utilisation des données mémorisées si disponibles.');
+      }).getSalaries();
+    }catch(e){
+      if(!termine){termine=true;clearTimeout(secours);modeSecours('Erreur lors du chargement des salariés. Vérifiez la connexion.');}
+    }
   }
   btn.addEventListener('click',function(){
     // En mode code seul (hors ligne), la liste des salariés est masquée :
