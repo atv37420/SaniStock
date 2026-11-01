@@ -2799,23 +2799,19 @@ button.settingsAction.secondary:hover,
 <section class="stockInnerPane" id="stockInnerPane-draps" role="tabpanel" hidden>
 <!-- Gestion des draps : ajout intégré à la rubrique Stock -->
 <section id="drapsStockPanel" aria-labelledby="drapsStockTitle">
-  <div class="drapsStockHead"><div><h2 id="drapsStockTitle">🧺 GESTION DES DRAPS SALES</h2><p>🧺 1 sac = 10 draps sales maximum. À 10 draps, le sac est comptabilisé automatiquement et le compteur revient à zéro.</p></div><span class="drapsStockTag">SUIVI</span></div>
+  <div class="drapsStockHead"><div><p>🧺 1 sac = 10 draps sales maximum. À 10 draps, le sac est comptabilisé automatiquement et le compteur revient à zéro.</p></div><span class="drapsStockTag">SUIVI</span></div>
   <div class="drapsStats drapsStatsSingle">
     <div class="drapsStat drapsStatBlue"><span>Draps dans le sac actuel</span><strong><b id="drapsCount">0</b><small> / 10</small></strong><div class="drapsProgress"><i id="drapsProgressBar"></i></div></div>
     <div class="drapsRuleCard" aria-label="Un sac contient au maximum 10 draps sales"><strong>🧺 1 SAC</strong><span>10 DRAPS SALES MAX.</span><small>À 10, le compteur revient à zéro.</small></div>
     <span id="drapsBags" hidden>0</span>
   </div>
-  <div class="drapsQuickBtns drapsQuickBtnsNine">
-    <button type="button" onclick="sanistockAjouterDraps(1)">+1</button>
-    <button type="button" onclick="sanistockAjouterDraps(2)">+2</button>
-    <button type="button" onclick="sanistockAjouterDraps(3)">+3</button>
-    <button type="button" onclick="sanistockAjouterDraps(4)">+4</button>
-    <button type="button" onclick="sanistockAjouterDraps(5)">+5</button>
-    <button type="button" onclick="sanistockAjouterDraps(6)">+6</button>
-    <button type="button" onclick="sanistockAjouterDraps(7)">+7</button>
-    <button type="button" onclick="sanistockAjouterDraps(8)">+8</button>
-    <button type="button" onclick="sanistockAjouterDraps(9)">+9</button>
-    <button type="button" class="drapsResetBtn" onclick="sanistockConfirmerResetDraps()">Réinitialiser</button>
+  <div class="drapsQuickBtns drapsQuickBtnsNine drapsQuantityPicker">
+    <label for="drapsQuantitySelect">Nombre de draps sales à ajouter</label>
+    <select id="drapsQuantitySelect" aria-label="Choisir le nombre de draps à ajouter">
+      <option value="1">1 drap</option><option value="2">2 draps</option><option value="3">3 draps</option><option value="4">4 draps</option><option value="5">5 draps</option><option value="6">6 draps</option><option value="7">7 draps</option><option value="8">8 draps</option><option value="9">9 draps</option><option value="10">10 draps</option>
+    </select>
+    <button type="button" class="drapsAddSelected" onclick="sanistockAjouterDraps(Number(document.getElementById('drapsQuantitySelect').value)||1)">Ajouter</button>
+    <button type="button" class="drapsResetBtn" onclick="sanistockConfirmerResetDraps()">Réinitialiser le compteur</button>
   </div>
   <div class="drapsHistoryHead"><strong>🕘 Historique des changements</strong><button type="button" onclick="sanistockAfficherHistoriqueDraps()">Voir tout</button></div>
   <div id="drapsHistory" class="drapsHistory"><p class="drapsHistoryEmpty">Aucun changement enregistré.</p></div>
@@ -2851,7 +2847,7 @@ document.addEventListener('DOMContentLoaded', function(){
 </style>
 <div class="sanistock-draps-overlay" id="sanistockDrapsOverlay" aria-hidden="true">
   <div class="sanistock-draps-dialog" role="dialog" aria-modal="true" aria-labelledby="sanistockDrapsModalTitle">
-    <div class="sanistock-draps-dialog-head"><h2 id="sanistockDrapsModalTitle">🧺 Gestion des draps sales</h2><button class="sanistock-draps-close" type="button" onclick="sanistockFermerFenetreDraps()" aria-label="Fermer">×</button></div>
+    <div class="sanistock-draps-dialog-head"><h2 id="sanistockDrapsModalTitle">🧺 Suivi des draps</h2><button class="sanistock-draps-close" type="button" onclick="sanistockFermerFenetreDraps()" aria-label="Fermer">×</button></div>
     <div id="sanistockDrapsModalContent"></div>
   </div>
 </div>
@@ -4431,6 +4427,16 @@ __SANI_PDFJS_SCRIPT_TAG__
  .sanistock-draps-dialog .drapsQuickBtnsNine{gap:8px!important}
  .sanistock-draps-dialog .drapsQuickBtnsNine button{min-height:66px!important;border-radius:17px!important;font-size:22px!important}
 }
+
+/* Sélecteur de quantité compact et espacement des cartes du compteur */
+.sanistock-draps-dialog .drapsStats{gap:18px!important;margin-bottom:18px!important}
+.sanistock-draps-dialog .drapsQuantityPicker{display:grid!important;grid-template-columns:1fr 1fr!important;gap:10px!important;margin:0 0 18px!important;padding:16px!important;background:rgba(255,255,255,.45)!important;border-radius:20px!important}
+.sanistock-draps-dialog .drapsQuantityPicker label{grid-column:1/-1!important;font-size:13px!important;font-weight:800!important;color:#042349!important}
+.sanistock-draps-dialog .drapsQuantityPicker select{min-width:0!important;width:100%!important;min-height:54px!important;padding:10px 14px!important;border:1px solid #cbdde9!important;border-radius:14px!important;background:#fff!important;color:#042349!important;font-size:16px!important;font-weight:800!important}
+.sanistock-draps-dialog .drapsQuantityPicker .drapsAddSelected{min-height:54px!important;border:0!important;border-radius:14px!important;background:#0758a5!important;color:#fff!important;font-size:16px!important;font-weight:900!important;box-shadow:0 6px 16px rgba(7,88,165,.18)!important}
+.sanistock-draps-dialog .drapsQuantityPicker .drapsResetBtn{grid-column:1/-1!important;min-height:44px!important;border:0!important;border-radius:13px!important;background:#fff!important;color:#b42332!important;font-size:13px!important;font-weight:800!important}
+.sanistock-draps-dialog .drapsStockHead h2{display:none!important}
+@media(max-width:420px){.sanistock-draps-dialog .drapsStats{gap:16px!important}.sanistock-draps-dialog .drapsQuantityPicker{padding:12px!important;gap:8px!important}}
 </style>
 
 
