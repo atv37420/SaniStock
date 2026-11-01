@@ -2802,7 +2802,6 @@ button.settingsAction.secondary:hover,
   <div class="drapsStockHead"><div><p>🧺 1 sac = 10 draps sales maximum. À 10 draps, le sac est comptabilisé automatiquement et le compteur revient à zéro.</p></div><span class="drapsStockTag">SUIVI</span></div>
   <div class="drapsStats drapsStatsSingle">
     <div class="drapsStat drapsStatBlue"><span>Draps dans le sac actuel</span><strong><b id="drapsCount">0</b><small> / 10</small></strong><div class="drapsProgress"><i id="drapsProgressBar"></i></div></div>
-    <div class="drapsRuleCard" aria-label="Un sac contient au maximum 10 draps sales"><strong>🧺 1 SAC</strong><span>10 DRAPS SALES MAX.</span><small>À 10, le compteur revient à zéro.</small></div>
     <span id="drapsBags" hidden>0</span>
   </div>
   <div class="drapsQuickBtns drapsQuickBtnsNine drapsQuantityPicker">
@@ -4439,6 +4438,10 @@ __SANI_PDFJS_SCRIPT_TAG__
 @media(max-width:420px){.sanistock-draps-dialog .drapsStats{gap:16px!important}.sanistock-draps-dialog .drapsQuantityPicker{padding:12px!important;gap:8px!important}}
 </style>
 
+<style id="sanistock-draps-remove-second-card">
+.sanistock-draps-dialog .drapsStats{grid-template-columns:1fr!important}
+.sanistock-draps-dialog .drapsRuleCard{display:none!important}
+</style>
 
 <style id="sanistock-draps-final-polish">
 .sanistock-draps-dialog{background:#edf5fa!important;color:#042349!important}
