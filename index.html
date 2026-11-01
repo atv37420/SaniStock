@@ -2541,9 +2541,9 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerFenetr
   #drapsStockPanel .drapsStockHead p{font-size:12px;line-height:1.45;color:#526b80}
   #drapsStockPanel .drapsStatsSingle{display:block!important;margin:12px 0 14px}
   #drapsStockPanel .drapsStatBlue{position:relative;display:grid;grid-template-columns:82px minmax(0,1fr);align-items:center;column-gap:16px;row-gap:12px;padding:20px 18px;border:1px solid #c9e0f7;border-radius:26px;background:linear-gradient(135deg,#f4faff 0%,#e7f2ff 100%);box-shadow:0 5px 16px rgba(7,87,160,.09);color:#123f69}
-  #drapsStockPanel .drapsStatBlue:before{content:'🧺';display:flex;align-items:center;justify-content:center;width:76px;height:76px;border-radius:22px;background:#fff;border:1px solid #d7e8f8;font-size:43px;grid-row:1}
-  #drapsStockPanel .drapsStatBlue>span{grid-column:2;grid-row:1;font-size:12px;font-weight:800;color:#42627f}
-  #drapsStockPanel .drapsStatBlue>strong{grid-column:2;grid-row:1;margin-top:17px;font-size:clamp(48px,12vw,66px);line-height:.95;letter-spacing:-2px;color:#073d70;font-weight:950}
+  #drapsStockPanel .drapsStatBlue:before{content:'🧺';display:flex;align-items:center;justify-content:center;width:76px;height:76px;border-radius:22px;background:#fff;border:1px solid #d7e8f8;font-size:43px;grid-column:1;grid-row:1 / 3}
+  #drapsStockPanel .drapsStatBlue>span{grid-column:2;grid-row:1;align-self:end;font-size:12px;font-weight:800;color:#42627f;line-height:1.3}
+  #drapsStockPanel .drapsStatBlue>strong{grid-column:2;grid-row:2;align-self:start;margin-top:0;font-size:clamp(48px,12vw,66px);line-height:1.05;letter-spacing:-2px;color:#073d70;font-weight:950;white-space:nowrap}
   #drapsStockPanel .drapsStatBlue>strong small{font-size:.48em;color:#3975a8;letter-spacing:0}
   #drapsStockPanel .drapsProgress{grid-column:1/-1;height:13px;margin:0;background:#cbdced;border:2px solid #fff;border-radius:99px;box-shadow:inset 0 1px 3px rgba(7,55,99,.08)}
   #drapsStockPanel .drapsProgress i{background:linear-gradient(90deg,#36a5ec,#0757a0);border-radius:99px}
@@ -2966,7 +2966,7 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerFenetr
   <div class="drapsStats drapsStatsSingle">
     <div class="drapsStat drapsStatBlue"><span>Draps dans le sac actuel</span><strong><b id="drapsCount">0</b><small> / 10</small></strong><div class="drapsProgress"><i id="drapsProgressBar"></i></div><div class="drapsPercent" id="drapsPercent">0 %</div></div>
   </div>
-  <div class="drapsBagsSummary"><span>🧺 Sacs changés</span><strong id="drapsBags">0</strong></div>
+  <div class="drapsBagsSummary" hidden aria-hidden="true"><span>🧺 Sacs changés</span><strong id="drapsBags">0</strong></div>
   <div class="drapsQuickBtns drapsQuickBtnsNine">
     <button type="button" onclick="sanistockAjouterDraps(1)">+1</button>
     <button type="button" onclick="sanistockAjouterDraps(2)">+2</button>
