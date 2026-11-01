@@ -14928,6 +14928,29 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerFenetr
   if(document.documentElement) observer.observe(document.documentElement,{childList:true,subtree:true});
 })();
 </script>
+
+<style id="sanistock-position-esprit-equipe-a-droite-memo">
+/* Ajustement visuel uniquement : placer le carré Esprit d’équipe à droite de MÉMO.
+   Aucun script ni mécanisme de chargement/connexion n’est modifié. */
+.homeButtons4 > .homeButton4.team4 {
+  grid-column: 2 !important;
+  grid-row: 2 !important;
+  justify-self: start !important;
+  align-self: start !important;
+  width: min(100%, 104px) !important;
+  height: auto !important;
+  aspect-ratio: 1 / 1 !important;
+  min-height: 0 !important;
+}
+@media (max-width:700px) {
+  .homeButtons4 > .homeButton4.team4 {
+    grid-column: 2 !important;
+    grid-row: 2 !important;
+    width: min(100%, 104px) !important;
+    aspect-ratio: 1 / 1 !important;
+  }
+}
+</style>
 </body>
 </html>
 <!-- SaniStock 1.1.114 : réactions multiples sur les publications. -->
