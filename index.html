@@ -4600,6 +4600,66 @@ function sanistockAfficherOngletStock(onglet){
   if(page && onglet==='stock'){var paneStock=document.getElementById('stockInnerPane-stock'); if(paneStock) paneStock.scrollIntoView({behavior:'smooth',block:'start'});}
 }
 </script>
+
+<script id="sanistock-checklist-final-migration">
+(function(){
+  const KEY='sanistock_checklist_vehicules_v1';
+  const REQUIRED={
+    AMBULANCES:[
+      'FZ-349-AT – AMBULANCE PEUGEOT BOXER',
+      'HS-219-PS – AMBULANCE RENAULT TRAFIC'
+    ],
+    TAXIS:[
+      'DR-951-FG – AUDI A6 TAXI',
+      'FH-061-DT – CADDY TAXI',
+      'GH-805-GV – IONIQ 5 TAXI',
+      'HK-887-SD – FORD TOURNEO TAXI',
+      'DR-607-TE – CADDY TAXI',
+      'HA-829-KW – KODIAQ'
+    ],
+    VSL:[
+      'GH-575-RH – CADDY VSL',
+      'FF-458-QT – SKODA BREAK VSL',
+      'FF-334-SL – SKODA KODIAQ VSL',
+      'EN-114-BK – SKODA SUPERB VSL',
+      'FC-295-XP – SKODA SUPERB VSL',
+      'GP-794-BQ – TIGUAN'
+    ]
+  };
+  function key(v){
+    const s=String(v||'').toUpperCase();
+    const m=s.match(/[A-Z]{2}[- ]?\d{3}[- ]?[A-Z]{2}/);
+    return m?m[0].replace(/[^A-Z0-9]/g,''):s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Z0-9]/g,'');
+  }
+  function clean(list,cat){
+    const out=[],seen={};
+    (Array.isArray(list)?list:[]).forEach(v=>{
+      const k=key(v), name=String(v||'').trim();
+      if(!name||!k||seen[k])return;
+      // Le seul Renault Trafic autorisé dans CHECK-LIST est HS-219-PS.
+      if(cat==='AMBULANCES' && (String(name).toUpperCase().includes('TRAFIC')||k==='HA219PS') && k!=='HS219PS')return;
+      seen[k]=true;out.push(name);
+    });
+    REQUIRED[cat].forEach(v=>{
+      const k=key(v);
+      if(!seen[k]){seen[k]=true;out.push(v);}
+    });
+    return out;
+  }
+  function migrate(){
+    try{
+      let data={};
+      try{data=JSON.parse(localStorage.getItem(KEY)||'{}')||{};}catch(e){}
+      ['AMBULANCES','TAXIS','VSL'].forEach(cat=>data[cat]=clean(data[cat],cat));
+      localStorage.setItem(KEY,JSON.stringify(data));
+      window.SANISTOCK_CHECKLIST_MIGRATION_OK=true;
+    }catch(e){console.warn('Migration CHECK-LIST non appliquée',e);}
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',migrate,{once:true});
+  else migrate();
+})();
+</script>
+
 </body></html>`;
         function afficherLecteurHtml_(html){
           fenetre.document.open();
