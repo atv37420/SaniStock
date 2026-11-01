@@ -2940,6 +2940,17 @@ document.addEventListener('DOMContentLoaded', function(){
     const h=document.getElementById('drapsHistory');
     if(h) h.innerHTML='<p class="drapsHistoryEmpty" style="color:#b91c1c">'+escapeHtmlDraps(message)+'</p>';
   }
+  function appelerServiceDraps(action,data,onSuccess,onFailure){
+    try{
+      const runner=window.google && window.google.script && window.google.script.run;
+      if(!runner || typeof runner.withSuccessHandler!=='function'){
+        if(typeof onFailure==='function') onFailure({message:'Connexion au service SaniStock indisponible. Vérifiez votre connexion puis réessayez.'});
+        return;
+      }
+      runner.withSuccessHandler(function(result){if(typeof onSuccess==='function')onSuccess(result);})
+        .withFailureHandler(function(err){if(typeof onFailure==='function')onFailure(err||{message:'Erreur de synchronisation'});})[action](data||{});
+    }catch(err){if(typeof onFailure==='function')onFailure(err||{message:'Erreur de synchronisation'});}
+  }
   function salarieConnecteDraps(){
     try {
       return String(localStorage.getItem('sanistock_employee_name') || '').trim();
@@ -2948,9 +2959,8 @@ document.addEventListener('DOMContentLoaded', function(){
   function chargerDraps(){
     if(chargementDraps)return;
     if(!navigator.onLine){afficherErreurDraps('Connexion Internet nécessaire pour synchroniser les draps avec toute l’équipe.');return;}
-    if(typeof window.sendJsonp!=='function'){afficherErreurDraps('Le service de synchronisation SaniStock est introuvable. Rechargez l’application.');return;}
     chargementDraps=true;
-    window.sendJsonp('getGestionDraps',{},function(result){
+    appelerServiceDraps('getGestionDraps',{},function(result){
       chargementDraps=false;
       if(result&&typeof result==='object'){etatDraps=result;afficher();}
       else afficherErreurDraps('Réponse du serveur invalide.');
@@ -2959,12 +2969,11 @@ document.addEventListener('DOMContentLoaded', function(){
   window.sanistockAjouterDraps=function(n){
     n=Math.max(1,Math.min(100,Number(n)||1));
     if(!navigator.onLine){alert('Connexion Internet nécessaire pour enregistrer les draps dans le suivi partagé. Aucun changement n’a été enregistré.');return;}
-    if(typeof window.sendJsonp!=='function'){alert('Service de synchronisation SaniStock introuvable. Vérifie que le bon fichier index.html est installé sur GitHub.');return;}
     const buttons=document.querySelectorAll('#drapsStockPanel button');buttons.forEach(b=>b.disabled=true);
     const salarie=salarieConnecteDraps();
     if(!salarie){buttons.forEach(b=>b.disabled=false);alert('Salarié non identifié. Déconnectez-vous puis reconnectez-vous à SaniStock avec votre nom et votre code personnel avant d’ajouter des draps.');return;}
     const requestId='draps_'+Date.now()+'_'+Math.random().toString(36).slice(2,10);
-    window.sendJsonp('ajouterDraps',{quantite:n,salarie:salarie,requestId:requestId},function(result){
+    appelerServiceDraps('ajouterDraps',{quantite:n,salarie:salarie,requestId:requestId},function(result){
       buttons.forEach(b=>b.disabled=false);
       if(!result||typeof result!=='object'){alert('Le serveur n’a pas confirmé l’enregistrement.');return;}
       etatDraps=result;afficher();
@@ -2985,11 +2994,10 @@ document.addEventListener('DOMContentLoaded', function(){
   window.sanistockConfirmerResetDraps=function(){
     if(!confirm('Réinitialiser le compteur de draps dans le sac actuel ? L’historique des sacs changés sera conservé.'))return;
     if(!navigator.onLine){alert('Connexion Internet nécessaire. Aucun changement n’a été enregistré.');return;}
-    if(typeof window.sendJsonp!=='function'){alert('Service de synchronisation SaniStock introuvable.');return;}
     const salarie=salarieConnecteDraps();
     if(!salarie){alert('Salarié non identifié. Reconnectez-vous à SaniStock avant de réinitialiser le compteur.');return;}
     const requestId='draps_reset_'+Date.now()+'_'+Math.random().toString(36).slice(2,10);
-    window.sendJsonp('reinitialiserCompteurDraps',{salarie:salarie,requestId:requestId},function(result){etatDraps=result||etatDraps;afficher();alert('Compteur réinitialisé.');},function(err){alert('Impossible de réinitialiser le compteur : '+((err&&err.message)||'erreur inconnue'));});
+    appelerServiceDraps('reinitialiserCompteurDraps',{salarie:salarie,requestId:requestId},function(result){etatDraps=result||etatDraps;afficher();alert('Compteur réinitialisé.');},function(err){alert('Impossible de réinitialiser le compteur : '+((err&&err.message)||'erreur inconnue'));});
   };
   document.addEventListener('DOMContentLoaded',chargerDraps);
   window.addEventListener('pageshow',chargerDraps);
@@ -4422,6 +4430,30 @@ __SANI_PDFJS_SCRIPT_TAG__
  .sanistock-draps-dialog .drapsStat strong{font-size:36px!important}
  .sanistock-draps-dialog .drapsQuickBtnsNine{gap:8px!important}
  .sanistock-draps-dialog .drapsQuickBtnsNine button{min-height:66px!important;border-radius:17px!important;font-size:22px!important}
+}
+</style>
+
+
+<style id="sanistock-draps-final-polish">
+.sanistock-draps-dialog{background:#edf5fa!important;color:#042349!important}
+.sanistock-draps-dialog .drapsStats{grid-template-columns:1fr!important;gap:12px!important}
+.sanistock-draps-dialog .drapsStat,.sanistock-draps-dialog .drapsRuleCard{width:100%!important;min-height:112px!important;border-radius:22px!important}
+.sanistock-draps-dialog .drapsStat{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;align-items:center!important;text-align:left!important;gap:5px 12px!important;padding:18px 20px!important}
+.sanistock-draps-dialog .drapsStat span{font-size:14px!important;line-height:1.3!important}
+.sanistock-draps-dialog .drapsStat strong{font-size:46px!important;white-space:nowrap!important;margin:0!important}
+.sanistock-draps-dialog .drapsProgress{grid-column:1/-1!important;width:100%!important;margin-top:5px!important}
+.sanistock-draps-dialog .drapsRuleCard{display:grid!important;grid-template-columns:auto 1fr!important;column-gap:14px!important;row-gap:4px!important;text-align:left!important;padding:16px 20px!important}
+.sanistock-draps-dialog .drapsRuleCard strong{grid-row:1/3!important;font-size:30px!important}
+.sanistock-draps-dialog .drapsRuleCard span,.sanistock-draps-dialog .drapsRuleCard small{font-size:12px!important}
+.sanistock-draps-dialog .drapsQuickBtnsNine{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+.sanistock-draps-dialog .drapsHistoryHead{display:flex!important;flex-wrap:wrap!important}
+.sanistock-draps-dialog .drapsHistoryRow{display:flex!important;flex-wrap:wrap!important;align-items:center!important}
+.sanistock-draps-dialog .drapsHistoryRow span{min-width:0!important;overflow-wrap:anywhere!important}
+@media(max-width:420px){
+ .sanistock-draps-dialog .drapsStat{grid-template-columns:1fr auto!important;padding:15px!important}
+ .sanistock-draps-dialog .drapsStat strong{font-size:40px!important}
+ .sanistock-draps-dialog .drapsRuleCard{padding:14px 16px!important}
+ .sanistock-draps-dialog .drapsQuickBtnsNine button{min-height:64px!important}
 }
 </style>
 
@@ -12873,6 +12905,30 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
 }
 </style>
 
+
+<style id="sanistock-draps-final-polish">
+.sanistock-draps-dialog{background:#edf5fa!important;color:#042349!important}
+.sanistock-draps-dialog .drapsStats{grid-template-columns:1fr!important;gap:12px!important}
+.sanistock-draps-dialog .drapsStat,.sanistock-draps-dialog .drapsRuleCard{width:100%!important;min-height:112px!important;border-radius:22px!important}
+.sanistock-draps-dialog .drapsStat{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;align-items:center!important;text-align:left!important;gap:5px 12px!important;padding:18px 20px!important}
+.sanistock-draps-dialog .drapsStat span{font-size:14px!important;line-height:1.3!important}
+.sanistock-draps-dialog .drapsStat strong{font-size:46px!important;white-space:nowrap!important;margin:0!important}
+.sanistock-draps-dialog .drapsProgress{grid-column:1/-1!important;width:100%!important;margin-top:5px!important}
+.sanistock-draps-dialog .drapsRuleCard{display:grid!important;grid-template-columns:auto 1fr!important;column-gap:14px!important;row-gap:4px!important;text-align:left!important;padding:16px 20px!important}
+.sanistock-draps-dialog .drapsRuleCard strong{grid-row:1/3!important;font-size:30px!important}
+.sanistock-draps-dialog .drapsRuleCard span,.sanistock-draps-dialog .drapsRuleCard small{font-size:12px!important}
+.sanistock-draps-dialog .drapsQuickBtnsNine{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+.sanistock-draps-dialog .drapsHistoryHead{display:flex!important;flex-wrap:wrap!important}
+.sanistock-draps-dialog .drapsHistoryRow{display:flex!important;flex-wrap:wrap!important;align-items:center!important}
+.sanistock-draps-dialog .drapsHistoryRow span{min-width:0!important;overflow-wrap:anywhere!important}
+@media(max-width:420px){
+ .sanistock-draps-dialog .drapsStat{grid-template-columns:1fr auto!important;padding:15px!important}
+ .sanistock-draps-dialog .drapsStat strong{font-size:40px!important}
+ .sanistock-draps-dialog .drapsRuleCard{padding:14px 16px!important}
+ .sanistock-draps-dialog .drapsQuickBtnsNine button{min-height:64px!important}
+}
+</style>
+
 </body></html>';
   }
 
@@ -14407,7 +14463,6 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerFenetr
   function chargerDraps(){
     if(chargementDraps)return;
     if(!navigator.onLine){afficherErreurDraps('Connexion Internet nécessaire pour synchroniser les draps avec toute l’équipe.');return;}
-    if(typeof window.sendJsonp!=='function'){afficherErreurDraps('Le service de synchronisation SaniStock est introuvable. Rechargez l’application.');return;}
     chargementDraps=true;
     window.sendJsonp('getGestionDraps',{},function(result){
       chargementDraps=false;
@@ -14418,7 +14473,6 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerFenetr
   window.sanistockAjouterDraps=function(n){
     n=Math.max(1,Math.min(100,Number(n)||1));
     if(!navigator.onLine){alert('Connexion Internet nécessaire pour enregistrer les draps dans le suivi partagé. Aucun changement n’a été enregistré.');return;}
-    if(typeof window.sendJsonp!=='function'){alert('Service de synchronisation SaniStock introuvable. Vérifie que le bon fichier index.html est installé sur GitHub.');return;}
     const buttons=document.querySelectorAll('#drapsStockPanel button');buttons.forEach(b=>b.disabled=true);
     const salarie=salarieConnecteDraps();
     if(!salarie){buttons.forEach(b=>b.disabled=false);alert('Salarié non identifié. Déconnectez-vous puis reconnectez-vous à SaniStock avec votre nom et votre code personnel avant d’ajouter des draps.');return;}
@@ -14444,7 +14498,6 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerFenetr
   window.sanistockConfirmerResetDraps=function(){
     if(!confirm('Réinitialiser le compteur de draps dans le sac actuel ? L’historique des sacs changés sera conservé.'))return;
     if(!navigator.onLine){alert('Connexion Internet nécessaire. Aucun changement n’a été enregistré.');return;}
-    if(typeof window.sendJsonp!=='function'){alert('Service de synchronisation SaniStock introuvable.');return;}
     const salarie=salarieConnecteDraps();
     if(!salarie){alert('Salarié non identifié. Reconnectez-vous à SaniStock avant de réinitialiser le compteur.');return;}
     const requestId='draps_reset_'+Date.now()+'_'+Math.random().toString(36).slice(2,10);
@@ -14496,6 +14549,30 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerFenetr
  .sanistock-draps-dialog .drapsStat strong{font-size:36px!important}
  .sanistock-draps-dialog .drapsQuickBtnsNine{gap:8px!important}
  .sanistock-draps-dialog .drapsQuickBtnsNine button{min-height:66px!important;border-radius:17px!important;font-size:22px!important}
+}
+</style>
+
+
+<style id="sanistock-draps-final-polish">
+.sanistock-draps-dialog{background:#edf5fa!important;color:#042349!important}
+.sanistock-draps-dialog .drapsStats{grid-template-columns:1fr!important;gap:12px!important}
+.sanistock-draps-dialog .drapsStat,.sanistock-draps-dialog .drapsRuleCard{width:100%!important;min-height:112px!important;border-radius:22px!important}
+.sanistock-draps-dialog .drapsStat{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;align-items:center!important;text-align:left!important;gap:5px 12px!important;padding:18px 20px!important}
+.sanistock-draps-dialog .drapsStat span{font-size:14px!important;line-height:1.3!important}
+.sanistock-draps-dialog .drapsStat strong{font-size:46px!important;white-space:nowrap!important;margin:0!important}
+.sanistock-draps-dialog .drapsProgress{grid-column:1/-1!important;width:100%!important;margin-top:5px!important}
+.sanistock-draps-dialog .drapsRuleCard{display:grid!important;grid-template-columns:auto 1fr!important;column-gap:14px!important;row-gap:4px!important;text-align:left!important;padding:16px 20px!important}
+.sanistock-draps-dialog .drapsRuleCard strong{grid-row:1/3!important;font-size:30px!important}
+.sanistock-draps-dialog .drapsRuleCard span,.sanistock-draps-dialog .drapsRuleCard small{font-size:12px!important}
+.sanistock-draps-dialog .drapsQuickBtnsNine{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+.sanistock-draps-dialog .drapsHistoryHead{display:flex!important;flex-wrap:wrap!important}
+.sanistock-draps-dialog .drapsHistoryRow{display:flex!important;flex-wrap:wrap!important;align-items:center!important}
+.sanistock-draps-dialog .drapsHistoryRow span{min-width:0!important;overflow-wrap:anywhere!important}
+@media(max-width:420px){
+ .sanistock-draps-dialog .drapsStat{grid-template-columns:1fr auto!important;padding:15px!important}
+ .sanistock-draps-dialog .drapsStat strong{font-size:40px!important}
+ .sanistock-draps-dialog .drapsRuleCard{padding:14px 16px!important}
+ .sanistock-draps-dialog .drapsQuickBtnsNine button{min-height:64px!important}
 }
 </style>
 
