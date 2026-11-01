@@ -14940,28 +14940,51 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerFenetr
 
 <script id="sanistock-taxi-final-routing">
 (function(){
+  'use strict';
   var previous=window.ouvrirChecklistVehiculeFixe;
-  window.ouvrirChecklistVehiculeFixe=function(v,categorieForce){
+  function normaliser(v){return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();}
+  function estVehiculeTaxi(v, categorieForce){
     var cat=String(categorieForce||'').trim().toUpperCase();
-    var estTaxi = cat==='TAXIS' || cat==='TAXI' || /\bTAXI\b/i.test(String(v||''));
-    if(!estTaxi && typeof window.getChecklistVehiculesData==='function'){
-      try{
+    if(cat==='TAXI' || cat==='TAXIS' || /\bTAXI\b/i.test(String(v||''))) return true;
+    try{
+      if(typeof window.categorieChecklistDuVehicule==='function'){
+        var c=String(window.categorieChecklistDuVehicule(v)||'').trim().toUpperCase();
+        if(c==='TAXI' || c==='TAXIS') return true;
+      }
+    }catch(e){}
+    try{
+      if(typeof window.getChecklistVehiculesData==='function'){
         var data=window.getChecklistVehiculesData()||{};
-        estTaxi=Array.isArray(data.TAXIS) && data.TAXIS.some(function(x){
-          return String(x||'').trim().toLowerCase()===String(v||'').trim().toLowerCase();
-        });
-      }catch(e){}
-    }
-    if(estTaxi){
+        var taxis=Array.isArray(data.TAXIS)?data.TAXIS:(Array.isArray(data.TAXI)?data.TAXI:[]);
+        if(taxis.some(function(x){return normaliser(x)===normaliser(v);})) return true;
+      }
+    }catch(e){}
+    return false;
+  }
+  window.ouvrirChecklistVehiculeFixe=function(v,categorieForce){
+    if(estVehiculeTaxi(v,categorieForce)){
       if(typeof window.afficherChecklistTaxi==='function'){
         window.afficherChecklistTaxi(v);
         return;
       }
-      alert('La check-list TAXI n’a pas pu être chargée. Rechargez SaniStock.');
+      alert('La fiche de check-list TAXI est indisponible. Rechargez SaniStock.');
       return;
     }
     if(typeof previous==='function') return previous.apply(this,arguments);
   };
+  // Sécurise aussi le clic sur un véhicule de la rubrique TAXIS, même si son libellé
+  // ne contient pas le mot « taxi » : la catégorie portée par la ligne fait foi.
+  document.addEventListener('click',function(e){
+    var el=e.target && e.target.closest ? e.target.closest('[data-check-veh]') : null;
+    if(!el) return;
+    var wrap=el.closest('[data-monthly-category]');
+    var cat=wrap ? String(wrap.getAttribute('data-monthly-category')||'').trim().toUpperCase() : '';
+    if(cat==='TAXI' || cat==='TAXIS'){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      window.afficherChecklistTaxi(el.getAttribute('data-check-veh')||'');
+    }
+  },true);
 })();
 </script>
 <script id="sanistock-parametres-autorisation-finale">
