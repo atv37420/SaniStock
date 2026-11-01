@@ -15169,45 +15169,6 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerFenetr
   flex:0 0 100%!important; text-align:left!important;
 }
 </style>
-
-<!-- Correctif final ouverture checklist TAXI : accepte TAXI et TAXIS -->
-<script id="sanistock-taxi-routing-final">
-(function(){
-  function normaliserCategorie(v){
-    var c=String(v||'').trim().toUpperCase();
-    if(c==='TAXI' || c==='TAXIS') return 'TAXIS';
-    return c;
-  }
-  function categorieVehicule(v, forcee){
-    var c=normaliserCategorie(forcee);
-    if(c==='TAXIS') return 'TAXIS';
-    if(c) return c;
-    try{
-      var data=typeof window.getChecklistVehiculesData==='function'
-        ? window.getChecklistVehiculesData() : (window.VEHICULES_CHECKLIST || window.V || {});
-      var nom=String(v||'').trim().toLowerCase();
-      if(Array.isArray(data.TAXIS) && data.TAXIS.some(function(x){return String(x||'').trim().toLowerCase()===nom;})) return 'TAXIS';
-      if(Array.isArray(data.TAXI) && data.TAXI.some(function(x){return String(x||'').trim().toLowerCase()===nom;})) return 'TAXIS';
-    }catch(e){}
-    if(typeof window.categorieChecklistDuVehicule==='function'){
-      return normaliserCategorie(window.categorieChecklistDuVehicule(v));
-    }
-    return '';
-  }
-  window.ouvrirChecklistVehiculeFixe=function(v, categorieForce){
-    var cat=categorieVehicule(v,categorieForce);
-    if(cat==='TAXIS'){
-      if(typeof window.afficherChecklistTaxi==='function'){
-        window.afficherChecklistTaxi(v);
-        return;
-      }
-      alert('La fiche TAXI est présente mais son module ne s’est pas chargé. Rechargez SaniStock.');
-      return;
-    }
-    alert('Ce véhicule n’est pas affecté à une check-list TAXI. Vérifiez son affectation dans Paramètres → CHECK-LIST.');
-  };
-})();
-</script>
 </body>
 </html>
 <!-- SaniStock 1.1.114 : réactions multiples sur les publications. -->
