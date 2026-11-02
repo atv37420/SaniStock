@@ -12679,73 +12679,61 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
   function monthlyKey(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}
   function monthlyStatusKey(cat,v){return monthlyKey()+'|'+String(cat||'')+'|'+String(v||'').trim().toLowerCase();}
   function currentEmployee(){try{return String(localStorage.getItem('sanistock_employee_name')||'').trim();}catch(e){return '';}}
+  var monthlyStatusRequestInFlight=false;
   function loadMonthlyStatus(cat,vehicles){
-    if(!window.google||!google.script||!google.script.run)return;
+    if(!window.google||!google.script||!google.script.run||monthlyStatusRequestInFlight)return;
+    monthlyStatusRequestInFlight=true;
     google.script.run.withSuccessHandler(function(rows){
-      monthlyChecklistCache={};(Array.isArray(rows)?rows:[]).forEach(function(r){monthlyChecklistCache[monthlyStatusKey(r.categorie,r.vehicule)]=r;});
-      var box=document.getElementById('checklistContent');if(!box||!box.querySelector('[data-monthly-category="'+cat+'"]'))return;
-      box.querySelectorAll('[data-monthly-status]').forEach(function(el){var k=el.getAttribute('data-monthly-status'),r=monthlyChecklistCache[k];el.textContent=r?'✅ Effectuée le '+(r.dateAff||r.date||''):'⏳ À effectuer';el.classList.toggle('is-done',!!r);});
-    }).withFailureHandler(function(err){console.warn('Statut mensuel indisponible',err);}).getChecklistMensuelle({mois:monthlyKey()});
-  }
-
-  // Actualisation collaborative : les collègues déjà sur la page voient les
-  // validations enregistrées par les autres appareils sans devoir rouvrir la rubrique.
-  var monthlyRefreshBusy=false;
-  function actualiserStatutsMensuelsPartages(){
-    var page=document.getElementById('checklistPage');
-    var box=document.getElementById('checklistContent');
-    if(monthlyRefreshBusy || !navigator.onLine || !page || !page.classList.contains('active') || !box)return;
-    var category=box.querySelector('[data-monthly-category]');
-    if(!category)return;
-    var cat=category.getAttribute('data-monthly-category');
-    if(!window.google || !google.script || !google.script.run)return;
-    monthlyRefreshBusy=true;
-    google.script.run.withSuccessHandler(function(rows){
+      monthlyStatusRequestInFlight=false;
       monthlyChecklistCache={};
       (Array.isArray(rows)?rows:[]).forEach(function(r){
         monthlyChecklistCache[monthlyStatusKey(r.categorie,r.vehicule)]=r;
       });
-      // Met à jour les statuts et les boutons de validation dans la page ouverte.
-      box.querySelectorAll('[data-monthly-status]').forEach(function(el){
-        var key=el.getAttribute('data-monthly-status');
-        var record=monthlyChecklistCache[key];
-        el.textContent=record
-          ? '✅ Effectuée le '+(record.dateAff||record.date||'')+' par '+(record.salarie||'un collègue')
-          : '⏳ À effectuer';
-        el.classList.toggle('is-done',!!record);
-      });
-      box.querySelectorAll('[data-monthly-validate]').forEach(function(btn){
-        var key=monthlyStatusKey(btn.getAttribute('data-monthly-cat'),btn.getAttribute('data-monthly-validate'));
-        var record=monthlyChecklistCache[key];
-        if(record){
-          btn.disabled=true;
-          btn.textContent='✓ Déjà effectuée';
-          btn.classList.add('is-done');
-        }else{
-          btn.disabled=false;
-          btn.textContent='✓ Valider le mois';
-          btn.classList.remove('is-done');
-        }
-      });
-      monthlyRefreshBusy=false;
+      var box=document.getElementById('checklistContent');
+      if(box && box.querySelector('[data-monthly-category="'+cat+'"]')){
+        box.querySelectorAll('[data-monthly-status]').forEach(function(el){
+          var k=el.getAttribute('data-monthly-status'),r=monthlyChecklistCache[k];
+          if(r){
+            var who=r.salarie?' par '+r.salarie:'';
+            var when=r.dateAff||r.date||'';
+            el.textContent='✅ EFFECTUÉE'+(when?' le '+when:'')+who;
+          }else{
+            el.textContent='⏳ À EFFECTUER';
+          }
+          el.classList.toggle('is-done',!!r);
+          el.classList.toggle('is-pending',!r);
+        });
+      }
     }).withFailureHandler(function(err){
-      monthlyRefreshBusy=false;
-      console.warn('Actualisation des statuts partagés impossible',err);
+      monthlyStatusRequestInFlight=false;
+      console.warn('Statut mensuel indisponible',err);
     }).getChecklistMensuelle({mois:monthlyKey()});
+    // Libère le verrou même si le serveur ne répond pas.
+    setTimeout(function(){monthlyStatusRequestInFlight=false;},12000);
+    var release=function(){monthlyStatusRequestInFlight=false;};
+    // La réponse du pont SaniStock est reçue via les handlers ci-dessus.
+    var oldComplete=window.__saniMonthlyStatusRelease;
+    window.__saniMonthlyStatusRelease=release;
   }
-  window.setInterval(actualiserStatutsMensuelsPartages,10000);
-  window.addEventListener('focus',actualiserStatutsMensuelsPartages);
-  window.addEventListener('pageshow',actualiserStatutsMensuelsPartages);
-  window.addEventListener('online',actualiserStatutsMensuelsPartages);
+  function refreshVisibleMonthlyStatus(){
+    var page=document.getElementById('checklistPage');
+    var box=document.getElementById('checklistContent');
+    if(!page||!page.classList.contains('active')||!box)return;
+    var row=box.querySelector('[data-monthly-category]');
+    if(!row)return;
+    var cat=String(row.getAttribute('data-monthly-category')||'').trim();
+    if(cat)loadMonthlyStatus(cat,[]);
+  }
   window.marquerChecklistMensuelle=function(cat,v,btn){
     if(!confirm('Confirmer que la check-list mensuelle du véhicule « '+v+' » est effectuée ?'))return;
     if(btn){btn.disabled=true;btn.textContent='Enregistrement…';}
     var data={categorie:cat,vehicule:v,mois:monthlyKey(),salarie:currentEmployee()||'Salarié non identifié'};
     google.script.run.withSuccessHandler(function(){
       monthlyChecklistCache[monthlyStatusKey(cat,v)]={categorie:cat,vehicule:v,dateAff:new Date().toLocaleDateString('fr-FR'),salarie:data.salarie};
-      var box=document.getElementById('checklistContent');if(box){var st=box.querySelector('[data-monthly-status="'+monthlyStatusKey(cat,v)+'"]');if(st){st.textContent='✅ Effectuée le '+new Date().toLocaleDateString('fr-FR');st.classList.add('is-done');} }
+      var box=document.getElementById('checklistContent');
+      if(box){var st=box.querySelector('[data-monthly-status="'+monthlyStatusKey(cat,v)+'"]');if(st){st.textContent='✅ EFFECTUÉE le '+new Date().toLocaleDateString('fr-FR')+' par '+data.salarie;st.classList.add('is-done');st.classList.remove('is-pending');}}
       if(btn){btn.disabled=false;btn.textContent='✓ Mois validé';btn.classList.add('is-done');}
-      alert('✅ Validation mensuelle enregistrée pour '+v+'. Elle est maintenant visible par tous les salariés.');
+      alert('✅ Validation enregistrée sur le serveur. Les autres salariés verront le statut à la prochaine actualisation.');
     }).withFailureHandler(function(err){if(btn){btn.disabled=false;btn.textContent='✓ Valider le mois';}alert('❌ Impossible d’enregistrer la validation mensuelle : '+(err&&err.message?err.message:err));}).enregistrerChecklistMensuelle(data);
   };
   window.ouvrirHistoriqueChecklistMensuelle=function(){
@@ -12792,6 +12780,14 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
     var veh=e.target.closest && e.target.closest('[data-check-veh]'); if(veh){var wrap=veh.closest('[data-monthly-category]');var cat=wrap?wrap.getAttribute('data-monthly-category'):'';window.ouvrirChecklistVehiculeFixe(veh.getAttribute('data-check-veh'),cat);return;}
     if(e.target.closest && e.target.closest('#checklistBackCat')){window.ouvrirChecklistCategories();return;}
   });
+  // Tous les appareils relisent le statut partagé sur Google Apps Script.
+  // Actualisation toutes les 8 secondes tant que la liste des véhicules est affichée.
+  if(!window.__saniMonthlyStatusPolling){
+    window.__saniMonthlyStatusPolling=true;
+    setInterval(refreshVisibleMonthlyStatus,8000);
+    window.addEventListener('focus',refreshVisibleMonthlyStatus);
+    document.addEventListener('visibilitychange',function(){if(!document.hidden)refreshVisibleMonthlyStatus();});
+  }
 })();
 </script>
 <style id="sanistock-retour-blue-final">
@@ -15283,3 +15279,9 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerFenetr
   };
 })();
 </script>
+
+<style id="sanistock-statut-partage-checklists">
+#checklistPage .monthlyStatus{display:block;margin-top:6px;padding:8px 10px;border-radius:9px;background:#fff3d8;color:#925600;font-size:12px;font-weight:900;line-height:1.35}
+#checklistPage .monthlyStatus.is-done{background:#e5f7eb;color:#08763b}
+#checklistPage .monthlyStatus.is-pending{background:#fff3d8;color:#925600}
+</style>
