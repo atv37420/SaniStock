@@ -293,7 +293,17 @@
             data={code:String(data)};
           }
 
-          /* Hors connexion : on rejoue les lectures depuis le dernier cache disponible. */
+          /* Les statuts de check-list sont collaboratifs : ne jamais afficher
+             le cache local d'un téléphone comme s'il s'agissait du statut partagé.
+             On tente toujours une lecture serveur pour obtenir la dernière version. */
+          if(!navigator.onLine && String(prop)==='getChecklistMensuelle'){
+            sendJsonp(String(prop),data,function(result){
+              cacheResponse(String(prop),data,result).then(function(){if(typeof success==='function')success(result);});
+            },function(err){if(typeof failure==='function')failure(err);});
+            return;
+          }
+
+          /* Hors connexion : les autres lectures peuvent utiliser le cache local. */
           if(!navigator.onLine){
             if(WRITE_ACTIONS.has(String(prop))){
               queueWrite(String(prop),data)
@@ -12679,61 +12689,69 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
   function monthlyKey(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}
   function monthlyStatusKey(cat,v){return monthlyKey()+'|'+String(cat||'')+'|'+String(v||'').trim().toLowerCase();}
   function currentEmployee(){try{return String(localStorage.getItem('sanistock_employee_name')||'').trim();}catch(e){return '';}}
-  var monthlyStatusRequestInFlight=false;
   function loadMonthlyStatus(cat,vehicles){
-    if(!window.google||!google.script||!google.script.run||monthlyStatusRequestInFlight)return;
-    monthlyStatusRequestInFlight=true;
+    if(!window.google||!google.script||!google.script.run)return;
     google.script.run.withSuccessHandler(function(rows){
-      monthlyStatusRequestInFlight=false;
-      monthlyChecklistCache={};
-      (Array.isArray(rows)?rows:[]).forEach(function(r){
-        monthlyChecklistCache[monthlyStatusKey(r.categorie,r.vehicule)]=r;
+      monthlyChecklistCache={};(Array.isArray(rows)?rows:[]).forEach(function(r){monthlyChecklistCache[monthlyStatusKey(r.categorie,r.vehicule)]=r;});
+      var box=document.getElementById('checklistContent');if(!box||!box.querySelector('[data-monthly-category="'+cat+'"]'))return;
+      box.querySelectorAll('[data-monthly-status]').forEach(function(el){
+        var k=el.getAttribute('data-monthly-status'),r=monthlyChecklistCache[k];
+        if(r){
+          var detail=(r.dateAff||r.date||'')+(r.salarie?' par '+r.salarie:'');
+          el.textContent='✅ EFFECTUÉE'+(detail?' — '+detail:'');
+        }else{
+          el.textContent='⏳ À EFFECTUER';
+        }
+        el.classList.toggle('is-done',!!r);
+        el.classList.toggle('is-pending',!r);
       });
+    }).withFailureHandler(function(err){
+      console.warn('Statut mensuel indisponible',err);
       var box=document.getElementById('checklistContent');
-      if(box && box.querySelector('[data-monthly-category="'+cat+'"]')){
+      if(box&&box.querySelector('[data-monthly-category="'+cat+'"]')){
         box.querySelectorAll('[data-monthly-status]').forEach(function(el){
-          var k=el.getAttribute('data-monthly-status'),r=monthlyChecklistCache[k];
-          if(r){
-            var who=r.salarie?' par '+r.salarie:'';
-            var when=r.dateAff||r.date||'';
-            el.textContent='✅ EFFECTUÉE'+(when?' le '+when:'')+who;
-          }else{
-            el.textContent='⏳ À EFFECTUER';
-          }
-          el.classList.toggle('is-done',!!r);
-          el.classList.toggle('is-pending',!r);
+          if(!el.classList.contains('is-done'))el.textContent='⚠️ Statut partagé indisponible — vérifiez la connexion';
         });
       }
-    }).withFailureHandler(function(err){
-      monthlyStatusRequestInFlight=false;
-      console.warn('Statut mensuel indisponible',err);
     }).getChecklistMensuelle({mois:monthlyKey()});
-    // Libère le verrou même si le serveur ne répond pas.
-    setTimeout(function(){monthlyStatusRequestInFlight=false;},12000);
-    var release=function(){monthlyStatusRequestInFlight=false;};
-    // La réponse du pont SaniStock est reçue via les handlers ci-dessus.
-    var oldComplete=window.__saniMonthlyStatusRelease;
-    window.__saniMonthlyStatusRelease=release;
   }
-  function refreshVisibleMonthlyStatus(){
+
+  // Actualisation automatique pour les collègues qui ont déjà ouvert la liste.
+  // La lecture vient toujours du serveur, jamais d'un statut propre au téléphone.
+  var monthlySharedRefreshBusy=false;
+  function refreshMonthlySharedStatus(){
     var page=document.getElementById('checklistPage');
     var box=document.getElementById('checklistContent');
-    if(!page||!page.classList.contains('active')||!box)return;
+    if(monthlySharedRefreshBusy||!navigator.onLine||!page||!page.classList.contains('active')||!box)return;
     var row=box.querySelector('[data-monthly-category]');
     if(!row)return;
-    var cat=String(row.getAttribute('data-monthly-category')||'').trim();
-    if(cat)loadMonthlyStatus(cat,[]);
+    monthlySharedRefreshBusy=true;
+    var cat=row.getAttribute('data-monthly-category');
+    google.script.run.withSuccessHandler(function(rows){
+      monthlyChecklistCache={};
+      (Array.isArray(rows)?rows:[]).forEach(function(r){monthlyChecklistCache[monthlyStatusKey(r.categorie,r.vehicule)]=r;});
+      if(box!==document.getElementById('checklistContent')){monthlySharedRefreshBusy=false;return;}
+      box.querySelectorAll('[data-monthly-status]').forEach(function(el){
+        var r=monthlyChecklistCache[el.getAttribute('data-monthly-status')];
+        if(r){var detail=(r.dateAff||r.date||'')+(r.salarie?' par '+r.salarie:'');el.textContent='✅ EFFECTUÉE'+(detail?' — '+detail:'');}
+        else{el.textContent='⏳ À EFFECTUER';}
+        el.classList.toggle('is-done',!!r);el.classList.toggle('is-pending',!r);
+      });
+      monthlySharedRefreshBusy=false;
+    }).withFailureHandler(function(err){monthlySharedRefreshBusy=false;console.warn('Actualisation des statuts partagés impossible',err);}).getChecklistMensuelle({mois:monthlyKey()});
   }
+  setInterval(refreshMonthlySharedStatus,10000);
+  window.addEventListener('focus',refreshMonthlySharedStatus);
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)refreshMonthlySharedStatus();});
   window.marquerChecklistMensuelle=function(cat,v,btn){
     if(!confirm('Confirmer que la check-list mensuelle du véhicule « '+v+' » est effectuée ?'))return;
     if(btn){btn.disabled=true;btn.textContent='Enregistrement…';}
     var data={categorie:cat,vehicule:v,mois:monthlyKey(),salarie:currentEmployee()||'Salarié non identifié'};
     google.script.run.withSuccessHandler(function(){
       monthlyChecklistCache[monthlyStatusKey(cat,v)]={categorie:cat,vehicule:v,dateAff:new Date().toLocaleDateString('fr-FR'),salarie:data.salarie};
-      var box=document.getElementById('checklistContent');
-      if(box){var st=box.querySelector('[data-monthly-status="'+monthlyStatusKey(cat,v)+'"]');if(st){st.textContent='✅ EFFECTUÉE le '+new Date().toLocaleDateString('fr-FR')+' par '+data.salarie;st.classList.add('is-done');st.classList.remove('is-pending');}}
+      var box=document.getElementById('checklistContent');if(box){var st=box.querySelector('[data-monthly-status="'+monthlyStatusKey(cat,v)+'"]');if(st){st.textContent='✅ Effectuée le '+new Date().toLocaleDateString('fr-FR');st.classList.add('is-done');} }
       if(btn){btn.disabled=false;btn.textContent='✓ Mois validé';btn.classList.add('is-done');}
-      alert('✅ Validation enregistrée sur le serveur. Les autres salariés verront le statut à la prochaine actualisation.');
+      alert('✅ Validation mensuelle enregistrée pour '+v+'. Elle est maintenant visible par tous les salariés.');
     }).withFailureHandler(function(err){if(btn){btn.disabled=false;btn.textContent='✓ Valider le mois';}alert('❌ Impossible d’enregistrer la validation mensuelle : '+(err&&err.message?err.message:err));}).enregistrerChecklistMensuelle(data);
   };
   window.ouvrirHistoriqueChecklistMensuelle=function(){
@@ -12780,14 +12798,6 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
     var veh=e.target.closest && e.target.closest('[data-check-veh]'); if(veh){var wrap=veh.closest('[data-monthly-category]');var cat=wrap?wrap.getAttribute('data-monthly-category'):'';window.ouvrirChecklistVehiculeFixe(veh.getAttribute('data-check-veh'),cat);return;}
     if(e.target.closest && e.target.closest('#checklistBackCat')){window.ouvrirChecklistCategories();return;}
   });
-  // Tous les appareils relisent le statut partagé sur Google Apps Script.
-  // Actualisation toutes les 8 secondes tant que la liste des véhicules est affichée.
-  if(!window.__saniMonthlyStatusPolling){
-    window.__saniMonthlyStatusPolling=true;
-    setInterval(refreshVisibleMonthlyStatus,8000);
-    window.addEventListener('focus',refreshVisibleMonthlyStatus);
-    document.addEventListener('visibilitychange',function(){if(!document.hidden)refreshVisibleMonthlyStatus();});
-  }
 })();
 </script>
 <style id="sanistock-retour-blue-final">
@@ -14544,6 +14554,7 @@ html+='<div class="ambSectionBulkActions"><button type="button" class="toutCoche
 #checklistPage .checklistVehicleMonthly .checklistVehicle{width:100%;margin:0}
 #checklistPage .monthlyStatus{font-size:12px;font-weight:800;color:#a35d00;padding:4px 7px}
 #checklistPage .monthlyStatus.is-done{color:#168044}
+#checklistPage .monthlyStatus.is-pending{color:#0757a0}
 #checklistPage .monthlyValidateButton,#checklistPage .monthlyHistoryButton{border:0;border-radius:10px;padding:10px 12px;background:#0758a5;color:#fff;font-weight:900;cursor:pointer}
 #checklistPage .monthlyValidateButton.is-done{background:#168044}
 #checklistPage .monthlyValidateButton:disabled{opacity:.65}
@@ -15279,9 +15290,3 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerFenetr
   };
 })();
 </script>
-
-<style id="sanistock-statut-partage-checklists">
-#checklistPage .monthlyStatus{display:block;margin-top:6px;padding:8px 10px;border-radius:9px;background:#fff3d8;color:#925600;font-size:12px;font-weight:900;line-height:1.35}
-#checklistPage .monthlyStatus.is-done{background:#e5f7eb;color:#08763b}
-#checklistPage .monthlyStatus.is-pending{background:#fff3d8;color:#925600}
-</style>
