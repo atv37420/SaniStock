@@ -12681,7 +12681,8 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
   var monthlyStatusRefreshTimer=null;
   function monthlyKey(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}
   function monthlyNormalize(v){return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[–—]/g,'-').replace(/\s+/g,' ').trim().toLowerCase();}
-  function monthlyStatusKey(cat,v){return monthlyKey()+'|'+monthlyNormalize(cat)+'|'+monthlyNormalize(v);}
+  function monthlyCategoryNormalize(v){var c=monthlyNormalize(v);if(c==='taxi')return 'taxis';if(c==='ambulance')return 'ambulances';return c;}
+  function monthlyStatusKey(cat,v){return monthlyKey()+'|'+monthlyCategoryNormalize(cat)+'|'+monthlyNormalize(v);}
   function currentEmployee(){try{return String(localStorage.getItem('sanistock_employee_name')||'').trim();}catch(e){return '';}}
   function loadMonthlyStatus(cat,vehicles){
     var box=document.getElementById('checklistContent');
@@ -12691,7 +12692,7 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
     }
     if(!window.google||!google.script||!google.script.run)return;
     google.script.run.withSuccessHandler(function(rows){
-      monthlyChecklistCache={};(Array.isArray(rows)?rows:[]).forEach(function(r){monthlyChecklistCache[monthlyStatusKey(r.categorie,r.vehicule)]=r;});
+      monthlyChecklistCache={};(Array.isArray(rows)?rows:[]).forEach(function(r){if(!r)return;var key=monthlyStatusKey(r.categorie,r.vehicule);monthlyChecklistCache[key]=r;});
       box=document.getElementById('checklistContent');if(!box||!box.querySelector('[data-monthly-category="'+cat+'"]'))return;
       box.querySelectorAll('[data-monthly-status]').forEach(function(el){
         var k=el.getAttribute('data-monthly-status'),r=monthlyChecklistCache[k];
@@ -12723,6 +12724,7 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
     if(!page||!page.classList.contains('active')||!sub)return;
     ['AMBULANCES','VSL','TAXIS'].forEach(function(cat){if(sub.textContent.indexOf(checklistCategoryLabel(cat))!==-1)loadMonthlyStatus(cat,[]);});
   });
+  document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'){var page=document.getElementById('checklistPage'),sub=document.getElementById('checklistSubtitle');if(page&&page.classList.contains('active')&&sub){['AMBULANCES','VSL','TAXIS'].forEach(function(cat){if(sub.textContent.indexOf(checklistCategoryLabel(cat))!==-1)loadMonthlyStatus(cat,[]);});}}});
   window.marquerChecklistMensuelle=function(cat,v,btn){
     if(!confirm('Confirmer que la check-list mensuelle du véhicule « '+v+' » est effectuée ?'))return;
     if(btn){btn.disabled=true;btn.textContent='Enregistrement…';}
