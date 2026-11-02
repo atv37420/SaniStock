@@ -12682,7 +12682,15 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
   function monthlyKey(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}
   function monthlyNormalize(v){return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[–—]/g,'-').replace(/\s+/g,' ').trim().toLowerCase();}
   function monthlyCategoryNormalize(v){var c=monthlyNormalize(v);if(c==='taxi')return 'taxis';if(c==='ambulance')return 'ambulances';return c;}
-  function monthlyStatusKey(cat,v){return monthlyKey()+'|'+monthlyCategoryNormalize(cat)+'|'+monthlyNormalize(v);}
+  // Identifiant commun du véhicule : l'immatriculation prime sur le libellé.
+  // Exemple : « FF-334-SL – KODIAQ » et « FF-334-SL – SKODA KODIAQ VSL »
+  // correspondent au même véhicule.
+  function monthlyVehicleNormalize(v){
+    var raw=String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase();
+    var match=raw.match(/([A-Z]{2})\s*[-–—]\s*(\d{3})\s*[-–—]\s*([A-Z]{2})/);
+    return match ? (match[1]+'-'+match[2]+'-'+match[3]).toLowerCase() : monthlyNormalize(v);
+  }
+  function monthlyStatusKey(cat,v){return monthlyKey()+'|'+monthlyCategoryNormalize(cat)+'|'+monthlyVehicleNormalize(v);}
   function currentEmployee(){try{return String(localStorage.getItem('sanistock_employee_name')||'').trim();}catch(e){return '';}}
   function loadMonthlyStatus(cat,vehicles){
     var box=document.getElementById('checklistContent');
