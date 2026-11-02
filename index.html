@@ -12687,6 +12687,56 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
       box.querySelectorAll('[data-monthly-status]').forEach(function(el){var k=el.getAttribute('data-monthly-status'),r=monthlyChecklistCache[k];el.textContent=r?'✅ Effectuée le '+(r.dateAff||r.date||''):'⏳ À effectuer';el.classList.toggle('is-done',!!r);});
     }).withFailureHandler(function(err){console.warn('Statut mensuel indisponible',err);}).getChecklistMensuelle({mois:monthlyKey()});
   }
+
+  // Actualisation collaborative : les collègues déjà sur la page voient les
+  // validations enregistrées par les autres appareils sans devoir rouvrir la rubrique.
+  var monthlyRefreshBusy=false;
+  function actualiserStatutsMensuelsPartages(){
+    var page=document.getElementById('checklistPage');
+    var box=document.getElementById('checklistContent');
+    if(monthlyRefreshBusy || !navigator.onLine || !page || !page.classList.contains('active') || !box)return;
+    var category=box.querySelector('[data-monthly-category]');
+    if(!category)return;
+    var cat=category.getAttribute('data-monthly-category');
+    if(!window.google || !google.script || !google.script.run)return;
+    monthlyRefreshBusy=true;
+    google.script.run.withSuccessHandler(function(rows){
+      monthlyChecklistCache={};
+      (Array.isArray(rows)?rows:[]).forEach(function(r){
+        monthlyChecklistCache[monthlyStatusKey(r.categorie,r.vehicule)]=r;
+      });
+      // Met à jour les statuts et les boutons de validation dans la page ouverte.
+      box.querySelectorAll('[data-monthly-status]').forEach(function(el){
+        var key=el.getAttribute('data-monthly-status');
+        var record=monthlyChecklistCache[key];
+        el.textContent=record
+          ? '✅ Effectuée le '+(record.dateAff||record.date||'')+' par '+(record.salarie||'un collègue')
+          : '⏳ À effectuer';
+        el.classList.toggle('is-done',!!record);
+      });
+      box.querySelectorAll('[data-monthly-validate]').forEach(function(btn){
+        var key=monthlyStatusKey(btn.getAttribute('data-monthly-cat'),btn.getAttribute('data-monthly-validate'));
+        var record=monthlyChecklistCache[key];
+        if(record){
+          btn.disabled=true;
+          btn.textContent='✓ Déjà effectuée';
+          btn.classList.add('is-done');
+        }else{
+          btn.disabled=false;
+          btn.textContent='✓ Valider le mois';
+          btn.classList.remove('is-done');
+        }
+      });
+      monthlyRefreshBusy=false;
+    }).withFailureHandler(function(err){
+      monthlyRefreshBusy=false;
+      console.warn('Actualisation des statuts partagés impossible',err);
+    }).getChecklistMensuelle({mois:monthlyKey()});
+  }
+  window.setInterval(actualiserStatutsMensuelsPartages,10000);
+  window.addEventListener('focus',actualiserStatutsMensuelsPartages);
+  window.addEventListener('pageshow',actualiserStatutsMensuelsPartages);
+  window.addEventListener('online',actualiserStatutsMensuelsPartages);
   window.marquerChecklistMensuelle=function(cat,v,btn){
     if(!confirm('Confirmer que la check-list mensuelle du véhicule « '+v+' » est effectuée ?'))return;
     if(btn){btn.disabled=true;btn.textContent='Enregistrement…';}
