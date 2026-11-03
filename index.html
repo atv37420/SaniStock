@@ -36,7 +36,8 @@
     'supprimerInformation',
     'ajouterPublicationEquipe',
     'ajouterCommentaireEquipe',
-    'enregistrerChecklistMensuelle'
+    'enregistrerChecklistMensuelle',
+    'enregistrerMouvementDraps'
   ]);
 
   function openOfflineDB(){
@@ -2850,34 +2851,66 @@ button.settingsAction.secondary:hover,
 </section>
 <section class="stockInnerPane" id="stockInnerPane-draps" role="tabpanel" hidden>
 <!-- Gestion des draps : ajout intégré à la rubrique Stock -->
+<style id="sanistock-draps-mouvements-style">
+#drapsStockPanel{display:flex;flex-direction:column;gap:14px;color:#082b50}
+.drapsMoveGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.drapsMoveCard{border:1px solid #cbdff2;border-radius:18px;padding:14px;background:#fff;box-shadow:0 5px 16px rgba(7,55,100,.07)}
+.drapsMoveCard.clean{border-color:#9bd9ad;background:linear-gradient(145deg,#f5fff7,#e8f8ed)}
+.drapsMoveCard.dirty{border-color:#f0b0b0;background:linear-gradient(145deg,#fff8f8,#ffeded)}
+.drapsMoveTitle{font-size:17px;font-weight:900;margin:0 0 12px}
+.drapsMoveCard.clean .drapsMoveTitle{color:#08752b}.drapsMoveCard.dirty .drapsMoveTitle{color:#b91c1c}
+.drapsMoveField{display:grid;grid-template-columns:1fr 88px;align-items:center;gap:7px;margin:9px 0;font-weight:700;font-size:13px}
+.drapsMoveField input{width:100%;min-width:0;min-height:43px;border:1px solid #b9c9d9;border-radius:10px;background:#fff;padding:7px;text-align:center;font-size:18px;font-weight:800;color:#082b50}
+.drapsMoveSubmit{width:100%;border:0;border-radius:12px;padding:12px 8px;margin-top:9px;color:white;font-weight:900;font-size:14px;cursor:pointer}
+.drapsMoveSubmit.clean{background:#07832f}.drapsMoveSubmit.dirty{background:#d51f25}
+.drapsLiveCard{border:1px solid #91bce9;border-radius:18px;padding:14px;background:linear-gradient(135deg,#f4f9ff,#e5f1ff)}
+.drapsLiveTop{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.drapsLiveTop strong{font-size:16px;color:#073b75}.drapsLiveNumber{font-size:27px;font-weight:950;color:#0757a0;white-space:nowrap}
+.drapsLiveBar{height:12px;background:#cbd9e8;border-radius:20px;overflow:hidden;margin:10px 0 6px}
+.drapsLiveBar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#0875d1,#073f91);border-radius:20px;transition:width .2s}
+.drapsLiveFoot{font-size:13px;color:#244b70;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.drapsTotalsGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.drapsTotalCard{border-radius:16px;padding:12px;text-align:center;background:#f0f7ff;border:1px solid #b9d5f3}
+.drapsTotalCard.clean{background:#effaf1;border-color:#a9dfb6}.drapsTotalCard.dirty{background:#fff1f1;border-color:#f1b8b8}
+.drapsTotalCard strong{display:block;font-size:14px}.drapsTotalCard b{display:block;font-size:21px;margin-top:4px}
+.drapsHistoryCard{border:1px solid #cbdff2;border-radius:16px;background:white;padding:12px}
+.drapsHistoryHead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+.drapsHistoryHead strong{color:#0757a0;font-weight:900}
+.drapsHistoryRow{display:grid;grid-template-columns:1fr auto;gap:8px;padding:9px 2px;border-top:1px solid #e5edf5;font-size:12px}
+.drapsHistoryRow strong{white-space:nowrap;color:#52677c}
+.drapsHistoryEmpty{color:#64748b;font-size:13px;margin:8px 0}
+@media(max-width:520px){.drapsMoveGrid{grid-template-columns:1fr 1fr;gap:8px}.drapsMoveCard{padding:10px}.drapsMoveTitle{font-size:14px}.drapsMoveField{grid-template-columns:1fr 65px;font-size:11px}.drapsMoveField input{font-size:16px;min-height:39px}.drapsMoveSubmit{font-size:12px;padding:11px 4px}.drapsLiveNumber{font-size:24px}}
+</style>
 <section id="drapsStockPanel" aria-labelledby="drapsStockTitle">
-  <div class="drapsInfoBanner"><span class="drapsInfoIcon">i</span><p>1 sac = 10 draps sales maximum. À 10 draps, le sac est comptabilisé automatiquement et le compteur revient à zéro.</p></div>
-  <div class="drapsStats drapsStatsSingle">
-    <div class="drapsStat drapsStatBlue"><span>Draps dans le sac actuel</span><strong><b id="drapsCount">0</b><small> / 10</small></strong><div class="drapsProgress"><i id="drapsProgressBar"></i></div></div>
-    <span id="drapsBags" hidden>0</span>
-  </div>
-  <div class="drapsBagInfoCard" aria-label="Un sac peut contenir dix draps sales maximum">
-    <div class="drapsBagIllustration" aria-hidden="true">🛍️</div>
-    <div class="drapsBagNumber"><strong>1</strong><b>SAC</b></div>
-    <div class="drapsBagDivider" aria-hidden="true"></div>
-    <div class="drapsBagText"><strong>10 DRAPS SALES MAX.</strong><span>À 10, le compteur revient à zéro.</span></div>
-  </div>
-  <div class="drapsAddPanel">
-    <h3><span class="drapsAddIcon">＋</span> Ajouter des draps sales</h3>
-    <div class="drapsQuickBtns drapsQuickBtnsNine drapsQuantityPicker">
-      <label for="drapsQuantitySelect">Nombre de draps</label>
-      <select id="drapsQuantitySelect" aria-label="Choisir le nombre de draps à ajouter">
-        <option value="1">1 drap</option><option value="2">2 draps</option><option value="3">3 draps</option><option value="4">4 draps</option><option value="5">5 draps</option><option value="6">6 draps</option><option value="7">7 draps</option><option value="8">8 draps</option><option value="9">9 draps</option><option value="10">10 draps</option>
-      </select>
-      <button type="button" class="drapsAddSelected" onclick="sanistockAjouterDraps(Number(document.getElementById('drapsQuantitySelect').value)||1)">＋ Ajouter</button>
+  <div class="drapsMoveGrid">
+    <div class="drapsMoveCard clean">
+      <h3 class="drapsMoveTitle">🟢 Entrée draps propres</h3>
+      <label class="drapsMoveField"><span>Nombre de draps</span><input id="drapsEntreeQuantite" type="number" min="1" max="10000" value="20"></label>
+      <label class="drapsMoveField"><span>Nombre de sacs</span><input id="drapsEntreeSacs" type="number" min="0" max="1000" value="2"></label>
+      <button type="button" class="drapsMoveSubmit clean" onclick="sanistockEnregistrerMouvementDraps('entree_propre')">✓ Valider l’entrée</button>
+    </div>
+    <div class="drapsMoveCard dirty">
+      <h3 class="drapsMoveTitle">🔴 Sortie draps sales</h3>
+      <label class="drapsMoveField"><span>Nombre de draps</span><input id="drapsSortieQuantite" type="number" min="1" max="10000" value="10"></label>
+      <label class="drapsMoveField"><span>Nombre de sacs</span><input id="drapsSortieSacs" type="number" min="0" max="1000" value="1"></label>
+      <button type="button" class="drapsMoveSubmit dirty" onclick="sanistockEnregistrerMouvementDraps('sortie_sale')">✓ Valider la sortie</button>
     </div>
   </div>
-  <div class="drapsHistoryCard">
-    <div class="drapsHistoryHead"><strong>🕘 Historique des changements</strong><button type="button" onclick="sanistockAfficherHistoriqueDraps()">Voir tout</button></div>
-    <div id="drapsHistory" class="drapsHistory"><p class="drapsHistoryEmpty">Aucun changement enregistré.</p></div>
+  <div class="drapsLiveCard" aria-live="polite">
+    <div class="drapsLiveTop"><strong>🧺 Draps sales actuellement dans le sac</strong><span class="drapsLiveNumber"><b id="drapsCount">0</b> / 10</span></div>
+    <div class="drapsLiveBar"><i id="drapsProgressBar"></i></div>
+    <div class="drapsLiveFoot"><span id="drapsNextBag">Prochain sac : 10 draps</span><span>Sacs formés aujourd’hui : <b id="drapsBags">0</b></span></div>
   </div>
-  <button type="button" class="drapsResetBtn" onclick="sanistockConfirmerResetDraps()">⟳ Réinitialiser le compteur</button>
-  <p class="drapsLocalNotice">☁️ Suivi partagé : les compteurs et l’historique sont enregistrés dans Google Sheets.</p>
+  <div class="drapsTotalsGrid">
+    <div class="drapsTotalCard clean"><strong>Total entrées · draps propres</strong><b><span id="drapsTotalEntrees">0</span> draps · <span id="drapsTotalEntreesSacs">0</span> sacs</b></div>
+    <div class="drapsTotalCard dirty"><strong>Total sorties · draps sales</strong><b><span id="drapsTotalSorties">0</span> draps · <span id="drapsTotalSortiesSacs">0</span> sacs</b></div>
+  </div>
+  <div class="drapsHistoryCard">
+    <div class="drapsHistoryHead"><strong>🕘 Historique des mouvements</strong><button type="button" onclick="sanistockAfficherHistoriqueDraps()">Voir tout</button></div>
+    <div id="drapsHistory" class="drapsHistory"><p class="drapsHistoryEmpty">Aucun mouvement enregistré.</p></div>
+  </div>
+  <button type="button" class="drapsResetBtn" onclick="sanistockConfirmerResetDraps()">⟳ Réinitialiser le compteur du sac actuel</button>
+  <p class="drapsLocalNotice">☁️ Les mouvements sont enregistrés dans Google Sheets et partagés avec l’équipe.</p>
 </section>
 </section><!-- /stockInnerPane-draps -->
 <script id="sanistock-gestion-stock-default-tab">
@@ -3216,36 +3249,51 @@ document.addEventListener('DOMContentLoaded', function(){
 
 <script id="sanistock-gestion-draps-js">
 (function(){
-  let etatDraps = {count:0,bags:0,day:'',history:[]};
-  let chargementDraps = false;
+  let etatDraps={count:0,bags:0,history:[],mouvements:[]};
+  let chargementDraps=false;
   function escapeHtmlDraps(v){return String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+  function appelerServiceDraps(action,data,onSuccess,onFailure){
+    try{
+      const runner=window.google&&window.google.script&&window.google.script.run;
+      if(!runner||typeof runner.withSuccessHandler!=='function'){
+        if(onFailure)onFailure({message:'Connexion au service SaniStock indisponible. Vérifiez votre connexion puis réessayez.'});
+        return;
+      }
+      runner.withSuccessHandler(function(result){if(onSuccess)onSuccess(result);})
+        .withFailureHandler(function(err){if(onFailure)onFailure(err||{message:'Erreur de synchronisation'});})[action](data||{});
+    }catch(err){if(onFailure)onFailure(err||{message:'Erreur de synchronisation'});}
+  }
+  function salarieConnecteDraps(){
+    try{return String(localStorage.getItem('sanistock_employee_name')||'').trim();}
+    catch(e){return '';}
+  }
   function afficher(){
-    const d=etatDraps;
-    const c=document.getElementById('drapsCount'),b=document.getElementById('drapsBags'),bar=document.getElementById('drapsProgressBar'),h=document.getElementById('drapsHistory');
-    if(!c||!b||!bar||!h)return;
-    c.textContent=Number(d.count)||0;b.textContent=Number(d.bags)||0;bar.style.width=Math.min(100,(Number(d.count)||0)*10)+'%';
-    const rows=(d.history||[]).slice(0,5);
-    h.innerHTML=rows.length?rows.map(x=>'<div class="drapsHistoryRow"><span>🧺 '+escapeHtmlDraps(x.label)+(x.salarie?' · '+escapeHtmlDraps(x.salarie):'')+'</span><strong>'+escapeHtmlDraps(x.time)+'</strong></div>').join(''):'<p class="drapsHistoryEmpty">Aucun changement enregistré.</p>';
+    const d=etatDraps||{};
+    const count=Math.max(0,Number(d.count)||0);
+    const countEl=document.getElementById('drapsCount');
+    const bagsEl=document.getElementById('drapsBags');
+    const bar=document.getElementById('drapsProgressBar');
+    const next=document.getElementById('drapsNextBag');
+    const historyEl=document.getElementById('drapsHistory');
+    if(countEl)countEl.textContent=count;
+    if(bagsEl)bagsEl.textContent=Number(d.bags)||0;
+    if(bar)bar.style.width=Math.min(100,count*10)+'%';
+    if(next)next.textContent=count===0?'Prochain sac : 10 draps':('Prochain sac : dans '+(10-count)+' drap'+(10-count>1?'s':''));
+    const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=Number(v)||0;};
+    set('drapsTotalEntrees',d.totalEntreesDraps);
+    set('drapsTotalEntreesSacs',d.totalEntreesSacs);
+    set('drapsTotalSorties',d.totalSortiesDraps);
+    set('drapsTotalSortiesSacs',d.totalSortiesSacs);
+    if(historyEl){
+      const rows=(d.mouvements||[]).slice(0,5);
+      const dirty=(d.history||[]).slice(0,5).map(x=>({label:x.label,time:x.time,salarie:x.salarie}));
+      const all=rows.concat(dirty).sort((a,b)=>String(b.time||'').localeCompare(String(a.time||''))).slice(0,5);
+      historyEl.innerHTML=all.length?all.map(x=>'<div class="drapsHistoryRow"><span>'+escapeHtmlDraps(x.label)+(x.draps!=null?' · '+Number(x.draps)+' draps · '+Number(x.sacs||0)+' sacs':'')+(x.salarie?' · '+escapeHtmlDraps(x.salarie):'')+'</span><strong>'+escapeHtmlDraps(x.time)+'</strong></div>').join(''):'<p class="drapsHistoryEmpty">Aucun mouvement enregistré.</p>';
+    }
   }
   function afficherErreurDraps(message){
     const h=document.getElementById('drapsHistory');
-    if(h) h.innerHTML='<p class="drapsHistoryEmpty" style="color:#b91c1c">'+escapeHtmlDraps(message)+'</p>';
-  }
-  function appelerServiceDraps(action,data,onSuccess,onFailure){
-    try{
-      const runner=window.google && window.google.script && window.google.script.run;
-      if(!runner || typeof runner.withSuccessHandler!=='function'){
-        if(typeof onFailure==='function') onFailure({message:'Connexion au service SaniStock indisponible. Vérifiez votre connexion puis réessayez.'});
-        return;
-      }
-      runner.withSuccessHandler(function(result){if(typeof onSuccess==='function')onSuccess(result);})
-        .withFailureHandler(function(err){if(typeof onFailure==='function')onFailure(err||{message:'Erreur de synchronisation'});})[action](data||{});
-    }catch(err){if(typeof onFailure==='function')onFailure(err||{message:'Erreur de synchronisation'});}
-  }
-  function salarieConnecteDraps(){
-    try {
-      return String(localStorage.getItem('sanistock_employee_name') || '').trim();
-    } catch(e) { return ''; }
+    if(h)h.innerHTML='<p class="drapsHistoryEmpty" style="color:#b91c1c">'+escapeHtmlDraps(message)+'</p>';
   }
   function chargerDraps(){
     if(chargementDraps)return;
@@ -3257,38 +3305,42 @@ document.addEventListener('DOMContentLoaded', function(){
       else afficherErreurDraps('Réponse du serveur invalide.');
     },function(err){chargementDraps=false;afficherErreurDraps((err&&err.message)||'Impossible de charger le suivi partagé.');});
   }
-  window.sanistockAjouterDraps=function(n){
-    n=Math.max(1,Math.min(100,Number(n)||1));
-    if(!navigator.onLine){alert('Connexion Internet nécessaire pour enregistrer les draps dans le suivi partagé. Aucun changement n’a été enregistré.');return;}
-    const buttons=document.querySelectorAll('#drapsStockPanel button');buttons.forEach(b=>b.disabled=true);
+  window.sanistockEnregistrerMouvementDraps=function(type){
+    const entree=type==='entree_propre';
+    const qEl=document.getElementById(entree?'drapsEntreeQuantite':'drapsSortieQuantite');
+    const sEl=document.getElementById(entree?'drapsEntreeSacs':'drapsSortieSacs');
+    const quantite=Number(qEl&&qEl.value),sacs=Number(sEl&&sEl.value);
+    if(!Number.isInteger(quantite)||quantite<1||quantite>10000){alert('Indique un nombre de draps compris entre 1 et 10 000.');return;}
+    if(!Number.isInteger(sacs)||sacs<0||sacs>1000||sacs>quantite){alert('Vérifie le nombre de sacs (0 à 1 000, sans dépasser le nombre de draps).');return;}
+    if(!navigator.onLine){alert('Connexion Internet nécessaire. Aucun mouvement n’a été enregistré.');return;}
     const salarie=salarieConnecteDraps();
-    if(!salarie){buttons.forEach(b=>b.disabled=false);alert('Salarié non identifié. Déconnectez-vous puis reconnectez-vous à SaniStock avec votre nom et votre code personnel avant d’ajouter des draps.');return;}
-    const requestId='draps_'+Date.now()+'_'+Math.random().toString(36).slice(2,10);
-    appelerServiceDraps('ajouterDraps',{quantite:n,salarie:salarie,requestId:requestId},function(result){
+    if(!salarie){alert('Salarié non identifié. Déconnectez-vous puis reconnectez-vous à SaniStock avec votre nom et votre code personnel.');return;}
+    const panel=document.getElementById('drapsStockPanel');
+    const buttons=panel?panel.querySelectorAll('button'):[];buttons.forEach(b=>b.disabled=true);
+    const requestId='mvt_draps_'+Date.now()+'_'+Math.random().toString(36).slice(2,10);
+    appelerServiceDraps('enregistrerMouvementDraps',{type:type,quantite:quantite,sacs:sacs,salarie:salarie,requestId:requestId},function(result){
       buttons.forEach(b=>b.disabled=false);
       if(!result||typeof result!=='object'){alert('Le serveur n’a pas confirmé l’enregistrement.');return;}
       etatDraps=result;afficher();
-      const sacs=Number(result.sacsAjoutes)||0;
-      if(sacs&&typeof afficherConfirmationDraps==='function')afficherConfirmationDraps(sacs,Number(result.bags)||0);
-    },function(err){buttons.forEach(b=>b.disabled=false);alert('Échec de l’enregistrement dans Google Sheets : '+((err&&err.message)||'erreur inconnue')+'. Réessaie avant de quitter la page.');});
+      alert(entree?'Entrée de draps propres enregistrée.':'Sortie de draps sales enregistrée.');
+    },function(err){
+      buttons.forEach(b=>b.disabled=false);
+      alert('Échec de l’enregistrement dans Google Sheets : '+((err&&err.message)||'erreur inconnue'));
+    });
   };
-  function afficherConfirmationDraps(sacs,total){
-    const old=document.getElementById('drapsConfirmOverlay');if(old)old.remove();
-    const overlay=document.createElement('div');overlay.id='drapsConfirmOverlay';overlay.className='drapsConfirmOverlay';
-    overlay.innerHTML='<div class="drapsConfirmCard" role="dialog" aria-modal="true"><div class="drapsConfirmCheck">✓</div><h3>🧺 Sac changé !</h3><p>'+sacs+' sac(s) ajouté(s) au suivi.</p><p>Total des sacs changés aujourd’hui : '+total+'</p><button type="button" onclick="this.parentElement.parentElement.remove()">OK</button></div>';
-    document.body.appendChild(overlay);
-  }
   window.sanistockAfficherHistoriqueDraps=function(){
-    const rows=etatDraps.history||[];
-    alert(rows.length?rows.map(x=>(x.label||'Opération')+' — '+(x.time||'')).join('\n'):'Aucun changement enregistré.');
+    const rows=(etatDraps.mouvements||[]).concat((etatDraps.history||[]));
+    alert(rows.length?rows.map(x=>(x.label||'Opération')+(x.draps!=null?' — '+x.draps+' draps, '+(x.sacs||0)+' sacs':'')+' — '+(x.time||'')+(x.salarie?' — '+x.salarie:'')).join('\n'):'Aucun mouvement enregistré.');
   };
   window.sanistockConfirmerResetDraps=function(){
-    if(!confirm('Réinitialiser le compteur de draps dans le sac actuel ? L’historique des sacs changés sera conservé.'))return;
+    if(!confirm('Réinitialiser le compteur de draps dans le sac actuel ? L’historique sera conservé.'))return;
     if(!navigator.onLine){alert('Connexion Internet nécessaire. Aucun changement n’a été enregistré.');return;}
     const salarie=salarieConnecteDraps();
     if(!salarie){alert('Salarié non identifié. Reconnectez-vous à SaniStock avant de réinitialiser le compteur.');return;}
     const requestId='draps_reset_'+Date.now()+'_'+Math.random().toString(36).slice(2,10);
-    appelerServiceDraps('reinitialiserCompteurDraps',{salarie:salarie,requestId:requestId},function(result){etatDraps=result||etatDraps;afficher();alert('Compteur réinitialisé.');},function(err){alert('Impossible de réinitialiser le compteur : '+((err&&err.message)||'erreur inconnue'));});
+    appelerServiceDraps('reinitialiserCompteurDraps',{salarie:salarie,requestId:requestId},function(result){
+      etatDraps=result||etatDraps;afficher();alert('Compteur réinitialisé.');
+    },function(err){alert('Impossible de réinitialiser le compteur : '+((err&&err.message)||'erreur inconnue'));});
   };
   document.addEventListener('DOMContentLoaded',chargerDraps);
   window.addEventListener('pageshow',chargerDraps);
@@ -14849,68 +14901,98 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerFenetr
 </script>
 <script id="sanistock-gestion-draps-js">
 (function(){
-  let etatDraps = {count:0,bags:0,day:'',history:[]};
-  let chargementDraps = false;
+  let etatDraps={count:0,bags:0,history:[],mouvements:[]};
+  let chargementDraps=false;
   function escapeHtmlDraps(v){return String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+  function appelerServiceDraps(action,data,onSuccess,onFailure){
+    try{
+      const runner=window.google&&window.google.script&&window.google.script.run;
+      if(!runner||typeof runner.withSuccessHandler!=='function'){
+        if(onFailure)onFailure({message:'Connexion au service SaniStock indisponible. Vérifiez votre connexion puis réessayez.'});
+        return;
+      }
+      runner.withSuccessHandler(function(result){if(onSuccess)onSuccess(result);})
+        .withFailureHandler(function(err){if(onFailure)onFailure(err||{message:'Erreur de synchronisation'});})[action](data||{});
+    }catch(err){if(onFailure)onFailure(err||{message:'Erreur de synchronisation'});}
+  }
+  function salarieConnecteDraps(){
+    try{return String(localStorage.getItem('sanistock_employee_name')||'').trim();}
+    catch(e){return '';}
+  }
   function afficher(){
-    const d=etatDraps;
-    const c=document.getElementById('drapsCount'),b=document.getElementById('drapsBags'),bar=document.getElementById('drapsProgressBar'),h=document.getElementById('drapsHistory');
-    if(!c||!b||!bar||!h)return;
-    c.textContent=Number(d.count)||0;b.textContent=Number(d.bags)||0;bar.style.width=Math.min(100,(Number(d.count)||0)*10)+'%';
-    const rows=(d.history||[]).slice(0,5);
-    h.innerHTML=rows.length?rows.map(x=>'<div class="drapsHistoryRow"><span>🧺 '+escapeHtmlDraps(x.label)+(x.salarie?' · '+escapeHtmlDraps(x.salarie):'')+'</span><strong>'+escapeHtmlDraps(x.time)+'</strong></div>').join(''):'<p class="drapsHistoryEmpty">Aucun changement enregistré.</p>';
+    const d=etatDraps||{};
+    const count=Math.max(0,Number(d.count)||0);
+    const countEl=document.getElementById('drapsCount');
+    const bagsEl=document.getElementById('drapsBags');
+    const bar=document.getElementById('drapsProgressBar');
+    const next=document.getElementById('drapsNextBag');
+    const historyEl=document.getElementById('drapsHistory');
+    if(countEl)countEl.textContent=count;
+    if(bagsEl)bagsEl.textContent=Number(d.bags)||0;
+    if(bar)bar.style.width=Math.min(100,count*10)+'%';
+    if(next)next.textContent=count===0?'Prochain sac : 10 draps':('Prochain sac : dans '+(10-count)+' drap'+(10-count>1?'s':''));
+    const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=Number(v)||0;};
+    set('drapsTotalEntrees',d.totalEntreesDraps);
+    set('drapsTotalEntreesSacs',d.totalEntreesSacs);
+    set('drapsTotalSorties',d.totalSortiesDraps);
+    set('drapsTotalSortiesSacs',d.totalSortiesSacs);
+    if(historyEl){
+      const rows=(d.mouvements||[]).slice(0,5);
+      const dirty=(d.history||[]).slice(0,5).map(x=>({label:x.label,time:x.time,salarie:x.salarie}));
+      const all=rows.concat(dirty).sort((a,b)=>String(b.time||'').localeCompare(String(a.time||''))).slice(0,5);
+      historyEl.innerHTML=all.length?all.map(x=>'<div class="drapsHistoryRow"><span>'+escapeHtmlDraps(x.label)+(x.draps!=null?' · '+Number(x.draps)+' draps · '+Number(x.sacs||0)+' sacs':'')+(x.salarie?' · '+escapeHtmlDraps(x.salarie):'')+'</span><strong>'+escapeHtmlDraps(x.time)+'</strong></div>').join(''):'<p class="drapsHistoryEmpty">Aucun mouvement enregistré.</p>';
+    }
   }
   function afficherErreurDraps(message){
     const h=document.getElementById('drapsHistory');
-    if(h) h.innerHTML='<p class="drapsHistoryEmpty" style="color:#b91c1c">'+escapeHtmlDraps(message)+'</p>';
-  }
-  function salarieConnecteDraps(){
-    try {
-      return String(localStorage.getItem('sanistock_employee_name') || '').trim();
-    } catch(e) { return ''; }
+    if(h)h.innerHTML='<p class="drapsHistoryEmpty" style="color:#b91c1c">'+escapeHtmlDraps(message)+'</p>';
   }
   function chargerDraps(){
     if(chargementDraps)return;
     if(!navigator.onLine){afficherErreurDraps('Connexion Internet nécessaire pour synchroniser les draps avec toute l’équipe.');return;}
     chargementDraps=true;
-    window.sendJsonp('getGestionDraps',{},function(result){
+    appelerServiceDraps('getGestionDraps',{},function(result){
       chargementDraps=false;
       if(result&&typeof result==='object'){etatDraps=result;afficher();}
       else afficherErreurDraps('Réponse du serveur invalide.');
     },function(err){chargementDraps=false;afficherErreurDraps((err&&err.message)||'Impossible de charger le suivi partagé.');});
   }
-  window.sanistockAjouterDraps=function(n){
-    n=Math.max(1,Math.min(100,Number(n)||1));
-    if(!navigator.onLine){alert('Connexion Internet nécessaire pour enregistrer les draps dans le suivi partagé. Aucun changement n’a été enregistré.');return;}
-    const buttons=document.querySelectorAll('#drapsStockPanel button');buttons.forEach(b=>b.disabled=true);
+  window.sanistockEnregistrerMouvementDraps=function(type){
+    const entree=type==='entree_propre';
+    const qEl=document.getElementById(entree?'drapsEntreeQuantite':'drapsSortieQuantite');
+    const sEl=document.getElementById(entree?'drapsEntreeSacs':'drapsSortieSacs');
+    const quantite=Number(qEl&&qEl.value),sacs=Number(sEl&&sEl.value);
+    if(!Number.isInteger(quantite)||quantite<1||quantite>10000){alert('Indique un nombre de draps compris entre 1 et 10 000.');return;}
+    if(!Number.isInteger(sacs)||sacs<0||sacs>1000||sacs>quantite){alert('Vérifie le nombre de sacs (0 à 1 000, sans dépasser le nombre de draps).');return;}
+    if(!navigator.onLine){alert('Connexion Internet nécessaire. Aucun mouvement n’a été enregistré.');return;}
     const salarie=salarieConnecteDraps();
-    if(!salarie){buttons.forEach(b=>b.disabled=false);alert('Salarié non identifié. Déconnectez-vous puis reconnectez-vous à SaniStock avec votre nom et votre code personnel avant d’ajouter des draps.');return;}
-    const requestId='draps_'+Date.now()+'_'+Math.random().toString(36).slice(2,10);
-    window.sendJsonp('ajouterDraps',{quantite:n,salarie:salarie,requestId:requestId},function(result){
+    if(!salarie){alert('Salarié non identifié. Déconnectez-vous puis reconnectez-vous à SaniStock avec votre nom et votre code personnel.');return;}
+    const panel=document.getElementById('drapsStockPanel');
+    const buttons=panel?panel.querySelectorAll('button'):[];buttons.forEach(b=>b.disabled=true);
+    const requestId='mvt_draps_'+Date.now()+'_'+Math.random().toString(36).slice(2,10);
+    appelerServiceDraps('enregistrerMouvementDraps',{type:type,quantite:quantite,sacs:sacs,salarie:salarie,requestId:requestId},function(result){
       buttons.forEach(b=>b.disabled=false);
       if(!result||typeof result!=='object'){alert('Le serveur n’a pas confirmé l’enregistrement.');return;}
       etatDraps=result;afficher();
-      const sacs=Number(result.sacsAjoutes)||0;
-      if(sacs&&typeof afficherConfirmationDraps==='function')afficherConfirmationDraps(sacs,Number(result.bags)||0);
-    },function(err){buttons.forEach(b=>b.disabled=false);alert('Échec de l’enregistrement dans Google Sheets : '+((err&&err.message)||'erreur inconnue')+'. Réessaie avant de quitter la page.');});
+      alert(entree?'Entrée de draps propres enregistrée.':'Sortie de draps sales enregistrée.');
+    },function(err){
+      buttons.forEach(b=>b.disabled=false);
+      alert('Échec de l’enregistrement dans Google Sheets : '+((err&&err.message)||'erreur inconnue'));
+    });
   };
-  function afficherConfirmationDraps(sacs,total){
-    const old=document.getElementById('drapsConfirmOverlay');if(old)old.remove();
-    const overlay=document.createElement('div');overlay.id='drapsConfirmOverlay';overlay.className='drapsConfirmOverlay';
-    overlay.innerHTML='<div class="drapsConfirmCard" role="dialog" aria-modal="true"><div class="drapsConfirmCheck">✓</div><h3>🧺 Sac changé !</h3><p>'+sacs+' sac(s) ajouté(s) au suivi.</p><p>Total des sacs changés aujourd’hui : '+total+'</p><button type="button" onclick="this.parentElement.parentElement.remove()">OK</button></div>';
-    document.body.appendChild(overlay);
-  }
   window.sanistockAfficherHistoriqueDraps=function(){
-    const rows=etatDraps.history||[];
-    alert(rows.length?rows.map(x=>(x.label||'Opération')+' — '+(x.time||'')).join('\n'):'Aucun changement enregistré.');
+    const rows=(etatDraps.mouvements||[]).concat((etatDraps.history||[]));
+    alert(rows.length?rows.map(x=>(x.label||'Opération')+(x.draps!=null?' — '+x.draps+' draps, '+(x.sacs||0)+' sacs':'')+' — '+(x.time||'')+(x.salarie?' — '+x.salarie:'')).join('\n'):'Aucun mouvement enregistré.');
   };
   window.sanistockConfirmerResetDraps=function(){
-    if(!confirm('Réinitialiser le compteur de draps dans le sac actuel ? L’historique des sacs changés sera conservé.'))return;
+    if(!confirm('Réinitialiser le compteur de draps dans le sac actuel ? L’historique sera conservé.'))return;
     if(!navigator.onLine){alert('Connexion Internet nécessaire. Aucun changement n’a été enregistré.');return;}
     const salarie=salarieConnecteDraps();
     if(!salarie){alert('Salarié non identifié. Reconnectez-vous à SaniStock avant de réinitialiser le compteur.');return;}
     const requestId='draps_reset_'+Date.now()+'_'+Math.random().toString(36).slice(2,10);
-    window.sendJsonp('reinitialiserCompteurDraps',{salarie:salarie,requestId:requestId},function(result){etatDraps=result||etatDraps;afficher();alert('Compteur réinitialisé.');},function(err){alert('Impossible de réinitialiser le compteur : '+((err&&err.message)||'erreur inconnue'));});
+    appelerServiceDraps('reinitialiserCompteurDraps',{salarie:salarie,requestId:requestId},function(result){
+      etatDraps=result||etatDraps;afficher();alert('Compteur réinitialisé.');
+    },function(err){alert('Impossible de réinitialiser le compteur : '+((err&&err.message)||'erreur inconnue'));});
   };
   document.addEventListener('DOMContentLoaded',chargerDraps);
   window.addEventListener('pageshow',chargerDraps);
