@@ -2879,6 +2879,7 @@ button.settingsAction.secondary:hover,
 .drapsHistoryRow{display:grid;grid-template-columns:1fr auto;gap:8px;padding:9px 2px;border-top:1px solid #e5edf5;font-size:12px}
 .drapsHistoryRow strong{white-space:nowrap;color:#52677c}
 .drapsHistoryEmpty{color:#64748b;font-size:13px;margin:8px 0}
+.drapsMonthRow{padding:10px 4px;border-top:1px solid #e5edf5}.drapsMonthRow>strong{display:block;color:#0757a0;margin-bottom:6px}.drapsMonthGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.drapsMonthGrid span{display:block;background:#f4f8fc;border-radius:9px;padding:7px;font-size:12px;color:#294968}.drapsMonthGrid b{display:block;font-size:15px;color:#082b50;margin-top:2px}
 @media(max-width:520px){.drapsMoveGrid{grid-template-columns:1fr 1fr;gap:8px}.drapsMoveCard{padding:10px}.drapsMoveTitle{font-size:14px}.drapsMoveField{grid-template-columns:1fr 65px;font-size:11px}.drapsMoveField input{font-size:16px;min-height:39px}.drapsMoveSubmit{font-size:12px;padding:11px 4px}.drapsLiveNumber{font-size:24px}}
 </style>
 <section id="drapsStockPanel" aria-labelledby="drapsStockTitle">
@@ -2902,6 +2903,11 @@ button.settingsAction.secondary:hover,
   <div class="drapsTotalsGrid">
     <div class="drapsTotalCard clean"><strong>Total entrées · draps propres</strong><b><span id="drapsTotalEntrees">0</span> draps</b><small><span id="drapsTotalEntreesSacs">0</span> sacs reçus</small></div>
     <div class="drapsTotalCard dirty"><strong>Total dépôts · draps sales</strong><b><span id="drapsTotalSorties">0</span> draps</b><small><span id="drapsTotalSortiesSacs">0</span> sacs déposés</small></div>
+  </div>
+  <div class="drapsHistoryCard" id="drapsMonthlyCard">
+    <div class="drapsHistoryHead"><strong>📅 Bilan mensuel des entrées et sorties</strong></div>
+    <p class="drapsHistoryEmpty">Les mouvements sont cumulés par mois. Aucun compteur n’est remis à zéro.</p>
+    <div id="drapsMonthlySummary"><p class="drapsHistoryEmpty">Aucun bilan mensuel disponible.</p></div>
   </div>
   <div class="drapsHistoryCard">
     <div class="drapsHistoryHead"><strong>🕘 Historique des mouvements</strong><button type="button" onclick="sanistockAfficherHistoriqueDraps()">Voir tout</button></div>
@@ -3282,6 +3288,11 @@ document.addEventListener('DOMContentLoaded', function(){
     set('drapsTotalEntreesSacs',d.totalEntreesSacs);
     set('drapsTotalSorties',d.totalSortiesDraps);
     set('drapsTotalSortiesSacs',d.totalSortiesSacs);
+    const monthlyEl=document.getElementById('drapsMonthlySummary');
+    if(monthlyEl){
+      const months=Array.isArray(d.monthlySummary)?d.monthlySummary:[];
+      monthlyEl.innerHTML=months.length?months.map(m=>'<div class="drapsMonthRow"><strong>'+escapeHtmlDraps(m.label||m.mois)+'</strong><div class="drapsMonthGrid"><span>Entrées propres<b>'+Number(m.entreesDraps||0)+' draps · '+Number(m.entreesSacs||0)+' sacs</b></span><span>Sorties sales<b>'+Number(m.sortiesDraps||0)+' draps · '+Number(m.sortiesSacs||0)+' sacs</b></span></div></div>').join(''):'<p class="drapsHistoryEmpty">Aucun mouvement enregistré pour le moment.</p>';
+    }
     if(historyEl){
       const rows=(d.mouvements||[]).slice(0,5);
       const dirty=(d.history||[]).slice(0,5).map(x=>({label:x.label,time:x.time,salarie:x.salarie}));
@@ -14935,6 +14946,11 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerFenetr
     set('drapsTotalEntreesSacs',d.totalEntreesSacs);
     set('drapsTotalSorties',d.totalSortiesDraps);
     set('drapsTotalSortiesSacs',d.totalSortiesSacs);
+    const monthlyEl=document.getElementById('drapsMonthlySummary');
+    if(monthlyEl){
+      const months=Array.isArray(d.monthlySummary)?d.monthlySummary:[];
+      monthlyEl.innerHTML=months.length?months.map(m=>'<div class="drapsMonthRow"><strong>'+escapeHtmlDraps(m.label||m.mois)+'</strong><div class="drapsMonthGrid"><span>Entrées propres<b>'+Number(m.entreesDraps||0)+' draps · '+Number(m.entreesSacs||0)+' sacs</b></span><span>Sorties sales<b>'+Number(m.sortiesDraps||0)+' draps · '+Number(m.sortiesSacs||0)+' sacs</b></span></div></div>').join(''):'<p class="drapsHistoryEmpty">Aucun mouvement enregistré pour le moment.</p>';
+    }
     if(historyEl){
       const rows=(d.mouvements||[]).slice(0,5);
       const dirty=(d.history||[]).slice(0,5).map(x=>({label:x.label,time:x.time,salarie:x.salarie}));
@@ -14961,17 +14977,25 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerFenetr
     const qEl=document.getElementById(entree?'drapsEntreeQuantite':'drapsSortieQuantite');
     const quantite=Number(qEl&&qEl.value);
     if(!Number.isInteger(quantite)||quantite<1||quantite>10000){alert('Indique un nombre de draps compris entre 1 et 10 000.');return;}
+    // Les sacs sont saisis manuellement uniquement pour les entrées de draps propres.
+    const sacsEl=entree?document.getElementById('drapsEntreeSacs'):null;
+    const sacs=entree?Number(sacsEl&&sacsEl.value):undefined;
+    if(entree&&(!Number.isInteger(sacs)||sacs<0||sacs>10000)){alert('Indique un nombre de sacs reçus compris entre 0 et 10 000.');return;}
     if(!navigator.onLine){alert('Connexion Internet nécessaire. Aucun mouvement n’a été enregistré.');return;}
     const salarie=salarieConnecteDraps();
     if(!salarie){alert('Salarié non identifié. Déconnectez-vous puis reconnectez-vous à SaniStock avec votre nom et votre code personnel.');return;}
     const panel=document.getElementById('drapsStockPanel');
     const buttons=panel?panel.querySelectorAll('button'):[];buttons.forEach(b=>b.disabled=true);
     const requestId='mvt_draps_'+Date.now()+'_'+Math.random().toString(36).slice(2,10);
-    appelerServiceDraps('enregistrerMouvementDraps',{type:type,quantite:quantite,salarie:salarie,requestId:requestId},function(result){
+    const payload={type:type,quantite:quantite,salarie:salarie,requestId:requestId};
+    if(entree)payload.sacs=sacs;
+    appelerServiceDraps('enregistrerMouvementDraps',payload,function(result){
       buttons.forEach(b=>b.disabled=false);
       if(!result||typeof result!=='object'){alert('Le serveur n’a pas confirmé l’enregistrement.');return;}
       etatDraps=result;afficher();
-      alert(entree?'Entrée de draps propres enregistrée. Les sacs sont calculés automatiquement à raison d’un sac pour 10 draps.':'Dépôt de draps sales enregistré. Les sacs sont calculés automatiquement tous les 10 draps.');
+      if(qEl)qEl.value='0';
+      if(sacsEl)sacsEl.value='0';
+      alert(entree?'Entrée de draps propres enregistrée avec succès.':'Dépôt de draps sales enregistré. Les sacs sont comptabilisés automatiquement tous les 10 draps.');
     },function(err){
       buttons.forEach(b=>b.disabled=false);
       alert('Échec de l’enregistrement dans Google Sheets : '+((err&&err.message)||'erreur inconnue'));
