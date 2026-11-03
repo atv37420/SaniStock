@@ -2885,7 +2885,7 @@ button.settingsAction.secondary:hover,
   <div class="drapsMoveGrid">
     <div class="drapsMoveCard clean">
       <h3 class="drapsMoveTitle">🟢 Entrée draps propres</h3>
-      <label class="drapsMoveField"><span>Nombre de draps propres</span><input id="drapsEntreeQuantite" type="number" min="0" max="10000" value="0"></label><p class="drapsMoveHint">🧺 Sacs calculés automatiquement : 1 sac pour 10 draps propres.</p>
+      <label class="drapsMoveField"><span>Nombre de draps propres</span><input id="drapsEntreeQuantite" type="number" min="0" max="10000" value="0"></label><label class="drapsMoveField"><span>Nombre de sacs reçus</span><input id="drapsEntreeSacs" type="number" min="0" max="10000" value="0"></label><p class="drapsMoveHint">🧺 Saisis séparément le nombre de draps et le nombre de sacs reçus.</p>
       <button type="button" class="drapsMoveSubmit clean" onclick="sanistockEnregistrerMouvementDraps('entree_propre')">✓ Valider l’entrée</button>
     </div>
     <div class="drapsMoveCard dirty">
@@ -2897,7 +2897,7 @@ button.settingsAction.secondary:hover,
   <div class="drapsLiveCard" aria-live="polite">
     <div class="drapsLiveTop"><strong>🧺 Draps sales actuellement dans le sac</strong><span class="drapsLiveNumber"><b id="drapsCount">0</b> / 10</span></div>
     <div class="drapsLiveBar"><i id="drapsProgressBar"></i></div>
-    <div class="drapsLiveFoot"><span id="drapsNextBag">Prochain sac : 10 draps</span></div>
+    <div class="drapsLiveFoot"><span id="drapsNextBag">Prochain sac : 10 draps</span><span>Sacs formés aujourd’hui : <b id="drapsBags">0</b></span></div>
   </div>
   <div class="drapsTotalsGrid">
     <div class="drapsTotalCard clean"><strong>Total entrées · draps propres</strong><b><span id="drapsTotalEntrees">0</span> draps</b><small><span id="drapsTotalEntreesSacs">0</span> sacs reçus</small></div>
@@ -3308,17 +3308,20 @@ document.addEventListener('DOMContentLoaded', function(){
     const qEl=document.getElementById(entree?'drapsEntreeQuantite':'drapsSortieQuantite');
     const quantite=Number(qEl&&qEl.value);
     if(!Number.isInteger(quantite)||quantite<1||quantite>10000){alert('Indique un nombre de draps compris entre 1 et 10 000.');return;}
+    const sacsEl=entree?document.getElementById('drapsEntreeSacs'):null;
+    const sacs=entree?Number(sacsEl&&sacsEl.value):undefined;
+    if(entree&&(!Number.isInteger(sacs)||sacs<0||sacs>10000)){alert('Indique un nombre de sacs compris entre 0 et 10 000.');return;}
     if(!navigator.onLine){alert('Connexion Internet nécessaire. Aucun mouvement n’a été enregistré.');return;}
     const salarie=salarieConnecteDraps();
     if(!salarie){alert('Salarié non identifié. Déconnectez-vous puis reconnectez-vous à SaniStock avec votre nom et votre code personnel.');return;}
     const panel=document.getElementById('drapsStockPanel');
     const buttons=panel?panel.querySelectorAll('button'):[];buttons.forEach(b=>b.disabled=true);
     const requestId='mvt_draps_'+Date.now()+'_'+Math.random().toString(36).slice(2,10);
-    appelerServiceDraps('enregistrerMouvementDraps',{type:type,quantite:quantite,salarie:salarie,requestId:requestId},function(result){
+    appelerServiceDraps('enregistrerMouvementDraps',{type:type,quantite:quantite,sacs:sacs,salarie:salarie,requestId:requestId},function(result){
       buttons.forEach(b=>b.disabled=false);
       if(!result||typeof result!=='object'){alert('Le serveur n’a pas confirmé l’enregistrement.');return;}
       etatDraps=result;afficher();
-      alert(entree?'Entrée de draps propres enregistrée. Les sacs sont calculés automatiquement à raison d’un sac pour 10 draps.':'Dépôt de draps sales enregistré. Les sacs sont calculés automatiquement tous les 10 draps.');
+      alert(entree?'Entrée de draps propres enregistrée avec le nombre de sacs saisi.':'Dépôt de draps sales enregistré. Les sacs sont comptabilisés automatiquement tous les 10 draps.');
     },function(err){
       buttons.forEach(b=>b.disabled=false);
       alert('Échec de l’enregistrement dans Google Sheets : '+((err&&err.message)||'erreur inconnue'));
