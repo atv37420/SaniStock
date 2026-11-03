@@ -2898,7 +2898,7 @@ button.settingsAction.secondary:hover,
   <div class="drapsLiveCard" aria-live="polite">
     <div class="drapsLiveTop"><strong>🧺 Draps sales actuellement dans le sac</strong><span class="drapsLiveNumber"><b id="drapsCount">0</b> / 10</span></div>
     <div class="drapsLiveBar"><i id="drapsProgressBar"></i></div>
-    <div class="drapsLiveFoot"><span id="drapsNextBag">Prochain sac : 10 draps</span><span>Sacs formés aujourd’hui : <b id="drapsBags">0</b></span></div>
+    <div class="drapsLiveFoot"><span id="drapsNextBag">Prochain sac : 10 draps</span></div>
   </div>
   <div class="drapsHistoryCard" id="drapsMonthlyCard">
     <div class="drapsHistoryHead"><strong>📅 Bilan mensuel des entrées et sorties</strong></div>
@@ -3293,7 +3293,7 @@ document.addEventListener('DOMContentLoaded', function(){
       const rows=(d.mouvements||[]).slice(0,5);
       const dirty=(d.history||[]).slice(0,5).map(x=>({label:x.label,time:x.time,salarie:x.salarie}));
       const all=rows.concat(dirty).sort((a,b)=>String(b.time||'').localeCompare(String(a.time||''))).slice(0,5);
-      historyEl.innerHTML=all.length?all.map(x=>'<div class="drapsHistoryRow"><span>'+escapeHtmlDraps(x.label)+(x.draps!=null?' · '+Number(x.draps)+' draps · '+Number(x.sacs||0)+' sacs':'')+(x.salarie?' · '+escapeHtmlDraps(x.salarie):'')+'</span><strong>'+escapeHtmlDraps(x.time)+'</strong></div>').join(''):'<p class="drapsHistoryEmpty">Aucun mouvement enregistré.</p>';
+      historyEl.innerHTML=all.length?'<div class="drapsHistoryTable"><div class="drapsHistoryTableHead"><span>Date / heure</span><span>Mouvement</span><span>Draps</span><span>Sacs</span><span>Salarié</span></div>'+all.map(x=>'<div class="drapsHistoryRow"><span>'+escapeHtmlDraps(x.time||'—')+'</span><span>'+escapeHtmlDraps(x.label||'Mouvement')+'</span><span>'+(x.draps!=null?Number(x.draps):'—')+'</span><span>'+(x.sacs!=null?Number(x.sacs):'—')+'</span><span>'+escapeHtmlDraps(x.salarie||'—')+'</span></div>').join('')+'</div>':'<p class="drapsHistoryEmpty">Aucun mouvement enregistré.</p>';
     }
   }
   function afficherErreurDraps(message){
@@ -15383,3 +15383,15 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerFenetr
   };
 })();
 </script>
+
+<style id="sanistock-historique-draps-tableau-horizontal">
+/* Historique en tableau horizontal : une ligne par mouvement, colonnes alignées. */
+.sanistock-draps-dialog #drapsHistory{display:block!important;width:100%!important;overflow-x:auto!important;overflow-y:hidden!important;-webkit-overflow-scrolling:touch!important;padding:0!important;background:#fff!important;border-radius:14px!important;}
+.sanistock-draps-dialog .drapsHistoryTable{min-width:680px!important;width:100%!important;}
+.sanistock-draps-dialog .drapsHistoryTableHead,.sanistock-draps-dialog .drapsHistoryRow{display:grid!important;grid-template-columns:145px minmax(170px,1.5fr) 75px 65px minmax(125px,1fr)!important;align-items:center!important;gap:8px!important;padding:11px 12px!important;box-sizing:border-box!important;}
+.sanistock-draps-dialog .drapsHistoryTableHead{background:#e8f2fc!important;color:#07549b!important;font-weight:900!important;font-size:12px!important;border-bottom:1px solid #cbdff2!important;}
+.sanistock-draps-dialog .drapsHistoryRow{border-bottom:1px solid #e5edf5!important;background:#fff!important;border-radius:0!important;color:#173c64!important;font-size:12px!important;}
+.sanistock-draps-dialog .drapsHistoryRow span{min-width:0!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;text-align:left!important;}
+.sanistock-draps-dialog .drapsHistoryRow span:nth-child(3),.sanistock-draps-dialog .drapsHistoryRow span:nth-child(4){text-align:center!important;font-weight:900!important;}
+@media(max-width:520px){.sanistock-draps-dialog .drapsHistoryTable{min-width:650px!important;}}
+</style>
