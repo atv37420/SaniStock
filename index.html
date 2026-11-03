@@ -2862,7 +2862,7 @@ button.settingsAction.secondary:hover,
 .drapsMoveField{display:grid;grid-template-columns:1fr 88px;align-items:center;gap:7px;margin:9px 0;font-weight:700;font-size:13px}
 .drapsMoveField input{width:100%;min-width:0;min-height:43px;border:1px solid #b9c9d9;border-radius:10px;background:#fff;padding:7px;text-align:center;font-size:18px;font-weight:800;color:#082b50}
 .drapsMoveSubmit{width:100%;border:0;border-radius:12px;padding:12px 8px;margin-top:9px;color:white;font-weight:900;font-size:14px;cursor:pointer}
-.drapsMoveSubmit.clean{background:#07832f}.drapsMoveSubmit.dirty{background:#d51f25}
+.drapsMoveHint{font-size:11px;line-height:1.35;color:#315b43;margin:5px 0 0;font-weight:700}.drapsMoveSubmit.clean{background:#07832f}.drapsMoveSubmit.dirty{background:#d51f25}
 .drapsLiveCard{border:1px solid #91bce9;border-radius:18px;padding:14px;background:linear-gradient(135deg,#f4f9ff,#e5f1ff)}
 .drapsLiveTop{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .drapsLiveTop strong{font-size:16px;color:#073b75}.drapsLiveNumber{font-size:27px;font-weight:950;color:#0757a0;white-space:nowrap}
@@ -2872,7 +2872,7 @@ button.settingsAction.secondary:hover,
 .drapsTotalsGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .drapsTotalCard{border-radius:16px;padding:12px;text-align:center;background:#f0f7ff;border:1px solid #b9d5f3}
 .drapsTotalCard.clean{background:#effaf1;border-color:#a9dfb6}.drapsTotalCard.dirty{background:#fff1f1;border-color:#f1b8b8}
-.drapsTotalCard strong{display:block;font-size:14px}.drapsTotalCard b{display:block;font-size:21px;margin-top:4px}
+.drapsTotalCard strong{display:block;font-size:14px}.drapsTotalCard b{display:block;font-size:21px;margin-top:4px}.drapsTotalCard small{display:block;font-size:13px;font-weight:700;margin-top:3px;color:#315477}
 .drapsHistoryCard{border:1px solid #cbdff2;border-radius:16px;background:white;padding:12px}
 .drapsHistoryHead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
 .drapsHistoryHead strong{color:#0757a0;font-weight:900}
@@ -2885,23 +2885,23 @@ button.settingsAction.secondary:hover,
   <div class="drapsMoveGrid">
     <div class="drapsMoveCard clean">
       <h3 class="drapsMoveTitle">🟢 Entrée draps propres</h3>
-      <label class="drapsMoveField"><span>Nombre de draps</span><input id="drapsEntreeQuantite" type="number" min="1" max="10000" value="0"></label>
+      <label class="drapsMoveField"><span>Nombre de draps propres</span><input id="drapsEntreeQuantite" type="number" min="0" max="10000" value="0"></label><p class="drapsMoveHint">🧺 Sacs calculés automatiquement : 1 sac pour 10 draps propres.</p>
       <button type="button" class="drapsMoveSubmit clean" onclick="sanistockEnregistrerMouvementDraps('entree_propre')">✓ Valider l’entrée</button>
     </div>
     <div class="drapsMoveCard dirty">
       <h3 class="drapsMoveTitle">🔴 Dépôt draps sales</h3>
-      <label class="drapsMoveField"><span>Nombre de draps</span><input id="drapsSortieQuantite" type="number" min="1" max="10000" value="0"></label>
+      <label class="drapsMoveField"><span>Nombre de draps sales déposés</span><input id="drapsSortieQuantite" type="number" min="0" max="10000" value="0"></label><p class="drapsMoveHint">🧺 Sacs calculés automatiquement : 1 sac tous les 10 draps sales.</p>
       <button type="button" class="drapsMoveSubmit dirty" onclick="sanistockEnregistrerMouvementDraps('sortie_sale')">✓ Valider la sortie</button>
     </div>
   </div>
   <div class="drapsLiveCard" aria-live="polite">
     <div class="drapsLiveTop"><strong>🧺 Draps sales actuellement dans le sac</strong><span class="drapsLiveNumber"><b id="drapsCount">0</b> / 10</span></div>
     <div class="drapsLiveBar"><i id="drapsProgressBar"></i></div>
-    <div class="drapsLiveFoot"><span id="drapsNextBag">Prochain sac : 10 draps</span><span>Sacs formés aujourd’hui : <b id="drapsBags">0</b></span></div>
+    <div class="drapsLiveFoot"><span id="drapsNextBag">Prochain sac : 10 draps</span></div>
   </div>
   <div class="drapsTotalsGrid">
-    <div class="drapsTotalCard clean"><strong>Total entrées · draps propres</strong><b><span id="drapsTotalEntrees">0</span> draps</b></div>
-    <div class="drapsTotalCard dirty"><strong>Total dépôts · draps sales</strong><b><span id="drapsTotalSorties">0</span> draps</b></div>
+    <div class="drapsTotalCard clean"><strong>Total entrées · draps propres</strong><b><span id="drapsTotalEntrees">0</span> draps</b><small><span id="drapsTotalEntreesSacs">0</span> sacs reçus</small></div>
+    <div class="drapsTotalCard dirty"><strong>Total dépôts · draps sales</strong><b><span id="drapsTotalSorties">0</span> draps</b><small><span id="drapsTotalSortiesSacs">0</span> sacs déposés</small></div>
   </div>
   <div class="drapsHistoryCard">
     <div class="drapsHistoryHead"><strong>🕘 Historique des mouvements</strong><button type="button" onclick="sanistockAfficherHistoriqueDraps()">Voir tout</button></div>
@@ -3279,7 +3279,9 @@ document.addEventListener('DOMContentLoaded', function(){
     if(next)next.textContent=count===0?'Prochain sac : 10 draps':('Prochain sac : dans '+(10-count)+' drap'+(10-count>1?'s':''));
     const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=Number(v)||0;};
     set('drapsTotalEntrees',d.totalEntreesDraps);
+    set('drapsTotalEntreesSacs',d.totalEntreesSacs);
     set('drapsTotalSorties',d.totalSortiesDraps);
+    set('drapsTotalSortiesSacs',d.totalSortiesSacs);
     if(historyEl){
       const rows=(d.mouvements||[]).slice(0,5);
       const dirty=(d.history||[]).slice(0,5).map(x=>({label:x.label,time:x.time,salarie:x.salarie}));
@@ -3316,7 +3318,7 @@ document.addEventListener('DOMContentLoaded', function(){
       buttons.forEach(b=>b.disabled=false);
       if(!result||typeof result!=='object'){alert('Le serveur n’a pas confirmé l’enregistrement.');return;}
       etatDraps=result;afficher();
-      alert(entree?'Entrée de draps propres enregistrée.':'Dépôt de draps sales enregistré. Les sacs sont calculés automatiquement tous les 10 draps.');
+      alert(entree?'Entrée de draps propres enregistrée. Les sacs sont calculés automatiquement à raison d’un sac pour 10 draps.':'Dépôt de draps sales enregistré. Les sacs sont calculés automatiquement tous les 10 draps.');
     },function(err){
       buttons.forEach(b=>b.disabled=false);
       alert('Échec de l’enregistrement dans Google Sheets : '+((err&&err.message)||'erreur inconnue'));
@@ -14927,7 +14929,9 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerFenetr
     if(next)next.textContent=count===0?'Prochain sac : 10 draps':('Prochain sac : dans '+(10-count)+' drap'+(10-count>1?'s':''));
     const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=Number(v)||0;};
     set('drapsTotalEntrees',d.totalEntreesDraps);
+    set('drapsTotalEntreesSacs',d.totalEntreesSacs);
     set('drapsTotalSorties',d.totalSortiesDraps);
+    set('drapsTotalSortiesSacs',d.totalSortiesSacs);
     if(historyEl){
       const rows=(d.mouvements||[]).slice(0,5);
       const dirty=(d.history||[]).slice(0,5).map(x=>({label:x.label,time:x.time,salarie:x.salarie}));
@@ -14964,7 +14968,7 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerFenetr
       buttons.forEach(b=>b.disabled=false);
       if(!result||typeof result!=='object'){alert('Le serveur n’a pas confirmé l’enregistrement.');return;}
       etatDraps=result;afficher();
-      alert(entree?'Entrée de draps propres enregistrée.':'Dépôt de draps sales enregistré. Les sacs sont calculés automatiquement tous les 10 draps.');
+      alert(entree?'Entrée de draps propres enregistrée. Les sacs sont calculés automatiquement à raison d’un sac pour 10 draps.':'Dépôt de draps sales enregistré. Les sacs sont calculés automatiquement tous les 10 draps.');
     },function(err){
       buttons.forEach(b=>b.disabled=false);
       alert('Échec de l’enregistrement dans Google Sheets : '+((err&&err.message)||'erreur inconnue'));
