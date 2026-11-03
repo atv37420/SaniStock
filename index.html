@@ -2886,13 +2886,11 @@ button.settingsAction.secondary:hover,
     <div class="drapsMoveCard clean">
       <h3 class="drapsMoveTitle">🟢 Entrée draps propres</h3>
       <label class="drapsMoveField"><span>Nombre de draps</span><input id="drapsEntreeQuantite" type="number" min="1" max="10000" value="0"></label>
-      <label class="drapsMoveField"><span>Nombre de sacs</span><input id="drapsEntreeSacs" type="number" min="0" max="1000" value="0"></label>
       <button type="button" class="drapsMoveSubmit clean" onclick="sanistockEnregistrerMouvementDraps('entree_propre')">✓ Valider l’entrée</button>
     </div>
     <div class="drapsMoveCard dirty">
-      <h3 class="drapsMoveTitle">🔴 Sortie draps sales</h3>
+      <h3 class="drapsMoveTitle">🔴 Dépôt draps sales</h3>
       <label class="drapsMoveField"><span>Nombre de draps</span><input id="drapsSortieQuantite" type="number" min="1" max="10000" value="0"></label>
-      <label class="drapsMoveField"><span>Nombre de sacs</span><input id="drapsSortieSacs" type="number" min="0" max="1000" value="0"></label>
       <button type="button" class="drapsMoveSubmit dirty" onclick="sanistockEnregistrerMouvementDraps('sortie_sale')">✓ Valider la sortie</button>
     </div>
   </div>
@@ -2902,8 +2900,8 @@ button.settingsAction.secondary:hover,
     <div class="drapsLiveFoot"><span id="drapsNextBag">Prochain sac : 10 draps</span><span>Sacs formés aujourd’hui : <b id="drapsBags">0</b></span></div>
   </div>
   <div class="drapsTotalsGrid">
-    <div class="drapsTotalCard clean"><strong>Total entrées · draps propres</strong><b><span id="drapsTotalEntrees">0</span> draps · <span id="drapsTotalEntreesSacs">0</span> sacs</b></div>
-    <div class="drapsTotalCard dirty"><strong>Total sorties · draps sales</strong><b><span id="drapsTotalSorties">0</span> draps · <span id="drapsTotalSortiesSacs">0</span> sacs</b></div>
+    <div class="drapsTotalCard clean"><strong>Total entrées · draps propres</strong><b><span id="drapsTotalEntrees">0</span> draps</b></div>
+    <div class="drapsTotalCard dirty"><strong>Total dépôts · draps sales</strong><b><span id="drapsTotalSorties">0</span> draps</b></div>
   </div>
   <div class="drapsHistoryCard">
     <div class="drapsHistoryHead"><strong>🕘 Historique des mouvements</strong><button type="button" onclick="sanistockAfficherHistoriqueDraps()">Voir tout</button></div>
@@ -3281,9 +3279,7 @@ document.addEventListener('DOMContentLoaded', function(){
     if(next)next.textContent=count===0?'Prochain sac : 10 draps':('Prochain sac : dans '+(10-count)+' drap'+(10-count>1?'s':''));
     const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=Number(v)||0;};
     set('drapsTotalEntrees',d.totalEntreesDraps);
-    set('drapsTotalEntreesSacs',d.totalEntreesSacs);
     set('drapsTotalSorties',d.totalSortiesDraps);
-    set('drapsTotalSortiesSacs',d.totalSortiesSacs);
     if(historyEl){
       const rows=(d.mouvements||[]).slice(0,5);
       const dirty=(d.history||[]).slice(0,5).map(x=>({label:x.label,time:x.time,salarie:x.salarie}));
@@ -3308,21 +3304,19 @@ document.addEventListener('DOMContentLoaded', function(){
   window.sanistockEnregistrerMouvementDraps=function(type){
     const entree=type==='entree_propre';
     const qEl=document.getElementById(entree?'drapsEntreeQuantite':'drapsSortieQuantite');
-    const sEl=document.getElementById(entree?'drapsEntreeSacs':'drapsSortieSacs');
-    const quantite=Number(qEl&&qEl.value),sacs=Number(sEl&&sEl.value);
+    const quantite=Number(qEl&&qEl.value);
     if(!Number.isInteger(quantite)||quantite<1||quantite>10000){alert('Indique un nombre de draps compris entre 1 et 10 000.');return;}
-    if(!Number.isInteger(sacs)||sacs<0||sacs>1000||sacs>quantite){alert('Vérifie le nombre de sacs (0 à 1 000, sans dépasser le nombre de draps).');return;}
     if(!navigator.onLine){alert('Connexion Internet nécessaire. Aucun mouvement n’a été enregistré.');return;}
     const salarie=salarieConnecteDraps();
     if(!salarie){alert('Salarié non identifié. Déconnectez-vous puis reconnectez-vous à SaniStock avec votre nom et votre code personnel.');return;}
     const panel=document.getElementById('drapsStockPanel');
     const buttons=panel?panel.querySelectorAll('button'):[];buttons.forEach(b=>b.disabled=true);
     const requestId='mvt_draps_'+Date.now()+'_'+Math.random().toString(36).slice(2,10);
-    appelerServiceDraps('enregistrerMouvementDraps',{type:type,quantite:quantite,sacs:sacs,salarie:salarie,requestId:requestId},function(result){
+    appelerServiceDraps('enregistrerMouvementDraps',{type:type,quantite:quantite,salarie:salarie,requestId:requestId},function(result){
       buttons.forEach(b=>b.disabled=false);
       if(!result||typeof result!=='object'){alert('Le serveur n’a pas confirmé l’enregistrement.');return;}
       etatDraps=result;afficher();
-      alert(entree?'Entrée de draps propres enregistrée.':'Sortie de draps sales enregistrée.');
+      alert(entree?'Entrée de draps propres enregistrée.':'Dépôt de draps sales enregistré. Les sacs sont calculés automatiquement tous les 10 draps.');
     },function(err){
       buttons.forEach(b=>b.disabled=false);
       alert('Échec de l’enregistrement dans Google Sheets : '+((err&&err.message)||'erreur inconnue'));
@@ -14933,9 +14927,7 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerFenetr
     if(next)next.textContent=count===0?'Prochain sac : 10 draps':('Prochain sac : dans '+(10-count)+' drap'+(10-count>1?'s':''));
     const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=Number(v)||0;};
     set('drapsTotalEntrees',d.totalEntreesDraps);
-    set('drapsTotalEntreesSacs',d.totalEntreesSacs);
     set('drapsTotalSorties',d.totalSortiesDraps);
-    set('drapsTotalSortiesSacs',d.totalSortiesSacs);
     if(historyEl){
       const rows=(d.mouvements||[]).slice(0,5);
       const dirty=(d.history||[]).slice(0,5).map(x=>({label:x.label,time:x.time,salarie:x.salarie}));
@@ -14960,21 +14952,19 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerFenetr
   window.sanistockEnregistrerMouvementDraps=function(type){
     const entree=type==='entree_propre';
     const qEl=document.getElementById(entree?'drapsEntreeQuantite':'drapsSortieQuantite');
-    const sEl=document.getElementById(entree?'drapsEntreeSacs':'drapsSortieSacs');
-    const quantite=Number(qEl&&qEl.value),sacs=Number(sEl&&sEl.value);
+    const quantite=Number(qEl&&qEl.value);
     if(!Number.isInteger(quantite)||quantite<1||quantite>10000){alert('Indique un nombre de draps compris entre 1 et 10 000.');return;}
-    if(!Number.isInteger(sacs)||sacs<0||sacs>1000||sacs>quantite){alert('Vérifie le nombre de sacs (0 à 1 000, sans dépasser le nombre de draps).');return;}
     if(!navigator.onLine){alert('Connexion Internet nécessaire. Aucun mouvement n’a été enregistré.');return;}
     const salarie=salarieConnecteDraps();
     if(!salarie){alert('Salarié non identifié. Déconnectez-vous puis reconnectez-vous à SaniStock avec votre nom et votre code personnel.');return;}
     const panel=document.getElementById('drapsStockPanel');
     const buttons=panel?panel.querySelectorAll('button'):[];buttons.forEach(b=>b.disabled=true);
     const requestId='mvt_draps_'+Date.now()+'_'+Math.random().toString(36).slice(2,10);
-    appelerServiceDraps('enregistrerMouvementDraps',{type:type,quantite:quantite,sacs:sacs,salarie:salarie,requestId:requestId},function(result){
+    appelerServiceDraps('enregistrerMouvementDraps',{type:type,quantite:quantite,salarie:salarie,requestId:requestId},function(result){
       buttons.forEach(b=>b.disabled=false);
       if(!result||typeof result!=='object'){alert('Le serveur n’a pas confirmé l’enregistrement.');return;}
       etatDraps=result;afficher();
-      alert(entree?'Entrée de draps propres enregistrée.':'Sortie de draps sales enregistrée.');
+      alert(entree?'Entrée de draps propres enregistrée.':'Dépôt de draps sales enregistré. Les sacs sont calculés automatiquement tous les 10 draps.');
     },function(err){
       buttons.forEach(b=>b.disabled=false);
       alert('Échec de l’enregistrement dans Google Sheets : '+((err&&err.message)||'erreur inconnue'));
