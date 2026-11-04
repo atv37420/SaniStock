@@ -3209,21 +3209,28 @@ document.addEventListener('DOMContentLoaded', function(){
 </div>
 <script id="sanistock-draps-modal-js">
 (function(){
-  /* Gestion draps utilise le même affichage intégré que les autres onglets Gestion. */
+  var panelHome=null, panelNext=null;
+  function getPanel(){return document.getElementById('drapsStockPanel');}
   window.sanistockOuvrirFenetreDraps=function(){
-    if(typeof window.sanistockAfficherOngletStock==='function'){
-      window.sanistockAfficherOngletStock('draps');
-      return;
-    }
-    var pane=document.getElementById('stockInnerPane-draps');
-    if(pane){
-      pane.hidden=false;
-      pane.style.display='block';
-      pane.classList.add('active');
-      if(typeof window.chargerDraps==='function') window.chargerDraps();
-    }
+    var overlay=document.getElementById('sanistockDrapsOverlay');
+    var content=document.getElementById('sanistockDrapsModalContent');
+    var panel=getPanel();
+    if(!overlay||!content||!panel)return;
+    if(!panelHome){panelHome=panel.parentNode;panelNext=panel.nextSibling;}
+    content.appendChild(panel);
+    overlay.classList.add('is-open');overlay.setAttribute('aria-hidden','false');
+    document.body.style.overflow='hidden';
+    if(typeof chargerDraps==='function')chargerDraps();
   };
-  window.sanistockFermerFenetreDraps=function(){};
+  window.sanistockFermerFenetreDraps=function(){
+    var overlay=document.getElementById('sanistockDrapsOverlay');
+    var panel=getPanel();
+    if(panel&&panelHome){if(panelNext&&panelNext.parentNode===panelHome)panelHome.insertBefore(panel,panelNext);else panelHome.appendChild(panel);}
+    if(overlay){overlay.classList.remove('is-open');overlay.setAttribute('aria-hidden','true');}
+    document.body.style.overflow='';
+  };
+  document.addEventListener('click',function(e){if(e.target&&e.target.id==='sanistockDrapsOverlay')window.sanistockFermerFenetreDraps();});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')window.sanistockFermerFenetreDraps();});
 })();
 </script>
 
@@ -4983,42 +4990,6 @@ __SANI_PDFJS_SCRIPT_TAG__
 /* Gestion draps : mêmes tons bleus pour entrée propre et dépôt sale. */
 .sanistock-draps-dialog .drapsMoveCard.clean,.sanistock-draps-dialog .drapsMoveCard.dirty{background:#fff!important;border:1px solid #cbdff2!important;color:#173c64!important}
 .sanistock-draps-dialog .drapsMoveSubmit.clean,.sanistock-draps-dialog .drapsMoveSubmit.dirty{background:#0758a5!important;color:#fff!important;border-color:#0758a5!important}
-</style>
-
-
-<!-- Correctif navigation TAXI : branchement explicite après les autres modules véhicule -->
-<script id="sanistock-taxi-navigation-final">
-(function(){
-  function estDansListeTaxi(nom){
-    nom=String(nom||'').trim().toLowerCase();
-    if(/\btaxi\b/i.test(nom)) return true;
-    try{
-      var data=window.getChecklistVehiculesData && window.getChecklistVehiculesData();
-      return !!(data && Array.isArray(data.TAXIS) &&
-        data.TAXIS.some(function(x){return String(x||'').trim().toLowerCase()===nom;}));
-    }catch(e){return false;}
-  }
-  var ouvrirPrecedent=window.ouvrirChecklistVehiculeFixe;
-  window.ouvrirChecklistVehiculeFixe=function(v,categorieForce){
-    var nom=String(v||'').trim();
-    var categorie=String(categorieForce||'').toUpperCase();
-    if(categorie==='TAXIS' || categorie==='TAXI' || estDansListeTaxi(nom)){
-      if(typeof window.afficherChecklistTaxi==='function'){
-        window.afficherChecklistTaxi(nom);
-        return;
-      }
-      console.error('SaniStock : module détaillé TAXI absent.');
-      alert('La check-list TAXI est indisponible dans ce fichier. Rechargez la version complète.');
-      return;
-    }
-    if(typeof ouvrirPrecedent==='function') return ouvrirPrecedent.apply(this,arguments);
-  };
-})();
-</script>
-
-
-<style id="sanistock-draps-modal-desactive">
-#sanistockDrapsOverlay{display:none!important;visibility:hidden!important;pointer-events:none!important}
 </style>
 
 </body></html>`;
