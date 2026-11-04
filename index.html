@@ -2489,7 +2489,41 @@ button.settingsAction.secondary:hover,
  #stockModal .movementRow{grid-template-columns:minmax(0,1fr) 70px 34px!important;gap:6px!important}
 }
 </style>
-\n</head>
+\n
+<style id="sanistock-modal-fonds-vert-rouge">
+/* Fonds des fenêtres Entrée / Sortie assortis à Gestion draps */
+#stockModal .stockModalCard.entry-mode{
+  background:#eefaf1!important;
+  border:2px solid #a8d9b7!important;
+}
+#stockModal .stockModalCard.entry-mode .stockModalHead{
+  background:linear-gradient(110deg,#dff7e6,#f1fff5)!important;
+  border-bottom:2px solid #a8d9b7!important;
+}
+#stockModal .stockModalCard.entry-mode .stockField{
+  background:rgba(255,255,255,.92)!important;
+  border-color:#b9e3c3!important;
+}
+#stockModal .stockModalCard.entry-mode .stockSave{
+  background:#159447!important;color:#fff!important;border:2px solid #159447!important;
+}
+#stockModal .stockModalCard.exit-mode{
+  background:#fff0f0!important;
+  border:2px solid #e7b0b3!important;
+}
+#stockModal .stockModalCard.exit-mode .stockModalHead{
+  background:linear-gradient(110deg,#ffe2e3,#fff5f5)!important;
+  border-bottom:2px solid #e7b0b3!important;
+}
+#stockModal .stockModalCard.exit-mode .stockField{
+  background:rgba(255,255,255,.94)!important;
+  border-color:#efc2c2!important;
+}
+#stockModal .stockModalCard.exit-mode .stockSave{
+  background:#d72a36!important;color:#fff!important;border:2px solid #d72a36!important;
+}
+</style>
+</head>
 <body>
 <div aria-live="polite" id="employeeLoginOverlay">
 <div class="employeeLoginCard">
