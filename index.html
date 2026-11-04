@@ -4993,67 +4993,50 @@ __SANI_PDFJS_SCRIPT_TAG__
 </style>
 
 
-<!-- Correctif navigation classique : Gestion draps dans la page, TAXI accessible depuis les check-lists -->
-<style id="sanistock-navigation-classique-draps-final">
-#sanistockDrapsOverlay{display:none!important}
-#stockInnerPane-draps{width:100%;max-width:100%;margin:12px auto 24px;padding:0;background:transparent}
-#stockInnerPane-draps.sanistock-draps-dialog{width:100%!important;max-width:760px!important;max-height:none!important;min-height:0!important;margin:0 auto!important;position:static!important;overflow:visible!important;border-radius:18px!important;box-shadow:none!important;padding:0!important;background:transparent!important;border:0!important}
-#stockInnerPane-draps .sanistock-draps-dialog-head{display:none!important}
-#stockInnerPane-draps #sanistockDrapsModalContent{display:none!important}
-#stockInnerPane-draps #drapsStockPanel{margin:0!important;padding:0!important}
+<!-- Correctif navigation classique Gestion des draps : conserve intégralement le chargement des salariés -->
+<style id="sanistock-draps-navigation-classique-final">
+  #sanistockDrapsOverlay{display:none!important}
+  #stockInnerPane-draps{position:relative!important;inset:auto!important;z-index:auto!important;width:100%!important;max-height:none!important;overflow:visible!important;background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important;margin:0!important}
+  #stockInnerPane-draps.sanistock-draps-inline #drapsStockPanel{position:relative!important;display:flex!important;width:100%!important;max-height:none!important;overflow:visible!important;margin:0 auto!important}
+  #stockInnerPane-draps .sanistock-draps-close,
+  #stockInnerPane-draps .sanistock-draps-modal-head{display:none!important}
 </style>
-<script id="sanistock-navigation-classique-draps-taxi-final">
+<script id="sanistock-draps-navigation-classique-final-js">
 (function(){
-  function afficherOngletDraps(){
+  function ouvrirDrapsEnPage(){
     var pane=document.getElementById('stockInnerPane-draps');
-    var tab=document.querySelector('[data-stock-tab="draps"]');
-    if(!pane)return;
-    document.querySelectorAll('.stockInnerPane').forEach(function(p){
-      p.hidden=p!==pane;
-      p.classList.toggle('active',p===pane);
-      p.style.display=p===pane?'block':'none';
+    var overlay=document.getElementById('sanistockDrapsOverlay');
+    var panel=document.getElementById('drapsStockPanel');
+    if(overlay){overlay.classList.remove('is-open');overlay.setAttribute('aria-hidden','true');}
+    if(!pane||!panel)return;
+    document.querySelectorAll('.stockInnerPane').forEach(function(el){
+      el.hidden = el !== pane;
+      el.style.display = el === pane ? 'block' : 'none';
     });
-    document.querySelectorAll('.stockInnerTab').forEach(function(t){
-      var actif=t===tab;
-      t.classList.toggle('active',actif);
-      t.setAttribute('aria-selected',actif?'true':'false');
+    pane.hidden=false;
+    pane.style.display='block';
+    pane.classList.add('sanistock-draps-inline');
+    var tabs=document.querySelectorAll('[data-stock-tab]');
+    tabs.forEach(function(tab){
+      var actif=tab.getAttribute('data-stock-tab')==='draps';
+      tab.classList.toggle('active',actif);
+      tab.setAttribute('aria-selected',actif?'true':'false');
     });
-    pane.classList.add('sanistock-draps-dialog');
-    if(typeof window.chargerDraps==='function') window.chargerDraps();
+    document.body.style.overflow='';
+    if(typeof window.chargerDraps==='function')window.chargerDraps();
+    else if(typeof window.sanistockChargerDraps==='function')window.sanistockChargerDraps();
   }
-  window.sanistockOuvrirFenetreDraps=afficherOngletDraps;
+  window.sanistockOuvrirFenetreDraps=ouvrirDrapsEnPage;
   window.sanistockFermerFenetreDraps=function(){
     var pane=document.getElementById('stockInnerPane-draps');
-    if(pane){pane.hidden=true;pane.classList.remove('active');pane.style.display='none';}
-    document.querySelectorAll('.stockInnerTab').forEach(function(t){
-      t.classList.remove('active');t.setAttribute('aria-selected','false');
-    });
-  };
-  function estTaxi(nom,categorie){
-    if(String(categorie||'').toUpperCase()==='TAXI'||String(categorie||'').toUpperCase()==='TAXIS')return true;
-    nom=String(nom||'').trim();
-    if(/\bTAXI\b/i.test(nom))return true;
-    try{
-      var data=typeof window.getChecklistVehiculesData==='function'?window.getChecklistVehiculesData():null;
-      return !!(data&&Array.isArray(data.TAXIS)&&data.TAXIS.some(function(v){
-        return String(v||'').trim().toLowerCase()===nom.toLowerCase();
-      }));
-    }catch(e){return false;}
-  }
-  var ancienne=window.ouvrirChecklistVehiculeFixe;
-  window.ouvrirChecklistVehiculeFixe=function(v,categorie){
-    if(estTaxi(v,categorie)){
-      if(typeof window.afficherChecklistTaxi==='function'){
-        window.afficherChecklistTaxi(v);
-        return;
-      }
-      alert('Le module de check-list TAXI est absent de ce fichier.');
-      return;
-    }
-    if(typeof ancienne==='function')return ancienne.apply(this,arguments);
+    if(pane){pane.hidden=true;pane.style.display='none';}
+    var overlay=document.getElementById('sanistockDrapsOverlay');
+    if(overlay){overlay.classList.remove('is-open');overlay.setAttribute('aria-hidden','true');}
+    document.body.style.overflow='';
   };
 })();
 </script>
+
 </body></html>`;
         function afficherLecteurHtml_(html){
           fenetre.document.open();
@@ -13512,6 +13495,51 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
 .sanistock-draps-dialog .drapsMoveSubmit.clean,.sanistock-draps-dialog .drapsMoveSubmit.dirty{background:#0758a5!important;color:#fff!important;border-color:#0758a5!important}
 </style>
 
+
+<!-- Correctif navigation classique Gestion des draps : conserve intégralement le chargement des salariés -->
+<style id="sanistock-draps-navigation-classique-final">
+  #sanistockDrapsOverlay{display:none!important}
+  #stockInnerPane-draps{position:relative!important;inset:auto!important;z-index:auto!important;width:100%!important;max-height:none!important;overflow:visible!important;background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important;margin:0!important}
+  #stockInnerPane-draps.sanistock-draps-inline #drapsStockPanel{position:relative!important;display:flex!important;width:100%!important;max-height:none!important;overflow:visible!important;margin:0 auto!important}
+  #stockInnerPane-draps .sanistock-draps-close,
+  #stockInnerPane-draps .sanistock-draps-modal-head{display:none!important}
+</style>
+<script id="sanistock-draps-navigation-classique-final-js">
+(function(){
+  function ouvrirDrapsEnPage(){
+    var pane=document.getElementById('stockInnerPane-draps');
+    var overlay=document.getElementById('sanistockDrapsOverlay');
+    var panel=document.getElementById('drapsStockPanel');
+    if(overlay){overlay.classList.remove('is-open');overlay.setAttribute('aria-hidden','true');}
+    if(!pane||!panel)return;
+    document.querySelectorAll('.stockInnerPane').forEach(function(el){
+      el.hidden = el !== pane;
+      el.style.display = el === pane ? 'block' : 'none';
+    });
+    pane.hidden=false;
+    pane.style.display='block';
+    pane.classList.add('sanistock-draps-inline');
+    var tabs=document.querySelectorAll('[data-stock-tab]');
+    tabs.forEach(function(tab){
+      var actif=tab.getAttribute('data-stock-tab')==='draps';
+      tab.classList.toggle('active',actif);
+      tab.setAttribute('aria-selected',actif?'true':'false');
+    });
+    document.body.style.overflow='';
+    if(typeof window.chargerDraps==='function')window.chargerDraps();
+    else if(typeof window.sanistockChargerDraps==='function')window.sanistockChargerDraps();
+  }
+  window.sanistockOuvrirFenetreDraps=ouvrirDrapsEnPage;
+  window.sanistockFermerFenetreDraps=function(){
+    var pane=document.getElementById('stockInnerPane-draps');
+    if(pane){pane.hidden=true;pane.style.display='none';}
+    var overlay=document.getElementById('sanistockDrapsOverlay');
+    if(overlay){overlay.classList.remove('is-open');overlay.setAttribute('aria-hidden','true');}
+    document.body.style.overflow='';
+  };
+})();
+</script>
+
 </body></html>';
   }
 
@@ -15458,6 +15486,51 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerFenetr
 .sanistock-draps-dialog .drapsMoveCard.clean,.sanistock-draps-dialog .drapsMoveCard.dirty{background:#fff!important;border:1px solid #cbdff2!important;color:#173c64!important}
 .sanistock-draps-dialog .drapsMoveSubmit.clean,.sanistock-draps-dialog .drapsMoveSubmit.dirty{background:#0758a5!important;color:#fff!important;border-color:#0758a5!important}
 </style>
+
+
+<!-- Correctif navigation classique Gestion des draps : conserve intégralement le chargement des salariés -->
+<style id="sanistock-draps-navigation-classique-final">
+  #sanistockDrapsOverlay{display:none!important}
+  #stockInnerPane-draps{position:relative!important;inset:auto!important;z-index:auto!important;width:100%!important;max-height:none!important;overflow:visible!important;background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important;margin:0!important}
+  #stockInnerPane-draps.sanistock-draps-inline #drapsStockPanel{position:relative!important;display:flex!important;width:100%!important;max-height:none!important;overflow:visible!important;margin:0 auto!important}
+  #stockInnerPane-draps .sanistock-draps-close,
+  #stockInnerPane-draps .sanistock-draps-modal-head{display:none!important}
+</style>
+<script id="sanistock-draps-navigation-classique-final-js">
+(function(){
+  function ouvrirDrapsEnPage(){
+    var pane=document.getElementById('stockInnerPane-draps');
+    var overlay=document.getElementById('sanistockDrapsOverlay');
+    var panel=document.getElementById('drapsStockPanel');
+    if(overlay){overlay.classList.remove('is-open');overlay.setAttribute('aria-hidden','true');}
+    if(!pane||!panel)return;
+    document.querySelectorAll('.stockInnerPane').forEach(function(el){
+      el.hidden = el !== pane;
+      el.style.display = el === pane ? 'block' : 'none';
+    });
+    pane.hidden=false;
+    pane.style.display='block';
+    pane.classList.add('sanistock-draps-inline');
+    var tabs=document.querySelectorAll('[data-stock-tab]');
+    tabs.forEach(function(tab){
+      var actif=tab.getAttribute('data-stock-tab')==='draps';
+      tab.classList.toggle('active',actif);
+      tab.setAttribute('aria-selected',actif?'true':'false');
+    });
+    document.body.style.overflow='';
+    if(typeof window.chargerDraps==='function')window.chargerDraps();
+    else if(typeof window.sanistockChargerDraps==='function')window.sanistockChargerDraps();
+  }
+  window.sanistockOuvrirFenetreDraps=ouvrirDrapsEnPage;
+  window.sanistockFermerFenetreDraps=function(){
+    var pane=document.getElementById('stockInnerPane-draps');
+    if(pane){pane.hidden=true;pane.style.display='none';}
+    var overlay=document.getElementById('sanistockDrapsOverlay');
+    if(overlay){overlay.classList.remove('is-open');overlay.setAttribute('aria-hidden','true');}
+    document.body.style.overflow='';
+  };
+})();
+</script>
 
 </body>
 </html>
