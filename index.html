@@ -2457,7 +2457,39 @@ button.settingsAction.secondary:hover,
 .sanistock-draps-dialog .drapsQuantityPicker .drapsAddSelected{width:100%!important;min-height:58px!important;border-radius:14px!important}
 @media(max-width:520px){.sanistock-draps-dialog-head{min-height:86px!important;padding:10px 12px!important}.sanistock-draps-title-image{width:76px!important;height:58px!important}.sanistock-draps-dialog-head h2 span{font-size:22px!important}.sanistock-draps-dialog .drapsQuantityPicker{grid-template-columns:1fr!important}.sanistock-draps-dialog .drapsQuantityPicker label{grid-column:auto!important}}
 </style>
-</head>
+
+<style id="sanistock-stock-modal-style-gestion-draps">
+/* Habillage des fenêtres Entrée/Sortie produit inspiré de Gestion draps.
+   Modification visuelle uniquement : les champs et fonctions restent identiques. */
+#stockModal{padding:14px!important;background:rgba(2,35,68,.62)!important;backdrop-filter:blur(3px)}
+#stockModal .stockModalCard{width:min(100%,520px)!important;max-height:92dvh!important;overflow:auto!important;padding:20px!important;border-radius:24px!important;background:#edf5fa!important;border:2px solid #d3e5f5!important;box-shadow:0 18px 50px rgba(0,35,75,.28)!important;color:#042349!important}
+#stockModal .stockModalHead{padding:12px 14px!important;margin:-20px -20px 16px!important;border-radius:21px 21px 0 0!important;min-height:66px!important}
+#stockModal .stockModalHead h3{font-size:clamp(20px,4vw,25px)!important;font-weight:900!important;color:#07356d!important}
+#stockModal .stockClose{width:38px!important;height:38px!important;background:#fff!important;color:#07356d!important;box-shadow:0 3px 10px rgba(0,35,75,.12)!important;font-size:17px!important}
+#stockModal .stockField{margin-top:14px!important;padding:13px!important;border-radius:16px!important;background:#fff!important;border:1px solid #d7e5f0!important}
+#stockModal .stockField label{font-size:12px!important;font-weight:900!important;color:#07356d!important;letter-spacing:.2px}
+#stockModal .movementRows{gap:10px!important}
+#stockModal .movementRow select,#stockModal .movementRow input,#stockModal #stockEmployee{min-height:48px!important;border:1.5px solid #b9cddd!important;border-radius:12px!important;background:#fff!important;color:#07356d!important;font-size:14px!important;font-weight:700!important}
+#stockModal .addMovement{min-height:46px!important;border-radius:12px!important;background:#f2f8fd!important;border:1.5px dashed #7ca9cb!important;color:#07356d!important;font-weight:900!important}
+#stockModal .stockSave{min-height:54px!important;margin-top:16px!important;border-radius:14px!important;font-size:14px!important;font-weight:900!important;box-shadow:0 5px 12px rgba(0,35,75,.12)!important}
+#stockModal .stockModalCard.entry-mode{border:2px solid #65bd7d!important}
+#stockModal .stockModalCard.entry-mode .stockModalHead{background:linear-gradient(110deg,#dff7e6,#f3fff6)!important;border-bottom:2px solid #9bd9ad!important}
+#stockModal .stockModalCard.entry-mode .stockField{border-color:#b9e3c3!important}
+#stockModal .stockModalCard.entry-mode .stockSave{background:#dff5e5!important;border:2px solid #25964b!important;color:#07356d!important}
+#stockModal .stockModalCard.exit-mode{border:2px solid #e18a8a!important}
+#stockModal .stockModalCard.exit-mode .stockModalHead{background:linear-gradient(110deg,#ffe4e4,#fff7f7)!important;border-bottom:2px solid #efb0b0!important}
+#stockModal .stockModalCard.exit-mode .stockField{border-color:#efc2c2!important}
+#stockModal .stockModalCard.exit-mode .stockSave{background:#ffe3e3!important;border:2px solid #d94343!important;color:#07356d!important}
+#stockModal .stockModalCard.entry-mode .stockModalHead h3,#stockModal .stockModalCard.exit-mode .stockModalHead h3{color:#07356d!important}
+@media(max-width:520px){
+ #stockModal{padding:10px!important}
+ #stockModal .stockModalCard{padding:15px!important;border-radius:20px!important}
+ #stockModal .stockModalHead{margin:-15px -15px 12px!important;padding:11px 12px!important}
+ #stockModal .stockField{padding:11px!important;margin-top:11px!important}
+ #stockModal .movementRow{grid-template-columns:minmax(0,1fr) 70px 34px!important;gap:6px!important}
+}
+</style>
+\n</head>
 <body>
 <div aria-live="polite" id="employeeLoginOverlay">
 <div class="employeeLoginCard">
@@ -3732,7 +3764,13 @@ document.addEventListener('input',function(e){if(e.target&&e.target.id==='stockP
 document.addEventListener('keydown',function(e){if(e.target&&e.target.id==='stockPinInput'&&e.key==='Enter')validerCodeEntreeStock()});
 
 function openStockModal(type){
- stockMovementType=type;const entree=type==='entree';$('stockModalTitle').textContent=entree?'➕ Entrée de produits':'➖ Sortie de produits';$('stockSaveBtn').className='stockSave '+(entree?'entryBtn':'exitBtn');$('stockSaveBtn').textContent=entree?'✓ ENREGISTRER LES ENTRÉES':'✓ ENREGISTRER LES SORTIES';$('movementRows').innerHTML='';addMovementRow();$('stockModal').classList.add('show')
+ stockMovementType=type;const entree=type==='entree';
+ const modal=$('stockModal'), card=modal.querySelector('.stockModalCard');
+ card.classList.toggle('entry-mode',entree);card.classList.toggle('exit-mode',!entree);
+ $('stockModalTitle').textContent=entree?'➕ Entrée de produits':'➖ Sortie de produits';
+ $('stockSaveBtn').className='stockSave '+(entree?'entryBtn':'exitBtn');
+ $('stockSaveBtn').textContent=entree?'✓ ENREGISTRER LES ENTRÉES':'✓ ENREGISTRER LES SORTIES';
+ $('movementRows').innerHTML='';addMovementRow();modal.classList.add('show')
 }
 function closeStockModal(){$('stockModal').classList.remove('show')}
 function saveStockMovement(){
