@@ -12885,7 +12885,23 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
       loadMonthlyStatus(c,fresh);
     });
   };
-  window.ouvrirChecklistVehiculeFixe=function(v){alert('Véhicule sélectionné : '+v+'\n\nLa check-list détaillée de ce véhicule sera ajoutée ici.');};
+  window.ouvrirChecklistVehiculeFixe=function(v){
+    var nom=String(v||'').trim();
+    var estTaxi=/\\bTAXI\\b/i.test(nom);
+    try{
+      var data=window.getChecklistVehiculesData?window.getChecklistVehiculesData():null;
+      if(data && Array.isArray(data.TAXIS)){
+        estTaxi=estTaxi || data.TAXIS.some(function(x){
+          return String(x||'').trim().toLowerCase()===nom.toLowerCase();
+        });
+      }
+    }catch(err){}
+    if(estTaxi && typeof window.afficherChecklistTaxi==='function'){
+      window.afficherChecklistTaxi(nom);
+      return;
+    }
+    alert('Véhicule sélectionné : '+nom+'\\n\\nLa check-list détaillée de ce véhicule sera ajoutée ici.');
+  };
   document.addEventListener('click',function(e){
     var closeHistory=e.target.closest && e.target.closest('[data-monthly-history-close]'); if(closeHistory){var history=document.getElementById('saniMonthlyHistory');if(history)history.remove();return;}
     var monthly=e.target.closest && e.target.closest('[data-monthly-validate]'); if(monthly){e.preventDefault();e.stopPropagation();window.marquerChecklistMensuelle(monthly.getAttribute('data-monthly-cat'),monthly.getAttribute('data-monthly-validate'),monthly);return;}
