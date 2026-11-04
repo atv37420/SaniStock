@@ -5023,6 +5023,39 @@ __SANI_PDFJS_SCRIPT_TAG__
 })();
 </script>
 
+
+<style id="sanistock-gestion-draps-page-classique">
+/* Gestion draps s'affiche dans la page Gestion, sans fenêtre modale ni croix */
+#sanistockDrapsOverlay{display:none!important}
+#stockInnerPane-draps #drapsStockPanel{display:block!important}
+</style>
+<script id="sanistock-gestion-draps-page-classique-js">
+(function(){
+  function afficherOngletDraps(){
+    var tab=document.querySelector('[data-stock-tab="draps"]');
+    var pane=document.getElementById('stockInnerPane-draps');
+    var panel=document.getElementById('drapsStockPanel');
+    if(!pane||!panel){console.error('Gestion draps : panneau ou onglet introuvable');return;}
+    if(tab){
+      document.querySelectorAll('[data-stock-tab]').forEach(function(t){
+        var actif=t===tab;
+        t.classList.toggle('active',actif);
+        t.setAttribute('aria-selected',actif?'true':'false');
+      });
+    }
+    document.querySelectorAll('.stockInnerPane').forEach(function(p){
+      p.hidden=p!==pane;
+      p.classList.toggle('active',p===pane);
+    });
+    if(panel.parentNode!==pane) pane.appendChild(panel);
+    panel.style.display='block';
+    if(typeof window.chargerDraps==='function') window.chargerDraps();
+  }
+  window.sanistockOuvrirFenetreDraps=afficherOngletDraps;
+  window.sanistockFermerFenetreDraps=function(){ /* plus de fenêtre à fermer */ };
+})();
+</script>
+
 </body></html>`;
         function afficherLecteurHtml_(html){
           fenetre.document.open();
