@@ -3209,28 +3209,21 @@ document.addEventListener('DOMContentLoaded', function(){
 </div>
 <script id="sanistock-draps-modal-js">
 (function(){
-  var panelHome=null, panelNext=null;
-  function getPanel(){return document.getElementById('drapsStockPanel');}
+  /* Gestion draps utilise le même affichage intégré que les autres onglets Gestion. */
   window.sanistockOuvrirFenetreDraps=function(){
-    var overlay=document.getElementById('sanistockDrapsOverlay');
-    var content=document.getElementById('sanistockDrapsModalContent');
-    var panel=getPanel();
-    if(!overlay||!content||!panel)return;
-    if(!panelHome){panelHome=panel.parentNode;panelNext=panel.nextSibling;}
-    content.appendChild(panel);
-    overlay.classList.add('is-open');overlay.setAttribute('aria-hidden','false');
-    document.body.style.overflow='hidden';
-    if(typeof chargerDraps==='function')chargerDraps();
+    if(typeof window.sanistockAfficherOngletStock==='function'){
+      window.sanistockAfficherOngletStock('draps');
+      return;
+    }
+    var pane=document.getElementById('stockInnerPane-draps');
+    if(pane){
+      pane.hidden=false;
+      pane.style.display='block';
+      pane.classList.add('active');
+      if(typeof window.chargerDraps==='function') window.chargerDraps();
+    }
   };
-  window.sanistockFermerFenetreDraps=function(){
-    var overlay=document.getElementById('sanistockDrapsOverlay');
-    var panel=getPanel();
-    if(panel&&panelHome){if(panelNext&&panelNext.parentNode===panelHome)panelHome.insertBefore(panel,panelNext);else panelHome.appendChild(panel);}
-    if(overlay){overlay.classList.remove('is-open');overlay.setAttribute('aria-hidden','true');}
-    document.body.style.overflow='';
-  };
-  document.addEventListener('click',function(e){if(e.target&&e.target.id==='sanistockDrapsOverlay')window.sanistockFermerFenetreDraps();});
-  document.addEventListener('keydown',function(e){if(e.key==='Escape')window.sanistockFermerFenetreDraps();});
+  window.sanistockFermerFenetreDraps=function(){};
 })();
 </script>
 
@@ -5022,6 +5015,11 @@ __SANI_PDFJS_SCRIPT_TAG__
   };
 })();
 </script>
+
+
+<style id="sanistock-draps-modal-desactive">
+#sanistockDrapsOverlay{display:none!important;visibility:hidden!important;pointer-events:none!important}
+</style>
 
 </body></html>`;
         function afficherLecteurHtml_(html){
@@ -15428,36 +15426,6 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerFenetr
 .sanistock-draps-dialog .drapsMoveSubmit.clean,.sanistock-draps-dialog .drapsMoveSubmit.dirty{background:#0758a5!important;color:#fff!important;border-color:#0758a5!important}
 </style>
 
-
-<style id="sanistock-draps-navigation-classique">
-  /* Gestion draps : affichage dans la page Gestion, sans fenêtre modale */
-  #sanistockDrapsOverlay{display:none!important;visibility:hidden!important;pointer-events:none!important}
-</style>
-<script id="sanistock-draps-navigation-classique-js">
-(function(){
-  function ouvrirDrapsDansPage(){
-    if(typeof window.sanistockAfficherOngletStock==='function'){
-      window.sanistockAfficherOngletStock('draps');
-      return;
-    }
-    var pane=document.getElementById('stockInnerPane-draps');
-    var tab=document.querySelector('[data-stock-tab="draps"]');
-    if(!pane)return;
-    ['stock','draps'].forEach(function(n){
-      var p=document.getElementById('stockInnerPane-'+n);
-      if(p){p.hidden=n!=='draps';p.style.display=n==='draps'?'block':'none';p.classList.toggle('active',n==='draps');}
-    });
-    document.querySelectorAll('.stockInnerTab').forEach(function(t){
-      var active=t===tab;
-      t.classList.toggle('active',active);
-      t.setAttribute('aria-selected',active?'true':'false');
-    });
-    if(typeof window.chargerDraps==='function')window.chargerDraps();
-  }
-  window.sanistockOuvrirFenetreDraps=ouvrirDrapsDansPage;
-  window.sanistockFermerFenetreDraps=function(){};
-})();
-</script>
 </body>
 </html>
 <!-- SaniStock 1.1.114 : réactions multiples sur les publications. -->
