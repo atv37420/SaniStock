@@ -2921,7 +2921,7 @@ button.settingsAction.secondary:hover,
       <button type="button" class="drapsMoveSubmit clean" onclick="sanistockEnregistrerMouvementDraps('entree_propre')">✓ Valider l’entrée</button>
     </div>
     <div class="drapsMoveCard dirty">
-      <h3 class="drapsMoveTitle">Dépôt draps sales</h3>
+      <h3 class="drapsMoveTitle">Dépôt draps sales dans le sac</h3>
       <label class="drapsMoveField"><span>Nombre de draps sales déposés</span><input id="drapsSortieQuantite" type="number" min="0" max="10000" value="0"></label><p class="drapsMoveHint">🧺 Sacs calculés automatiquement : 1 sac tous les 10 draps sales.</p>
       <button type="button" class="drapsMoveSubmit dirty" onclick="sanistockEnregistrerMouvementDraps('sortie_sale')">✓ Valider le dépôt</button>
     </div>
@@ -12890,7 +12890,23 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
       loadMonthlyStatus(c,fresh);
     });
   };
-  window.ouvrirChecklistVehiculeFixe=function(v){alert('Véhicule sélectionné : '+v+'\n\nLa check-list détaillée de ce véhicule sera ajoutée ici.');};
+  window.ouvrirChecklistVehiculeFixe=function(v){
+    var nom=String(v||'').trim();
+    var estTaxi=/\bTAXI\b/i.test(nom);
+    try{
+      var data=window.getChecklistVehiculesData?window.getChecklistVehiculesData():null;
+      if(data && Array.isArray(data.TAXIS)){
+        estTaxi=estTaxi || data.TAXIS.some(function(x){
+          return String(x||'').trim().toLowerCase()===nom.toLowerCase();
+        });
+      }
+    }catch(err){}
+    if(estTaxi && typeof window.afficherChecklistTaxi==='function'){
+      window.afficherChecklistTaxi(nom);
+      return;
+    }
+    alert('Véhicule sélectionné : '+nom+'\n\nLa check-list détaillée de ce véhicule sera ajoutée ici.');
+  };
   document.addEventListener('click',function(e){
     var closeHistory=e.target.closest && e.target.closest('[data-monthly-history-close]'); if(closeHistory){var history=document.getElementById('saniMonthlyHistory');if(history)history.remove();return;}
     var monthly=e.target.closest && e.target.closest('[data-monthly-validate]'); if(monthly){e.preventDefault();e.stopPropagation();window.marquerChecklistMensuelle(monthly.getAttribute('data-monthly-cat'),monthly.getAttribute('data-monthly-validate'),monthly);return;}
