@@ -2489,7 +2489,58 @@ button.settingsAction.secondary:hover,
  #stockModal .movementRow{grid-template-columns:minmax(0,1fr) 70px 34px!important;gap:6px!important}
 }
 </style>
-\n</head>
+\n
+<style id="sanistock-draps-palette-bleue">
+/* Palette bleue uniforme pour toute la page Gestion draps */
+#drapsPage #drapsStockPanel .drapsMoveCard.clean,
+#drapsPage #drapsStockPanel .drapsMoveCard.dirty,
+#drapsStockPanel .drapsMoveCard.clean,
+#drapsStockPanel .drapsMoveCard.dirty{
+  border:1px solid #9fc8ef!important;
+  background:linear-gradient(145deg,#ffffff,#edf6ff)!important;
+  color:#082b50!important;
+}
+#drapsPage #drapsStockPanel .drapsMoveTitle,
+#drapsStockPanel .drapsMoveTitle,
+#drapsStockPanel .drapsMoveCard.clean .drapsMoveTitle,
+#drapsStockPanel .drapsMoveCard.dirty .drapsMoveTitle{
+  color:#07549b!important;
+}
+#drapsPage #drapsStockPanel .drapsMoveHint,
+#drapsStockPanel .drapsMoveHint{
+  color:#315b7e!important;
+}
+#drapsPage #drapsStockPanel .drapsMoveSubmit,
+#drapsStockPanel .drapsMoveSubmit,
+#drapsStockPanel .drapsMoveSubmit.clean,
+#drapsStockPanel .drapsMoveSubmit.dirty{
+  background:#0758a5!important;
+  color:#fff!important;
+  border:1px solid #0758a5!important;
+}
+#drapsPage #drapsStockPanel .drapsLiveCard,
+#drapsStockPanel .drapsLiveCard{
+  border-color:#91bce9!important;
+  background:linear-gradient(135deg,#f4f9ff,#e5f1ff)!important;
+}
+#drapsPage #drapsStockPanel .drapsLiveTop strong,
+#drapsStockPanel .drapsLiveTop strong,
+#drapsPage #drapsStockPanel .drapsLiveNumber,
+#drapsStockPanel .drapsLiveNumber{
+  color:#07549b!important;
+}
+#drapsPage #drapsStockPanel .drapsMoveField input,
+#drapsStockPanel .drapsMoveField input{
+  border-color:#b9d3ed!important;
+  color:#082b50!important;
+}
+#drapsPage #drapsStockPanel .drapsMoveCard.clean *,
+#drapsPage #drapsStockPanel .drapsMoveCard.dirty *{
+  --draps-accent:#0758a5;
+}
+</style>
+
+</head>
 <body>
 <div aria-live="polite" id="employeeLoginOverlay">
 <div class="employeeLoginCard">
