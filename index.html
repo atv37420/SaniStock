@@ -12890,23 +12890,7 @@ body:has(#homePage.active) #saniConnection{display:flex !important;}
       loadMonthlyStatus(c,fresh);
     });
   };
-  window.ouvrirChecklistVehiculeFixe=function(v){
-    var nom=String(v||'').trim();
-    var estTaxi=/\bTAXI\b/i.test(nom);
-    try{
-      var data=window.getChecklistVehiculesData?window.getChecklistVehiculesData():null;
-      if(data && Array.isArray(data.TAXIS)){
-        estTaxi=estTaxi || data.TAXIS.some(function(x){
-          return String(x||'').trim().toLowerCase()===nom.toLowerCase();
-        });
-      }
-    }catch(err){}
-    if(estTaxi && typeof window.afficherChecklistTaxi==='function'){
-      window.afficherChecklistTaxi(nom);
-      return;
-    }
-    alert('Véhicule sélectionné : '+nom+'\n\nLa check-list détaillée de ce véhicule sera ajoutée ici.');
-  };
+  window.ouvrirChecklistVehiculeFixe=function(v){alert('Véhicule sélectionné : '+v+'\n\nLa check-list détaillée de ce véhicule sera ajoutée ici.');};
   document.addEventListener('click',function(e){
     var closeHistory=e.target.closest && e.target.closest('[data-monthly-history-close]'); if(closeHistory){var history=document.getElementById('saniMonthlyHistory');if(history)history.remove();return;}
     var monthly=e.target.closest && e.target.closest('[data-monthly-validate]'); if(monthly){e.preventDefault();e.stopPropagation();window.marquerChecklistMensuelle(monthly.getAttribute('data-monthly-cat'),monthly.getAttribute('data-monthly-validate'),monthly);return;}
@@ -15461,6 +15445,34 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerFenetr
 })();
 </script>
 
+<script id="sanistock-taxi-navigation-final">
+(function(){
+  function estDansListeTaxi(nom){
+    nom=String(nom||'').trim().toLowerCase();
+    if(/\btaxi\b/i.test(nom)) return true;
+    try{
+      var data=window.getChecklistVehiculesData && window.getChecklistVehiculesData();
+      return !!(data && Array.isArray(data.TAXIS) &&
+        data.TAXIS.some(function(x){return String(x||'').trim().toLowerCase()===nom;}));
+    }catch(e){return false;}
+  }
+  var ouvrirPrecedent=window.ouvrirChecklistVehiculeFixe;
+  window.ouvrirChecklistVehiculeFixe=function(v,categorieForce){
+    var nom=String(v||'').trim();
+    var categorie=String(categorieForce||'').toUpperCase();
+    if(categorie==='TAXIS' || categorie==='TAXI' || estDansListeTaxi(nom)){
+      if(typeof window.afficherChecklistTaxi==='function'){
+        window.afficherChecklistTaxi(nom);
+        return;
+      }
+      console.error('SaniStock : module détaillé TAXI absent.');
+      alert('La check-list TAXI est indisponible dans ce fichier. Rechargez la version complète.');
+      return;
+    }
+    if(typeof ouvrirPrecedent==='function') return ouvrirPrecedent.apply(this,arguments);
+  };
+})();
+</script>
 </body>
 </html>
 <!-- SaniStock 1.1.114 : réactions multiples sur les publications. -->
