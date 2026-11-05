@@ -5098,6 +5098,893 @@ __SANI_PDFJS_SCRIPT_TAG__
             if(pdfSource&&workerSource){
               const pdfJsSecurise=pdfSource.replace(/<\/script/gi,'<\\/script');
               const workerJson=JSON.stringify(workerSource).replace(/</g,'\\u003c');
+              const scripts='<script>
+/* ===== DOCUMENTS PARTAGÉS — MODE HORS CONNEXION ===== */
+const SANISTOCK_DOC_DB='sanistock_documents_v1';
+const SANISTOCK_DOC_STORE='documents';
+
+/* Cache local du lecteur PDF.js et de son worker pour le mode hors connexion. */
+const SANISTOCK_PDFJS_DB='sanistock_pdfjs_offline_v1';
+const SANISTOCK_PDFJS_ASSETS={
+  pdfjs:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
+  worker:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'
+};
+function ouvrirCachePDFJS_(){
+  return new Promise(function(resolve,reject){
+    if(!window.indexedDB){reject(new Error('Stockage local indisponible.'));return;}
+    const req=indexedDB.open(SANISTOCK_PDFJS_DB,1);
+    req.onupgradeneeded=function(){if(!req.result.objectStoreNames.contains('assets'))req.result.createObjectStore('assets',{keyPath:'id'});};
+    req.onsuccess=function(){resolve(req.result);};
+    req.onerror=function(){reject(req.error||new Error('Cache du lecteur PDF indisponible.'));};
+  });
+}
+function lireAssetPDFJS_(id){
+  return ouvrirCachePDFJS_().then(function(db){return new Promise(function(resolve,reject){
+    const tx=db.transaction('assets','readonly'),req=tx.objectStore('assets').get(id);
+    req.onsuccess=function(){const row=req.result;db.close();resolve(row&&row.source?row.source:'');};
+    req.onerror=function(){db.close();reject(req.error||new Error('Lecture du lecteur PDF impossible.'));};
+  });}).catch(function(){return '';});
+}
+function enregistrerAssetPDFJS_(id,source){
+  return ouvrirCachePDFJS_().then(function(db){return new Promise(function(resolve,reject){
+    const tx=db.transaction('assets','readwrite');
+    tx.objectStore('assets').put({id:id,source:source,savedAt:Date.now()});
+    tx.oncomplete=function(){db.close();resolve(true);};
+    tx.onerror=function(){db.close();reject(tx.error||new Error('Enregistrement du lecteur PDF impossible.'));};
+  });});
+}
+async function prechargerPDFJSHorsLigne_(){
+  if(!navigator.onLine||!window.fetch)return false;
+  const ids=['pdfjs','worker'];
+  for(const id of ids){
+    const old=await lireAssetPDFJS_(id);
+    if(old && old.length>50000)continue;
+    try{
+      const response=await fetch(SANISTOCK_PDFJS_ASSETS[id],{mode:'cors',cache:'force-cache'});
+      if(!response.ok)continue;
+      const source=await response.text();
+      if(source&&source.length>50000)await enregistrerAssetPDFJS_(id,source);
+    }catch(e){}
+  }
+  const pdf=await lireAssetPDFJS_('pdfjs'),worker=await lireAssetPDFJS_('worker');
+  return !!(pdf&&worker);
+}
+
+// Mémo Code Accès Services : stockage partagé côté serveur Apps Script.
+let SANISTOCK_MEMO_CODE_CACHE = {title:'Code',content:''};
+function afficherMemoCode_(data){
+  if(data) SANISTOCK_MEMO_CODE_CACHE={title:String(data.title||'Code'),content:String(data.content||'')};
+  const current=SANISTOCK_MEMO_CODE_CACHE;
+  const title=document.getElementById('memoCodeDisplayTitle');
+  const content=document.getElementById('memoCodeDisplayContent');
+  if(title)title.textContent='🔐 '+(current.title||'Code');
+  if(content)content.textContent=current.content.trim()||'Aucun code n’a encore été ajouté.';
+}
+function chargerMemoCodeEquipe_(done){
+  const content=document.getElementById('memoCodeDisplayContent');
+  if(content)content.textContent='Chargement des codes partagés…';
+  if(!(window.google&&google.script&&google.script.run)){
+    if(content)content.textContent='Connexion au serveur SaniStock indisponible.';
+    if(done)done(false); return;
+  }
+  google.script.run.withSuccessHandler(function(data){
+    afficherMemoCode_(data||{title:'Code',content:''}); if(done)done(true);
+  }).withFailureHandler(function(err){
+    if(content)content.textContent='❌ Erreur serveur : '+(err&&err.message?err.message:'connexion impossible')+'. Vérifiez le déploiement Apps Script.';
+    if(done)done(false);
+  }).getMemoCodeEquipe();
+}
+function ouvrirMemoCodePage(){
+  showPage('memoCodePage');
+  chargerMemoCodeEquipe_();
+}
+function chargerMemoCodeParametres(){
+  const title=document.getElementById('memoCodeTitleInput');
+  const content=document.getElementById('memoCodeContentInput');
+  const msg=document.getElementById('memoCodeSettingsMsg');
+  if(msg)msg.textContent='Chargement des codes partagés…';
+  if(!(window.google&&google.script&&google.script.run)){
+    if(msg)msg.textContent='❌ Connexion au serveur indisponible.'; return;
+  }
+  google.script.run.withSuccessHandler(function(data){
+    data=data||{title:'Code',content:''};
+    if(title)title.value=String(data.title||'Code');
+    if(content)content.value=String(data.content||'');
+    if(msg)msg.textContent='';
+  }).withFailureHandler(function(err){
+    if(msg)msg.textContent='❌ Erreur serveur : '+(err&&err.message?err.message:'connexion impossible')+'. Vérifiez le déploiement Apps Script.';
+  }).getMemoCodeEquipe();
+}
+function enregistrerMemoCodeUI(){
+  const titleInput=document.getElementById('memoCodeTitleInput');
+  const contentInput=document.getElementById('memoCodeContentInput');
+  const msg=document.getElementById('memoCodeSettingsMsg');
+  const data={title:(titleInput&&titleInput.value.trim())||'Mémo code',content:(contentInput&&contentInput.value)||''};
+  if(!(window.google&&google.script&&google.script.run)){
+    if(msg)msg.textContent='❌ Connexion au serveur indisponible. Rien n’a été enregistré.'; return;
+  }
+  if(msg)msg.textContent='Enregistrement des codes pour toute l’équipe…';
+  google.script.run.withSuccessHandler(function(res){
+    afficherMemoCode_(data);
+    if(msg)msg.textContent='✅ Codes enregistrés et partagés avec toute l’équipe.';
+  }).withFailureHandler(function(err){
+    if(msg)msg.textContent='❌ Échec de l’enregistrement partagé : '+(err&&err.message?err.message:'erreur serveur');
+  }).enregistrerMemoCodeEquipe(data);
+}
+
+function ouvrirDocuments(){
+  showPage('documentsPage');
+  chargerDocuments();
+  if(navigator.onLine) prechargerPDFJSHorsLigne_().catch(function(){});
+}
+
+function ouvrirBaseDocuments_(){
+  return new Promise(function(resolve,reject){
+    if(!window.indexedDB){ reject(new Error('Stockage hors connexion indisponible.')); return; }
+    const req=indexedDB.open(SANISTOCK_DOC_DB,1);
+    req.onupgradeneeded=function(){
+      const db=req.result;
+      if(!db.objectStoreNames.contains(SANISTOCK_DOC_STORE)){
+        db.createObjectStore(SANISTOCK_DOC_STORE,{keyPath:'id'});
+      }
+    };
+    req.onsuccess=function(){resolve(req.result)};
+    req.onerror=function(){reject(req.error||new Error('Impossible d’ouvrir le stockage hors connexion.'))};
+  });
+}
+
+function enregistrerDocumentHorsLigne_(doc){
+  return ouvrirBaseDocuments_().then(function(db){
+    return new Promise(function(resolve,reject){
+      const tx=db.transaction(SANISTOCK_DOC_STORE,'readwrite');
+      tx.objectStore(SANISTOCK_DOC_STORE).put(doc);
+      tx.oncomplete=function(){db.close();resolve()};
+      tx.onerror=function(){db.close();reject(tx.error||new Error('Impossible d’enregistrer le document.'))};
+    });
+  });
+}
+
+function lireDocumentsHorsLigne_(){
+  return ouvrirBaseDocuments_().then(function(db){
+    return new Promise(function(resolve,reject){
+      const tx=db.transaction(SANISTOCK_DOC_STORE,'readonly');
+      const req=tx.objectStore(SANISTOCK_DOC_STORE).getAll();
+      req.onsuccess=function(){
+        const rows=Array.isArray(req.result)?req.result:[];
+        db.close();
+        rows.sort(function(a,b){return String(b.date||'').localeCompare(String(a.date||''))});
+        resolve(rows);
+      };
+      req.onerror=function(){db.close();reject(req.error||new Error('Lecture hors connexion impossible.'))};
+    });
+  });
+}
+
+function convertirDoc_(doc){
+  doc=doc||{};
+  const rawId=String(doc.id||'').trim();
+  const driveId=String(doc.driveId||doc.googleDriveId||(rawId && rawId.indexOf('local_')!==0 ? rawId : '')).trim();
+  const localId=String(doc.localId || (rawId && rawId.indexOf('local_')===0 ? rawId : '') || (driveId ? 'local_'+driveId : '')).trim();
+  return {
+    id:driveId||localId, driveId:driveId, googleDriveId:driveId, localId:localId,
+    name:String(doc.name||doc.nom||'Document'),
+    mimeType:String(doc.mimeType||'application/octet-stream'),
+    date:String(doc.date||doc.created||''), taille:Number(doc.taille||doc.size||0),
+    url:String(doc.url||''), contenuBase64:doc.contenuBase64||''
+  };
+}
+
+function supprimerDocumentHorsLigne_(doc){
+  const driveId=String(
+    typeof doc==='string'
+      ? doc
+      : (doc&&(
+          doc.driveId ||
+          doc.googleDriveId ||
+          doc.id
+        )||'')
+  ).trim();
+
+  const localId=String(
+    typeof doc==='object' && doc && doc.localId
+      ? doc.localId
+      : (driveId ? 'local_'+driveId : '')
+  ).trim();
+
+  const ids=[];
+  if(driveId) ids.push(driveId);
+  if(localId && ids.indexOf(localId)<0) ids.push(localId);
+
+  if(!ids.length) return Promise.resolve(false);
+
+  return ouvrirBaseDocuments_().then(function(db){
+    return new Promise(function(resolve,reject){
+      const tx=db.transaction(SANISTOCK_DOC_STORE,'readwrite');
+      const store=tx.objectStore(SANISTOCK_DOC_STORE);
+
+      ids.forEach(function(id){
+        try{ store.delete(String(id)); }catch(e){}
+      });
+
+      tx.oncomplete=function(){
+        db.close();
+        resolve(true);
+      };
+
+      tx.onerror=function(){
+        db.close();
+        reject(tx.error||new Error('Suppression hors ligne impossible.'));
+      };
+    });
+  });
+}
+
+function supprimerDocumentPartageUI(doc){
+  doc=doc||{};
+
+  // On essaie d'abord de récupérer le vrai ID Google Drive.
+  let driveId=String(
+    doc.driveId ||
+    doc.googleDriveId ||
+    (String(doc.id||'').indexOf('local_')===0 ? '' : doc.id) ||
+    ''
+  ).trim();
+
+  const localId=String(
+    doc.localId ||
+    (String(doc.id||'').indexOf('local_')===0 ? doc.id : (driveId ? 'local_'+driveId : ''))
+  ).trim();
+
+  if(!confirm(
+    'Supprimer le document « '+
+    String(doc.name||doc.nom||'Document')+
+    ' » ?'
+  )) return;
+
+  if(!window.google || !google.script || !google.script.run){
+    alert('📴 Connexion indisponible.');
+    return;
+  }
+
+  const bouton=document.activeElement;
+  if(bouton && bouton.classList && bouton.classList.contains('documentDelete')){
+    bouton.disabled=true;
+    bouton.textContent='⏳ Recherche…';
+  }
+
+  // Si la carte vient encore de l'ancien cache local et ne possède pas
+  // d'ID Drive, on retrouve le document dans Drive par son nom.
+  function supprimerAvecIdDrive_(idDrive){
+    idDrive=String(idDrive||'').trim();
+    if(!idDrive){
+      throw new Error('ID Google Drive introuvable.');
+    }
+
+    if(bouton && bouton.classList && bouton.classList.contains('documentDelete')){
+      bouton.textContent='⏳ Suppression…';
+    }
+
+    google.script.run
+      .withSuccessHandler(function(){
+        Promise.resolve()
+          .then(function(){
+            return supprimerDocumentHorsLigne_({
+              id:idDrive,
+              driveId:idDrive,
+              localId:localId
+            });
+          })
+          .catch(function(){})
+          .finally(function(){
+            chargerDocuments();
+            alert('✅ Document supprimé.');
+          });
+      })
+      .withFailureHandler(function(e){
+        if(bouton && bouton.classList && bouton.classList.contains('documentDelete')){
+          bouton.disabled=false;
+          bouton.textContent='🗑️ Supprimer';
+        }
+        const message=e&&e.message ? e.message : String(e||'Impossible de supprimer le document.');
+        alert('❌ '+message);
+      })
+      .supprimerDocumentPartage(Object.assign({
+        id:idDrive,
+        driveId:idDrive,
+        googleDriveId:idDrive
+      },donneesAccesGestion()));
+  }
+
+  if(driveId){
+    supprimerAvecIdDrive_(driveId);
+    return;
+  }
+
+  // Ancienne copie locale : on demande la liste Drive et on cherche le nom.
+  google.script.run
+    .withSuccessHandler(function(result){
+      let payload=result&&result.data ? result.data : result;
+      const raw=Array.isArray(payload)
+        ? payload
+        : ((payload&&Array.isArray(payload.documents)) ? payload.documents : []);
+
+      const nomRecherche=String(doc.name||doc.nom||'').trim();
+      const candidats=raw.map(convertirDoc_).filter(function(d){
+        return d.driveId && String(d.name||'').trim()===nomRecherche;
+      });
+
+      candidats.sort(function(a,b){
+        return String(b.date||'').localeCompare(String(a.date||''));
+      });
+
+      if(!candidats.length){
+        if(bouton && bouton.classList && bouton.classList.contains('documentDelete')){
+          bouton.disabled=false;
+          bouton.textContent='🗑️ Supprimer';
+        }
+        alert('❌ Ce document n’a pas été retrouvé dans Google Drive. Actualisez la liste puis réessayez.');
+        return;
+      }
+
+      supprimerAvecIdDrive_(candidats[0].driveId);
+    })
+    .withFailureHandler(function(e){
+      if(bouton && bouton.classList && bouton.classList.contains('documentDelete')){
+        bouton.disabled=false;
+        bouton.textContent='🗑️ Supprimer';
+      }
+      alert('❌ Impossible de vérifier Google Drive : '+(e&&e.message?e.message:e||'erreur inconnue.'));
+    })
+    .listerDocumentsPartages();
+}
+
+// Alias global pour les anciennes cartes éventuellement conservées en cache.
+window.supprimerDocumentPartageUI = supprimerDocumentPartageUI;
+window.supprimerDocumentPartage = supprimerDocumentPartageUI;
+
+function rendreDocuments_(docs,list,settingsList){
+  docs=(Array.isArray(docs)?docs:[]).map(convertirDoc_).filter(function(d){return d.id});
+  if(!docs.length){
+    const empty='<div class="card" style="text-align:center;color:#64748b">Aucun document partagé pour le moment.</div>';
+    if(list) list.innerHTML=empty;
+    if(settingsList) settingsList.innerHTML=empty;
+    return;
+  }
+  if(list) list.innerHTML='';
+  if(settingsList) settingsList.innerHTML='';
+
+  docs.forEach(function(doc){
+    function creerCarte(admin){
+      const card=document.createElement('div');
+      card.className='documentCard';
+      const icon=document.createElement('div');
+      icon.className='documentIcon';
+      icon.textContent=/pdf/i.test(doc.mimeType)?'📕':/image/i.test(doc.mimeType)?'🖼️':/text/i.test(doc.mimeType)?'📝':'📄';
+      const info=document.createElement('div');
+      info.className='documentInfo';
+      const name=document.createElement('div');
+      name.className='documentName';
+      name.textContent=doc.name;
+      const meta=document.createElement('div');
+      meta.className='documentMeta';
+      meta.textContent=doc.date?new Date(doc.date).toLocaleDateString('fr-FR'):'';
+      info.appendChild(name); info.appendChild(meta);
+      const open=document.createElement('button');
+      open.type='button'; open.className='documentOpen'; open.textContent='👁️ Lire';
+      open.onclick=function(){ouvrirDocumentPartage_(doc)};
+      card.appendChild(icon); card.appendChild(info); card.appendChild(open);
+
+      if(admin && appareilProprietaire()){
+        const del=document.createElement('button');
+        del.type='button';
+        del.className='documentDelete';
+        del.textContent='🗑️ Supprimer';
+        del.onclick=function(){supprimerDocumentPartageUI(doc)};
+        card.appendChild(del);
+      }
+      return card;
+    }
+    if(list) list.appendChild(creerCarte(false));
+    if(settingsList) settingsList.appendChild(creerCarte(true));
+  });
+}
+
+function chargerDocuments(){
+  const list=document.getElementById('documentsList');
+  const settingsList=document.getElementById('documentsSettingsList');
+  if(!list && !settingsList) return;
+  if(list) list.innerHTML='Chargement des documents…';
+  if(settingsList) settingsList.innerHTML='Chargement des documents…';
+
+  lireDocumentsHorsLigne_().then(function(cached){
+    const cacheDocs=(Array.isArray(cached)?cached:[]).map(convertirDoc_);
+    function afficher(docs){
+      const fusion=[]; const parCle={};
+      (Array.isArray(docs)?docs:[]).map(convertirDoc_).filter(function(d){return d.id||d.name;}).forEach(function(d){
+        const cle=d.driveId || ('nom:'+String(d.name||'').trim().toLowerCase());
+        if(parCle[cle]===undefined){parCle[cle]=fusion.length; fusion.push(d);}
+        else { const i=parCle[cle]; if(!fusion[i].driveId&&d.driveId) fusion[i]=d; else if(!fusion[i].contenuBase64&&d.contenuBase64) fusion[i]=d; }
+      });
+      fusion.sort(function(a,b){return String(b.date||'').localeCompare(String(a.date||''));});
+      rendreDocuments_(fusion,list,settingsList);
+    }
+    afficher(cacheDocs);
+    if(!navigator.onLine || !(window.google&&google.script&&google.script.run)) return;
+    google.script.run.withSuccessHandler(function(result){
+      let payload=result&&result.data?result.data:result;
+      const raw=Array.isArray(payload)?payload:((payload&&Array.isArray(payload.documents))?payload.documents:[]);
+      const driveDocs=raw.map(convertirDoc_).filter(function(d){return d.driveId;});
+      // En ligne : Google Drive est la source officielle.
+      // On n'affiche donc jamais un ancien document présent uniquement dans le cache local.
+      afficher(driveDocs);
+      nettoyerDocumentsHorsLigne_(driveDocs).then(function(){
+        synchroniserDocumentsHorsLigne_(driveDocs);
+      });
+    }).withFailureHandler(function(){afficher(cacheDocs);}).listerDocumentsPartages();
+  }).catch(function(){
+    if(!navigator.onLine){
+      const err='<div class="card">📴 Documents hors connexion indisponibles.</div>';
+      if(list) list.innerHTML=err; if(settingsList) settingsList.innerHTML=err; return;
+    }
+    google.script.run.withSuccessHandler(function(result){
+      let payload=result&&result.data?result.data:result;
+      const raw=Array.isArray(payload)?payload:((payload&&Array.isArray(payload.documents))?payload.documents:[]);
+      const docs=raw.map(convertirDoc_).filter(function(d){return d.driveId;});
+      rendreDocuments_(docs,list,settingsList); synchroniserDocumentsHorsLigne_(docs);
+    }).withFailureHandler(function(){
+      const err='<div class="card">❌ Impossible de charger les documents.</div>';
+      if(list) list.innerHTML=err; if(settingsList) settingsList.innerHTML=err;
+    }).listerDocumentsPartages();
+  });
+}
+
+function nettoyerDocumentsHorsLigne_(docs){
+  docs=Array.isArray(docs)?docs:[];
+  const ids={};
+  docs.forEach(function(doc){
+    const d=convertirDoc_(doc);
+    if(d.driveId) ids[d.driveId]=true;
+  });
+
+  return ouvrirBaseDocuments_().then(function(db){
+    return new Promise(function(resolve,reject){
+      const tx=db.transaction(SANISTOCK_DOC_STORE,'readwrite');
+      const store=tx.objectStore(SANISTOCK_DOC_STORE);
+      const req=store.getAll();
+
+      req.onsuccess=function(){
+        const rows=Array.isArray(req.result)?req.result:[];
+        rows.forEach(function(row){
+          const d=convertirDoc_(row);
+          // Si le document n'existe plus dans Google Drive, on retire aussi
+          // sa copie locale. Si Drive est vide, tout le cache documentaire est nettoyé.
+          if(!d.driveId || !ids[d.driveId]){
+            try{store.delete(row.id);}catch(e){}
+            if(d.localId && d.localId!==row.id){
+              try{store.delete(d.localId);}catch(e){}
+            }
+          }
+        });
+      };
+
+      tx.oncomplete=function(){db.close();resolve(true)};
+      tx.onerror=function(){db.close();reject(tx.error||new Error('Nettoyage du cache documentaire impossible.'))};
+    });
+  }).catch(function(){ return false; });
+}
+
+function synchroniserDocumentsHorsLigne_(docs){
+  docs=(Array.isArray(docs)?docs:[]).slice();
+  if(!navigator.onLine || !gsDisponible()) return;
+  let index=0;
+  function suivant(){
+    if(!navigator.onLine || index>=docs.length) return;
+    const doc=docs[index++];
+    google.script.run.withSuccessHandler(function(result){
+      const d=convertirDoc_(result&&result.document?result.document:result);
+      if(d.id && d.contenuBase64){
+        enregistrerDocumentHorsLigne_(d).catch(function(){}).finally(suivant);
+      }else{
+        suivant();
+      }
+    }).withFailureHandler(function(){
+      suivant();
+    }).getDocumentPartage({id:doc.id});
+  }
+  suivant();
+}
+
+function ouvrirDocumentPartage_(doc){
+  // Ouvre une fenêtre contrôlée par SaniStock. Les PDF seront rendus sur un canvas
+  // en lecture seule, au lieu du lecteur PDF natif qui affiche le crayon d’annotation.
+  let fenetre=null;
+  try{fenetre=window.open('about:blank','_blank');}catch(e){}
+
+  function afficherDepuisBase64(d){
+    try{
+      const mimeType=String(d.mimeType||'application/octet-stream');
+      const estPdf=/application\/pdf/i.test(mimeType) || /\.pdf$/i.test(String(d.name||''));
+
+      if(estPdf){
+        if(!fenetre || fenetre.closed){
+          try{fenetre=window.open('about:blank','_blank');}catch(e){}
+        }
+        if(!fenetre){
+          alert('Autorisez les fenêtres pop-up pour consulter le document.');
+          return;
+        }
+
+        // Le mode hors connexion de SaniStock conserve déjà les documents consultés dans IndexedDB.
+        // Sans réseau, on ouvre cette copie locale directement, sans dépendre de PDF.js sur un CDN.
+        function ouvrirPdfNatifSansBarre(){
+          try{
+            const binaire=atob(String(d.contenuBase64||''));
+            const octets=new Uint8Array(binaire.length);
+            for(let i=0;i<binaire.length;i++) octets[i]=binaire.charCodeAt(i);
+            const urlLocale=URL.createObjectURL(new Blob([octets],{type:'application/pdf'}));
+            fenetre.location.replace(urlLocale+'#toolbar=0&navpanes=0');
+            // Laisser au lecteur natif le temps de charger le blob avant de libérer l’URL.
+            setTimeout(function(){try{URL.revokeObjectURL(urlLocale);}catch(e){}},5*60*1000);
+            return true;
+          }catch(e){return false;}
+        }
+        const htmlLectureSeule = `<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Document partagé — lecture seule</title>
+<style>
+:root{color-scheme:light}*{box-sizing:border-box}html,body{margin:0;padding:0;min-height:100%;font-family:Arial,Helvetica,sans-serif;background:#e8edf3;color:#193047}
+.toolbar{position:sticky;top:0;z-index:3;display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#fff;border-bottom:1px solid #d4dde7;padding:10px 12px;box-shadow:0 2px 7px rgba(0,0,0,.08)}
+#docTitle{flex:1;min-width:150px;font-weight:700;font-size:14px;overflow-wrap:anywhere}.toolbar button{border:0;border-radius:8px;padding:8px 11px;background:#e8eef5;color:#173553;font-weight:700;cursor:pointer}.toolbar button:disabled{opacity:.4;cursor:default}.toolbar .close{background:#153e66;color:#fff}
+#pageLabel,#zoomLabel{font-size:12px;color:#52677c;white-space:nowrap}main{padding:16px;display:flex;justify-content:center;align-items:flex-start;min-height:calc(100vh - 58px);overflow:auto}#pageWrap{max-width:100%;box-shadow:0 2px 14px rgba(16,35,55,.22);background:white}canvas{display:block;max-width:none;background:white}#status{margin:8vh auto 0;max-width:620px;padding:18px;border-radius:12px;background:white;text-align:center;color:#43586d;line-height:1.5}
+@media(max-width:600px){.toolbar{gap:5px;padding:8px}.toolbar button{padding:8px;font-size:12px}#docTitle{flex-basis:100%;font-size:13px}main{padding:8px}}
+</style></head><body>
+<header class="toolbar"><div id="docTitle">Document partagé</div>
+<button id="prev" type="button" disabled>◀</button><span id="pageLabel">Chargement…</span><button id="next" type="button" disabled>▶</button>
+<button id="zoomOut" type="button" aria-label="Réduire le zoom">−</button><span id="zoomLabel">100 %</span><button id="zoomIn" type="button" aria-label="Agrandir le zoom">+</button><button class="close" type="button" onclick="window.close()">Fermer</button></header>
+<main><div id="status">Préparation du document…</div><div id="pageWrap" hidden><canvas id="pageCanvas" aria-label="Page du document en lecture seule"></canvas></div></main>
+__SANI_PDFJS_SCRIPT_TAG__
+<script>
+(function(){
+  var pdfDoc=null,pageNum=1,zoomFactor=1,renderTask=null,renderSeq=0;
+  var canvas=document.getElementById('pageCanvas'),ctx=canvas.getContext('2d');
+  var statusEl=document.getElementById('status'),wrap=document.getElementById('pageWrap');
+  var pageLabel=document.getElementById('pageLabel'),zoomLabel=document.getElementById('zoomLabel');
+  var prev=document.getElementById('prev'),next=document.getElementById('next');
+  function msg(t){statusEl.hidden=false;statusEl.textContent=t;wrap.hidden=true;}
+  async function renderPage(){
+    if(!pdfDoc)return;
+    var seq=++renderSeq;
+    try{
+      if(renderTask){try{renderTask.cancel();}catch(e){}renderTask=null;}
+      var page=await pdfDoc.getPage(pageNum);
+      if(seq!==renderSeq)return;
+      var base=page.getViewport({scale:1});
+      var available=Math.max(260,(document.querySelector('main').clientWidth||window.innerWidth)-24);
+      var fit=Math.min(1,available/base.width);
+      var cssScale=fit*zoomFactor;
+      var cssViewport=page.getViewport({scale:cssScale});
+      var dpr=Math.min(window.devicePixelRatio||1,2);
+      var pixelViewport=page.getViewport({scale:cssScale*dpr});
+      canvas.width=Math.ceil(pixelViewport.width);canvas.height=Math.ceil(pixelViewport.height);
+      canvas.style.width=Math.ceil(cssViewport.width)+'px';canvas.style.height=Math.ceil(cssViewport.height)+'px';
+      statusEl.hidden=true;wrap.hidden=false;
+      renderTask=page.render({canvasContext:ctx,viewport:pixelViewport});
+      await renderTask.promise;
+      if(seq!==renderSeq)return;
+      pageLabel.textContent='Page '+pageNum+' / '+pdfDoc.numPages;
+      zoomLabel.textContent=Math.round(zoomFactor*100)+' %';
+      prev.disabled=pageNum<=1;next.disabled=pageNum>=pdfDoc.numPages;
+    }catch(e){if(e&&e.name==='RenderingCancelledException')return;msg('Impossible d’afficher cette page. Fermez puis rouvrez le document.');}
+  }
+  window.startSaniReadOnlyPdf=function(base64,title){
+    document.getElementById('docTitle').textContent=String(title||'Document PDF');
+    document.title=String(title||'Document PDF')+' — lecture seule';
+    if(!window.pdfjsLib){msg('Le lecteur sécurisé ne peut pas être chargé. Vérifiez votre connexion puis rouvrez le document.');return;}
+    if(window.__SANI_PDF_WORKER_SOURCE){
+      if(!window.__SANI_PDF_WORKER_URL) window.__SANI_PDF_WORKER_URL=URL.createObjectURL(new Blob([window.__SANI_PDF_WORKER_SOURCE],{type:'text/javascript'}));
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc=window.__SANI_PDF_WORKER_URL;
+    }else{
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+    try{
+      var raw=atob(String(base64||''));var bytes=new Uint8Array(raw.length);
+      for(var i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);
+      msg('Chargement du document…');
+      window.pdfjsLib.getDocument({data:bytes}).promise.then(function(pdf){
+        pdfDoc=pdf;pageNum=1;prev.disabled=true;next.disabled=pdfDoc.numPages<=1;
+        return renderPage();
+      }).catch(function(){msg('Ce PDF ne peut pas être affiché. Vérifiez que le fichier n’est pas endommagé.');});
+    }catch(e){msg('Impossible de lire ce document PDF.');}
+  };
+  prev.addEventListener('click',function(){if(pageNum>1){pageNum--;renderPage();}});
+  next.addEventListener('click',function(){if(pdfDoc&&pageNum<pdfDoc.numPages){pageNum++;renderPage();}});
+  document.getElementById('zoomOut').addEventListener('click',function(){zoomFactor=Math.max(.6,zoomFactor-.15);renderPage();});
+  document.getElementById('zoomIn').addEventListener('click',function(){zoomFactor=Math.min(2.5,zoomFactor+.15);renderPage();});
+  window.addEventListener('resize',function(){renderPage();});
+  window.addEventListener('keydown',function(e){if(e.key==='ArrowLeft'&&pageNum>1){pageNum--;renderPage();}else if(e.key==='ArrowRight'&&pdfDoc&&pageNum<pdfDoc.numPages){pageNum++;renderPage();}else if((e.key==='+'||e.key==='=')&&!e.ctrlKey){zoomFactor=Math.min(2.5,zoomFactor+.15);renderPage();}else if(e.key==='-'&&!e.ctrlKey){zoomFactor=Math.max(.6,zoomFactor-.15);renderPage();}});
+})();
+<\/script>
+<style id="sanistock-1-1-99-bulle-actualite-respect">
+#newsPage .sanNewsHeroSimple{display:flex!important;align-items:flex-start!important;gap:10px!important;padding:10px 12px!important;background:#fff!important;border:1px solid #e1e6eb!important;border-radius:13px!important;box-shadow:0 1px 3px rgba(20,35,55,.06)!important;margin-bottom:10px!important;color:#15324b!important}
+#newsPage .sanNewsHeroSimple .sanNewsHeroBubble{flex:0 0 30px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:#e7f1ff;color:#175a8e;font-size:16px;line-height:1}
+#newsPage .sanNewsHeroSimple .sanNewsHeroText{flex:1;min-width:0}
+#newsPage .sanNewsHeroSimple h1{margin:1px 0 4px!important;color:#102a43!important;font-size:20px!important;line-height:1.2!important;font-weight:750!important}
+#newsPage .sanNewsHeroSimple p{margin:0!important;color:#536579!important;font-size:12px!important;line-height:1.4!important;max-width:unset!important}
+@media(max-width:420px){#newsPage .sanNewsHeroSimple{gap:8px!important;padding:9px 10px!important}#newsPage .sanNewsHeroSimple .sanNewsHeroBubble{flex-basis:27px;width:27px;height:27px;font-size:15px}#newsPage .sanNewsHeroSimple h1{font-size:18px!important}}
+</style>
+
+
+<style id="sanistock-1-1-122-esprit-equipe-sans-ancien-rectangle">
+/* 1.1.122 : le message d'accueil est intégré visuellement au mur, sans l'ancien rectangle. */
+#newsPage .sanNewsHeroSimple{background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;padding:4px 4px 10px!important;margin:0 0 8px!important;color:#15324b!important}
+#newsPage .sanNewsHeroSimple .sanNewsHeroText{min-width:0!important}
+#newsPage .sanNewsHeroSimple h1{margin:0 0 5px!important;color:#102a43!important;font-size:22px!important;line-height:1.2}
+#newsPage .sanNewsHeroSimple p{margin:0!important;color:#536579!important;font-size:12px!important;line-height:1.45!important}
+#newsPage .sanNewsHeroSimple .sanNewsHeroBubble{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important}
+</style>
+
+<style id="sanistock-1-1-132-categories-compactes">
+/* Rectangles plus compacts dans les catégories Mémo et Véhicule */
+#memoPage .memoChoices, #vehiclePage .memoChoices { gap: 12px; margin-top: 18px; }
+#memoPage .memoChoice, #vehiclePage .memoChoice { padding: 17px 14px; border-radius: 16px; }
+#memoPage .memoChoiceIcon, #vehiclePage .memoChoiceIcon { font-size: 34px; margin-bottom: 5px; }
+#memoPage .memoChoiceTitle, #vehiclePage .memoChoiceTitle { font-size: 16px; }
+#memoPage .memoChoiceDesc, #vehiclePage .memoChoiceDesc { font-size: 12px; margin-top: 4px; line-height: 1.35; }
+#checklistPage .checklistCard { padding: 14px 15px !important; border-radius: 14px !important; }
+#checklistPage .checklistCardTitle { font-size: 17px !important; }
+#checklistPage .checklistCardDesc { margin-top: 3px !important; font-size: 12px !important; }
+#checklistPage .checklistGrid { gap: 10px !important; }
+#checklistPage .checklistVehicle { padding: 11px 13px !important; margin-bottom: 7px !important; border-radius: 12px !important; }
+#checklistPage .checklistVehicleName { font-size: 14px !important; }
+@media (max-width: 600px) { #memoPage .memoChoices, #vehiclePage .memoChoices { gap: 10px; } #memoPage .memoChoice, #vehiclePage .memoChoice { padding: 15px 12px; } #checklistPage .checklistCard { padding: 12px !important; } }
+</style>
+
+<style id="sanistock-draps-style-vehicule">
+/* Gestion des draps : même identité visuelle que les cartes de la page Véhicule */
+.sanistock-draps-dialog{background:#edf5fa!important;padding:18px!important;border-radius:28px!important;color:#042349!important}
+.sanistock-draps-dialog-head{justify-content:center!important;position:relative!important;padding:8px 48px 18px!important;text-align:center!important}
+.sanistock-draps-dialog-head h2{font-size:clamp(22px,5vw,30px)!important;color:#042349!important;font-weight:900!important}
+.sanistock-draps-close{position:absolute!important;right:0!important;top:0!important;background:#fff!important;box-shadow:0 5px 16px rgba(10,59,96,.12)!important}
+.sanistock-draps-dialog #drapsStockPanel{margin:0!important;padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0!important}
+.sanistock-draps-dialog .drapsStockHead{display:block!important;text-align:center!important;background:transparent!important;padding:0 8px 16px!important}
+.sanistock-draps-dialog .drapsStockHead h2{font-size:17px!important;font-weight:900!important;color:#042349!important;margin:0 0 6px!important}
+.sanistock-draps-dialog .drapsStockHead p{font-size:13px!important;line-height:1.45!important;color:#64748b!important;max-width:440px!important;margin:0 auto!important}
+.sanistock-draps-dialog .drapsStockTag{display:none!important}
+.sanistock-draps-dialog .drapsStats{grid-template-columns:1fr 1fr!important;gap:12px!important;margin:0 0 14px!important}
+.sanistock-draps-dialog .drapsStat,.sanistock-draps-dialog .drapsRuleCard{min-height:138px!important;border:0!important;border-radius:22px!important;background:#fff!important;color:#042349!important;box-shadow:0 8px 24px rgba(20,60,100,.10)!important;padding:18px 12px!important;display:flex!important;align-items:center!important;justify-content:center!important;text-align:center!important}
+.sanistock-draps-dialog .drapsStat span{font-size:13px!important;color:#64748b!important}
+.sanistock-draps-dialog .drapsStat strong{font-size:42px!important;color:#042349!important;margin:4px 0!important}
+.sanistock-draps-dialog .drapsStat strong small{font-size:23px!important;color:#64748b!important}
+.sanistock-draps-dialog .drapsProgress{width:90%!important;height:9px!important;background:#e5edf4!important;margin-top:8px!important}
+.sanistock-draps-dialog .drapsProgress i{background:#0758a5!important}
+.sanistock-draps-dialog .drapsRuleCard strong{font-size:29px!important;color:#0758a5!important}
+.sanistock-draps-dialog .drapsRuleCard span{font-size:12px!important;color:#042349!important}
+.sanistock-draps-dialog .drapsRuleCard small{font-size:11px!important;color:#64748b!important}
+.sanistock-draps-dialog .drapsQuickBtnsNine{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important;margin:0 0 16px!important}
+.sanistock-draps-dialog .drapsQuickBtnsNine button{min-height:76px!important;border:0!important;border-radius:20px!important;background:#fff!important;color:#0758a5!important;box-shadow:0 7px 20px rgba(20,60,100,.10)!important;font-size:25px!important;font-weight:900!important}
+.sanistock-draps-dialog .drapsQuickBtnsNine button:active{transform:scale(.97)}
+.sanistock-draps-dialog .drapsQuickBtnsNine .drapsResetBtn{grid-column:1/-1!important;min-height:52px!important;font-size:13px!important;color:#b42332!important}
+.sanistock-draps-dialog .drapsHistoryHead{background:#fff!important;border:0!important;border-radius:20px!important;padding:16px!important;box-shadow:0 7px 20px rgba(20,60,100,.08)!important;font-size:14px!important}
+.sanistock-draps-dialog .drapsHistoryHead button{font-size:12px!important}
+.sanistock-draps-dialog .drapsHistory{background:#fff!important;border-radius:18px!important;padding:6px 12px 12px!important;box-shadow:0 7px 20px rgba(20,60,100,.08)!important}
+.sanistock-draps-dialog .drapsHistoryRow{background:#edf5fa!important;border-radius:12px!important;font-size:11px!important;padding:11px 10px!important}
+.sanistock-draps-dialog .drapsHistoryEmpty{font-size:12px!important}
+.sanistock-draps-dialog .drapsLocalNotice{font-size:11px!important;color:#64748b!important}
+@media(max-width:420px){
+ .sanistock-draps-dialog{padding:12px!important}
+ .sanistock-draps-dialog-head{padding-bottom:14px!important}
+ .sanistock-draps-dialog .drapsStats{gap:8px!important}
+ .sanistock-draps-dialog .drapsStat,.sanistock-draps-dialog .drapsRuleCard{min-height:124px!important;padding:12px 7px!important;border-radius:19px!important}
+ .sanistock-draps-dialog .drapsStat strong{font-size:36px!important}
+ .sanistock-draps-dialog .drapsQuickBtnsNine{gap:8px!important}
+ .sanistock-draps-dialog .drapsQuickBtnsNine button{min-height:66px!important;border-radius:17px!important;font-size:22px!important}
+}
+
+/* Sélecteur de quantité compact et espacement des cartes du compteur */
+.sanistock-draps-dialog .drapsStats{gap:18px!important;margin-bottom:18px!important}
+.sanistock-draps-dialog .drapsQuantityPicker{display:grid!important;grid-template-columns:1fr 1fr!important;gap:10px!important;margin:0 0 18px!important;padding:16px!important;background:rgba(255,255,255,.45)!important;border-radius:20px!important}
+.sanistock-draps-dialog .drapsQuantityPicker label{grid-column:1/-1!important;font-size:13px!important;font-weight:800!important;color:#042349!important}
+.sanistock-draps-dialog .drapsQuantityPicker select{min-width:0!important;width:100%!important;min-height:54px!important;padding:10px 14px!important;border:1px solid #cbdde9!important;border-radius:14px!important;background:#fff!important;color:#042349!important;font-size:16px!important;font-weight:800!important}
+.sanistock-draps-dialog .drapsQuantityPicker .drapsAddSelected{min-height:54px!important;border:0!important;border-radius:14px!important;background:#0758a5!important;color:#fff!important;font-size:16px!important;font-weight:900!important;box-shadow:0 6px 16px rgba(7,88,165,.18)!important}
+.sanistock-draps-dialog .drapsQuantityPicker .drapsResetBtn{grid-column:1/-1!important;min-height:44px!important;border:0!important;border-radius:13px!important;background:#fff!important;color:#b42332!important;font-size:13px!important;font-weight:800!important}
+.sanistock-draps-dialog .drapsStockHead h2{display:none!important}
+@media(max-width:420px){.sanistock-draps-dialog .drapsStats{gap:16px!important}.sanistock-draps-dialog .drapsQuantityPicker{padding:12px!important;gap:8px!important}}
+</style>
+
+<style id="sanistock-draps-remove-second-card">
+.sanistock-draps-dialog .drapsStats{grid-template-columns:1fr!important}
+.sanistock-draps-dialog .drapsRuleCard{display:none!important}
+</style>
+
+<style id="sanistock-draps-final-polish">
+.sanistock-draps-dialog{background:#edf5fa!important;color:#042349!important}
+.sanistock-draps-dialog .drapsStats{grid-template-columns:1fr!important;gap:12px!important}
+.sanistock-draps-dialog .drapsStat,.sanistock-draps-dialog .drapsRuleCard{width:100%!important;min-height:112px!important;border-radius:22px!important}
+.sanistock-draps-dialog .drapsStat{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;align-items:center!important;text-align:left!important;gap:5px 12px!important;padding:18px 20px!important}
+.sanistock-draps-dialog .drapsStat span{font-size:14px!important;line-height:1.3!important}
+.sanistock-draps-dialog .drapsStat strong{font-size:46px!important;white-space:nowrap!important;margin:0!important}
+.sanistock-draps-dialog .drapsProgress{grid-column:1/-1!important;width:100%!important;margin-top:5px!important}
+.sanistock-draps-dialog .drapsRuleCard{display:grid!important;grid-template-columns:auto 1fr!important;column-gap:14px!important;row-gap:4px!important;text-align:left!important;padding:16px 20px!important}
+.sanistock-draps-dialog .drapsRuleCard strong{grid-row:1/3!important;font-size:30px!important}
+.sanistock-draps-dialog .drapsRuleCard span,.sanistock-draps-dialog .drapsRuleCard small{font-size:12px!important}
+.sanistock-draps-dialog .drapsQuickBtnsNine{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+.sanistock-draps-dialog .drapsHistoryHead{display:flex!important;flex-wrap:wrap!important}
+.sanistock-draps-dialog .drapsHistoryRow{display:flex!important;flex-wrap:wrap!important;align-items:center!important}
+.sanistock-draps-dialog .drapsHistoryRow span{min-width:0!important;overflow-wrap:anywhere!important}
+@media(max-width:420px){
+ .sanistock-draps-dialog .drapsStat{grid-template-columns:1fr auto!important;padding:15px!important}
+ .sanistock-draps-dialog .drapsStat strong{font-size:40px!important}
+ .sanistock-draps-dialog .drapsRuleCard{padding:14px 16px!important}
+ .sanistock-draps-dialog .drapsQuickBtnsNine button{min-height:64px!important}
+}
+</style>
+<style id="sanistock-draps-maquette-integree">
+/* Présentation harmonisée inspirée de la maquette mobile */
+.sanistock-draps-dialog{width:min(620px,100%)!important;max-height:91dvh!important;padding:0!important;overflow:auto!important;border:1px solid #b8d8f2!important;border-radius:30px!important;background:linear-gradient(180deg,#eaf5ff 0%,#f4f9fd 100%)!important;color:#082b50!important}
+.sanistock-draps-dialog-head{position:sticky;top:0;z-index:3;min-height:82px!important;padding:16px 18px!important;background:linear-gradient(110deg,#0875d1 0%,#063d78 100%)!important;color:#fff!important;border-radius:28px 28px 0 0!important;box-shadow:0 5px 18px rgba(3,48,94,.18)!important}
+.sanistock-draps-dialog-head h2{color:#fff!important;font-size:clamp(21px,5vw,29px)!important;font-weight:900!important;letter-spacing:-.3px!important}
+.sanistock-draps-close{background:#fff!important;color:#082b50!important;width:44px!important;height:44px!important;flex-basis:44px!important;font-size:25px!important;box-shadow:0 5px 14px rgba(0,0,0,.12)!important}
+.sanistock-draps-dialog #sanistockDrapsModalContent{padding:16px!important}
+.sanistock-draps-dialog #drapsStockPanel{display:flex!important;flex-direction:column!important;gap:16px!important}
+.sanistock-draps-dialog .drapsInfoBanner{display:flex!important;align-items:center!important;gap:12px!important;padding:14px 16px!important;margin:0!important;border-radius:18px!important;background:#dceeff!important;color:#12385e!important;box-shadow:inset 0 0 0 1px rgba(38,126,202,.08)!important}
+.sanistock-draps-dialog .drapsInfoIcon{display:grid!important;place-items:center!important;flex:0 0 34px!important;width:34px!important;height:34px!important;border-radius:50%!important;background:#0875d1!important;color:white!important;font-size:21px!important;font-weight:900!important;font-style:normal!important}
+.sanistock-draps-dialog .drapsInfoBanner p{margin:0!important;font-size:14px!important;line-height:1.45!important;font-weight:650!important;text-align:left!important;color:#12385e!important}
+.sanistock-draps-dialog .drapsStats{display:block!important;margin:0!important}
+.sanistock-draps-dialog .drapsStat{min-height:142px!important;display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;align-items:center!important;gap:8px 12px!important;padding:20px 22px!important;background:#fff!important;border:1px solid #edf4fa!important;border-radius:25px!important;box-shadow:0 10px 24px rgba(21,75,119,.12)!important}
+.sanistock-draps-dialog .drapsStat span{font-size:16px!important;font-weight:750!important;color:#173c64!important;text-align:left!important}
+.sanistock-draps-dialog .drapsStat strong{font-size:54px!important;line-height:1!important;color:#062c55!important;font-weight:950!important;white-space:nowrap!important}
+.sanistock-draps-dialog .drapsStat strong small{font-size:25px!important;color:#6c8098!important}
+.sanistock-draps-dialog .drapsProgress{grid-column:1/-1!important;width:100%!important;height:11px!important;margin:7px 0 0!important;background:#e2edf6!important;border-radius:20px!important;overflow:hidden!important}
+.sanistock-draps-dialog .drapsProgress i{height:100%!important;background:linear-gradient(90deg,#1687e8,#0758a5)!important;border-radius:20px!important}
+.sanistock-draps-dialog .drapsAddPanel,.sanistock-draps-dialog .drapsHistoryCard{padding:18px!important;background:#fff!important;border-radius:24px!important;box-shadow:0 9px 22px rgba(21,75,119,.10)!important;border:1px solid #edf4fa!important}
+.sanistock-draps-dialog .drapsAddPanel h3{display:flex!important;align-items:center!important;gap:11px!important;margin:0 0 15px!important;color:#082b50!important;font-size:20px!important;font-weight:900!important}
+.sanistock-draps-dialog .drapsAddIcon{display:grid!important;place-items:center!important;width:38px!important;height:38px!important;flex:0 0 38px!important;border-radius:50%!important;background:#0875d1!important;color:#fff!important;font-size:30px!important;line-height:1!important}
+.sanistock-draps-dialog .drapsQuantityPicker{display:grid!important;grid-template-columns:minmax(0,1fr) 145px!important;gap:10px!important;margin:0!important;padding:0!important;background:transparent!important;border-radius:0!important}
+.sanistock-draps-dialog .drapsQuantityPicker label{grid-column:1/-1!important;font-size:13px!important;font-weight:800!important;color:#526d88!important}
+.sanistock-draps-dialog .drapsQuantityPicker select{width:100%!important;min-width:0!important;min-height:56px!important;padding:10px 14px!important;border:2px solid #0875d1!important;border-radius:15px!important;background:#fff!important;color:#173c64!important;font-size:16px!important;font-weight:700!important}
+.sanistock-draps-dialog .drapsQuantityPicker .drapsAddSelected{min-height:56px!important;border:0!important;border-radius:15px!important;background:linear-gradient(135deg,#087ce0,#0758a5)!important;color:#fff!important;font-size:16px!important;font-weight:900!important;box-shadow:0 6px 15px rgba(7,88,165,.22)!important}
+.sanistock-draps-dialog .drapsHistoryCard{padding:16px!important}
+.sanistock-draps-dialog .drapsHistoryHead{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;margin:0!important;padding:0 0 12px!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;color:#082b50!important}
+.sanistock-draps-dialog .drapsHistoryHead strong{font-size:17px!important;font-weight:900!important;color:#082b50!important}
+.sanistock-draps-dialog .drapsHistoryHead button{border:0!important;border-radius:22px!important;padding:8px 15px!important;background:#e9f1f8!important;color:#183b5f!important;font-size:13px!important;font-weight:750!important}
+.sanistock-draps-dialog .drapsHistory{padding:0!important;margin:0!important;background:transparent!important;border-radius:0!important;box-shadow:none!important}
+.sanistock-draps-dialog .drapsHistoryRow{display:flex!important;justify-content:space-between!important;align-items:center!important;gap:10px!important;padding:11px 4px!important;border-top:1px solid #e7eef5!important;background:transparent!important;border-radius:0!important;font-size:13px!important;color:#173c64!important}
+.sanistock-draps-dialog .drapsHistoryRow strong{white-space:nowrap!important;color:#647b93!important;font-size:12px!important}
+.sanistock-draps-dialog .drapsHistoryEmpty{padding:22px 8px!important;margin:0!important;text-align:center!important;color:#647b93!important;font-size:14px!important}
+.sanistock-draps-dialog .drapsResetBtn{width:100%!important;min-height:54px!important;border:1px solid #f3d2d2!important;border-radius:18px!important;background:#fff!important;color:#c9232c!important;font-size:16px!important;font-weight:900!important;box-shadow:0 7px 18px rgba(21,75,119,.08)!important}
+.sanistock-draps-dialog .drapsLocalNotice{margin:0!important;padding:0 6px 4px!important;text-align:left!important;color:#58738e!important;font-size:12px!important;line-height:1.5!important}
+@media(max-width:420px){
+ .sanistock-draps-overlay{padding:8px!important}
+ .sanistock-draps-dialog{max-height:93dvh!important;border-radius:25px!important}
+ .sanistock-draps-dialog-head{min-height:72px!important;padding:12px 14px!important}
+ .sanistock-draps-dialog #sanistockDrapsModalContent{padding:12px!important}
+ .sanistock-draps-dialog #drapsStockPanel{gap:12px!important}
+ .sanistock-draps-dialog .drapsInfoBanner{padding:11px 12px!important}
+ .sanistock-draps-dialog .drapsInfoBanner p{font-size:12px!important}
+ .sanistock-draps-dialog .drapsStat{min-height:125px!important;padding:16px!important}
+ .sanistock-draps-dialog .drapsStat strong{font-size:46px!important}
+ .sanistock-draps-dialog .drapsAddPanel,.sanistock-draps-dialog .drapsHistoryCard{padding:14px!important}
+ .sanistock-draps-dialog .drapsAddPanel h3{font-size:17px!important}
+ .sanistock-draps-dialog .drapsQuantityPicker{grid-template-columns:minmax(0,1fr) 112px!important;gap:8px!important}
+ .sanistock-draps-dialog .drapsQuantityPicker select,.sanistock-draps-dialog .drapsQuantityPicker .drapsAddSelected{min-height:52px!important;font-size:14px!important}
+ .sanistock-draps-dialog .drapsHistoryHead strong{font-size:14px!important}
+ .sanistock-draps-dialog .drapsHistoryRow{font-size:12px!important}
+}
+</style>
+
+
+<style id="sanistock-team-settings-placement">
+/* Esprit d'équipe occupe désormais la place de Paramètres sur l'accueil. */
+.homeButton4.team4{grid-column:auto!important;justify-self:stretch!important;width:100%!important;max-width:none!important;aspect-ratio:1/1!important;}
+.homeButton4.settings4[hidden]{display:none!important}
+</style>
+<script id="sanistock-settings-role-access">
+(function(){
+  const AUTORISES = new Set([
+    'laurent guette',
+    'hognono lewis',
+    'lewis hognon',
+    'nathalie froger'
+  ]);
+  function normaliserNom(n){
+    return String(n||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
+  }
+  window.saniActualiserAccesParametresAccueil=function(nom){
+    const name=normaliserNom(nom || (function(){try{return localStorage.getItem('sanistock_employee_name')||'';}catch(e){return '';}})());
+    const autorise=AUTORISES.has(name);
+    const btn=document.getElementById('homeSettingsButton');
+    if(btn){btn.hidden=!autorise;btn.style.display=autorise?'':'none';}
+    const team=document.querySelector('#homePage .homeButton4.team4');
+    if(team){team.style.gridColumn='auto';team.style.width='100%';}
+    return autorise;
+  };
+  function appliquer(){window.saniActualiserAccesParametresAccueil();}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',appliquer);else appliquer();
+  window.addEventListener('storage',function(e){if(e.key==='sanistock_employee_name')appliquer();});
+})();
+<\/script>
+
+
+
+
+<style id="sanistock-esprit-equipe-position-visibility">
+/* Esprit d'équipe : même rangée que les autres tuiles, juste après Mémo. */
+#homePage .homeButton4.team4{
+  grid-column:auto !important;
+  justify-self:stretch !important;
+  width:100% !important;
+  max-width:none !important;
+  aspect-ratio:1/1 !important;
+  height:auto !important;
+}
+</style>
+<script id="sanistock-esprit-equipe-regle-salaries">
+(function(){
+  const MASQUER_ESPRIT = new Set(['lewis hognon','laurent guette','nathalie froger']);
+  function normaliser(n){
+    return String(n||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
+  }
+  const ancienneMiseAJour = window.saniActualiserAccesParametresAccueil;
+  window.saniActualiserAccesParametresAccueil = function(nom){
+    if(typeof ancienneMiseAJour === 'function') ancienneMiseAJour(nom);
+    let nomActuel = nom;
+    if(!nomActuel){ try{ nomActuel=localStorage.getItem('sanistock_employee_name')||''; }catch(e){} }
+    const team = document.querySelector('#homePage .homeButton4.team4');
+    if(team){
+      const visible = !MASQUER_ESPRIT.has(normaliser(nomActuel));
+      team.hidden = !visible;
+      team.style.display = visible ? '' : 'none';
+      team.setAttribute('aria-hidden', visible ? 'false' : 'true');
+      team.disabled = !visible;
+    }
+  };
+  function appliquer(){ window.saniActualiserAccesParametresAccueil(); }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', appliquer);
+  else appliquer();
+  window.addEventListener('storage', function(e){ if(!e || e.key === 'sanistock_employee_name') appliquer(); });
+})();
+<\/script>
+
+
+<style id="sanistock-uniforme-bleu-final">
+/* Entrée/Sortie produits : palette bleue neutre, sans vert ni rouge. */
+#stockModal .stockModalCard.entry-mode,#stockModal .stockModalCard.exit-mode{border:2px solid #c9def1!important;background:#edf5fa!important}
+#stockModal .stockModalCard.entry-mode .stockModalHead,#stockModal .stockModalCard.exit-mode .stockModalHead{background:linear-gradient(105deg,#e5f4ff 0%,#fff 58%,#f2f9ff 100%)!important;border-bottom:1px solid #d7e9f8!important}
+#stockModal .stockModalCard.entry-mode .stockField,#stockModal .stockModalCard.exit-mode .stockField{border-color:#d7e5f0!important}
+#stockModal .stockModalCard.entry-mode .stockSave,#stockModal .stockModalCard.exit-mode .stockSave{background:#0758a5!important;border:1px solid #0758a5!important;color:#fff!important}
+/* Gestion draps : mêmes tons bleus pour entrée propre et dépôt sale. */
+.sanistock-draps-dialog .drapsMoveCard.clean,.sanistock-draps-dialog .drapsMoveCard.dirty{background:#fff!important;border:1px solid #cbdff2!important;color:#173c64!important}
+.sanistock-draps-dialog .drapsMoveSubmit.clean,.sanistock-draps-dialog .drapsMoveSubmit.dirty{background:#0758a5!important;color:#fff!important;border-color:#0758a5!important}
+</style>
+
+</body></html>`;
+        function afficherLecteurHtml_(html){
+          fenetre.document.open();
+          fenetre.document.write(html);
+          fenetre.document.close();
+          let tentatives=0;
+          function lancerLecteur(){
+            if(!fenetre||fenetre.closed)return;
+            if(typeof fenetre.startSaniReadOnlyPdf==='function' && fenetre.pdfjsLib){
+              fenetre.startSaniReadOnlyPdf(String(d.contenuBase64||''),String(d.name||'Document PDF'));
+              return;
+            }
+            if(tentatives++<40){fenetre.setTimeout(lancerLecteur,100);return;}
+            if(!ouvrirPdfNatifSansBarre()){
+              try{const st=fenetre.document.getElementById('status');if(st)st.textContent='Le lecteur PDF n’a pas pu s’initialiser.';}catch(e){}
+            }
+          }
+          fenetre.setTimeout(lancerLecteur,50);
+        }
+
+        if(!navigator.onLine){
+          // Hors connexion : insérer la copie locale de PDF.js et son worker dans le lecteur.
+          // Le rendu canvas et les commandes (pages/zoom) sont ainsi identiques au mode en ligne.
+          Promise.all([lireAssetPDFJS_('pdfjs'),lireAssetPDFJS_('worker')]).then(function(assets){
+            const pdfSource=assets[0],workerSource=assets[1];
+            if(pdfSource&&workerSource){
+              const pdfJsSecurise=pdfSource.replace(/<\/script/gi,'<\\/script');
+              const workerJson=JSON.stringify(workerSource).replace(/</g,'\\u003c');
               const scripts='<script>window.__SANI_PDF_WORKER_SOURCE='+workerJson+';<\/script><script>'+pdfJsSecurise+'<\/script>';
               const htmlHorsLigne=htmlLectureSeule.replace('__SANI_PDFJS_SCRIPT_TAG__',scripts);
               afficherLecteurHtml_(htmlHorsLigne);
