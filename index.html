@@ -2887,23 +2887,22 @@ button.settingsAction.secondary:hover,
 #drapsStockPanel{display:flex;flex-direction:column;gap:14px;color:#082b50}
 .drapsMoveGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .drapsMoveCard{border:1px solid #cbdff2;border-radius:18px;padding:14px;background:#fff;box-shadow:0 5px 16px rgba(7,55,100,.07)}
-.drapsMoveCard.clean{border-color:#9bd9ad;background:linear-gradient(145deg,#f5fff7,#e8f8ed)}
-.drapsMoveCard.dirty{border-color:#f0b0b0;background:linear-gradient(145deg,#fff8f8,#ffeded)}
+.drapsMoveCard.clean{border-color:#91bce9;background:linear-gradient(145deg,#f4f9ff,#e5f1ff)}
+.drapsMoveCard.dirty{border-color:#91bce9;background:linear-gradient(145deg,#f4f9ff,#e5f1ff)}
 .drapsMoveTitle{font-size:17px;font-weight:900;margin:0 0 12px}
-.drapsMoveCard.clean .drapsMoveTitle{color:#08752b}.drapsMoveCard.dirty .drapsMoveTitle{color:#b91c1c}
+.drapsMoveCard.clean .drapsMoveTitle,.drapsMoveCard.dirty .drapsMoveTitle{color:#073b75}
 .drapsMoveField{display:grid;grid-template-columns:1fr 88px;align-items:center;gap:7px;margin:9px 0;font-weight:700;font-size:13px}
 .drapsMoveField input{width:100%;min-width:0;min-height:43px;border:1px solid #b9c9d9;border-radius:10px;background:#fff;padding:7px;text-align:center;font-size:18px;font-weight:800;color:#082b50}
 .drapsMoveSubmit{width:100%;border:0;border-radius:12px;padding:12px 8px;margin-top:9px;color:white;font-weight:900;font-size:14px;cursor:pointer}
-.drapsMoveHint{font-size:11px;line-height:1.35;color:#315b43;margin:5px 0 0;font-weight:700}.drapsMoveSubmit.clean{background:#07832f}.drapsMoveSubmit.dirty{background:#d51f25}
+.drapsMoveHint{font-size:11px;line-height:1.35;color:#315b43;margin:5px 0 0;font-weight:700}.drapsMoveSubmit.clean,.drapsMoveSubmit.dirty{background:#0757a0}
 .drapsLiveCard{border:1px solid #91bce9;border-radius:18px;padding:14px;background:linear-gradient(135deg,#f4f9ff,#e5f1ff)}
 .drapsLiveTop{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .drapsLiveTop strong{font-size:16px;color:#073b75}.drapsLiveNumber{font-size:27px;font-weight:950;color:#0757a0;white-space:nowrap}
-.drapsLiveBar{height:12px;background:#cbd9e8;border-radius:20px;overflow:hidden;margin:10px 0 6px}
-.drapsLiveBar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#0875d1,#073f91);border-radius:20px;transition:width .2s}
+
 .drapsLiveFoot{font-size:13px;color:#244b70;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .drapsTotalsGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .drapsTotalCard{border-radius:16px;padding:12px;text-align:center;background:#f0f7ff;border:1px solid #b9d5f3}
-.drapsTotalCard.clean{background:#effaf1;border-color:#a9dfb6}.drapsTotalCard.dirty{background:#fff1f1;border-color:#f1b8b8}
+.drapsTotalCard.clean,.drapsTotalCard.dirty{background:#f0f7ff;border-color:#b9d5f3}
 .drapsTotalCard strong{display:block;font-size:14px}.drapsTotalCard b{display:block;font-size:21px;margin-top:4px}.drapsTotalCard small{display:block;font-size:13px;font-weight:700;margin-top:3px;color:#315477}
 .drapsHistoryCard{border:1px solid #cbdff2;border-radius:16px;background:white;padding:12px}
 .drapsHistoryHead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
@@ -2929,7 +2928,6 @@ button.settingsAction.secondary:hover,
   </div>
   <div class="drapsLiveCard" aria-live="polite">
     <div class="drapsLiveTop"><strong>🧺 Draps sales actuellement dans le sac</strong><span class="drapsLiveNumber"><b id="drapsCount">0</b> / 10</span></div>
-    <div class="drapsLiveBar"><i id="drapsProgressBar"></i></div>
     <div class="drapsLiveFoot"><span id="drapsNextBag">Prochain sac : 10 draps</span></div>
   </div>
   <div class="drapsHistoryCard" id="drapsMonthlyCard">
