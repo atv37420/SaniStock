@@ -2922,7 +2922,7 @@ button.settingsAction.secondary:hover,
       <button type="button" class="drapsMoveSubmit clean" onclick="sanistockEnregistrerMouvementDraps('entree_propre')">✓ Valider l’entrée</button>
     </div>
     <div class="drapsMoveCard dirty">
-      <h3 class="drapsMoveTitle">Dépôt draps sales dans le sac</h3>
+      <h3 class="drapsMoveTitle">Dépôt draps sales</h3>
       <label class="drapsMoveField"><span>Nombre de draps sales déposés</span><input id="drapsSortieQuantite" type="number" min="0" max="10000" value="0"></label><p class="drapsMoveHint">🧺 Sacs calculés automatiquement : 1 sac tous les 10 draps sales.</p>
       <button type="button" class="drapsMoveSubmit dirty" onclick="sanistockEnregistrerMouvementDraps('sortie_sale')">✓ Valider le dépôt</button>
     </div>
@@ -3209,54 +3209,28 @@ document.addEventListener('DOMContentLoaded', function(){
 </div>
 <script id="sanistock-draps-modal-js">
 (function(){
-  function ouvrirGestionDrapsDansPage(){
-    var tab=document.querySelector('[data-stock-tab="draps"]');
-    var pane=document.getElementById('stockInnerPane-draps');
-    var panel=document.getElementById('drapsStockPanel');
-    if(!pane || !panel){
-      console.error('Gestion draps : page ou panneau introuvable.');
-      return;
-    }
-
-    // Afficher l'onglet Draps dans la rubrique Gestion, sans déplacer
-    // le panneau dans une fenêtre modale.
-    var zone=pane.parentElement;
-    if(zone){
-      zone.querySelectorAll('[data-stock-tab]').forEach(function(t){
-        var actif=(t===tab);
-        t.classList.toggle('active',actif);
-        t.setAttribute('aria-selected',actif?'true':'false');
-      });
-      zone.querySelectorAll('.stockInnerPane').forEach(function(p){
-        var actif=(p===pane);
-        p.hidden=!actif;
-        p.classList.toggle('active',actif);
-        p.style.display=actif?'block':'none';
-      });
-    }
-
-    pane.hidden=false;
-    pane.classList.add('active');
-    pane.style.display='block';
-    panel.style.display='flex';
+  var panelHome=null, panelNext=null;
+  function getPanel(){return document.getElementById('drapsStockPanel');}
+  window.sanistockOuvrirFenetreDraps=function(){
     var overlay=document.getElementById('sanistockDrapsOverlay');
-    if(overlay){
-      overlay.classList.remove('is-open');
-      overlay.setAttribute('aria-hidden','true');
-    }
-    document.body.style.overflow='';
-    if(typeof window.chargerDraps==='function') window.chargerDraps();
-  }
-
-  window.sanistockOuvrirFenetreDraps=ouvrirGestionDrapsDansPage;
+    var content=document.getElementById('sanistockDrapsModalContent');
+    var panel=getPanel();
+    if(!overlay||!content||!panel)return;
+    if(!panelHome){panelHome=panel.parentNode;panelNext=panel.nextSibling;}
+    content.appendChild(panel);
+    overlay.classList.add('is-open');overlay.setAttribute('aria-hidden','false');
+    document.body.style.overflow='hidden';
+    if(typeof chargerDraps==='function')chargerDraps();
+  };
   window.sanistockFermerFenetreDraps=function(){
     var overlay=document.getElementById('sanistockDrapsOverlay');
-    if(overlay){
-      overlay.classList.remove('is-open');
-      overlay.setAttribute('aria-hidden','true');
-    }
+    var panel=getPanel();
+    if(panel&&panelHome){if(panelNext&&panelNext.parentNode===panelHome)panelHome.insertBefore(panel,panelNext);else panelHome.appendChild(panel);}
+    if(overlay){overlay.classList.remove('is-open');overlay.setAttribute('aria-hidden','true');}
     document.body.style.overflow='';
   };
+  document.addEventListener('click',function(e){if(e.target&&e.target.id==='sanistockDrapsOverlay')window.sanistockFermerFenetreDraps();});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')window.sanistockFermerFenetreDraps();});
 })();
 </script>
 
@@ -3428,16 +3402,14 @@ document.addEventListener('DOMContentLoaded', function(){
 </div>
 </div>
 </section>
-
 <section class="screen page" id="drapsPage">
+  <button class="back" type="button" onclick="sanistockRetourPageDraps()">← Retour</button>
   <div style="max-width:900px;margin:20px auto;padding:0 20px">
-    <button class="back" type="button" onclick="sanistockRetourPageDraps()">← Retour</button>
     <h1 style="margin:10px 0 6px">🧺 GESTION DRAPS</h1>
     <p style="margin:0 0 22px;color:#64748b">Suivi des draps propres, des draps sales et des sacs</p>
     <div id="drapsPageContent"></div>
   </div>
 </section>
-
 <section class="screen page" id="checklistPage">
 <div class="checklistCleanWrap">
 <button class="back" onclick="sanistockGoBack()" type="button">← Retour</button>
@@ -5027,48 +4999,6 @@ __SANI_PDFJS_SCRIPT_TAG__
 .sanistock-draps-dialog .drapsMoveCard.clean,.sanistock-draps-dialog .drapsMoveCard.dirty{background:#fff!important;border:1px solid #cbdff2!important;color:#173c64!important}
 .sanistock-draps-dialog .drapsMoveSubmit.clean,.sanistock-draps-dialog .drapsMoveSubmit.dirty{background:#0758a5!important;color:#fff!important;border-color:#0758a5!important}
 </style>
-
-
-<script id="sanistock-draps-full-page-navigation">
-(function(){
-  var placeholder = null;
-
-  function installer(){
-    var pane = document.getElementById('stockInnerPane-draps');
-    var target = document.getElementById('drapsPageContent');
-    if(!pane || !target || pane.parentNode === target) return;
-    placeholder = document.createComment('emplacement-original-gestion-draps');
-    pane.parentNode.insertBefore(placeholder, pane);
-    target.appendChild(pane);
-    pane.hidden = false;
-    pane.style.display = 'block';
-    pane.classList.add('active');
-  }
-
-  window.sanistockOuvrirPageDraps = function(){
-    installer();
-    if(typeof window.showPage === 'function') window.showPage('drapsPage');
-    var pane = document.getElementById('stockInnerPane-draps');
-    if(pane){ pane.hidden=false; pane.style.display='block'; }
-    if(typeof window.chargerDraps === 'function') window.chargerDraps();
-    return false;
-  };
-
-  window.sanistockRetourPageDraps = function(){
-    var pane = document.getElementById('stockInnerPane-draps');
-    if(pane && placeholder && placeholder.parentNode){
-      placeholder.parentNode.insertBefore(pane, placeholder);
-      placeholder.parentNode.removeChild(placeholder);
-      placeholder = null;
-    }
-    if(pane){ pane.hidden=true; pane.style.display='none'; pane.classList.remove('active'); }
-    if(typeof window.showPage === 'function') window.showPage('stockPage');
-    return false;
-  };
-
-  document.addEventListener('DOMContentLoaded', installer);
-})();
-</script>
 
 </body></html>`;
         function afficherLecteurHtml_(html){
@@ -13516,7 +13446,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
           (sig&&sig.indexOf('data:image/')===0?'<img src="'+sig+'" alt="Signature">':'')+
         '</div>'+
         '<div class="meta">Véhicule : '+taxiPdfEscape(vehicle)+'</div>'+
-      `</div>
+      '</div>
 <style id="sanistock-uniforme-bleu-final">
 /* Entrée/Sortie produits : palette bleue neutre, sans vert ni rouge. */
 #stockModal .stockModalCard.entry-mode,#stockModal .stockModalCard.exit-mode{border:2px solid #c9def1!important;background:#edf5fa!important}
@@ -13528,7 +13458,7 @@ body:has(#homePage.active) #homeLogoutBtn{display:flex !important;}
 .sanistock-draps-dialog .drapsMoveSubmit.clean,.sanistock-draps-dialog .drapsMoveSubmit.dirty{background:#0758a5!important;color:#fff!important;border-color:#0758a5!important}
 </style>
 
-</body></html>`;
+</body></html>';
   }
 
 
@@ -15475,28 +15405,46 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerFenetr
 .sanistock-draps-dialog .drapsMoveSubmit.clean,.sanistock-draps-dialog .drapsMoveSubmit.dirty{background:#0758a5!important;color:#fff!important;border-color:#0758a5!important}
 </style>
 
-<style id="sanistock-gestion-draps-page-classique">
-/* Gestion draps reste intégrée à la page Gestion, sans fenêtre modale. */
-#sanistockDrapsOverlay{display:none!important}
-#stockInnerPane-draps #drapsStockPanel{display:flex!important}
-</style>
-<script id="sanistock-gestion-draps-page-classique-js">
+
+<script id="sanistock-draps-screen-navigation">
 (function(){
-  function afficherOngletDraps(){
-    var tab=document.querySelector('[data-stock-tab="draps"]');
-    var pane=document.getElementById('stockInnerPane-draps');
-    var panel=document.getElementById('drapsStockPanel');
-    if(!pane||!panel){console.error('Gestion draps : panneau introuvable');return;}
-    var zone=pane.parentElement;
-    if(zone){
-      zone.querySelectorAll('[data-stock-tab]').forEach(function(t){var actif=t===tab;t.classList.toggle('active',actif);t.setAttribute('aria-selected',actif?'true':'false');});
-      zone.querySelectorAll('.stockInnerPane').forEach(function(p){var actif=p===pane;p.hidden=!actif;p.classList.toggle('active',actif);});
+  var placeholder = null;
+
+  window.sanistockOuvrirPageDraps = function(){
+    var pane = document.getElementById('stockInnerPane-draps');
+    var target = document.getElementById('drapsPageContent');
+    if (!pane || !target) {
+      console.error('SaniStock : contenu Gestion draps introuvable.');
+      return false;
     }
-    pane.hidden=false; pane.classList.add('active'); panel.style.display='flex';
-    if(typeof window.chargerDraps==='function') window.chargerDraps();
-  }
-  window.sanistockOuvrirFenetreDraps=afficherOngletDraps;
-  window.sanistockFermerFenetreDraps=function(){};
+    if (pane.parentNode !== target) {
+      placeholder = document.createComment('sanistock-draps-position-initiale');
+      pane.parentNode.insertBefore(placeholder, pane);
+      target.appendChild(pane);
+    }
+    pane.hidden = false;
+    pane.style.display = 'block';
+    pane.classList.add('active');
+    if (typeof window.showPage === 'function') window.showPage('drapsPage');
+    if (typeof window.chargerDraps === 'function') window.chargerDraps();
+    return false;
+  };
+
+  window.sanistockRetourPageDraps = function(){
+    var pane = document.getElementById('stockInnerPane-draps');
+    if (pane && placeholder && placeholder.parentNode) {
+      placeholder.parentNode.insertBefore(pane, placeholder);
+      placeholder.parentNode.removeChild(placeholder);
+      placeholder = null;
+    }
+    if (pane) {
+      pane.hidden = true;
+      pane.style.display = 'none';
+      pane.classList.remove('active');
+    }
+    if (typeof window.showPage === 'function') window.showPage('stockPage');
+    return false;
+  };
 })();
 </script>
 
