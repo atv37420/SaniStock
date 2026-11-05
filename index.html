@@ -3209,28 +3209,54 @@ document.addEventListener('DOMContentLoaded', function(){
 </div>
 <script id="sanistock-draps-modal-js">
 (function(){
-  var panelHome=null, panelNext=null;
-  function getPanel(){return document.getElementById('drapsStockPanel');}
-  window.sanistockOuvrirFenetreDraps=function(){
+  function ouvrirGestionDrapsDansPage(){
+    var tab=document.querySelector('[data-stock-tab="draps"]');
+    var pane=document.getElementById('stockInnerPane-draps');
+    var panel=document.getElementById('drapsStockPanel');
+    if(!pane || !panel){
+      console.error('Gestion draps : page ou panneau introuvable.');
+      return;
+    }
+
+    // Afficher l'onglet Draps dans la rubrique Gestion, sans déplacer
+    // le panneau dans une fenêtre modale.
+    var zone=pane.parentElement;
+    if(zone){
+      zone.querySelectorAll('[data-stock-tab]').forEach(function(t){
+        var actif=(t===tab);
+        t.classList.toggle('active',actif);
+        t.setAttribute('aria-selected',actif?'true':'false');
+      });
+      zone.querySelectorAll('.stockInnerPane').forEach(function(p){
+        var actif=(p===pane);
+        p.hidden=!actif;
+        p.classList.toggle('active',actif);
+        p.style.display=actif?'block':'none';
+      });
+    }
+
+    pane.hidden=false;
+    pane.classList.add('active');
+    pane.style.display='block';
+    panel.style.display='flex';
     var overlay=document.getElementById('sanistockDrapsOverlay');
-    var content=document.getElementById('sanistockDrapsModalContent');
-    var panel=getPanel();
-    if(!overlay||!content||!panel)return;
-    if(!panelHome){panelHome=panel.parentNode;panelNext=panel.nextSibling;}
-    content.appendChild(panel);
-    overlay.classList.add('is-open');overlay.setAttribute('aria-hidden','false');
-    document.body.style.overflow='hidden';
-    if(typeof chargerDraps==='function')chargerDraps();
-  };
+    if(overlay){
+      overlay.classList.remove('is-open');
+      overlay.setAttribute('aria-hidden','true');
+    }
+    document.body.style.overflow='';
+    if(typeof window.chargerDraps==='function') window.chargerDraps();
+  }
+
+  window.sanistockOuvrirFenetreDraps=ouvrirGestionDrapsDansPage;
   window.sanistockFermerFenetreDraps=function(){
     var overlay=document.getElementById('sanistockDrapsOverlay');
-    var panel=getPanel();
-    if(panel&&panelHome){if(panelNext&&panelNext.parentNode===panelHome)panelHome.insertBefore(panel,panelNext);else panelHome.appendChild(panel);}
-    if(overlay){overlay.classList.remove('is-open');overlay.setAttribute('aria-hidden','true');}
+    if(overlay){
+      overlay.classList.remove('is-open');
+      overlay.setAttribute('aria-hidden','true');
+    }
     document.body.style.overflow='';
   };
-  document.addEventListener('click',function(e){if(e.target&&e.target.id==='sanistockDrapsOverlay')window.sanistockFermerFenetreDraps();});
-  document.addEventListener('keydown',function(e){if(e.key==='Escape')window.sanistockFermerFenetreDraps();});
 })();
 </script>
 
