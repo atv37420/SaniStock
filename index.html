@@ -15628,3 +15628,167 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerFenetr
 .sanistock-draps-dialog #drapsHistory .drapsHistoryRow strong{margin-left:auto!important;color:#07549b!important;font-weight:900!important;}
 .sanistock-draps-dialog #drapsHistory .drapsHistoryEmpty{white-space:normal!important;}
 </style>
+
+
+<style id="sanistock-accueil-bleu-premium">
+/* Accueil SaniStock : style bleu premium, disposition originale conservée.
+   Modification CSS uniquement : les fonctions et les accès des boutons restent inchangés. */
+.homeButtons4{
+  position:absolute!important;
+  z-index:20!important;
+  left:3%!important;
+  right:3%!important;
+  top:53%!important;
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:clamp(6px,1.1vw,12px)!important;
+  align-items:stretch!important;
+}
+.homeButtons4 > .homeButton4{
+  position:relative!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:5px!important;
+  width:100%!important;
+  min-width:0!important;
+  min-height:0!important;
+  height:auto!important;
+  aspect-ratio:.88 / 1!important;
+  padding:9px 5px!important;
+  overflow:hidden!important;
+  border:2px solid #35c2ff!important;
+  border-radius:19px!important;
+  color:#fff!important;
+  background:linear-gradient(145deg,#0756ad 0%,#06366f 48%,#001b43 100%)!important;
+  box-shadow:0 0 9px rgba(27,174,255,.72),0 0 20px rgba(0,112,220,.35),inset 0 1px 9px rgba(255,255,255,.16),0 7px 18px rgba(0,0,0,.3)!important;
+  text-align:center!important;
+  transform:none!important;
+}
+.homeButtons4 > .homeButton4::before{
+  content:""!important;
+  position:absolute!important;
+  left:-20%!important;
+  bottom:-30%!important;
+  width:145%!important;
+  height:38%!important;
+  transform:rotate(-12deg)!important;
+  background:linear-gradient(90deg,transparent,rgba(0,153,255,.24),rgba(44,194,255,.55))!important;
+  border-top:1px solid rgba(105,218,255,.55)!important;
+  pointer-events:none!important;
+}
+.homeButtons4 > .homeButton4.stock4,
+.homeButtons4 > .homeButton4.vehicle4,
+.homeButtons4 > .homeButton4.memo4,
+.homeButtons4 > .homeButton4.medication4,
+.homeButtons4 > .homeButton4.disinfection4,
+.homeButtons4 > .homeButton4.team4,
+.homeButtons4 > .homeButton4.settings4,
+.homeButtons4 > .homeButton4.documents4{
+  color:#fff!important;
+  background:linear-gradient(145deg,#0756ad 0%,#06366f 48%,#001b43 100%)!important;
+  border:2px solid #35c2ff!important;
+  box-shadow:0 0 9px rgba(27,174,255,.72),0 0 20px rgba(0,112,220,.35),inset 0 1px 9px rgba(255,255,255,.16),0 7px 18px rgba(0,0,0,.3)!important;
+}
+.homeButtons4 > .homeButton4.team4{
+  grid-column:4!important;
+  grid-row:1!important;
+  justify-self:stretch!important;
+  width:100%!important;
+  max-width:none!important;
+  height:auto!important;
+  min-height:0!important;
+  aspect-ratio:.88 / 1!important;
+  padding:9px 5px!important;
+  border-radius:19px!important;
+  color:#fff!important;
+}
+.homeButtons4 > .homeButton4.settings4{
+  grid-column:1!important;
+  grid-row:2!important;
+  justify-self:stretch!important;
+  width:100%!important;
+  max-width:none!important;
+  aspect-ratio:.88 / 1!important;
+}
+.homeButtons4 .homeButtonIcon{
+  position:relative!important;
+  z-index:2!important;
+  display:block!important;
+  font-size:clamp(23px,3.4vw,38px)!important;
+  line-height:1.05!important;
+  filter:drop-shadow(0 2px 3px rgba(0,0,0,.28))!important;
+}
+.homeButtons4 .homeButtonTitle{
+  position:relative!important;
+  z-index:2!important;
+  color:#fff!important;
+  font-size:clamp(9px,1.25vw,15px)!important;
+  line-height:1.12!important;
+  font-weight:950!important;
+  text-shadow:0 1px 3px rgba(0,0,0,.3)!important;
+}
+.homeButtons4 .homeButtonTitle::after{
+  content:""!important;
+  display:block!important;
+  width:42px!important;
+  height:4px!important;
+  margin:5px auto 0!important;
+  border-radius:99px!important;
+  background:#ed2635!important;
+}
+.homeButtons4 .homeButtonDesc{
+  position:relative!important;
+  z-index:2!important;
+  color:#fff!important;
+  font-size:clamp(7px,.95vw,11px)!important;
+  line-height:1.18!important;
+  font-weight:650!important;
+  opacity:1!important;
+  max-width:100%!important;
+  text-shadow:0 1px 3px rgba(0,0,0,.35)!important;
+}
+.homeButtons4 > .homeButton4:active{
+  transform:scale(.97)!important;
+  filter:brightness(1.12)!important;
+}
+.saniGlobalSearchBtn{
+  top:42%!important;
+  left:5%!important;
+  right:5%!important;
+  width:90%!important;
+  padding:11px 14px!important;
+  border:2px solid #35c2ff!important;
+  border-radius:18px!important;
+  background:linear-gradient(100deg,rgba(0,38,87,.96),rgba(5,91,170,.92),rgba(0,28,68,.96))!important;
+  box-shadow:0 0 12px rgba(31,177,255,.55),0 6px 18px rgba(0,0,0,.3),inset 0 1px 8px rgba(255,255,255,.13)!important;
+  color:#fff!important;
+}
+.penseBeteAccueil{
+  border:2px solid #35c2ff!important;
+  border-radius:20px!important;
+  background:linear-gradient(110deg,rgba(0,34,76,.96),rgba(4,69,128,.94),rgba(0,25,61,.96))!important;
+  box-shadow:0 0 10px rgba(31,177,255,.4),0 6px 18px rgba(0,0,0,.28)!important;
+}
+@media(max-width:700px){
+  .homeButtons4{
+    left:3%!important;right:3%!important;top:53%!important;
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    gap:6px!important;
+  }
+  .homeButtons4 > .homeButton4,
+  .homeButtons4 > .homeButton4.team4,
+  .homeButtons4 > .homeButton4.settings4{
+    min-height:0!important;
+    aspect-ratio:.82 / 1!important;
+    padding:7px 3px!important;
+    border-radius:15px!important;
+  }
+  .homeButtons4 .homeButtonIcon{font-size:clamp(20px,6vw,28px)!important}
+  .homeButtons4 .homeButtonTitle{font-size:clamp(8px,2.5vw,11px)!important}
+  .homeButtons4 .homeButtonDesc{font-size:clamp(6px,1.9vw,8px)!important;line-height:1.12!important}
+  .homeButtons4 .homeButtonTitle::after{width:34px!important;height:3px!important;margin-top:4px!important}
+  .saniGlobalSearchBtn{top:42%!important;padding:9px 11px!important;font-size:12px!important}
+}
+</style>
