@@ -5125,6 +5125,45 @@ __SANI_PDFJS_SCRIPT_TAG__
 }
 </style>
 
+
+<style id="sanistock-parametres-verrouillage-visuel">
+/* Les deux accès Paramètres sont invisibles tant que le salarié n'est pas autorisé. */
+#homeSettingsButton:not([data-sani-autorise="oui"]),#settingsBtn:not([data-sani-autorise="oui"]){display:none!important;visibility:hidden!important}
+</style>
+<script id="sanistock-parametres-correctif-session-2026">
+(function(){
+  'use strict';
+  const autorises=new Set(['lewis hognon','hognon lewis','laurent guette','nathalie froger','nathalie']);
+  function normaliser(n){return String(n||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();}
+  let nomSession='';
+  function salarie(n){
+    if(n) nomSession=String(n);
+    const session=window.SaniStockCurrentEmployeeSession;
+    if(session && session.salarie) return normaliser(session.salarie);
+    if(nomSession) return normaliser(nomSession);
+    try{return normaliser(localStorage.getItem('sanistock_employee_name'));}catch(e){return '';}
+  }
+  function appliquer(n){
+    const ok=autorises.has(salarie(n));
+    ['homeSettingsButton','settingsBtn'].forEach(function(id){
+      const el=document.getElementById(id);
+      if(!el)return;
+      el.dataset.saniAutorise=ok?'oui':'non';
+      el.hidden=!ok;
+      el.style.setProperty('display',ok?'':'none',ok?'':'important');
+      el.setAttribute('aria-hidden',String(!ok));
+      el.disabled=!ok;
+    });
+    return ok;
+  }
+  window.saniActualiserAccesParametresAccueil=appliquer;
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){appliquer();});else appliquer();
+  window.addEventListener('storage',function(e){if(!e||e.key==='sanistock_employee_name'){nomSession='';appliquer();}});
+  // Certains scripts historiques réaffichent le bouton après la connexion.
+  // La règle est réappliquée sans toucher au chargement des salariés.
+  setInterval(function(){appliquer();},900);
+})();
+</script>
 </body></html>`;
         function afficherLecteurHtml_(html){
           fenetre.document.open();
