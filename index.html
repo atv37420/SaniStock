@@ -943,52 +943,42 @@ body{display:block}
 .badgeActive{color:#15803d}.badgeInactive{color:#b42318}
 .settingsAdminBlock{margin-top:12px;padding-top:12px;border-top:1px solid #d5e1e9}
 /* ===== TABLEAU DE BORD ADMINISTRATEUR ===== */
-#dashboardContent{display:grid;gap:10px}
-.dashboardLoading,.dashboardError{background:#fff;border-radius:14px;padding:18px;text-align:center;color:#60778c;font-weight:800}
+#dashboardContent{display:grid;gap:10px;padding:2px}
+.dashboardLoading,.dashboardError{background:#062b56;border:2px solid #1688e8;border-radius:14px;padding:18px;text-align:center;color:#fff;font-weight:800}
+.dashboardIntro{background:linear-gradient(135deg,#07366b,#041d3d);border:2px solid #168be8;border-radius:16px;padding:14px;color:#fff;display:flex;align-items:center;gap:12px}
+.dashboardIntroIcon{font-size:32px}.dashboardIntro strong{display:block;font-size:19px}.dashboardIntro span{font-size:12px;opacity:.9}
 .dashboardGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.dashboardKpi{background:#fff;border-radius:15px;padding:12px;border:1px solid #dbe7ef;box-shadow:0 4px 12px rgba(18,55,82,.06);min-height:70px}
-.dashboardKpi .kpiIcon{font-size:22px;float:left;margin-right:9px}
-.dashboardKpi .kpiValue{font-size:23px;font-weight:900;color:#042349;line-height:1}
-.dashboardKpi .kpiLabel{font-size:11px;font-weight:800;color:#60778c;margin-top:5px}
-.dashboardKpi.danger .kpiValue{color:#d72638}
-.dashboardKpi.warning .kpiValue{color:#e68a00}
-.dashboardKpi.success .kpiValue{color:#15803d}
-.dashboardKpi.clickable{cursor:pointer;transition:transform .15s ease,box-shadow .15s ease;border:2px solid transparent}
+.dashboardKpi{background:linear-gradient(145deg,#0755a0,#032b59);border:2px solid #168be8;border-radius:15px;padding:12px 8px;min-height:92px;color:#fff}
+.dashboardKpi .kpiIcon{font-size:25px;display:block;margin-bottom:4px}
+.dashboardKpi .kpiValue{font-size:27px;font-weight:900;color:#fff;line-height:1.05;display:block}
+.dashboardKpi .kpiLabel{font-size:11px;font-weight:800;color:#fff;margin-top:4px;display:block}
+.dashboardKpi.success{background:linear-gradient(145deg,#079d79,#00634f);border-color:#08b895}
+.dashboardKpi.danger{background:linear-gradient(145deg,#f04444,#a90018);border-color:#ff7777}
+.dashboardKpi.warning{background:linear-gradient(145deg,#ffad16,#d66b00);border-color:#ffd064}
+.dashboardKpi.clickable{cursor:pointer;transition:transform .15s ease,box-shadow .15s ease}
 .dashboardKpi{appearance:none;-webkit-appearance:none;width:100%;font:inherit;text-align:center;display:block;position:relative;z-index:5;pointer-events:auto}
-.dashboardKpi.clickable:hover{transform:translateY(-1px);box-shadow:0 7px 18px rgba(18,55,82,.12)}
-.dashboardKpi.clickable:active{transform:scale(.98)}
-.dashboardKpi.danger.clickable{border-color:#ffd0d6}
-.dashboardKpi.warning.clickable{border-color:#ffe2ad}
-.dashboardAlertDetail{background:#fff;border-radius:15px;padding:12px;border:1px solid #dbe7ef;box-shadow:0 4px 12px rgba(18,55,82,.06);display:none}
-.dashboardAlertDetail[hidden]{display:none !important}
-.dashboardAlertDetail.show{display:block}
+.dashboardKpi:active{transform:scale(.98)}
+.dashboardAlertDetail{background:#062b56;border-radius:15px;padding:12px;border:2px solid #168be8;display:none}
+.dashboardAlertDetail[hidden]{display:none !important}.dashboardAlertDetail.show{display:block}
 .dashboardAlertDetailHead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
-.dashboardAlertDetailTitle{font-weight:900;color:#042349;font-size:15px}
-.dashboardAlertClose{border:0;background:#edf4f9;color:#042349;border-radius:9px;padding:5px 9px;font-weight:900;cursor:pointer}
-.dashboardSection{background:#fff;border-radius:15px;padding:12px;border:1px solid #dbe7ef;box-shadow:0 4px 12px rgba(18,55,82,.06)}
+.dashboardAlertDetailTitle{font-weight:900;color:#fff;font-size:15px}
+.dashboardAlertClose{border:0;background:#e5f1ff;color:#07366b;border-radius:9px;padding:7px 9px;font-weight:900;cursor:pointer}
+.dashboardSection{background:#062b56;border-radius:15px;padding:12px;border:2px solid #168be8}
 .dashboardSectionHead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
-.dashboardSectionTitle{font-weight:900;color:#042349;font-size:15px}
-.dashboardSectionSub{font-size:10px;color:#71879a;margin-top:2px}
-.dashboardRows{display:grid;gap:6px}
-.dashboardRow{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 7px;border-radius:10px;background:#f7fbfe;border-left:4px solid #dbe7ef}
-.dashboardRow.danger{border-left-color:#d72638}
-.dashboardRow.warning{border-left-color:#e68a00}
-.dashboardRow .rowMain{min-width:0}
-.dashboardRow .rowName{font-size:10px;font-weight:900;color:#042349;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.dashboardRow .rowMeta{font-size:10px;color:#71879a;margin-top:2px}
+.dashboardSectionTitle{font-weight:900;color:#fff;font-size:15px}
+.dashboardSectionSub{font-size:10px;color:#c8def5;margin-top:2px}
+.dashboardRows{display:grid;gap:5px;background:#fff;border-radius:11px;padding:7px}
+.dashboardRow{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 7px;border-bottom:1px solid #dce8f4;background:#fff}
+.dashboardRow:last-child{border-bottom:0}.dashboardRow.danger{border-left:4px solid #e32636}.dashboardRow.warning{border-left:4px solid #ed9700}
+.dashboardRow .rowMain{min-width:0}.dashboardRow .rowName{font-size:12px;font-weight:900;color:#062b56;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dashboardRow .rowMeta{font-size:10px;color:#60778c;margin-top:2px}
 .dashboardBadge{flex:none;border-radius:999px;padding:5px 8px;font-size:10px;font-weight:900}
-.dashboardBadge.red{background:#ffe3e6;color:#c51f30}
-.dashboardBadge.orange{background:#fff0cf;color:#8a5a00}
-.dashboardBadge.green{background:#e3f7e9;color:#15803d}
-.dashboardBadge.blue{background:#e1effb;color:#042349}
+.dashboardBadge.red{background:#ffe3e6;color:#c51f30}.dashboardBadge.orange{background:#fff0cf;color:#8a5a00}.dashboardBadge.green{background:#e3f7e9;color:#15803d}.dashboardBadge.blue{background:#e1effb;color:#042349}
 .dashboardTwoCols{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .dashboardEmpty{padding:12px;text-align:center;color:#15803d;font-size:11px;font-weight:800;background:#f3fbf5;border-radius:10px}
 .dashboardVehicle{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #edf2f6}
-.dashboardVehicle:last-child{border-bottom:0}
-.dashboardVehicleIcon{font-size:18px}
-.dashboardVehicleName{font-size:11px;font-weight:900;color:#042349}
-.dashboardVehicleMeta{font-size:9px;color:#71879a;margin-top:2px}
-.dashboardRefreshNote{text-align:center;font-size:9px;color:#8aa0b1;margin-top:2px}
+.dashboardVehicle:last-child{border-bottom:0}.dashboardVehicleIcon{font-size:18px}.dashboardVehicleName{font-size:11px;font-weight:900;color:#042349}.dashboardVehicleMeta{font-size:9px;color:#71879a;margin-top:2px}
+.dashboardRefreshNote{text-align:center;font-size:10px;color:#d4e7fa;margin-top:3px}
 @media(max-width:430px){
   .dashboardTwoCols{grid-template-columns:1fr}
   .dashboardGrid{grid-template-columns:1fr 1fr}
@@ -7593,56 +7583,42 @@ function afficherTableauBord(stock,historique,vehicules){
     if(v && !recentVeh[v]) recentVeh[v]=h;
   });
 
+  const total=stock.length;
+  const ok=stock.filter(function(r){return r.statut==='OK';}).length;
+  const faibles=ruptures.length+minimum.length;
+  const peremptions30=peremptions.filter(function(x){return x.jours<=30;});
   const html=[];
+  html.push('<div class="dashboardIntro"><span class="dashboardIntroIcon">📊</span><div><strong>Tableau de bord</strong><span>Suivi du stock et des dates</span></div></div>');
   html.push('<div class="dashboardGrid">');
-  html.push(dashboardKpi_('📦',ruptures.length,'Ruptures','danger',"ouvrirAlertesDashboard('rupture')"));
-  html.push(dashboardKpi_('⚠️',minimum.length,'Stock minimum','warning',"ouvrirAlertesDashboard('minimum')"));
-  html.push(dashboardKpi_('📅',peremptions.length,'Péremptions ≤ 90 j','warning',"ouvrirDetailsDashboard('peremption')"));
-  html.push(dashboardKpi_('🧼',historique.length,'Désinfections récentes','success',"ouvrirDetailsDashboard('desinfection')"));
+  html.push(dashboardKpi_('📦',total,'Stock total','',null));
+  html.push(dashboardKpi_('✓',ok,'Stock OK','success',null));
+  html.push(dashboardKpi_('⚠️',faibles,'Stock faible','danger',"ouvrirAlertesDashboard('all')"));
+  html.push(dashboardKpi_('📅',peremptions30.length,'Péremption < 30 jours','warning',"ouvrirDetailsDashboard('peremption')"));
   html.push('</div>');
 
   function lignesAlertesDashboard_(liste,titre,classe){
-    let out='<div id="dashboardAlertDetail" class="dashboardAlertDetail" hidden>';
-    out+='<div class="dashboardAlertDetailHead"><div><div class="dashboardAlertDetailTitle">'+titre+'</div><div class="dashboardSectionSub">'+liste.length+' produit(s)</div></div><button class="dashboardAlertClose" type="button" onclick="fermerAlertesDashboard()">✕ Fermer</button></div>';
-    out+='<div class="dashboardRows">';
-    if(!liste.length) out+='<div class="dashboardEmpty">✅ Aucune alerte dans cette catégorie.</div>';
-    liste.forEach(function(r){
+    let out='<section class="dashboardSection"><div class="dashboardSectionHead"><div class="dashboardSectionTitle">'+titre+'</div></div><div class="dashboardRows">';
+    if(!liste.length) out+='<div class="dashboardEmpty">✅ Aucun produit en alerte.</div>';
+    liste.slice(0,5).forEach(function(r){
       const rup=String(r.statut)==='Rupture';
-      out+='<div class="dashboardRow '+classe+'"><div class="rowMain"><div class="rowName">'+escapeHtml(r.produit)+'</div><div class="rowMeta">Minimum : '+escapeHtml(String(r._minimum))+'</div></div><div><div style="font-weight:900;text-align:right;color:'+(rup?'#d72638':'#e68a00')+'">'+escapeHtml(String(r._actuel))+'</div><span class="dashboardBadge '+(rup?'red':'orange')+'">'+(rup?'RUPTURE':'STOCK MIN')+'</span></div></div>';
+      out+='<div class="dashboardRow '+classe+'"><div class="rowMain"><div class="rowName">'+escapeHtml(r.produit)+'</div><div class="rowMeta">Quantité : '+escapeHtml(String(r._actuel))+' • Minimum : '+escapeHtml(String(r._minimum))+'</div></div><span class="dashboardBadge '+(rup?'red':'orange')+'">'+(rup?'RUPTURE':'STOCK FAIBLE')+'</span></div>';
     });
-    out+='</div></div>';
-    return out;
+    if(liste.length>5) out+='<div class="dashboardEmpty">Et '+(liste.length-5)+' autre(s) produit(s) en alerte.</div>';
+    out+='</div></section>';return out;
   }
-  html.push(lignesAlertesDashboard_(ruptures,'🔴 Produits en rupture','danger'));
-  html.push(lignesAlertesDashboard_(minimum,'🟠 Produits au stock minimum','warning'));
+  html.push(lignesAlertesDashboard_(ruptures.concat(minimum),'⚠️ Produits en alerte','danger'));
 
-  /* Détails cachés au départ : ils s'ouvrent uniquement en cliquant sur la tuile correspondante. */
   let detailPeremption='<div id="dashboardDetailPeremption" class="dashboardAlertDetail" hidden>';
-  detailPeremption+='<div class="dashboardAlertDetailHead"><div><div class="dashboardAlertDetailTitle">📅 Prochaines péremptions</div><div class="dashboardSectionSub">'+peremptions.length+' produit(s) dans les 90 jours</div></div><button class="dashboardAlertClose" type="button" onclick="fermerDetailsDashboard()">✕ Fermer</button></div>';
-  detailPeremption+='<div class="dashboardRows">';
+  detailPeremption+='<div class="dashboardAlertDetailHead"><div><div class="dashboardAlertDetailTitle">📅 Prochaines péremptions</div><div class="dashboardSectionSub">Produits à échéance dans les 90 jours</div></div><button class="dashboardAlertClose" type="button" onclick="fermerDetailsDashboard()">✕ Fermer</button></div><div class="dashboardRows">';
   if(!peremptions.length) detailPeremption+='<div class="dashboardEmpty">✅ Aucune péremption dans les 90 jours.</div>';
-  peremptions.forEach(function(x){
-    const urgent=x.jours<=30;
-    detailPeremption+='<div class="dashboardRow '+(urgent?'danger':'warning')+'"><div class="rowMain"><div class="rowName">'+escapeHtml(x.r.produit)+'</div><div class="rowMeta">Date de péremption : '+escapeHtml(x.r.datePeremption)+'</div></div><span class="dashboardBadge '+(urgent?'red':'orange')+'">'+x.jours+' j</span></div>';
-  });
-  detailPeremption+='</div></div>';
-  html.push(detailPeremption);
+  peremptions.forEach(function(x){const urgent=x.jours<=30;detailPeremption+='<div class="dashboardRow '+(urgent?'danger':'warning')+'"><div class="rowMain"><div class="rowName">'+escapeHtml(x.r.produit)+'</div><div class="rowMeta">Date : '+escapeHtml(x.r.datePeremption)+'</div></div><span class="dashboardBadge '+(urgent?'red':'orange')+'">'+x.jours+' jour(s)</span></div>';});
+  detailPeremption+='</div></div>';html.push(detailPeremption);
 
-  let detailDesinfection='<div id="dashboardDetailDesinfection" class="dashboardAlertDetail" hidden>';
-  detailDesinfection+='<div class="dashboardAlertDetailHead"><div><div class="dashboardAlertDetailTitle">🧼 Désinfections des véhicules</div><div class="dashboardSectionSub">'+historique.length+' désinfection(s) récente(s)</div></div><button class="dashboardAlertClose" type="button" onclick="fermerDetailsDashboard()">✕ Fermer</button></div>';
-  detailDesinfection+='<div class="dashboardRows">';
-  if(!recentDes.length) detailDesinfection+='<div class="dashboardEmpty">Aucune désinfection enregistrée.</div>';
-  recentDes.forEach(function(h){
-    detailDesinfection+='<div class="dashboardRow"><div class="rowMain"><div class="rowName">🚑 '+escapeHtml(h.vehicule)+'</div><div class="rowMeta">'+escapeHtml(h.salarie)+' • '+escapeHtml(h.dateHeure)+'</div></div><span class="dashboardBadge green">'+escapeHtml(h.pourcentage||'100')+'%</span></div>';
-  });
-  detailDesinfection+='</div></div>';
-  html.push(detailDesinfection);
-
-  /* La liste des véhicules n'est plus affichée ici.
-     Le suivi des désinfections est accessible depuis la tuile
-     « Désinfections récentes », comme les autres indicateurs. */
-
-  html.push('<div class="dashboardRefreshNote">Données actualisées à l’ouverture de l’onglet ou avec ↻ Actualiser.</div>');
+  let detailAll='<div id="dashboardDetailAll" class="dashboardAlertDetail" hidden><div class="dashboardAlertDetailHead"><div class="dashboardAlertDetailTitle">⚠️ Tous les stocks faibles</div><button class="dashboardAlertClose" type="button" onclick="fermerAlertesDashboard()">✕ Fermer</button></div><div class="dashboardRows">';
+  if(!faibles) detailAll+='<div class="dashboardEmpty">✅ Aucun stock faible.</div>';
+  ruptures.concat(minimum).forEach(function(r){const rup=r.statut==='Rupture';detailAll+='<div class="dashboardRow '+(rup?'danger':'warning')+'"><div class="rowMain"><div class="rowName">'+escapeHtml(r.produit)+'</div><div class="rowMeta">Quantité : '+r._actuel+' • Minimum : '+r._minimum+'</div></div><span class="dashboardBadge '+(rup?'red':'orange')+'">'+(rup?'RUPTURE':'STOCK FAIBLE')+'</span></div>';});
+  detailAll+='</div></div>';html.push(detailAll);
+  html.push('<div class="dashboardRefreshNote">Données réelles du stock • Actualiser avec ↻ en haut.</div>');
   document.getElementById('dashboardContent').innerHTML=html.join('');
 }
 
@@ -7655,7 +7631,7 @@ function dashboardKpi_(icon,value,label,kind,onclick){
 function ouvrirAlertesDashboard(type){
   const details=document.querySelectorAll('#dashboardContent .dashboardAlertDetail');
   details.forEach(function(el){el.classList.remove('show'); el.hidden=true;});
-  const target=type==='rupture'?details[0]:details[1];
+  const target=type==='all'?document.getElementById('dashboardDetailAll'):(type==='rupture'?details[0]:details[1]);
   if(target){target.hidden=false; target.classList.add('show'); target.scrollIntoView({behavior:'smooth',block:'nearest'});}
 }
 function ouvrirDetailsDashboard(type){
