@@ -20633,6 +20633,69 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerFenetr
 }
 </style>
 
+
+<style id="sanistock-parametres-visibilite-final">
+/* Paramètres masqués par défaut ; le script les affiche uniquement aux personnes autorisées. */
+#homeSettingsButton[hidden]{display:none!important;}
+</style>
+<script id="sanistock-parametres-visibilite-final-script">
+(function(){
+  'use strict';
+  var AUTORISES = new Set(['lewis','lewis hognon','hognon lewis','laurent guette','nathalie froger']);
+  function normaliser(nom){
+    return String(nom || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
+  }
+  function nomActuel(nom){
+    if(nom) return normaliser(nom);
+    try {
+      var session = window.SaniStockCurrentEmployeeSession || {};
+      return normaliser(session.salarie || localStorage.getItem('sanistock_employee_name') || '');
+    } catch(e){ return ''; }
+  }
+  function appliquer(nom){
+    var bouton = document.getElementById('homeSettingsButton');
+    if(!bouton) return false;
+    var autorise = AUTORISES.has(nomActuel(nom));
+    bouton.hidden = !autorise;
+    bouton.setAttribute('aria-hidden', autorise ? 'false' : 'true');
+    bouton.disabled = !autorise;
+    if(autorise) bouton.style.removeProperty('display');
+    else bouton.style.setProperty('display','none','important');
+    return autorise;
+  }
+  /* Préserve les autres règles déjà raccordées à cette fonction (ex. gestion du stock). */
+  var precedente = window.saniActualiserAccesParametresAccueil;
+  window.saniActualiserAccesParametresAccueil = function(nom){
+    if(typeof precedente === 'function'){
+      try { precedente(nom); } catch(e) {}
+    }
+    return appliquer(nom);
+  };
+  function initialiser(){ appliquer(); }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initialiser, {once:true});
+  else initialiser();
+  window.addEventListener('storage', function(e){
+    if(!e || e.key === 'sanistock_employee_name') appliquer();
+  });
+  /* Si le bouton est reconstruit par l'accueil, réapplique la visibilité sans toucher au chargement salarié. */
+  if(window.MutationObserver && document.documentElement){
+    var enCours = false;
+    var observer = new MutationObserver(function(mutations){
+      if(enCours) return;
+      for(var i=0;i<mutations.length;i++){
+        var nodes = mutations[i].addedNodes;
+        for(var j=0;j<nodes.length;j++){
+          var n = nodes[j];
+          if(n.nodeType === 1 && (n.id === 'homeSettingsButton' || (n.querySelector && n.querySelector('#homeSettingsButton')))){
+            enCours = true; appliquer(); enCours = false; return;
+          }
+        }
+      }
+    });
+    observer.observe(document.documentElement,{childList:true,subtree:true});
+  }
+})();
+</script>
 </body>
 </html>
 <!-- SaniStock 1.1.114 : réactions multiples sur les publications. -->
