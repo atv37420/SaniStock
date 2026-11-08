@@ -3520,7 +3520,8 @@ document.addEventListener('DOMContentLoaded', function(){
 <h1>DÉSINFECTION</h1>
 <div class="selectors">
 <div><label>SALARIÉ</label><select id="employee"><option value="">Sélectionner votre nom</option></select><button class="addColleagueBtn" hidden="" id="addColleagueBtn" onclick="toggleSecondColleague()" type="button">＋ Ajouter un collègue</button><div class="secondColleagueWrap" hidden="" id="secondColleagueWrap"><label>2ᵉ COLLÈGUE</label><select id="employee2"><option value="">Sélectionner le collègue</option></select></div></div>
-<div><label>VÉHICULE</label><select id="vehicle" onchange="adapterChecklistVehicule()"><option value="">Sélectionner un véhicule</option><option>FZ-349-AT – AMBULANCE PEUGEOT BOXER</option><option>HS-219-PS – AMBULANCE RENAULT TRAFIC</option>
+<div><label>VÉHICULE</label><select id="vehicle" onchange="adapterChecklistVehicule()"><option value="">Sélectionner un véhicule</option><option>FZ-349-AT – AMBULANCE PEUGEOT BOXER</option>
+<option>HS-219-PS – AMBULANCE RENAULT TRAFIC</option>
 
 <option>AUDI A6 TAXI</option><option>HK-887-SD – FORD TOURNEO TAXI</option><option>FH-061-DT – CADDY TAXI</option><option>GH805GV – IONIQ 5 TAXI</option><option>GH-575-RH – CADDY VSL</option><option>DR-607-TE – CADDY BLANC TAXI</option><option>FC-295-XP – SKODA SUPERB VSL</option><option>FF-458-QT – SKODA BREAK VSL</option><option>EW-353-WR – SKODA BREAK VSL</option><option>FF-334-SL – SKODA KODIAQ VSL</option><option>EN-114-BK – SKODA SUPERB VSL</option></select></div>
 </div>
@@ -15623,7 +15624,7 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerFenetr
       placeholder=null;
     }
     if(pane){pane.hidden=true;pane.style.display='none';pane.classList.remove('active');}
-    if(typeof window.showPage==='function')window.showPage('homePage');
+    if(typeof window.showPage==='function')window.showPage('stockPage');
     return false;
   };
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',installer);
