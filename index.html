@@ -20046,17 +20046,27 @@ html+='<div class="ambSectionBulkActions"><button type="button" class="toutCoche
 <script id="sanistock-fix-memo-medicaments-navigation-142">
 (function(){
   function openMedicationSafely(){
-    document.querySelectorAll('.screen').forEach(function(p){
-      p.classList.remove('active','pageFadeIn','pageFadeOut');
-      p.style.removeProperty('z-index');
-    });
     var page=document.getElementById('medicationPage');
     if(!page) return;
-    page.classList.add('active');
-    page.style.display='block';
-    page.style.visibility='visible';
-    page.style.opacity='1';
-    page.style.background='#edf5fa';
+
+    /* Ne jamais imposer display:block en style inline :
+       cette valeur restait active même après le retrait de la classe .active,
+       et la page Médicaments recouvrait alors les autres catégories. */
+    page.style.removeProperty('display');
+    page.style.removeProperty('visibility');
+    page.style.removeProperty('opacity');
+    page.style.removeProperty('z-index');
+
+    /* Utilise la navigation normale pour fermer l'écran précédent
+       et permettre l'ouverture de n'importe quelle autre catégorie. */
+    if(typeof window.showPage==='function'){
+      window.showPage('medicationPage');
+    }else{
+      document.querySelectorAll('.screen').forEach(function(p){
+        p.classList.remove('active','pageFadeIn','pageFadeOut');
+      });
+      page.classList.add('active');
+    }
     window.scrollTo(0,0);
     if(typeof renderMedicationMemo==='function') renderMedicationMemo();
   }
