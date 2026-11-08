@@ -2660,8 +2660,8 @@ button.settingsAction.secondary:hover,
 </section>
 <section class="settingsPane" hidden="" id="settingsPaneDashboard" role="tabpanel">
 <div class="settingsPaneHead">
-<div><strong>📊 Tableau de bord</strong><span>Vue responsable de SaniStock — accessible uniquement depuis les paramètres.</span></div>
-<button class="settingsAction" onclick="chargerTableauBord()" type="button">↻ Actualiser</button>
+<div><strong>📊 Tableau de bord</strong><span>Suivi du stock et des dates</span></div>
+<div style="display:flex;gap:8px;align-items:center"><button class="settingsAction" onclick="chargerTableauBord()" type="button">↻ Actualiser</button><button class="settingsAction" onclick="fermerParametres()" type="button">✕ Fermer</button></div>
 </div>
 <div id="dashboardContent">
 <div class="dashboardLoading">Chargement du tableau de bord…</div>
@@ -5115,6 +5115,48 @@ __SANI_PDFJS_SCRIPT_TAG__
   }
 }
 </style>
+
+
+<style id="sanistock-dashboard-standalone-view">
+/* Ouverture du vrai tableau de bord sans l'habillage des paramètres. */
+#settingsOverlay.dashboard-only{padding:0!important;background:#061d3b!important;}
+#settingsOverlay.dashboard-only .settingsPanel{width:100%!important;max-width:none!important;min-height:100dvh!important;margin:0!important;border-radius:0!important;padding:12px!important;}
+#settingsOverlay.dashboard-only .settingsHead,
+#settingsOverlay.dashboard-only>.settingsPanel>.settingsIntro,
+#settingsOverlay.dashboard-only .settingsTabs,
+#settingsOverlay.dashboard-only #settingsMsg{display:none!important;}
+#settingsOverlay.dashboard-only #settingsPaneDashboard{display:block!important;min-height:calc(100dvh - 24px);}
+#settingsOverlay.dashboard-only #settingsPaneDashboard .settingsPaneHead{position:sticky;top:0;z-index:5;background:#fff;padding:10px 0;}
+#settingsOverlay.dashboard-only #settingsPaneDashboard .settingsPaneHead strong{font-size:18px!important;color:#07366b!important;}
+#settingsOverlay.dashboard-only #settingsPaneDashboard .settingsPaneHead span{font-size:12px!important;}
+@media(max-width:700px){#settingsOverlay.dashboard-only{padding:0!important}#settingsOverlay.dashboard-only .settingsPanel{padding:10px!important}}
+</style>
+<script id="sanistock-dashboard-direct-entry-fix">
+(function(){
+  const allowed=new Set(['lewis hognon','hognono lewis','hognon lewis','laurent guette']);
+  function norm(v){return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();}
+  function currentName(){try{return norm((window.SaniStockCurrentEmployeeSession||{}).salarie||localStorage.getItem('sanistock_employee_name')||'');}catch(e){return '';}}
+  window.ouvrirTableauBordAccueil=function(){
+    if(!allowed.has(currentName())){alert('Accès réservé à Hognon Lewis et Laurent Guette.');return;}
+    saniOuvertureDashboardDemandee=true;
+    const overlay=document.getElementById('settingsOverlay');
+    if(overlay) overlay.classList.add('dashboard-only');
+    ouvrirParametresInterneDashboard_();
+  };
+  const oldClose=window.fermerParametres;
+  window.fermerParametres=function(){
+    const overlay=document.getElementById('settingsOverlay');
+    if(overlay) overlay.classList.remove('dashboard-only');
+    if(typeof oldClose==='function') oldClose();
+  };
+  const oldOpen=window.ouvrirParametres;
+  window.ouvrirParametres=function(){
+    const overlay=document.getElementById('settingsOverlay');
+    if(overlay) overlay.classList.remove('dashboard-only');
+    if(typeof oldOpen==='function') oldOpen();
+  };
+})();
+</script>
 
 </body></html>`;
         function afficherLecteurHtml_(html){
