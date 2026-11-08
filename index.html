@@ -3521,7 +3521,6 @@ document.addEventListener('DOMContentLoaded', function(){
 <div class="selectors">
 <div><label>SALARIÉ</label><select id="employee"><option value="">Sélectionner votre nom</option></select><button class="addColleagueBtn" hidden="" id="addColleagueBtn" onclick="toggleSecondColleague()" type="button">＋ Ajouter un collègue</button><div class="secondColleagueWrap" hidden="" id="secondColleagueWrap"><label>2ᵉ COLLÈGUE</label><select id="employee2"><option value="">Sélectionner le collègue</option></select></div></div>
 <div><label>VÉHICULE</label><select id="vehicle" onchange="adapterChecklistVehicule()"><option value="">Sélectionner un véhicule</option><option>FZ-349-AT – AMBULANCE PEUGEOT BOXER</option>
-<option>HS-219-PS – AMBULANCE RENAULT TRAFIC</option>
 
 <option>AUDI A6 TAXI</option><option>HK-887-SD – FORD TOURNEO TAXI</option><option>FH-061-DT – CADDY TAXI</option><option>GH805GV – IONIQ 5 TAXI</option><option>GH-575-RH – CADDY VSL</option><option>DR-607-TE – CADDY BLANC TAXI</option><option>FC-295-XP – SKODA SUPERB VSL</option><option>FF-458-QT – SKODA BREAK VSL</option><option>EW-353-WR – SKODA BREAK VSL</option><option>FF-334-SL – SKODA KODIAQ VSL</option><option>EN-114-BK – SKODA SUPERB VSL</option></select></div>
 </div>
@@ -3958,8 +3957,10 @@ function electricFuelLabel(){
  return '<span class=\"taskIcon\"><svg class=\"taskSvg\" viewBox=\"0 0 24 24\"><path d=\"M7 3h8v18H7z\"></path><path d=\"M9 6h4v4H9z\"></path><path d=\"M15 8h3v4h2v4\"></path><path d=\"M4 21h16\"></path></svg></span><span class=\"taskLabel\">Brancher le véhicule</span>';
 }
 function isAmbulanceVehicle(nom){
- const v=String(nom||'').toUpperCase();
- return v.includes('FZ-349-AT') || v.includes('AMBULANCE PEUGEOT BOXER') || v.includes('HS-219-PS') || v.includes('RENAULT TRAFIC AMBULANCE');
+ // Toutes les ambulances Peugeot et Renault utilisent la même fiche de désinfection
+ // et les mêmes paramètres que l'ambulance Peugeot Boxer.
+ const v=String(nom||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase();
+ return v.includes('AMBULANCE') || v.includes('FZ-349-AT') || v.includes('HS-219-PS');
 }
 const CHECKLIST_COFFRE_VSL_TAXI = [
  {id:'coffre',label:'<span class="taskIcon"><svg class="taskSvg" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="12" rx="2"></rect><path d="M8 8V5h8v3M3 12h18M10 12v2h4v-2"></path></svg></span><span class="taskLabel">Coffre</span>'}
@@ -14422,9 +14423,8 @@ html+='<div class="ambSectionBulkActions"><button type="button" class="toutCoche
       html+='</div>';
     });
     const vehicleUiText=String(vehicle||'').toUpperCase();
-    const isRenaultUi=vehicleUiText.includes('HS-219-PS');
-    const isPeugeotBoxerUi=vehicleUiText.includes('FZ-349-AT') || vehicleUiText.includes('PEUGEOT BOXER');
-    if(isRenaultUi || isPeugeotBoxerUi){
+    const isAmbulanceUi=isAmbulanceVehicle(vehicleUiText);
+    if(isAmbulanceUi){
       html+='<div class="vslSection ambSignatureSection"><div class="vslSectionTitle">SIGNATURES</div><div class="ambSignatureGrid">';
       html+='<div class="ambSignatureBox"><div class="ambSignatureLabel">A.D.E</div><canvas id="ambSignatureDaeCanvas" class="ambSignatureCanvas ambSignatureCanvasSmall" width="900" height="260"></canvas></div>';
       html+='<div class="ambSignatureBox"><div class="ambSignatureLabel">A.A</div><canvas id="ambSignatureAaCanvas" class="ambSignatureCanvas ambSignatureCanvasSmall" width="900" height="260"></canvas></div>';
