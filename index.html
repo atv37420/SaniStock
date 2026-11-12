@@ -3841,7 +3841,7 @@ function demanderCodeEntreeStock(){
  const overlay=$('stockPinOverlay'), input=$('stockPinInput'), err=$('stockPinError');
  if(!overlay||!input) return;
  const salarie=String(($('stockEmployee')&&$('stockEmployee').value)||'').trim().replace(/\s+/g,' ').toLowerCase();
- const entreesSansCode=['mike boucher','emilie roy','laurent guette','lewis hognon'];
+ const entreesSansCode=['mike boucher','emilie roy','laurent guette','lewis hognon','hognon lewis','lewis','nathalie froger'];
  if(appareilProprietaire() || entreesSansCode.indexOf(salarie)!==-1){
    codeEntreeStockValide='';
    openStockModal('entree');
@@ -5379,9 +5379,20 @@ function donneesAccesGestion() {
   };
 }
 
+function saniNomAdminSansCode(){
+  const autorises=new Set(['lewis hognon','hognon lewis','lewis','laurent guette','nathalie froger']);
+  const normaliser=function(v){return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim()};
+  let nom='';
+  try{
+    const session=window.SaniStockCurrentEmployeeSession||{};
+    nom=session.salarie||session.nom||localStorage.getItem('sanistock_employee_name')||'';
+  }catch(e){}
+  return autorises.has(normaliser(nom));
+}
+
 function ouvrirParametres(){
   if(!gsDisponible()){alert('Connexion SaniStock indisponible.');return}
-  if(appareilProprietaire()){
+  if(appareilProprietaire() || saniNomAdminSansCode()){
     document.getElementById('settingsOverlay').classList.add('open');
     document.getElementById('settingsOverlay').setAttribute('aria-hidden','false');
     /* Recharge systématiquement les données à l'ouverture. */
@@ -5435,7 +5446,7 @@ function fermerParametres(){
 /* Actualisation automatique à chaque nouvelle ouverture des paramètres. */
 function actualiserParametresAChaqueOuverture(){
   try{
-    if(!appareilProprietaire()) return;
+    if(!appareilProprietaire() && !saniNomAdminSansCode()) return;
     const active=document.querySelector('#settingsTabs .settingsTab.active');
     const onglet=active ? active.getAttribute('data-onglet') : 'salaries';
     ouvrirOngletParametres(onglet || 'salaries');
@@ -20738,7 +20749,7 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')fermerFenetr
 <script id="sanistock-entree-produit-droits">
 (function(){
   'use strict';
-  const AUTORISES = new Set(['lewis hognon','mike boucher','emilie roy','laurent guette','nathalie froger']);
+  const AUTORISES = new Set(['lewis hognon','hognon lewis','lewis','mike boucher','emilie roy','laurent guette','nathalie froger']);
   function normaliserNom(nom){
     return String(nom||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
   }
